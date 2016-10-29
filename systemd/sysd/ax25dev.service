@@ -1,0 +1,25 @@
+[Unit]
+Description=AX.25 device
+BindsTo=direwolf.service
+Requires=direwolf.service
+After=direwolf.service
+#After=network-online.target
+
+[Service]
+# Use for debug
+Type=oneshot
+ExecStart=/bin/bash -c '/etc/ax25/ax25-upd'
+RemainAfterExit=yes
+
+#ExecStart= /bin/bash -c '/usr/local/sbin/kissattach  /tmp/kisstnc udr0 44.24.197.66' >/tmp/ax25-config.tmp
+#ExecStart= /bin/bash -c '/usr/local/sbin/kissattach  /tmp/kisstnc udr0 44.24.197.66'
+#
+# ExecStartPost=/etc/ax25/ax25dev-parms
+#
+# Install KISS Parameter: P=32, W=200, TX-Delay=500
+ExecStartPost=/bin/bash -c '/usr/local/sbin/kissparms -p udr0 -f no -l 100 -r 32 -s 200 -t 500'
+
+ExecStop=/bin/bash -c '/etc/ax25/ax25-downd'
+
+[Install]
+WantedBy=multi-user.target

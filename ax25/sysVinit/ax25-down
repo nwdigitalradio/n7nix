@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# Stop FPAC
+#    /usr/local/sbin/myfpac.sh stop
+
+# Stop direwolf
+PROC_NAME=direwolf
+PID=`/bin/pidof -x $PROC_NAME`
+  if [ -n "$PID" ]; then
+     kill -TERM $PID > /dev/null
+     echo "$PROC_NAME - $PID "
+     sleep 1
+  fi
+
+# if the direwolf symbolic link exists remove it
+SERIALPORT_DIREWOLF="/tmp/kisstnc"
+  if [ -L "$SERIALPORT_DIREWOLF" ] ; then
+    echo "Removing direwolf symbolic link $SERIALPORT_DIREWOLF"
+    rm "$SERIALPORT_DIREWOLF"
+  fi
+
+# Stop Ax25 support
+#  for PROC_NAME in beacon ax25d ax25ipd ax25rtd mheardd listen saxIgate
+  for PROC_NAME in beacon ax25d ax25ipd ax25rtd mheardd saxIgate
+    do
+      PID=`/bin/pidof -x $PROC_NAME`
+      if [ -n "$PID" ]; then
+         kill -TERM $PID > /dev/null
+         echo "$PROC_NAME - $PID "
+         sleep 1
+      fi
+    done
+
+# If netromd is running
+  pidof netromd > /dev/null
+  if [ $? -eq 0 ]; then
+
+# Save NetRom routes
+   /usr/local/sbin/nodesave -p /usr/local/sbin/ /var/ax25/nrsave && echo "N/R routes saved"
+
+# Stop NetRom
+    killall netromd > /dev/null
+    ifconfig nr0 down
+    ifconfig nr1 down
+    echo "Netrom Stopped"
+  fi
+
+# Close sockets
+echo "Detach Ax/Nr/Sp Devices"
+#echo "$(ls /proc/sys/net/ax25)" > /tmp/ax25-config.tmp
+ifconfig|grep AMPR > /tmp/ax25-config.tmp
+read Select < /tmp/ax25-config.tmp
+i=0
+while [ "$Select" != "" ]
+ do
+ let i=i+1
+ awk ' NR == '$i' { print $1 }' /tmp/ax25-config.tmp > /tmp/ax25-config-tmp
+ read Select < /tmp/ax25-config-tmp
+  if [ "$Select" != "" ]; then
+   ifconfig "$Select" down
+   echo " $Select down"
+  fi
+ done
+
+# Stop Kissattach
+killall -KILL kissattach > /dev/null
+# Empty Heard List
+#cat /dev/null > /var/ax25/mheard/mheard.dat
+
+echo "Ax25 Stopped"
+echo "     ***   "
+# End of ax25-down

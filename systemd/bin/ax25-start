@@ -1,0 +1,5 @@
+#! /bin/bash
+systemctl start direwolf.service
+systemctl start ax25dev.path
+systemctl start ax25-mheardd.service
+systemctl start ax25d.service

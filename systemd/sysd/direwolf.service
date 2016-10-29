@@ -1,0 +1,12 @@
+[Unit]
+Description=Direwolf Daemon
+After=sound.target
+
+[Service]
+ExecStartPre=/bin/rm -f /tmp/kisstnc
+ExecStart=/usr/local/bin/direwolf -t 0 -c /etc/direwolf.conf -p
+ExecStop=/bin/rm -f /tmp/kisstnc
+
+[Install]
+WantedBy=multi-user.target
+DefaultInstance=1

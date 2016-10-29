@@ -1,0 +1,10 @@
+[Unit]
+Description=General purpose AX.25 daemon
+After=ax25dev.service
+After=sys-subsystem-net-devices-ax0.device
+
+[Service]
+ExecStart=/usr/local/sbin/ax25d -l
+
+[Install]
+WantedBy=multi-user.target

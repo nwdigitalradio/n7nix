@@ -1,0 +1,6 @@
+#! /bin/bash
+systemctl stop ax25dev.service
+systemctl stop ax25dev.path
+systemctl stop direwolf.service
+systemctl stop ax25-mheardd.service
+systemctl stop ax25d.service

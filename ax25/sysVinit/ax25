@@ -1,0 +1,67 @@
+#!/bin/bash
+# Provided by Charles S Schuman ( k4gbb1@gmail.com )
+# May 11/2016
+### BEGIN INIT INFO
+# Provides: ax25
+# Required-Start: $local_fs $syslog $network $alsa-utils
+# Required-Stop:  $syslog $network
+# Default-Start: S
+# Default-Stop: 0 1 6
+# Short-Description: Ax.25 initialization
+# Description: This script provides the control for the ax.25 Packet Radio Service.
+#	       The fine tuning is accomplished via /etc/ax25/ax25-up and /etc/ax25/ax25-down.
+#
+### END INIT INFO
+
+NAME=Ax25			# Process name ( For display )
+DAEMON=/usr/local/etc/ax25/ax25-up
+DAEMONHALT=/usr/local/etc/ax25/ax25-down
+
+test -x $DAEMON || exit 5 # Exit - Pgm Not Installed.
+
+case "$1" in
+  start )
+  # Check the status of ax25
+    if [ -d /proc/sys/net/ax25/ax0 ]; then
+        echo -e "\t $NAME: is already running."
+        netstat|grep LISTENING
+        exit 1
+    fi
+    echo -e "\t *** $NAME $1 ***"
+    $DAEMON
+    ;;
+
+    stop )
+    echo "    *** $NAME $1 ***"
+    $DAEMONHALT
+    ;;
+
+   restart )
+    echo "    *** $NAME $1 ***"
+    $DAEMONHALT
+    sleep 1
+    $DAEMON
+    ;;
+
+  status )
+    echo  "        *** $NAME $1 ***"
+    if [ ! -d /proc/sys/net/ax25/ax0 ] ; then
+      echo "ax25 is down"
+    else
+        if [ -z "$(uname -r | grep kjd)" ] ;then
+#          netstat --ax25
+           netstat|grep LISTENING
+        else
+          /sbin/ifconfig ipax0
+          cat /proc/net/ax25
+        fi
+    fi
+    ;;
+
+  *)
+    echo "Usage: $0 {start|stop|restart|status}"
+    exit 1
+    ;;
+esac
+
+exit 0

@@ -1,0 +1,110 @@
+#!/bin/bash
+# ax25-up.pi
+# Ax25, rose, & mkiss - are pre-loaded via /etc/modules
+USER="gunn"
+ETCDIR=/home/$USER/etc
+LOGDIR=/home/$USER/var/log
+LOGNAME="direwolf.log"
+SBINDIR=/usr/local/sbin
+BINDIR=/usr/local/bin
+
+# portname set in /etc/ax25/axports
+PORTNAME="udr0"
+SERIALPORT_DIREWOLF="/tmp/kisstnc"
+
+# Set Sysctl values
+sysctl -w kernel.panic=30
+sysctl -w kernel.panic_on_oops=30
+
+# determine if direwolf is already running
+direwolf_pid=$(pidof direwolf)
+if [[ -z $direwolf_pid ]]; then
+
+# direwolf is NOT running so start it up
+
+# if the symbolic link exists remove it
+    if [ -L $SERIALPORT_DIREWOLF ] ; then
+      echo "Removing stale symbolic link $SERIALPORT_DIREWOLF"
+      rm $SERIALPORT_DIREWOLF
+    fi
+# Now sart Direwolf
+    direwolf -t 0 -q h -q d -c ${ETCDIR}/direwolf.conf -p  > ${LOGDIR}/${LOGNAME} &
+    sleep 2
+
+else
+    echo "direwolf is already running, pid = $direwolf_pid"
+fi
+
+PROC_NAME=ax25d
+PID=`/bin/pidof -x $PROC_NAME`
+if [ -n "$PID" ]; then
+    echo "$PROC_NAME already running, pid = $PID ... exiting"
+    exit
+fi
+
+
+# Port0 (Start)
+ echo "Start Port ${PORTNAME} with device ${SERIALPORT_DIREWOLF}"
+
+# Attach KISS-device /dev/ttyUSB0 to Port udr0
+# $SBINDIR/kissattach /dev/ttyAMA0 0 44.128.1.1 >/tmp/ax25-config.tmp
+ $SBINDIR/kissattach ${SERIALPORT_DIREWOLF} ${PORTNAME} 44.24.197.66 >/tmp/ax25-config.tmp
+  awk '/device/ { print $7 }' /tmp/ax25-config.tmp > /tmp/ax25-config-tmp
+  read Device < /tmp/ax25-config-tmp
+
+# Install Parameter: P=128, W=10, TX-Delay=200
+#  $SBINDIR/kissparms -p ${PORTNAME}      -l 20 -r 128 -s 10 -t 250
+#  $SBINDIR/kissparms -p ${PORTNAME} -f no -l 100 -r 63 -s 50 -t 800
+  $SBINDIR/kissparms -p ${PORTNAME} -f no -l 100 -r 32 -s 200 -t 500
+
+# Check for Device
+  echo "Checking for Device ${Device}"
+  if [ -d /proc/sys/net/ax25/$Device ]
+     then cd /proc/sys/net/ax25/$Device/
+# Parms for a USER Port
+#echo 3000    > t1_timeout		# (Frack) /1000 = ? Sec
+echo 10000    > t1_timeout		# (Frack) /1000 = ? Sec
+echo 1000    > t2_timeout 		# (RESPtime) /1000 = ? sec
+echo 300000  > t3_timeout 		# (Check) /6000 = ? Min
+echo 900000  > idle_timeout		# Idle Timer /6000 = ? min
+echo 3       > standard_window_size	# Outstanding Frames
+echo 6       > maximum_retry_count	# Max Retrys
+echo 256     > maximum_packet_length	# Paclen
+echo 0       > ax25_default_mode
+echo 0       > ip_default_mode
+echo 0       > backoff_type
+echo 2       > connect_mode
+#echo 180000 > dama_slave_timeout
+echo 32      > extended_window_size
+echo 0       > protocol
+#        /etc/ax25/Lanparms
+        ifconfig $Device netmask 255.255.255.255
+        echo " Port ${PORTNAME} attached to ${Device} "
+# Adding route causes broadcast out ax.25 interface
+#        /sbin/route add -net 44.0.0.0 netmask 255.0.0.0 dev ${Device}
+#        echo " net 44 route added for $Device "
+     else
+        echo "** Error setting $Device parms**"
+  fi
+# End config of first port
+# Port0 (End)
+
+# Start "Other" Services
+
+# Open Listen on Term 11
+# $BINDIR/listen -artc > /dev/tty11 &
+
+# Enable External Logons
+  $SBINDIR/ax25d -l &
+  echo "ax25d started with logging"
+# display active ax25 sockets
+  sleep 1
+  /bin/netstat --ax25
+
+
+
+# Start Mheard daemon
+ $SBINDIR/mheardd -f -n 20
+  echo "mheardd Started"
+
+# AX25-up (End)

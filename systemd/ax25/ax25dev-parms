@@ -1,0 +1,38 @@
+#!/bin/bash
+awk '/device/ { print $7 }' /tmp/ax25-config.tmp > /tmp/ax25-config-tmp
+read Device < /tmp/ax25-config-tmp
+
+echo "Checking for Device ${Device}"
+if [[ -z "$Device" ]] ; then
+   echo "Device string no characters"
+   Device="ax0"
+fi
+
+   echo "Using Device = $Device"
+
+
+if [ -d /proc/sys/net/ax25/$Device ] ; then
+ PARMDIR="/proc/sys/net/ax25/$Device"
+# Parms for a USER Port
+echo 3000    > $PARMDIR/t1_timeout		# (Frack) /1000 = ? Sec
+echo 1000    > $PARMDIR/t2_timeout 		# (RESPtime) /1000 = ? sec
+echo 300000  > $PARMDIR/t3_timeout 		# (Check) /6000 = ? Min
+echo 900000  > $PARMDIR/idle_timeout		# Idle Timer /6000 = ? min
+echo 2       > $PARMDIR/standard_window_size	# Outstanding Frames
+echo 6       > $PARMDIR/maximum_retry_count	# Max Retrys
+echo 256     > $PARMDIR/maximum_packet_length	# Paclen
+echo 0       > $PARMDIR/ax25_default_mode
+echo 0       > $PARMDIR/ip_default_mode
+echo 0       > $PARMDIR/backoff_type
+echo 2       > $PARMDIR/connect_mode
+#echo 180000 > $PARMDIR/dama_slave_timeout
+echo 32      > $PARMDIR/extended_window_size
+echo 0       > $PARMDIR/protocol
+
+        ifconfig $Device netmask 255.255.255.255
+        echo " Port ${PORTNAME} attached to ${Device} "
+else
+        echo "** Error setting $Device parms**"
+fi
+echo "ax25dev-parms finished"
+exit 0
