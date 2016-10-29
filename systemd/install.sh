@@ -1,7 +1,8 @@
 #!/bin/bash
 #
-USER=gunn
-userbindir=/home/$USER/bin
+# Uncomment this statement for debug echos
+# DEBUG=1
+USER=pi
 myname="`basename $0`"
 
 AX25_FILES="ax25-downd  ax25-upd  ax25dev-parms"
@@ -10,6 +11,8 @@ LOGCFG_FILES="01-direwolf.conf  direwolf"
 DIREWOLF_LOG_DIR="/var/log/direwolf"
 SERVICE_FILES="ax25-mheardd.service  ax25dev.path direwolf.service ax25d.service ax25dev.service"
 REQUIRED_FILES="direwolf mheardd mkiss kissparms kissattach"
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function DiffFiles
 
@@ -34,8 +37,8 @@ for filename in `echo ${AX25_FILES}` ; do
 
 # Check if file exists.
    if [ -f "/etc/ax25/$filename" ] ; then
-      echo "Comparing $filename"
-      diff ax25/$filename /etc/ax25/$filename
+      dbgecho "Comparing $filename"
+      diff -s ax25/$filename /etc/ax25/$filename
    else
       echo "file /etc/ax25/$filename DOES NOT EXIST"
    fi
@@ -44,7 +47,7 @@ for filename in `echo ${SERVICE_FILES}` ; do
 
 # Check if file exists.
    if [ -f "/etc/systemd/system/$filename" ] ; then
-      echo "Comparing $filename"
+      dbgecho "Comparing $filename"
       diff -s sysd/$filename /etc/systemd/system/$filename
    else
       echo "file /etc/systemd/system/$filename DOES NOT EXIST"
@@ -54,7 +57,8 @@ for filename in `echo ${BIN_FILES}` ; do
 
 # Check if file exists.
    if [ -f "$userbindir/$filename" ] ; then
-      diff bin/$filename $userbindir/$filename
+      dbgecho "Comparing $filename"
+      diff -s bin/$filename $userbindir/$filename
    else
       echo "file $userbindir/$filename DOES NOT EXIST"
    fi
@@ -65,7 +69,8 @@ done
 filename="01-direwolf.conf"
 # Check if file exists.
    if [ -f "/etc/rsyslog.d/$filename" ] ; then
-      diff logcfg/$filename /etc/rsyslog.d/$filename
+      dbgecho "Comparing $filename"
+      diff -s logcfg/$filename /etc/rsyslog.d/$filename
    else
       echo "file /etc/rsyslog.d/$filename DOES NOT EXIST"
    fi
@@ -73,7 +78,8 @@ filename="01-direwolf.conf"
 filename="direwolf"
 # Check if file exists.
    if [  -f "/etc/logrotate.d/$filename" ] ; then
-      diff logcfg/$filename /etc/logrotate.d/$filename
+      dbgecho "Comparing $filename"
+      diff -s logcfg/$filename /etc/logrotate.d/$filename
    else
       echo "file /etc/logrotate.d/$filename DOES NOT EXIST"
    fi
@@ -144,13 +150,43 @@ echo
 echo "FINISHED copying files"
 }
 
-# ==== main ====
+# ==== main
 
 #if [ -z "$1" ] ; then
 #   echo "No args found just copy files"
 #   CopyFiles
 #   exit 0
 #fi
+
+# prompt for user name
+# Check if there is only a single user on this system
+
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+if (( `ls /home | wc -l` == 1 )) ; then
+   USER=$(ls /home)
+else
+  echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+  read USER
+fi
+
+# verify user name is legit
+userok=false
+
+for username in $USERLIST ; do
+  if [ "$USER" = "$username" ] ; then
+     userok=true;
+  fi
+done
+
+if [ "$userok" = "false" ] ; then
+   echo "User name does not exist,  must be one of: $USERLIST"
+   exit 1
+fi
+
+dbgecho "using USER: $USER"
+userbindir=/home/$USER/bin
 
 # if there are any args on command line just diff files
 

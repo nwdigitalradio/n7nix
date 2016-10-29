@@ -15,7 +15,7 @@ creating a working image that runs the following:
 
 ### deviation
 
-* script that generates a tone file using sox, turns on correctg PTT
+* script that generates a tone file using sox, turns on correct PTT
 gpio and plays wave file through a UDRC
 
 ### direwolf

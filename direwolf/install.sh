@@ -3,7 +3,7 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
-USER=gunn
+USER=pi
 CALLSIGN="N0NE"
 CALLSIGN0="$CALLSIGN-1"
 CALLSIGN1="$CALLSIGN-2"
@@ -79,14 +79,22 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
-# prompt for callsign & user name
+# prompt for call sign & user name
+# Check if there is only a single user on this system
 
-echo "Enter user name, followed by [enter]:"
-read USER
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+if (( `ls /home | wc -l` == 1 )) ; then
+   USER=$(ls /home)
+else
+  echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+  read USER
+fi
 
 # verify user name is legit
 userok=false
-USERLIST="$(ls /home)"
+
 for username in $USERLIST ; do
   if [ "$USER" = "$username" ] ; then
      userok=true;
@@ -94,10 +102,11 @@ for username in $USERLIST ; do
 done
 
 if [ "$userok" = "false" ] ; then
-   USERLIST="$(echo $USERLIST | tr '\n' ' ')"
    echo "User name does not exist,  must be one of: $USERLIST"
    exit 1
 fi
+
+dbgecho "using USER: $USER"
 
 echo "Enter call sign, followed by [enter]:"
 read CALLSIGN
