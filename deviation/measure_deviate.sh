@@ -104,7 +104,6 @@ id_check
 dbgecho "Verify required programs"
 # Verify required programs are installed
 for prog_name in `echo ${PROGLIST}` ; do
-
    type -P $prog_name &> /dev/null
    if [ $? -ne 0 ] ; then
       echo "$myname: Need to Install $prog_name program"
@@ -118,7 +117,7 @@ if [ "$EXITFLAG" = "true" ] ; then
    exit 1
 fi
 
-dbgecho "Parse number of agrs"
+dbgecho "Parse number of args"
 # Check number of command line args
 #
 ## No args  - default tone with freq 2200 and PTT on gpio 12
