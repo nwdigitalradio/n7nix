@@ -114,9 +114,11 @@ read CALLSIGN
 sizecallstr=${#CALLSIGN}
 
 if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
-   echo "Invalid call sign, length = $sizecallstr"
+   echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
    exit 1
 fi
+
+dbgecho "Using CALL SIGN: $CALLSIGN"
 
 # Check if direwolf config file exists in /etc
 filename="direwolf.conf"
