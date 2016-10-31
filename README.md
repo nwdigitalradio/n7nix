@@ -27,7 +27,7 @@ gpio and plays wave file through a UDRC
 * Generating a tone sine wave is one part of measuring deviation. The
 other part is doing the actual measurement. The [Xastir
 wiki](http://xastir.org/index.php/HowTo:Set_Deviation_via_RTL) has a
-nice article on how to do that.
+nice article on how to do that using an RTL SDR dongle.
 
 ### [direwolf](https://github.com/nwdigitalradio/n7nix/tree/master/direwolf)
 
