@@ -21,7 +21,7 @@ function DiffFiles() {
 echo "Check for required files ..."
 EXITFLAG=false
 
-for filename in `echo ${REQUIRED_FILES}` ; do
+for prog_name in `echo ${REQUIRED_FILES}` ; do
    type -P $prog_name &>/dev/null
    if [ $? -ne 0 ] ; then
       echo "$myname: Need to Install $prog_name program"
