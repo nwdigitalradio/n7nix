@@ -6,8 +6,6 @@
 # (https://groups.yahoo.com/neo/groups/LinuxRMS/files)
 # by C Schuman, K4GBB k4gbb1gmail.com
 #
-#
-#
 # Uncomment this statement for debug echos
 DEBUG=1
 
@@ -23,8 +21,8 @@ BluW='\e[37;44m'
 PKG_REQUIRE="xutils-dev libxml2 libxml2-dev python-requests"
 PKG_LIST=
 SRC_DIR="/usr/local/src/ax25/rmsgw"
-
-Version="rmsgw-2.4.0-181"
+ROOTFILE_NAME="rmsgw-"
+RMS_BUILD_FILE="rmsbuild.txt"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -36,8 +34,9 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
 }
 
 # ===== main
-echo -e "${BluW}\n \t  Update Linux RMS Gate \n${Yellow}\t     $Version  \t \n \t \n${White}  Script provided by Charles S. Schuman ( K4GBB )  \n${Red}               k4gbb1@gmail.com \n${Reset}"
-
+# echo -e "${BluW}\n \t  Update Linux RMS Gate \n${White}  Script
+# provided by Charles S. Schuman ( K4GBB )  \n${Red}               k4gbb1@gmail.com \n${Reset}"
+echo -e "${BluW}\n \t  Install Linux RMS Gate \n${White}  Parts of this Script provided by Charles S. Schuman ( K4GBB )  \n${Reset}"
 
 # check if packages are installed
 dbgecho "Check packages: $PKG_REQUIRE"
@@ -76,7 +75,7 @@ cd $SRC_DIR
 # Determine if any rmsgw tgz files have been downloaded
 ls rmsgw-*.tgz 2>/dev/null
 if [ $? -ne 0 ] ; then
-   echo -e "${BluW}\t Downloading $Version Source file \t${Reset}"
+   echo -e "${BluW}\t Downloading RMS Gateway Source file \t${Reset}"
 
    # wget -qt 3 http://k4gbb.no-ip.info/docs/scripts/$Version.tgz
 
@@ -91,49 +90,54 @@ if [ $? -ne 0 ] ; then
       echo  "  and download from a browser, run this script again."
       exit 1
    fi
+else
+   # Get here if some tgz files were found
+   TGZ_FILELIST="$(ls rmsgw-*.tgz |tr '\n' ' ')"
+
+   echo "Already have rmsgw install file(s): $TGZ_FILELIST"
+   echo "To check for a new version move .tgz file(s) out of this directory"
 fi
 
-TGZ_FILELIST="$(ls rmsgw-*.tgz |tr '\n' ' ')"
-ls rmsgw-*.tgz
-dbgecho
-dbgecho "Found these tgz files $TGZ_FILELIST"
-dbgecho
-
+# Lists all .tgz files in directory
+# Last file listed should have lastest version number
 for filename in *.tgz ; do
    rms_ver="$(echo ${filename#r*-} | cut -d '.' -f1,2,3)"
-   echo "$filename version: $rms_ver"
+#   echo "$filename version: $rms_ver"
 done
 
-dbgecho "Early exit"
-exit
+dbgecho "Untarring this installation file: $filename, version: $rms_ver"
 
-
-tar xf $Version.tgz
+tar xf $filename
 if [ $? -ne 0 ] ; then
- echo -e "${BluW}${Red}\t $Version File not available \t${Reset}"
+ echo -e "${BluW}${Red}\t $filename File not available \t${Reset}"
  exit 1
 fi
 
-echo -e "${BluW}\t Compiling RMS Source file \t${Reset}"
-cd /usr/local/src/ax25/$Version
-make > RMS.txt
+echo -e "${BluW}\tCompiling RMS Source file \t${Reset}"
 
-if [ $? -ne 0 ]
-   then
- echo -e "${BluW}$Red} \tCompile error${White} - check RMS.txt File \t${Reset}"
- exit 1
-   else
- rm RMS.txt
+cd $SRC_DIR/$ROOTFILE_NAME$rms_ver
+
+# Redirect stderr to stdout
+make > $RMS_BUILD_FILE 2>&1
+if [ $? -ne 0 ] ; then
+   echo -e "${BluW}$Red} \tCompile error${White} - check $RMS_BUILD_FILE File \t${Reset}"
+   exit 1
 fi
+
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root to install."
+   echo "Become root, then 'make install'"
+   exit 1
+fi
+
+echo -e "${BluW}\t Installing RMS Gateway\t${Reset}"
 make install
+if [ $? -ne 0 ] ; then
+  echo "Error during install."
+  exit 1
+fi
 # rm /etc/rmsgw/stat/.*
 
-
-echo -e "${BluW}RMS Gate updated \t${Reset}"
-
-     date >> /root/Changes
-     echo "        RMS Gate Upgraded - $Version" >> /root/Changes
-     nano /root/Changes
-     exit 0
+echo -e "${BluW}RMS Gateway updated \t${Reset}"
 
 # (End of Script)
