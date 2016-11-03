@@ -6,7 +6,7 @@
 DEBUG=1
 
 myname="`basename $0`"
-CALLSIGN="N0NE"
+CALLSIGN="N0ONE"
 AX25PORT="udr0"
 SSID="10"
 AX25_CFGDIR="/usr/local/etc/ax25"
@@ -17,21 +17,33 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 RMSGW_CFG_FILES="gateway.conf channels.xml banner"
 REQUIRED_PRGMS="rmschanstat python rmsgw rmsgw_aci"
 
+# ===== function get_callsign
+
+function get_callsign() {
+
+if [ "$CALLSIGN" == "N0ONE" ] ; then
+   echo "Enter call sign, followed by [enter]:"
+   read CALLSIGN
+
+   sizecallstr=${#CALLSIGN}
+
+   if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
+      echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
+      exit 1
+   fi
+
+   # Convert callsign to upper case
+   CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
+fi
+
+dbgecho "Using CALL SIGN: $CALLSIGN"
+}
+
 # ===== function prompt_read
 
 function prompt_read() {
-echo "Enter call sign, followed by [enter]:"
-read CALLSIGN
 
-sizecallstr=${#CALLSIGN}
-
-if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
-   echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
-   exit 1
-fi
-
-CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
-dbgecho "Using CALL SIGN: $CALLSIGN"
+get_callsign
 
 echo "Enter ssid, followed by [enter]:"
 read SSID
@@ -78,7 +90,7 @@ echo "default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -l debug -P %d %U
 echo "Check for required files ..."
 EXITFLAG=false
 
-for profname in `echo ${REQUIRED_REQUIRED_PRGMS}` ; do
+for prog_name in `echo ${REQUIRED_REQUIRED_PRGMS}` ; do
    type -P $prog_name &>/dev/null
    if [ $? -ne 0 ] ; then
       echo "$myname: RMS Gateway not installed properly"
@@ -96,7 +108,7 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
-# Does RMSGW user exist?
+# Does the RMSGW user exist?
 getent passwd rmsgw > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
    echo "user rmsgw does NOT exist, creating"
@@ -173,6 +185,8 @@ if [ $? -eq 0 ] ; then
 else
    echo "$filename has not been configured for RMS gateway."
    {
+   echo
+   echo "#"
    echo "local0.info                     /var/log/rms"
    echo "local0.debug                    /var/log/rms.debug"
    echo "#local0.debug                   /dev/null"
@@ -218,13 +232,16 @@ if [ $? -eq 0 ] ; then
    # copy first 16 lines of file
    sed -n '1,16p' $AX25_CFGDIR/ax25d.conf-dist >> $AX25_CFGDIR/ax25d.conf
 
+  get_callsign
   cfg_ax25d
 else
+   echo "ax25d has been configured, checking for RMS Gateway entry"
    grep  "\-10" /etc/ax25/ax25d.conf  > /dev/null 2>&1
    if [ $? -eq 0 ] ; then
-     echo "ax25d.conf already configured"
-  else
-      echo "ax25d NOT configured from RMS Gateway"
+      echo "ax25d.conf already configured"
+   else
+      echo "ax25d NOT configured for Gateway"
+      get_callsign
       cfg_ax25d
   fi
 fi
