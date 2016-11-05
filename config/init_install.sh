@@ -21,7 +21,7 @@ fi
 if [ "$UPDATE_NOW" = "true" ] ; then
   apt-get update
   apt-get upgrade
-  apt-get install -y mg jed rsync build-essential autoconf automake libtool git libasound2-dev whois
+  apt-get install -y mg jed rsync build-essential autoconf automake libtool git libasound2-dev whois libncurses5-dev
 fi
 
 echo " === Verify not using default password"
@@ -89,7 +89,9 @@ echo " === Set time zone"
 DATETZ=$(date +%Z)
 dbgecho "TIme zone: $DATETZ"
 
-# dpkg-reconfigure tzdata
+if [ "$DATETZ" == "UTC" ] ; then
+   dpkg-reconfigure tzdata
+fi
 
 echo " === Modify /boot/config.txt"
 # Add to bottom of file
@@ -105,7 +107,7 @@ lcd_rotate=2
 #dtoverlay=udrc-boost-output
 EOT
 
-echo " enable modules"
+echo " === enable modules"
 # Add to bottom of file
 cat << EOT >> /etc/modules
 
@@ -134,7 +136,6 @@ cd $SRC_DIR
 
 wget https://github.com/ve7fet/linuxax25/archive/master.zip
 unzip master.zip
-
 ./updAX25.sh
 # libraries are installed in /usr/local/lib
 ldconfig
