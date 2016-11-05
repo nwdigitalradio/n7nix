@@ -62,11 +62,12 @@ if [ "$needs_pkg" = "true" ] ; then
    fi
 fi
 
-# source directory exist
+# Does source directory exist?
 if [ ! -d $SRC_DIR ] ; then
    mkdir -p $SRC_DIR
    if [ "$?" -ne 0 ] ; then
       echo "Problems creating source directory: $SRC_DIR"
+      exit 1
    fi
 fi
 
