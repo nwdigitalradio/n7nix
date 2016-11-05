@@ -199,7 +199,7 @@ if [  -f "$filename" ] ; then
    echo "logrotate file has already been configured."
 else
    echo "Createing $filename"
-cat > $filename <<EOL
+cat > $filename <<EOT
 /var/log/rms {
 	weekly
 	missingok
@@ -219,7 +219,7 @@ cat > $filename <<EOL
 	notifempty
 	create 640 root adm
 }
-EOL
+EOT
 fi
 
 # Create a /etc/ax25d.conf entry

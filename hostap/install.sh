@@ -53,8 +53,9 @@ return $HAS_WIFI
 
 # ===== function copy_dnsmasq
 function copy_dnsmasq() {
+# Create a new file
 
-cat > /$1/dnsmasq.conf <<EOL
+cat > /$1/dnsmasq.conf <<EOT
 interface=wlan0      # Use interface wlan0
 listen-address=10.0.44.1
 bind-interfaces      # Bind to the interface to make sure we aren't sending things elsewhere
@@ -62,15 +63,16 @@ server=8.8.8.8       # Forward DNS requests to Google DNS
 domain-needed        # Don't forward short names
 bogus-priv           # Never forward addresses in the non-routed address spaces.
 dhcp-range=10.0.44.201,10.0.44.239,12h
-EOL
+EOT
 }
 
 # ===== function copy_hostapd
 
 function copy_hostapd() {
 echo "copying to /$1/hostapd.conf"
+# Create a new file
 
-cat > /$1/hostapd.conf <<EOL
+cat > /$1/hostapd.conf <<EOT
 interface=wlan0
 
 # Use the nl80211 driver with the brcmfmac driver
@@ -115,7 +117,7 @@ macaddr_acl=0
 # Use AES, instead of TKIP
 ##wpa_pairwise=CCMP
 #rsn_pairwise=CCMP
-EOL
+EOT
 }
 
 # ===== function dnsmasq_config
