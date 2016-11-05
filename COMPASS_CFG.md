@@ -7,7 +7,19 @@
   * The full version has the LXDE Windows Manager & a graphic configuration tools for other stuff.
 * Unzip and copy the uncompressed image to the SD card using the procedure outlined on the [Raspberry Pi site](https://www.raspberrypi.org/documentation/installation/installing-images/)
 
-
+## first boot
+* Power up, find IP address assigned to this device
+*
+```bash
+sudo su
+apt-get update
+apt-get upgrade
+apt-get install -y mg jed rsync build-essential autoconf automake libtool git libasound2-dev whois libncurses5-dev
+mkdir install
+cd install
+git
+```
+# Everything below has been put in config/init_install.sh
 ## Make compass usable
 
 * first things to do
