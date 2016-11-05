@@ -1,4 +1,8 @@
-# Miscellaneous collection of Install scripts & Utilities
+# Install scripts for getting the following functional
+* direwolf
+* ax.25
+* RMS Gateway
+* paclink-unix for Winlink e-mail on any IMAP mail client
 
 ### Introduction
 
@@ -12,22 +16,15 @@ creating a working image that will boot up & run the following:
 * a remote host wifi access point ie. not connected to a network
 * a minimal mail server for paclink-unix to use any e-mail client.
 
-Before running the install scripts you must [manually
-configure](https://github.com/nwdigitalradio/n7nix/blob/master/COMPASS_CFG.md)
-the booted compass image.
+The first script to run is
+[init_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/COMPASS_CFG.md)
+which will do the initial configuring of the compass kernel & install AX.25 & direwolf.
+After that the configure scripts are run for each subsection.
+Note _deviation_ is not part of the install process.
+
 
 ### [ax25](https://github.com/nwdigitalradio/n7nix/tree/master/ax25)
 * Insert a valid ax.25 port name into /etc/ax25/axports file
-
-### [deviation](https://github.com/nwdigitalradio/n7nix/tree/master/deviation)
-
-* script that generates a tone file using sox, turns on correct PTT
-gpio and plays wave file through a UDRC
-
-* Generating a tone sine wave is one part of measuring deviation. The
-other part is doing the actual measurement. The [Xastir
-wiki](http://xastir.org/index.php/HowTo:Set_Deviation_via_RTL) has a
-nice article on how to do that using an RTL SDR dongle.
 
 ### [direwolf](https://github.com/nwdigitalradio/n7nix/tree/master/direwolf)
 
@@ -55,3 +52,12 @@ transaction files.
   * ax.25
   * direwolf
   * mheardd
+
+### [deviation](https://github.com/nwdigitalradio/n7nix/tree/master/deviation)
+
+* Script that generates a tone file using sox, turns on correct PTT
+gpio and plays wave file through a UDRC
+* Generating a tone sine wave is one part of measuring deviation. The
+other part is doing the actual measurement. The [Xastir
+wiki](http://xastir.org/index.php/HowTo:Set_Deviation_via_RTL) has a
+nice article on how to do that using an RTL SDR dongle.
