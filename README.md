@@ -1,8 +1,4 @@
-# Install scripts for getting the following functional
-* direwolf
-* ax.25
-* RMS Gateway
-* paclink-unix for Winlink e-mail on any IMAP mail client
+# Install scripts for some packet functionality
 
 ### Introduction
 
@@ -10,6 +6,7 @@ This repo contains scripts & notes for taking a new COMPASS image and
 creating a working image that will boot up & run the following:
 * direwolf
 * ax.25
+* RMS Gateay
 * [paclink-unix](http://bazaudi.com/plu/doku.php)
   * There are no install scripts for paclink-unix
   * A Debian install package is being worked on, until then use the link above.
