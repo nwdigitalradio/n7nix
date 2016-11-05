@@ -25,7 +25,7 @@ dpkg-reconfigure tzdata
 * build tools
 
 ```bash
-apt-get install build-essential autoconf automake libtool git
+apt-get install build-essential autoconf automake libtool git libncurses5-dev
 ```
 
 * Install ax.25 lib, tools & apps
