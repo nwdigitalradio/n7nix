@@ -72,7 +72,7 @@ echo "#portname	callsign	speed	paclen	window	description"
 echo "$AX25PORT            $CALLSIGN-$SSID         9600    255     2       Direwolf port"
 } >> $AX25_CFGDIR/axports
 else
-  echo "AX.25 port $AX25PORT already configured"
+   echo "AX.25 port $AX25PORT already configured"
 fi
 
 # Set up a listening socket, for testing
@@ -98,7 +98,8 @@ echo "default  * * * * * *  - root /usr/sbin/ttylinkd ttylinkd"
 } >> $AX25_CFGDIR/ax25d.conf
 
 else
-  echo "ax25d.conf already configured"
+   echo "ax25d.conf already configured"
 fi
 
+echo "ax.25 config complete"
 exit 0
