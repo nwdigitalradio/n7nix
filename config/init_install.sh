@@ -159,14 +159,21 @@ else
 fi
 
 cd $SRC_DIR
-AX25_SRCDIR=$SRC_DIR/linuxax25-master
+# There are 2 sources for libax25/toos/apps
+#  One is from the github source directory
+#  The other is from the github archive directory
+# They produce different source directories
+#AX25_SRCDIR=$SRC_DIR/linuxax25-master
+AX25_SRCDIR=$SRC_DIR/linuxax25
 
 if [ ! -d $AX25_SRCDIR/libax25 ] || [ ! -d $AX25_SRCDIR/ax25tools ] || [ ! -d $AX25_SRCDIR/ax25apps ] ; then
 
    dbgecho "Proceding to download AX.25 library, tools & apps"
    dbgecho "Check: $AX25_SRCDIR/libax25  $AX25_SRCDIR/ax25tools  $AX25_SRCDIR/ax25apps"
    echo "Getting AX.25 update script from github"
-   git clone https://www.github.com/ve7fet/linuxax25/updAX25.sh
+#   wget https://github.com/ve7fet/linuxax25/archive/master.zip
+#   unzip -q master.zip
+   git clone https://www.github.com/ve7fet/linuxax25/
 fi
 
 if [ ! -f "$AX25_SRCDIR/updAX25.sh" ] ; then
@@ -181,7 +188,7 @@ if [ ! -x "$AX25_SRCDIR/updAX25.sh" ] ; then
 fi
 
 # Finally run the AX.25 update script
-cd linuxax25-master
+cd $AX25_SRCDIR
 ./updAX25.sh
 # libraries are installed in /usr/local/lib
 ldconfig
