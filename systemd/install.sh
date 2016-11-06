@@ -99,18 +99,14 @@ if (( `id -u` != 0 )); then
 fi
 
 echo "copy ax.25 files ..."
-# check if /etc/ax25 or /usr/local/etc/ directories exist
-if [ ! -d "/etc/ax25" ] && [ ! -L /etc/ax25 ] ; then
-   if [ ! -d "/usr/local/etc/ax25" ] ; then
-      echo "ax25 directory /usr/local/etc/ax25 DOES NOT exist, install ax25 first"
-      exit
-   else
-      echo "Making symbolic link to /etc/ax25"
-      ln -s /usr/local/etc/ax25 /etc/ax25
-   fi
+# check if  /etc/ax25 directory exists
+if [ ! -d "/etc/ax25" ] || [ ! -L "/etc/ax25" ] ; then
+   echo "ax25 directory /etc/ax25 DOES NOT exist, install ax25 first"
+   exit 1
 else
-   echo " Found ax.25 link or directory"
+   echo " Found ax.25 directory"
 fi
+
 cp ax25/* /etc/ax25/
 
 echo "copy systemd service files ..."
@@ -206,4 +202,3 @@ CopyFiles
 systemctl enable ax25dev.path
 systemctl enable direwolf.service
 
-exit 0
