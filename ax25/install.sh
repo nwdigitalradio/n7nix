@@ -29,7 +29,7 @@ fi
 CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
 dbgecho "Using CALL SIGN: $CALLSIGN"
 
-echo "Enter ssid, followed by [enter]:"
+echo "Enter ssid for direwolf APRS, followed by [enter]:"
 read SSID
 
 sizessidstr=${#SSID}
@@ -50,12 +50,24 @@ if [ ! -f "/etc/ax25/axports" ] && [ ! -f "$AX25_CFGDIR/axports" ] ; then
    exit 1
 fi
 
+# check if both /etc/ax25 and /usr/local/etc/ directories exist
+if [ ! -d "/etc/ax25" ] || [ ! -L /etc/ax25 ] ; then
+   if [ ! -d "/usr/local/etc/ax25" ] ; then
+      echo "ax25 directory /usr/local/etc/ax25 DOES NOT exist, install ax25 first"
+      exit
+   else
+      echo "Making symbolic link to /etc/ax25"
+      ln -s /usr/local/etc/ax25 /etc/ax25
+   fi
+else
+   echo " Found ax.25 link or directory"
+fi
+
 # make sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root to modify /etc files"
    exit 1
 fi
-
 
 grep -i "udr0" $AX25_CFGDIR/axports
 if [ $? -eq 1 ] ; then
@@ -102,4 +114,4 @@ else
 fi
 
 echo "ax.25 config complete"
-exit 0
+
