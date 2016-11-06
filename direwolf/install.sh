@@ -3,8 +3,9 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
+myname="`basename $0`"
 USER=pi
-CALLSIGN="N0NE"
+CALLSIGN="N0ONE"
 CALLSIGN0="$CALLSIGN-1"
 CALLSIGN1="$CALLSIGN-2"
 UDRCII=false
@@ -18,7 +19,36 @@ chan2ptt_gpio=23
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
-# ===== udrc id_check =====
+# ===== function is_pkg_installed
+
+function is_pkg_installed() {
+
+return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
+}
+
+# ===== function get_callsign
+
+function get_callsign() {
+
+if [ "$CALLSIGN" == "N0ONE" ] ; then
+   echo "Enter call sign, followed by [enter]:"
+   read CALLSIGN
+
+   sizecallstr=${#CALLSIGN}
+
+   if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
+      echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
+      exit 1
+   fi
+
+   # Convert callsign to upper case
+   CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
+fi
+
+dbgecho "Using CALL SIGN: $CALLSIGN"
+}
+
+# ===== function udrc id_check
 
 function id_check() {
 # Initialize to EEPROM not found
@@ -108,26 +138,21 @@ fi
 
 dbgecho "using USER: $USER"
 
-echo "Enter call sign, followed by [enter]:"
-read CALLSIGN
-
-sizecallstr=${#CALLSIGN}
-
-if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
-   echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
-   exit 1
-fi
-
-dbgecho "Using CALL SIGN: $CALLSIGN"
+get_callsign
+CALLSIGN0="$CALLSIGN-1"
+CALLSIGN1="$CALLSIGN-2"
 
 # Check if direwolf config file exists in /etc
 filename="direwolf.conf"
 if [ ! -f "/etc/$filename" ] ; then
    if [ -f "/home/$USER/$filename" ] ; then
-      echo "Coping $filename from /home/$USER"
+      echo "Coping /home/$USER/$filename"
       cp /home/$USER/$filename /etc
+   elif [ -f "/root/$filename" ] ; then
+      echo "Coping /root/$filename"
+      cp /root/$filename /etc
    else
-      echo "$filename not found in /home/$USER"
+      echo "$filename not found in /home/$USER or /root"
       exit 1
    fi
 else
@@ -154,6 +179,7 @@ case $id_check_ret in
    exit 1
 ;;
 esac
+
 dbgecho "MYCALL"
 sed -i -e "/MYCALL N0CALL/ s/N0CALL/$CALLSIGN0/" $DIREWOLF_CFGFILE
 dbgecho "ADEVICE"
@@ -166,23 +192,34 @@ sed -i -e '/#PTT GPIO 25/ s/#PTT GPIO 25/PTT GPIO 12/' $DIREWOLF_CFGFILE
 dbgecho "CHANNEL1"
 sed -i -e "/#CHANNEL 1/ s/#CHANNEL 1/CHANNEL 1\nPTT GPIO 23\nMODEM 1200\n$CALLSIGN1\n/" $DIREWOLF_CFGFILE
 
+echo "Config ILOGIN"
+
 # Igates need a code so they can log into the tier 2 servers.
 # It is based on your callsign, and there is a utility called
 # callpass in Xastir that will compute it.
+pkg_name="xastir"
 
 type -P callpass &>/dev/null
 if [ $? -ne 0 ] ; then
-   echo
-   echo "Need to Install xastir"
-   exit 1
-else
-   logincode=$(callpass $CALLSIGN)
-   echo "Login code for $CALLSIGN for APRS tier 2 servers: $logincode"
+   is_pkg_installed $pkg_name
+   if [ $? -eq 0 ] ; then
+      echo "$myname: Need to Install $pkg_name program"
+      apt-get install -y -q $pkg_name
+   fi
+   # Check that xastir package install was successful
+   type -P callpass &>/dev/null
+   if [ $? -ne 0 ] ; then
+      echo
+      echo "Need to Install xastir"
+      exit 1
+  fi
 fi
 
-dbgecho "ILOGIN"
+logincode=$(callpass $CALLSIGN)
+echo "Login code for $CALLSIGN for APRS tier 2 servers: $logincode"
+
 sed -i -e "/#IGLOGIN / s/#IGLOGIN .*/IGLOGIN $CALLSIGN $logincode\n/" $DIREWOLF_CFGFILE
 dbgecho "IGSERVER"
 sed -i -e "/#IGSERVER / s/^#//" $DIREWOLF_CFGFILE
 
-exit 0
+echo "direwolf config complete"
