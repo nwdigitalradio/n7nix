@@ -159,21 +159,22 @@ else
 fi
 
 cd $SRC_DIR
-# There are 2 sources for libax25/toos/apps
+# There are 2 sources for the "unofficial" libax25/tools/apps
 #  One is from the github source directory
 #  The other is from the github archive directory
-# They produce different source directories
-#AX25_SRCDIR=$SRC_DIR/linuxax25-master
-AX25_SRCDIR=$SRC_DIR/linuxax25
+#  They produce different source directories
+
+AX25_SRCDIR=$SRC_DIR/linuxax25-master
+#AX25_SRCDIR=$SRC_DIR/linuxax25
 
 if [ ! -d $AX25_SRCDIR/libax25 ] || [ ! -d $AX25_SRCDIR/ax25tools ] || [ ! -d $AX25_SRCDIR/ax25apps ] ; then
 
    dbgecho "Proceding to download AX.25 library, tools & apps"
    dbgecho "Check: $AX25_SRCDIR/libax25  $AX25_SRCDIR/ax25tools  $AX25_SRCDIR/ax25apps"
    echo "Getting AX.25 update script from github"
-#   wget https://github.com/ve7fet/linuxax25/archive/master.zip
-#   unzip -q master.zip
-   git clone https://www.github.com/ve7fet/linuxax25/
+   wget https://github.com/ve7fet/linuxax25/archive/master.zip
+   unzip -q master.zip
+#   git clone https://www.github.com/ve7fet/linuxax25/
 fi
 
 if [ ! -f "$AX25_SRCDIR/updAX25.sh" ] ; then
@@ -194,8 +195,35 @@ cd $AX25_SRCDIR
 ldconfig
 cd ax25tools
 make installconf
+cd ../ax25apps
+make installconf
+
+# Need to install libax25 as a package because
+# xastir checks for it as a dependency
+# Xastir needs libax25.so.0 found in libax25 0.0.12-rc2
+
+## The following installs libax25.so.1
+#cd $AX25_SRCDIR/libax25
+#at << EOT > tmpfile
+#10
+#
+#
+#EOT
+## Tried to use command line options without success
+#checkinstall < tmpfile
+
+apt-get install libax25
+if [ $? -ne 0 ] ; then
+   echo "Problem installing libax25 package"
+   exit 1
+fi
+
+# libraries are installed in /usr/local/lib
+ldconfig
 
 echo "Test if direwolf has been installed"
+SRC_DIR="/usr/local/src/"
+cd "$SRC_DIR"
 if [ ! -f /etc/direwolf.conf ] ; then
    echo "=== Install direwolf"
    git clone https://www.github.com/wb2osz/direwolf
