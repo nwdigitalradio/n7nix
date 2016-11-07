@@ -193,10 +193,23 @@ cd $AX25_SRCDIR
 ./updAX25.sh
 # libraries are installed in /usr/local/lib
 ldconfig
-cd ax25tools
+cd $AX25_SRCDIR/ax25tools
 make installconf
-cd ../ax25apps
+cd $AX25_SRCDIR/ax25apps
 make installconf
+
+# check if /etc/ax25 exists as a directory or symbolic link
+if [ ! -d "/etc/ax25" ] || [ ! -L "/etc/ax25" ] ; then
+   if [ ! -d "/usr/local/etc/ax25" ] ; then
+      echo "ax25 directory /usr/local/etc/ax25 DOES NOT exist, ax25 install failed"
+      exit 1
+   else
+      echo "Making symbolic link to /etc/ax25"
+      ln -s /usr/local/etc/ax25 /etc/ax25
+   fi
+else
+   echo " Found ax.25 link or directory"
+fi
 
 # Need to install libax25 as a package because
 # xastir checks for it as a dependency
