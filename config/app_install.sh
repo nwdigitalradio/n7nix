@@ -25,5 +25,4 @@ source ../rmsgw/install.sh
 # configure rmsgw
 source ../rmsgw/config.sh
 
-echo "end app install: $myname"
-exit 0
+echo "end app install"
