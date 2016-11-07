@@ -9,6 +9,8 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
+myname="`basename $0`"
+
 # Color Codes
 Reset='\e[0m'
 Red='\e[31m'

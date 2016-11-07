@@ -5,7 +5,7 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
-CALLSIGN="N0NE"
+CALLSIGN="N0ONE"
 AX25PORT="udr0"
 SSID="15"
 AX25DSSID="0"
@@ -50,8 +50,8 @@ if [ ! -f "/etc/ax25/axports" ] && [ ! -f "$AX25_CFGDIR/axports" ] ; then
    exit 1
 fi
 
-# check if both /etc/ax25 and /usr/local/etc/ directories exist
-if [ ! -d "/etc/ax25" ] || [ ! -L /etc/ax25 ] ; then
+# check if /etc/ax25 exists as a directory or symbolic link
+if [ ! -d "/etc/ax25" ] || [ ! -L "/etc/ax25" ] ; then
    if [ ! -d "/usr/local/etc/ax25" ] ; then
       echo "ax25 directory /usr/local/etc/ax25 DOES NOT exist, install ax25 first"
       exit

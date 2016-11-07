@@ -183,7 +183,7 @@ grep -i "local0" $filename  > /dev/null 2>&1
 if [ $? -eq 0 ] ; then
    echo "file $filename already configured"
 else
-   echo "$filename has not been configured for RMS gateway."
+   echo "$filename NOT configured for RMS gateway."
    {
    echo
    echo "#"
@@ -196,7 +196,7 @@ fi
 filename="/etc/logrotate.d/rms"
 # Check if file exists.
 if [  -f "$filename" ] ; then
-   echo "logrotate file has already been configured."
+   echo "logrotate file is already configured."
 else
    echo "Createing $filename"
 cat > $filename <<EOT
@@ -235,7 +235,7 @@ if [ $? -eq 0 ] ; then
   get_callsign
   cfg_ax25d
 else
-   echo "ax25d has been configured, checking for RMS Gateway entry"
+   echo "ax25d is configured, checking for RMS Gateway entry"
    grep  "\-10" /etc/ax25/ax25d.conf  > /dev/null 2>&1
    if [ $? -eq 0 ] ; then
       echo "ax25d.conf already configured"
@@ -249,3 +249,5 @@ fi
 # create a sysop record
 # run mksysop.py
 # Check /etc/rmsgw/new-sysop.xml
+
+echo "rmsgw config finished"

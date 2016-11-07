@@ -126,14 +126,13 @@ cp logcfg/direwolf /etc/logrotate.d/
 echo "restart syslog"
 service rsyslog restart
 
-echo "test log rotate, view status before ..."
+echo "test log rotate for direwolf, view status before ..."
 
-cat /var/lib/logrotate/status
+grep direwolf /var/lib/logrotate/status
 logrotate -v -f /etc/logrotate.d/direwolf
 
 echo "test log rotate, view status after ..."
-cat /var/lib/logrotate/status
-
+grep direwolf /var/lib/logrotate/status
 
 # Check if file exists.
 if [ ! -d "$userbindir" ] ; then
@@ -201,4 +200,5 @@ fi
 CopyFiles
 systemctl enable ax25dev.path
 systemctl enable direwolf.service
-
+echo
+echo "end systemd install"
