@@ -103,6 +103,8 @@ return $udrc_prod_id
 
 # ===== main
 
+echo "direwolf config START"
+
 # make sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root."
@@ -222,4 +224,4 @@ sed -i -e "/#IGLOGIN / s/#IGLOGIN .*/IGLOGIN $CALLSIGN $logincode\n/" $DIREWOLF_
 dbgecho "IGSERVER"
 sed -i -e "/#IGSERVER / s/^#//" $DIREWOLF_CFGFILE
 
-echo "direwolf config complete"
+echo "direwolf config FINISHED"

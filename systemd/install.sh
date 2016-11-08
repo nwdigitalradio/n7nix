@@ -147,6 +147,8 @@ echo "FINISHED copying files"
 
 # ==== main
 
+echo "systemd install START"
+
 #if [ -z "$1" ] ; then
 #   echo "No args found just copy files"
 #   CopyFiles
@@ -201,4 +203,4 @@ CopyFiles
 systemctl enable ax25dev.path
 systemctl enable direwolf.service
 echo
-echo "end systemd install"
+echo "systemd install FINISHED"

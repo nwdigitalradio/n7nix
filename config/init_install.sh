@@ -50,9 +50,11 @@ if [ $? -eq 0 ] ; then
 #   dbgecho "pass  gen: $PASSGEN"
 
    if [ "$PASSFILE" = "$PASSGEN" ] ; then
+      echo "User pi is using default password"
       echo "Need to change your password for user pi NOW"
-      echo "Run command passwd pi".
+      echo "Run command passwd pi, then restart this script".
       exit 1
+   else "User pi not using default password."
    fi
 
 else
@@ -103,7 +105,7 @@ if [ "$DATETZ" == "UTC" ] ; then
    echo " ie. select America, then scroll down to 'Los Angeles'"
    echo " then hit tab & return"
    # pause to read above msg
-   sleep 2
+   sleep 4
    dpkg-reconfigure tzdata
 fi
 
@@ -225,7 +227,7 @@ fi
 ## Tried to use command line options without success
 #checkinstall < tmpfile
 
-apt-get install libax25
+apt-get install -y -q libax25
 if [ $? -ne 0 ] ; then
    echo "Problem installing libax25 package"
    exit 1
@@ -245,10 +247,12 @@ if [ ! -f /etc/direwolf.conf ] ; then
    make install
    make install-conf
    # This failed
-   make install-rpi
+#  make install-rpi
    cp /root/direwolf.conf /etc
 else
    echo "direwolf already installed"
 fi
+
+echo "Initial install script finished"
 
 exit 0

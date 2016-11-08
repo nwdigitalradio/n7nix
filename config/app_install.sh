@@ -15,14 +15,16 @@ source ../ax25/install.sh
 source ../direwolf/install.sh
 
 # configure systemd
-pushd systemd
+pushd ../systemd
 source ./install.sh
 popd
 
 # install rmsgw
-source ../rmsgw/install.sh
+pushd ../rmsgw
+source ./install.sh
+popd
 
 # configure rmsgw
 source ../rmsgw/config.sh
 
-echo "end app install"
+echo "app install script FINISHED"

@@ -86,7 +86,8 @@ echo "default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -l debug -P %d %U
 }
 
 # ===== main
-
+echo
+echo "rmsgw config START"
 echo "Check for required files ..."
 EXITFLAG=false
 
@@ -250,4 +251,4 @@ fi
 # run mksysop.py
 # Check /etc/rmsgw/new-sysop.xml
 
-echo "rmsgw config finished"
+echo "rmsgw config FINISHED"
