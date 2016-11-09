@@ -200,7 +200,16 @@ if [[ $EUID != 0 ]] ; then
 fi
 
 CopyFiles
+
 systemctl enable ax25dev.path
 systemctl enable direwolf.service
+# For conditioning network services
+systemctl enable systemd-networkd.service
+systemctl enable systemd-networkd-wait-online.service
+# enable remaining ax25 services
+systemctl enable ax25d.service
+systemctl enable ax25-mheardd.service
+
+systemctl daemon-reload
 echo
 echo "systemd install FINISHED"
