@@ -28,3 +28,4 @@ popd
 source ../rmsgw/config.sh
 
 echo "app install script FINISHED"
+echo
