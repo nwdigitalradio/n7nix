@@ -6,17 +6,23 @@ This repo contains scripts & notes for taking a new COMPASS image and
 creating a working image that will boot up & run the following:
 * direwolf
 * ax.25
-* RMS Gateay
+* RMS Gateway
 * [paclink-unix](http://bazaudi.com/plu/doku.php)
   * There are no install scripts for paclink-unix
   * A Debian install package is being worked on, until then use the link above.
 * a remote host wifi access point ie. not connected to a network
 * a minimal mail server for paclink-unix to use any e-mail client.
 
-The first script to run is
-[init_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/COMPASS_CFG.md)
-which will do the initial configuring of the compass kernel & install AX.25 & direwolf.
-After that the configure scripts are run for each subsection.
+See
+[RMSGW_INSTALL.md](https://github.com/nwdigitalradio/n7nix/blob/master/RMSGW_INSTALL.md)
+for details on installing RMS Gateway functionality.  Briefly the first script to run is
+[config/init_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/COMPASS_CFG.md)
+which will do the initial configuring of the compass kernel & install
+AX.25 & direwolf.  After that the configure scripts are run for each
+subsection.  See
+[config/app_install.sh](https://github.com/nwdigitalradio/n7nix/tree/master/config/app_install.sh)
+for installing all apps required for RMS Gateway.
+
 Note _deviation_ is not part of the install process.
 
 
