@@ -7,6 +7,7 @@ DEBUG=1
 
 myname="`basename $0`"
 CALLSIGN="N0ONE"
+GRIDSQUARE="AA00aa"
 AX25PORT="udr0"
 SSID="10"
 AX25_CFGDIR="/usr/local/etc/ax25"
@@ -18,9 +19,11 @@ RMSGW_CFG_FILES="gateway.conf channels.xml banner"
 REQUIRED_PRGMS="rmschanstat python rmsgw rmsgw_aci"
 
 # ===== function get_callsign
+# 1 arg, fake call sign to check
 
 function get_callsign() {
 
+# Check if call sign var has already been set
 if [ "$CALLSIGN" == "N0ONE" ] ; then
    echo "Enter call sign, followed by [enter]:"
    read CALLSIGN
@@ -39,14 +42,36 @@ fi
 dbgecho "Using CALL SIGN: $CALLSIGN"
 }
 
-# ===== function prompt_read
+# ===== function get_gridsquaree
+function get_gridsquare() {
 
-function prompt_read() {
+# Check if gridsquare var has already been set
+if [ "$GRIDSQUARE" == "AA00aa" ] ; then
+   echo "Enter grid square in the form AA00aa, follwed by [enter]:"
+   read GRIDSQUARE
+
+   sizegridsqstr=${#GRIDSQUARE}
+
+   if (( sizegridsqstr != 6 )) ; then
+      echo
+      echo "INVALID grid square: $GRIDSQUARE, length = $sizegridsqstr"
+      echo "NEED TO manually edit channels file"
+      echo
+   fi
+fi
+
+dbgecho "Using Grid Square: $GRIDSQUARE"
+}
+
+# ===== function prompt_read_gwcfg
+
+function prompt_read_gwcfg() {
 
 get_callsign
 
-echo "Enter ssid, followed by [enter]:"
-read SSID
+# Use default SSID 10
+#echo "Enter ssid, followed by [enter]:"
+#read SSID
 
 sizessidstr=${#SSID}
 
@@ -57,19 +82,51 @@ fi
 
 dbgecho "Using SSID: $SSID"
 
-echo "Enter grid square in the form AA00aa, follwed by [enter]:"
-read GRIDSQUARE
-
 echo "Enter city name where gateway resides, follwed by [enter]:"
 read CITY
 
 echo "Enter state or province name where gateway resides, follwed by [enter]:"
 read STATE
 
+get_gridsquare
+
 echo "You can change any of the above by manually editing these files"
 for filename in `echo ${RMSGW_CFG_FILES}` ; do
    echo -n "$RMSGW_CFGDIR/$filename "
 done
+echo
+}
+
+# ===== function prompt_read_chanxml
+
+function prompt_read_chanxml() {
+
+get_callsign
+
+echo "Enter Winlink Gateway password, followed by [enter]:"
+read PASSWD
+
+get_gridsquare
+
+echo "Enter radio Frequency in Hz (ie. 144000000, followed by [enter]:"
+read FREQUENCY
+
+   sizefreqstr=${#FREQUENCY}
+
+   if (( sizefreqstr != 9 )) ; then
+      echo
+      echo "INVALID frequency: $FREQUENCY, length = $sizefreqstr"
+      echo "NEED TO manually edit channels file"
+      echo
+   fi
+   if ! [[ $FREQUENCY =~ ^[0-9]+$ ]] ; then
+      echo
+      echo "INVALID frequency: $FREQUENCY, needs to be a number"
+      echo "NEED TO manually edit channels file"
+      echo
+   fi
+
+echo "You can change any of the above by manually editing $RMSGW_CHANFILE"
 echo
 }
 
@@ -83,6 +140,26 @@ echo "NOCALL   * * * * * *  L"
 echo "default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -l debug -P %d %U"
 } >> $AX25_CFGDIR/ax25d.conf
 
+}
+
+# ===== function cfg_chan_xml
+# Configure the following:
+# channel name, basecall, callsign, password,
+#  gridsquare, frequency
+# sed -i  save result to input file
+
+function cfg_chan_xml() {
+
+RMSGW_CHANFILE=$RMSGW_CFGDIR/channels.xml
+prompt_read_chanxml
+
+CHECK_CALL="N0CALL"
+sed -i -e "/$CHECK_CALL/ s/$CHECK_CALL/$CALLSIGN/g" $RMSGW_CHANFILE
+sed -i -e "/channel name=/ s/radio/$AX25PORT/" $RMSGW_CHANFILE
+# Replace the second occurance of "password"
+sed -i -e "/password/ s/password/$PASSWD/2" $RMSGW_CHANFILE
+sed -i -e "/AA00AA/ s/AA00AA/$GRIDSQUARE/" $RMSGW_CHANFILE
+sed -i -e "/144000000/ s/144000000/$FREQUENCY/" $RMSGW_CHANFILE
 }
 
 # ===== main
@@ -140,14 +217,17 @@ echo
 # Need to set:
 # GWCALL, GRIDSQUARE, LOGFACILITY (should match syslog entry)
 
-grep -i "n0call" $RMSGW_CFGDIR/gateway.conf > /dev/null 2>&1
+RMSGW_GWCFGFILE=$RMSGW_CFGDIR/gateway.conf
+CHECK_CALL="N0CALL"
+
+grep -i "$CHECK_CALL" $RMSGW_GWCFGFILE > /dev/null 2>&1
 
 if [ $? -eq 0 ] ; then
    echo "gateway.conf not configured, will set"
-   mv $RMSGW_CFGDIR/gateway.conf $RMSGW_CFGDIR/gateway.conf-dist
+   mv $RMSGW_GWCFGFILE $RMSGW_CFGDIR/gateway.conf-dist
    echo "Original gateway.conf saved as gateway.conf-dist"
 
-   prompt_read
+   prompt_read_gwcfg
 
    {
    echo "GWCALL=$CALLSIGN-$SSID"
@@ -157,18 +237,28 @@ if [ $? -eq 0 ] ; then
    echo "LOGFACILITY=LOCAL0"
    echo "LOGMASK=INFO"
    echo "PYTHON=/usr/bin/python"
-   } > $RMSGW_CFGDIR/gateway.conf
+   } > $RMSGW_GWCFGFILE
 else
-   echo "$RMSGW_CFGDIR/gateway.conf already configured."
+   echo "$RMSGW_GWCFGFILE already configured."
 fi
 
 # Edit channels.xml
 # Need to set:
 # channel name, basecall, callsign, password, gridsquare,
 # frequency
+CHECK_CALL="N0CALL"
+grep -i "$CHECK_CALL" $RMSGW_CFGDIR/channels.xml  > /dev/null 2>&1
+if [ $? -eq 0 ] ; then
+   echo "channels.xml not configured, will set"
+   cfg_chan_xml
+else
+   echo "$RMSGW_CFGDIR/channels.xml already configured"
+fi
+
 
 # Edit banner
-grep -i "n0call" $RMSGW_CFGDIR/banner  > /dev/null 2>&1
+CHECK_CALL="N0CALL"
+grep -i "$CHECK_CALL" $RMSGW_CFGDIR/banner  > /dev/null 2>&1
 if [ $? -eq 0 ] ; then
    echo "banner not configured, will set"
    echo "$CALLSIGN-$SSID Linux RMS Gateway 2.4, $CITY, $STATE" > $RMSGW_CFGDIR/banner
@@ -224,8 +314,8 @@ EOT
 fi
 
 # Create a /etc/ax25d.conf entry
-
-grep  "N0ONE" /etc/ax25/ax25d.conf  > /dev/null 2>&1
+CHECK_CALL="N0ONE"
+grep $CHECK_CALL  /etc/ax25/ax25d.conf  > /dev/null 2>&1
 if [ $? -eq 0 ] ; then
    echo "ax25d never configured"
    mv $AX25_CFGDIR/ax25d.conf $AX25_CFGDIR/ax25d.conf-dist
