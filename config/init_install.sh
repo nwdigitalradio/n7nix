@@ -98,7 +98,7 @@ else
 fi
 
 DATETZ=$(date +%Z)
-dbgecho "TIme zone: $DATETZ"
+dbgecho "Time zone: $DATETZ"
 
 if [ "$DATETZ" == "UTC" ] ; then
    echo " === Set time zone"
