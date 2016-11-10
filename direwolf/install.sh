@@ -192,32 +192,28 @@ dbgecho "PTT"
 sed -i -e '/#PTT GPIO 25/ s/#PTT GPIO 25/PTT GPIO 12/' $DIREWOLF_CFGFILE
 # Set up the second channel
 dbgecho "CHANNEL1"
-sed -i -e "/#CHANNEL 1/ s/#CHANNEL 1/CHANNEL 1\nPTT GPIO 23\nMODEM 1200\n$CALLSIGN1\n/" $DIREWOLF_CFGFILE
+sed -i -e "/#CHANNEL 1/ s/#CHANNEL 1/CHANNEL 1\nPTT GPIO 23\nMODEM 1200\nMYCALL $CALLSIGN1\n/" $DIREWOLF_CFGFILE
 
 echo "Config ILOGIN"
 
 # Igates need a code so they can log into the tier 2 servers.
 # It is based on your callsign, and there is a utility called
 # callpass in Xastir that will compute it.
-pkg_name="xastir"
 
 type -P callpass &>/dev/null
 if [ $? -ne 0 ] ; then
-   is_pkg_installed $pkg_name
-   if [ $? -eq 0 ] ; then
-      echo "$myname: Need to Install $pkg_name program"
-      apt-get install -y -q $pkg_name
-   fi
-   # Check that xastir package install was successful
-   type -P callpass &>/dev/null
+   gcc -o callpass callpass.c
+
+   # Check that callpass build was successful
+   type -P ./callpass &>/dev/null
    if [ $? -ne 0 ] ; then
       echo
-      echo "Need to Install xastir"
-      exit 1
+      echo "FAILED to build callpass"
+      echo
   fi
 fi
 
-logincode=$(callpass $CALLSIGN)
+logincode=$(./callpass $CALLSIGN)
 echo "Login code for $CALLSIGN for APRS tier 2 servers: $logincode"
 
 sed -i -e "/#IGLOGIN / s/#IGLOGIN .*/IGLOGIN $CALLSIGN $logincode\n/" $DIREWOLF_CFGFILE
