@@ -9,10 +9,15 @@ if [[ $EUID != 0 ]] ; then
 fi
 
 # configure ax25
+echo "Configure ax.25"
+# Needs a callsign
 source ../ax25/install.sh
 
 # configure direwolf
-source ../direwolf/install.sh
+# Needs a callsign
+pushd ../direwolf
+source ./install.sh
+popd
 
 # configure systemd
 pushd ../systemd
@@ -20,11 +25,15 @@ source ./install.sh
 popd
 
 # install rmsgw
+echo "Install RMS Gateway"
+# needs a callsign
 pushd ../rmsgw
 source ./install.sh
 popd
 
 # configure rmsgw
+echo "Configure RMS Gateway"
+
 source ../rmsgw/config.sh
 
 echo "app install script FINISHED"
