@@ -139,7 +139,7 @@ if [ ! -d "$userbindir" ] ; then
    mkdir $userbindir
 fi
 
-cp bin/ax25-* $userbindir
+cp bin/* $userbindir
 
 echo
 echo "FINISHED copying files"
