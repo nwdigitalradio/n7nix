@@ -41,8 +41,19 @@ cd n7nix/config
 sudo su
 ./init_install.sh
 ```
-* Now new RPi image has been initialized & AX.25 & direwolf are installed.
-* Remaining to be completed is the install/config of each of the following subsystems.
+
+* note: to change your password as root
+````bash
+passwd username
+```
+* note: When changing time zone type first letter of location,
+  * ie. (A)merica, (L)os Angeles
+* **When any choices appear on terminal just hit return**
+* When the script finishes & you see *Initial install script finished* the new RPi image has been initialized and AX.25 & direwolf are installed.
+
+## Remaining to be completed
+
+* What remains is the  install/config of each of the following subsystems.
   * ax25
   * direwolf
   * systemd
@@ -51,3 +62,24 @@ sudo su
 ```bash
 ./app_install.sh
 ```
+* Currently you will have to input your call sign a number of times.
+  * This is being worked on
+* You will be prompted for a SSID for direwolf APRS whether you are using it or not.
+  * **Do not use 10**, I recommend using 1
+* When the script finishes & you see *app install script FINISHED* you are ready to test the RMS gateway
+* Reboot your pi one more time login & verify the hostname changed
+  * You should see your console prompt like this: pi@your_host_name:
+
+## Testing direwolf & the UDRC
+
+* Open a console to the pi and type:
+```bash
+tail -f /var/log/direwolf/direwolf.log
+```
+* Open another console window to the pi and type:
+```bash
+cd bin
+./ax25-status
+```
+## Testing the RMS Gateway
+* Get someone to connect to your callsign with SSID of 10 ie. your_callsign-10
