@@ -213,19 +213,8 @@ else
    echo " Found ax.25 link or directory"
 fi
 
-# Need to install libax25 as a package because
-# xastir checks for it as a dependency
-# Xastir needs libax25.so.0 found in libax25 0.0.12-rc2
-
-## The following installs libax25.so.1
-#cd $AX25_SRCDIR/libax25
-#at << EOT > tmpfile
-#10
-#
-#
-#EOT
-## Tried to use command line options without success
-#checkinstall < tmpfile
+# Need to install libax25 as a package (libax25 0.0.12-rc2)
+# because it creates libax25.so.0
 
 apt-get install -y -q libax25
 if [ $? -ne 0 ] ; then
@@ -233,7 +222,8 @@ if [ $? -ne 0 ] ; then
    exit 1
 fi
 
-# libraries are installed in /usr/local/lib
+# pkg installed libraries are installed in /usr/lib
+# built libraries are installed in /usr/local/lib
 ldconfig
 
 echo "Test if direwolf has been installed"
@@ -253,6 +243,29 @@ else
    echo "direwolf already installed"
 fi
 
-echo "Initial install script finished"
+echo "Set alsa levels for UDRC"
 
+# Does source directory for ax25 utils exist?
+SRC_DIR="/usr/local/src/udrc"
+
+if [ ! -d $SRC_DIR ] ; then
+   mkdir -p $SRC_DIR
+   if [ $? -ne 0 ] ; then
+      echo "Problems creating source directory: $SRC_DIR"
+      exit 1
+   fi
+else
+   dbgecho "Source dir: $SRC_DIR already exists"
+fi
+cd $SRC_DIR
+wget -O set-udrc-din6.sh -qt 3 https://goo.gl/7rXUFJ
+if [ $? -ne 0 ] ; then
+   echo "FAILED to download alsa level setup file."
+   exit 1
+fi
+chmod +x set-udrc-din6.sh
+./set-udrc-din6.sh  > /dev/null 2>&1
+
+echo "Initial install script finished"
+echo
 exit 0
