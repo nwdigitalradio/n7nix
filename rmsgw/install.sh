@@ -21,7 +21,6 @@ White='\e[37m'
 BluW='\e[37;44m'
 
 PKG_REQUIRE="xutils-dev libxml2 libxml2-dev python-requests"
-PKG_LIST=
 SRC_DIR="/usr/local/src/ax25/rmsgw"
 ROOTFILE_NAME="rmsgw-"
 RMS_BUILD_FILE="rmsbuild.txt"
@@ -40,6 +39,12 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
 # provided by Charles S. Schuman ( K4GBB )  \n${Red}               k4gbb1@gmail.com \n${Reset}"
 echo -e "${BluW}\n \t  Install Linux RMS Gate \n${White}  Parts of this Script provided by Charles S. Schuman ( K4GBB )  \n${Reset}"
 
+# make sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root"
+   exit 1
+fi
+
 # check if packages are installed
 dbgecho "Check packages: $PKG_REQUIRE"
 needs_pkg=false
@@ -48,21 +53,24 @@ for pkg_name in `echo ${PKG_REQUIRE}` ; do
 
    is_pkg_installed $pkg_name
    if [ $? -eq 0 ] ; then
-      echo "$myname: Need to Install $pkg_name program"
-      apt-get -qy install $pkg_name
+      echo "$myname: Will Install $pkg_name program"
+      needs_pkg=true
+      break
    fi
 done
 
 if [ "$needs_pkg" = "true" ] ; then
    echo -e "${BluW}\t Installing Support libraries \t${Reset}"
 
-   apt-get install -y -q $APT_GET_PRGS
+   apt-get install -y -q $PKG_REQUIRE
    if [ "$?" -ne 0 ] ; then
       echo "Support library install failed. Please try this command manually:"
-      echo "apt-get -y $PKG_LIST"
+      echo "apt-get -y $PKG_REQUIRE"
       exit 1
    fi
 fi
+
+echo "All required packages installed."
 
 # Does source directory exist?
 if [ ! -d $SRC_DIR ] ; then

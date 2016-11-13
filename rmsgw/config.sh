@@ -168,7 +168,7 @@ echo "rmsgw config START"
 echo "Check for required files ..."
 EXITFLAG=false
 
-for prog_name in `echo ${REQUIRED_REQUIRED_PRGMS}` ; do
+for prog_name in `echo ${REQUIRED_PRGMS}` ; do
    type -P $prog_name &>/dev/null
    if [ $? -ne 0 ] ; then
       echo "$myname: RMS Gateway not installed properly"
