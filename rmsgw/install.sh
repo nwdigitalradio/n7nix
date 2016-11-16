@@ -35,6 +35,7 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
 }
 
 # ===== main
+
 # echo -e "${BluW}\n \t  Update Linux RMS Gate \n${White}  Script
 # provided by Charles S. Schuman ( K4GBB )  \n${Red}               k4gbb1@gmail.com \n${Reset}"
 echo -e "${BluW}\n \t  Install Linux RMS Gate \n${White}  Parts of this Script provided by Charles S. Schuman ( K4GBB )  \n${Reset}"
@@ -44,6 +45,7 @@ if [[ $EUID != 0 ]] ; then
    echo "Must be root"
    exit 1
 fi
+
 
 # check if packages are installed
 dbgecho "Check packages: $PKG_REQUIRE"
