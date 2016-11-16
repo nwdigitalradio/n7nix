@@ -19,6 +19,8 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
 
 # ===== main
 
+echo "Postfix install/config script"
+
 # Test if postfix package has already been installed.
 is_pkg_installed $pkg_name
 if [ $? -eq 0 ] ; then
