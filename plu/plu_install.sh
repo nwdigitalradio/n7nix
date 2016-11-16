@@ -5,7 +5,7 @@
 
 # Uncomment this statement for debug echos
 DEBUG=1
-DEFER_BUILD=1
+#DEFER_BUILD=1
 
 myname="`basename $0`"
 SRC_DIR="/usr/local/src"
@@ -115,7 +115,7 @@ if [ -z "$DEFER_BUILD" ] ; then
    echo "=== building paclink-unix"
    echo "This will take a few minutes, output is captured to build_log.out"
 
-   cd paclink-unix
+   pushd paclink-unix
 
    {
    automake --add-missing
@@ -126,6 +126,8 @@ if [ -z "$DEFER_BUILD" ] ; then
    echo "=== installing paclink-unix"
    make install
    }  > build_log.out 2>build_error.out
+
+   popd
 fi
 
 echo "=== test files 'missing' & 'test-driver'"
