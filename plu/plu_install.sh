@@ -25,11 +25,15 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
 
 # ===== main
 
+echo "paclink-unix install/config script"
+
 # make sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root"
    exit 1
 fi
+# Save current directory
+CUR_DIR=$(pwd)
 
 # check if build packages are installed
 dbgecho "Check build packages: $BUILD_PKG_REQUIRE"
@@ -122,8 +126,9 @@ if [ -z "$DEFER_BUILD" ] ; then
    echo "=== installing paclink-unix"
    make install
    }  > build_log.out 2>build_error.out
-}
-echo "=== test files missing & test-driver"
+fi
+
+echo "=== test files 'missing' & 'test-driver'"
 pwd
 ls -salt $SRC_DIR/paclink-unix/missing $SRC_DIR/paclink-unix/test-driver
 
@@ -215,7 +220,6 @@ sed -i -e "s/^#ax25port=/ax25port=$PORT/" $PLU_CFG_FILE
 echo "paclink-unix install & config FINISHED"
 
 # configure postfix
-source ./postfix_install.sh $USER
+source $CUR_DIR/postfix_install.sh $USER
 # configure mutt
-source ./mutt_install.sh $USER $CALLSIGN
-
+source $CUR_DIR/mutt_install.sh $USER $CALLSIGN
