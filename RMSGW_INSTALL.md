@@ -24,8 +24,8 @@ dd if=2016-09-03-compass-lite.img of=/dev/sdc bs=4M
 sudo su
 apt-get update
 # Be patient, the following command will take some time
-# Also you may get a prompt to continue after reading about sudoers
-# list.
+# Also you may get a (q to quit) prompt to continue after reading about sudoers
+# list. Just hit 'q'
 apt-get upgrade
 # Just copy & paste the following line
 apt-get install -y mg jed rsync build-essential autoconf automake libtool git libasound2-dev whois libncurses5-dev
@@ -48,27 +48,35 @@ passwd username
 ```
 * note: When changing time zone type first letter of location,
   * ie. (A)merica, (L)os Angeles
+  * then use arrow keys to make selection
 * **When any choices appear on terminal just hit return**
-* When the script finishes & you see *Initial install script finished* the new RPi image has been initialized and AX.25 & direwolf are installed.
+  * ie. for /etc/ax25/axports nrports & rsports
+* When the script finishes & you see *Initial install script FINISHED* the new RPi image has been initialized and AX.25 & direwolf are installed.
 
 ## Remaining to be completed
 
-* What remains is the  install/config of each of the following subsystems.
-  * ax25
-  * direwolf
-  * systemd
-  * rmsgw
+* What remains is the  configuration of ax25, direwolf & systemd and the installation of RMS Gateway
+* You will be required to supply the following:
+  * Your callsign
+  * SSID used for direwolf APRS (recommend 1)
+  * SSID used for RMS Gateway (recommend 10)
+  * City name where gateway resides
+  * State or province where gateway resides (recommend abbreviation)
+  * Gridsquare of gateway's location
+  * Winlink Gateway password
+
 * Execute the following script.
 ```bash
 ./app_install.sh
 ```
-* Currently you will have to input your call sign a number of times.
-  * This is being worked on
-* You will be prompted for a SSID for direwolf APRS whether you are using it or not.
-  * **Do not use 10**, I recommend using 1
 * When the script finishes & you see *app install script FINISHED* you are ready to test the RMS gateway
 * Reboot your pi one more time login & verify the hostname changed
   * You should see your console prompt like this: pi@your_host_name:
+
+```bash
+# reboot
+shutdown -r now
+```
 
 ## Verifying the Install
 ### Testing direwolf & the UDRC
@@ -87,7 +95,10 @@ cd bin
 * After a while you should see your callsign on the [Winlink map](http://winlink.org/RMSChannels)
   * Be sure to select *Packet*
   * On the top line in the map click the circle next to Packet
-
+* To monitor the RMS Gateway debug log open a console window and type:
+```bash
+tail -f /var/log/rms.debug
+```
 ### Testing AX.25
 
 * In a console type:
@@ -102,7 +113,9 @@ Dest       Source     Device  State        Vr/Vs    Send-Q  Recv-Q
 *          N7NIX-2    ax0     LISTENING    000/000  0       0
 ```
 * In another console type:
+  * You need to run listen as root
 ```bash
+sudo su
 listen -at
 ```
 * Over time you should see packets scrolling up the screen
