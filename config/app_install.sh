@@ -121,5 +121,6 @@ case $APP_SELECT in
    ;;
 esac
 
+echo
 echo "app install script FINISHED"
 echo

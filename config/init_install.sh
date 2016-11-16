@@ -268,6 +268,7 @@ fi
 chmod +x set-udrc-din6.sh
 ./set-udrc-din6.sh  > /dev/null 2>&1
 
-echo "Initial install script finished"
+echo
+echo "Initial install script FINISHED"
 echo
 exit 0
