@@ -1,62 +1,88 @@
 # Install scripts for some packet functionality
 
-### Introduction
+## Introduction
 
 This repo contains scripts & notes for taking a new COMPASS image and
-creating a working image that will boot up & run the following:
-* direwolf
-* ax.25
-* RMS Gateway
-* [paclink-unix](http://bazaudi.com/plu/doku.php)
-  * There are no install scripts for paclink-unix
-  * A Debian install package is being worked on, until then use the link above.
-* a remote host wifi access point ie. not connected to a network
-* a minimal mail server for paclink-unix to use any e-mail client.
+creating a working image that will boot up & run the following configurations:
+* Core only
+  * This includes direwolf & AX.25 with no other application
+* RMS Winlink Gateway
+* paclink-unix in two flavors
+  * paclink-unix basic which allows using a movemail e-mail client like Thunderbird
+  * paclink-unix imap which allows using any e-mail client that supports IMAP.
 
-See
-[RMSGW_INSTALL.md](https://github.com/nwdigitalradio/n7nix/blob/master/RMSGW_INSTALL.md)
-for details on installing RMS Gateway functionality.  Briefly the first script to run is
-[config/init_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/COMPASS_CFG.md)
-which will do the initial configuring of the compass kernel & install
-AX.25 & direwolf.  After that the configure scripts are run for each
-subsection.  See
-[config/app_install.sh](https://github.com/nwdigitalradio/n7nix/tree/master/config/app_install.sh)
-for installing all apps required for RMS Gateway.
+Note _deviation_ is stand alone and is not part of the install/config process.
 
-Note _deviation_ is not part of the install process.
+## Installation scripts
 
+### Core
 
-### [ax25](https://github.com/nwdigitalradio/n7nix/tree/master/ax25)
-* Insert a valid ax.25 port name into /etc/ax25/axports file
+The core option installs
+[direwolf](https://github.com/nwdigitalradio/n7nix/tree/master/direwolf)
+& [AX.25](https://github.com/nwdigitalradio/n7nix/tree/master/ax25)
+tools/apps/library.  Use this option if you want to run APRS or some
+APRS client that uses direwolf or AX.25. This option also configures
+[systemd](https://github.com/nwdigitalradio/n7nix/tree/master/systemd)
+to start direwolf & AX.25 apps like mheardd at boot time.
 
-### [direwolf](https://github.com/nwdigitalradio/n7nix/tree/master/direwolf)
-
-* script that tries to locate the current direwolf config file, copy
-it to /etc and modify it to work with a UDRC
-
-### [hostap](https://github.com/nwdigitalradio/n7nix/tree/master/hostap)
-
-* script to configure dnsmasq, hostapd & iptables to create a WiFi
-access point that isn't connected to a network.
-
-* This configuration is to allow WiFi devices to access a RPi &
-compose e-mail messages using an IMAP client for the paclink-unix
-Winlink message client.
-
-### [mailserv](https://github.com/nwdigitalradio/n7nix/tree/master/mailserv)
-
-* script to configure a minimal IMAP e-mail server used to compose
-Winlink messages via paclink-unix
-
-### [systemd](https://github.com/nwdigitalradio/n7nix/tree/master/systemd)
-
-* Script to configure the following to start at boot up using systemd
+* Script configures the following to start at boot using systemd
 transaction files.
   * ax.25
   * direwolf
   * mheardd
 
-### [deviation](https://github.com/nwdigitalradio/n7nix/tree/master/deviation)
+The first script to run is
+[config/init_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/COMPASS_CFG.md)
+which will do the initial configuring of the compass kernel & install
+AX.25 & direwolf.
+
+### RMS Gateway
+
+In order to install the Linux RMS Gateway you must register with Winlink to get a
+password for a gateway.
+
+See
+[RMSGW_INSTALL.md](https://github.com/nwdigitalradio/n7nix/blob/master/RMSGW_INSTALL.md)
+for details on installing RMS Gateway functionality.
+
+See
+[config/app_install.sh](https://github.com/nwdigitalradio/n7nix/tree/master/config/app_install.sh)
+for installing all apps required for RMS Gateway.
+
+### paclink-unix
+
+* Two installation options:
+  * basic - installs paclink-unix, mutt & postfix
+  * imap - installs the above plus, dovecot imap mailserver & hostapd
+  WiFi access point, and dnsmasq to serve up DNS & DHCP when the RPi 3
+  is not connected to a network.
+
+#### paclink-unix basic
+
+This is a light weight paclink-unix install that gives functionality
+to use an e-mail client on the Raspberry Pi to compose & send winlink
+messages
+
+#### paclink-unix imap
+
+This installs functionality to use any imap e-mail client & to access
+paclink-unix from a browser. This allows using a WiFi device (smart
+phone, tablet, laptop) to compose a Winlink message & envoke
+paclink-unix to send the message.
+
+Installs the following:
+
+* [hostapdd](https://github.com/nwdigitalradio/n7nix/tree/master/hostap)
+to enable WiFi for a Raspberry Pi 3
+* [dovecot](https://github.com/nwdigitalradio/n7nix/tree/master/mailserv), imap e-mail server
+* dnsmasq to allow connecting to the Raspbery Pi when it is not
+connected to a network
+
+
+
+### Other
+
+#### [deviation](https://github.com/nwdigitalradio/n7nix/tree/master/deviation)
 
 * Script that generates a tone file using sox, turns on correct PTT
 gpio and plays wave file through a UDRC

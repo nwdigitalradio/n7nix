@@ -111,6 +111,16 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
+# if there are any args on command line assume it's a callsign
+if (( $# != 0 )) ; then
+   CALLSIGN="$1"
+fi
+
+# Check for a valid callsign
+get_callsign
+CALLSIGN0="$CALLSIGN-1"
+CALLSIGN1="$CALLSIGN-2"
+
 # prompt for call sign & user name
 # Check if there is only a single user on this system
 
@@ -139,10 +149,6 @@ if [ "$userok" = "false" ] ; then
 fi
 
 dbgecho "using USER: $USER"
-
-get_callsign
-CALLSIGN0="$CALLSIGN-1"
-CALLSIGN1="$CALLSIGN-2"
 
 # Check if direwolf config file exists in /etc
 filename="direwolf.conf"

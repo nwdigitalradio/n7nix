@@ -11,6 +11,8 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== main
 
+echo "Initial core install/config script"
+
 # make sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root"

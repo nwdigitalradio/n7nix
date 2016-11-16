@@ -13,21 +13,33 @@ AX25_CFGDIR="/usr/local/etc/ax25"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function get_callsign
+
+function get_callsign() {
+
+# Check if call sign var has already been set
+if [ "$CALLSIGN" == "N0ONE" ] ; then
+   echo "Enter call sign, followed by [enter]:"
+   read CALLSIGN
+
+   sizecallstr=${#CALLSIGN}
+
+   if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
+      echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
+      exit 1
+   fi
+
+   # Convert callsign to upper case
+   CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
+fi
+
+dbgecho "Using CALL SIGN: $CALLSIGN"
+}
+
 # ===== function prompt_read
 
 function prompt_read() {
-echo "Enter call sign, followed by [enter]:"
-read CALLSIGN
-
-sizecallstr=${#CALLSIGN}
-
-if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
-   echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
-   exit 1
-fi
-
-CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
-dbgecho "Using CALL SIGN: $CALLSIGN"
+get_callsign
 
 echo "Enter ssid for direwolf APRS, followed by [enter]:"
 read SSID
@@ -68,6 +80,14 @@ if [[ $EUID != 0 ]] ; then
    echo "Must be root to modify /etc files"
    exit 1
 fi
+
+# if there are any args on command line assume it's a callsign
+if (( $# != 0 )) ; then
+   CALLSIGN="$1"
+fi
+
+# Check for a valid callsign
+get_callsign
 
 grep -i "udr0" $AX25_CFGDIR/axports
 if [ $? -eq 1 ] ; then

@@ -19,7 +19,6 @@ RMSGW_CFG_FILES="gateway.conf channels.xml banner"
 REQUIRED_PRGMS="rmschanstat python rmsgw rmsgw_aci"
 
 # ===== function get_callsign
-# 1 arg, fake call sign to check
 
 function get_callsign() {
 
@@ -67,8 +66,6 @@ dbgecho "Using Grid Square: $GRIDSQUARE"
 
 function prompt_read_gwcfg() {
 
-get_callsign
-
 # Use default SSID 10
 #echo "Enter ssid, followed by [enter]:"
 #read SSID
@@ -100,8 +97,6 @@ echo
 # ===== function prompt_read_chanxml
 
 function prompt_read_chanxml() {
-
-get_callsign
 
 echo "Enter Winlink Gateway password, followed by [enter]:"
 read PASSWD
@@ -186,6 +181,14 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
+# if there are any args on command line assume it's a callsign
+if (( $# != 0 )) ; then
+   CALLSIGN="$1"
+fi
+
+# Check for a valid callsign
+get_callsign
+
 # Does the RMSGW user exist?
 getent passwd rmsgw > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
@@ -255,7 +258,6 @@ else
    echo "$RMSGW_CFGDIR/channels.xml already configured"
 fi
 
-
 # Edit banner
 CHECK_CALL="N0CALL"
 grep -i "$CHECK_CALL" $RMSGW_CFGDIR/banner  > /dev/null 2>&1
@@ -289,7 +291,7 @@ filename="/etc/logrotate.d/rms"
 if [  -f "$filename" ] ; then
    echo "logrotate file is already configured."
 else
-   echo "Createing $filename"
+   echo "Creating $filename"
 cat > $filename <<EOT
 /var/log/rms {
 	weekly
