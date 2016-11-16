@@ -8,6 +8,7 @@ DEBUG=1
 myname="`basename $0`"
 pkg_name="mutt"
 CALLSIGN="N0ONE"
+USER=
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -18,6 +19,16 @@ function is_pkg_installed() {
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
 }
 
+# ===== function get_user
+function get_user() {
+   # Check if there is only a single user on this system
+   if (( `ls /home | wc -l` == 1 )) ; then
+      USER=$(ls /home)
+   else
+      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+      read USER
+   fi
+}
 # ===== function get_callsign
 
 function get_callsign() {
@@ -42,6 +53,8 @@ dbgecho "Using CALL SIGN: $CALLSIGN"
 
 # ===== main
 
+echo "mutt install/config script"
+
 # Test if mutt package has already been installed.
 is_pkg_installed $pkg_name
 if [ $? -eq 0 ] ; then
@@ -62,13 +75,14 @@ if (( $# != 0 )) ; then
    fi
 
 else
-   # Check if there is only a single user on this system
-   if (( `ls /home | wc -l` == 1 )) ; then
-      USER=$(ls /home)
-   else
-      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-      read USER
-   fi
+   get_user
+fi
+
+if [ -z "$USER" ] ; then
+   echo "USER string is null, get_user"
+   get_user
+else
+   echo "USER=$USER not null"
 fi
 
 # verify user name is legit
@@ -91,18 +105,22 @@ dbgecho "using USER: $USER"
 get_callsign
 
 # Set directory where mail will stored
+#  Must match folder & spoolfile directories in .muttrc file below
+
 MAILDIR="/home/$USER/Mail"
-
-# Setup up mutt Maildir
-mkdir -p ~/$MAILDIR/{,cur,tmp,new}
-mkdir -p ~/$MAILDIR/inbox/{,cur,tmp,new}
-mkdir -p ~/$MAILDIR/sent/{,cur,tmp,new}
-mkdir -p ~/$MAILDIR/drafts/{,cur,tmp,new}
-mkdir -p ~/$MAILDIR/trash/{,cur,tmp,new}
-mkdir -p ~/$MAILDIR/attachments/{,cur,tmp,new}
-
+if [ ! -d $MAILDIR ] ; then
+   # Setup up mutt Maildir
+   mkdir -p $MAILDIR/{,cur,tmp,new}
+   mkdir -p $MAILDIR/inbox/{,cur,tmp,new}
+   mkdir -p $MAILDIR/sent/{,cur,tmp,new}
+   mkdir -p $MAILDIR/drafts/{,cur,tmp,new}
+   mkdir -p $MAILDIR/trash/{,cur,tmp,new}
+   mkdir -p $MAILDIR/attachments/{,cur,tmp,new}
+   chown -R $USER:$USER $MAILDIR
+fi
+# Create a .muttrc heredoc without parameter expansion
 echo "Make a .muttrc file"
-cat << EOL >> /home/$user/.muttrc
+cat << 'EOT' >> /home/$USER/.muttrc
 set editor="mg"			# light weight emacs type editor
 set hostname="winlink.org"
 set alias_file=~/.mutt/aliases	# if you have an aliases file:
@@ -149,15 +167,18 @@ set sendmail="/usr/sbin/sendmail -oi -oem" # used on linux machine
 
 set user_agent=no		# Don't set a "User-Agent" in header
 set use_from=yes
-EOL
+EOT
 
+# Last 3 lines in .muttrc require parameter expansion
 echo "Enter real name ie. Joe Blow, followed by [enter]:"
 read REALNAME
 
 {
-set from=$CALLSIGN@winlink.org	# set default from address
-set realname ="$REALNAME"
-my_hdr Reply-To: $CALLSIGN@winlink.org
-} >> /home/$user/.muttrc
+echo "set from=$CALLSIGN@winlink.org	# set default 'from:' address"
+echo "set realname=$REALNAME"
+echo "my_hdr Reply-To: $CALLSIGN@winlink.org"
+} >> /home/$USER/.muttrc
+
+chown $USER:$USER /home/$USER/.muttrc
 
 echo "mutt install/config FINISHED"
