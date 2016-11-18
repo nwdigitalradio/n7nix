@@ -140,6 +140,7 @@ if [ ! -d "$userbindir" ] ; then
 fi
 
 cp bin/* $userbindir
+chown -R $USER:$USER $userbindir
 
 echo
 echo "FINISHED copying files"
