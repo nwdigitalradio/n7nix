@@ -98,6 +98,7 @@ if [ ! -d $SRC_DIR ] ; then
       exit 1
    fi
 fi
+apt-get install postfix libdb-dev libglib2.0-0 zlib1g-dev libncurses5-dev libdb5.3-dev libgmime-2.6-dev
 
 cd $SRC_DIR
 
@@ -107,7 +108,7 @@ else
    echo "=== getting paclink-unix source"
    git clone https://github.com/nwdigitalradio/paclink-unix
    pwd
-   rm paclink-unix/missing paclink-unix/test-driver
+   rm -f paclink-unix/missing paclink-unix/test-driver
 fi
 
 ## For Debugging check conditional for building paclink-unix
@@ -117,15 +118,24 @@ if [ -z "$DEFER_BUILD" ] ; then
 
    pushd paclink-unix
 
-   {
-   automake --add-missing
-   echo "=== running autogen"
-   ./autogen.sh --enable-postfix
+   cp README.md README
+   echo "=== running autotools"
+   aclocal > build_log.out 2> build_error.out
+   if [ "$?" -ne 0 ] ; then echo "build failed at aclocal"; exit 1; fi
+   autoheader >> build_log.out 2>> build_error.out
+   if [ "$?" -ne 0 ] ; then echo "build failed at autoheader"; exit 1; fi
+   automake --add-missing >> build_log.out 2>> build_error.out
+   if [ "$?" -ne 0 ] ; then echo "build failed at automake"; exit 1; fi
+   autoreconf >> build_log.out 2>> build_error.out
+   echo "=== running configure"
+   ./configure --enable-postfix >> build_log.out 2>> build_error.out
+   if [ "$?" -ne 0 ] ; then echo "build failed at configure"; exit 1; fi
    echo "=== making paclink-unix"
-   make
+   make >> build_log.out 2>> build_error.out
+   if [ "$?" -ne 0 ] ; then echo "build failed at make"; exit 1; fi
    echo "=== installing paclink-unix"
-   make install
-   }  > build_log.out 2>build_error.out
+   make install >> build_log.out 2>> build_error.out
+   if [ "$?" -ne 0 ] ; then echo "build failed at make install"; exit 1; fi
 
    popd
 fi
