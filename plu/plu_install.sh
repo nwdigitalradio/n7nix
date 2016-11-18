@@ -10,6 +10,7 @@ DEBUG=1
 myname="`basename $0`"
 SRC_DIR="/usr/local/src"
 PLU_CFG_FILE="/usr/local/etc/wl2k.conf"
+PLU_VAR_DIR="/usr/local/var/wl2k"
 
 BUILD_PKG_REQUIRE="build-essential autoconf automake libtool"
 INSTALL_PKG_REQUIRE="postfix mutt libdb-dev libglib2.0-0 zlib1g-dev libncurses5-dev libdb5.3-dev libgmime-2.6-dev"
@@ -22,6 +23,39 @@ function is_pkg_installed() {
 
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
 }
+# ===== function get_user
+function get_user() {
+
+# prompt for user name
+# Check if there is only a single user on this system
+
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+if (( `ls /home | wc -l` == 1 )) ; then
+   USER=$(ls /home)
+else
+  echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+  read USER
+fi
+
+# verify user name is legit
+userok=false
+
+for username in $USERLIST ; do
+  if [ "$USER" = "$username" ] ; then
+     userok=true;
+  fi
+done
+
+if [ "$userok" = "false" ] ; then
+   echo "User name does not exist,  must be one of: $USERLIST"
+   exit 1
+fi
+
+dbgecho "using USER: $USER"
+}
+
 
 # ===== main
 
@@ -165,10 +199,18 @@ echo "=== configuring paclink-unix"
 
 # set permissions for /usr/local/var/wl2k directory
 # Check user name
+get_user
+chown -R $USER:mail $PLU_VAR_DIR
 
-# Edit /usr/local/etc/wl2k.conf file
-# sed -i  save result to input file
+# Add user to group mail
+if id -nG "$USER" | grep -qw mail; then
+    echo "$USER already belongs to group mail"
+else
+    echo "Adding $USER to group mail"
+    usermod -a -G mail $USER
+fi
 
+# Get callsign
 echo "Enter call sign, followed by [enter]:"
 read CALLSIGN
 
@@ -182,39 +224,13 @@ fi
 # Convert callsign to upper case
 CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
 
+# Edit /usr/local/etc/wl2k.conf file
+# sed -i  save result to input file
+
 # Set mycall=
 sed -i -e "/mycall=/ s/mycall=.*/mycall=$CALLSIGN/" $PLU_CFG_FILE
 
 ## Set email=user_name@localhost
-# prompt for user name
-# Check if there is only a single user on this system
-
-USERLIST="$(ls /home)"
-USERLIST="$(echo $USERLIST | tr '\n' ' ')"
-
-if (( `ls /home | wc -l` == 1 )) ; then
-   USER=$(ls /home)
-else
-  echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-  read USER
-fi
-
-# verify user name is legit
-userok=false
-
-for username in $USERLIST ; do
-  if [ "$USER" = "$username" ] ; then
-     userok=true;
-  fi
-done
-
-if [ "$userok" = "false" ] ; then
-   echo "User name does not exist,  must be one of: $USERLIST"
-   exit 1
-fi
-
-dbgecho "using USER: $USER"
-
 
 sed -i -e "s/^#email=.*/email=$USER@localhost/" $PLU_CFG_FILE
 
