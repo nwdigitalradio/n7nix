@@ -73,13 +73,17 @@ else
 fi
 
 # Check if postfix main file has been modified
-grep "transport_maps" /etc/postfix/master.cf
+grep "transport_maps" /etc/postfix/main.cf
 if [ $? -ne 0 ] ; then
   cat << EOT >> /etc/postfix/main.cf
 transport_maps = hash:/etc/postfix/transport
 smtp_host_lookup = dns, native
 EOT
 fi
+
+# Specify a pathname ending in "/" for qmail-style delivery.
+# This needs to match mail client configuration.
+postconf -e "home_mailbox = Mail/"
 
 # Make a transport file
 {
