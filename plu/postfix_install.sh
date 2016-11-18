@@ -91,16 +91,19 @@ echo "*         wl2k:localhost"
 } > /etc/postfix/transport
 
 # create transport database file
-postmap /etc/postfix transport
+postmap /etc/postfix/transport
 systemctl restart postfix
 systemctl status postfix
 
 # create /etc/aliases
 {
-echo " See man 5 aliases for format"
+echo "# See man 5 aliases for format"
 echo "postmaster:  $USER"
 echo "root:  $USER"
+echo "mailer-daemon:  $USER"
 echo "nobody:  $USER"
 } > /etc/aliases
+
+newaliases
 
 echo "postfix config FINISHED"
