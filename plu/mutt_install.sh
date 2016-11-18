@@ -118,19 +118,22 @@ if [ ! -d $MAILDIR ] ; then
    mkdir -p $MAILDIR/attachments/{,cur,tmp,new}
    chown -R $USER:$USER $MAILDIR
 fi
-# Create a .muttrc heredoc without parameter expansion
-echo "Make a .muttrc file"
-cat << 'EOT' >> /home/$USER/.muttrc
+
+# Check if .muttrc file exists
+if [ ! -f .muttrc ] ; then
+   # Create a .muttrc heredoc without parameter expansion
+   echo "Make a .muttrc file"
+   cat << 'EOT' >> /home/$USER/.muttrc
 set editor="mg"			# light weight emacs type editor
 set hostname="winlink.org"
 set alias_file=~/.mutt/aliases	# if you have an aliases file:
-source $alias_file		# load aliases
+#source $alias_file		# load aliases
 
 # Mail store stuff
 
 set check_mbox_size=yes
 set folder = $HOME/Mail     # All filenames reference from this
-set spoolfile=$HOME/Mail
+#set spoolfile=$HOME/Mail
 mailboxes +inbox               # where to find new messages
 set mbox_type=maildir          # the format e-mail is stored in
 set edit_headers=yes
@@ -169,15 +172,18 @@ set user_agent=no		# Don't set a "User-Agent" in header
 set use_from=yes
 EOT
 
-# Last 3 lines in .muttrc require parameter expansion
-echo "Enter real name ie. Joe Blow, followed by [enter]:"
-read REALNAME
+   # Last 3 lines in .muttrc require parameter expansion
+   echo "Enter real name ie. Joe Blow, followed by [enter]:"
+   read REALNAME
 
 {
 echo "set from=$CALLSIGN@winlink.org	# set default 'from:' address"
-echo "set realname=$REALNAME"
+echo "set realname=\"$REALNAME\""
 echo "my_hdr Reply-To: $CALLSIGN@winlink.org"
 } >> /home/$USER/.muttrc
+else
+   echo ".muttrc file already exists"
+fi
 
 chown $USER:$USER /home/$USER/.muttrc
 
