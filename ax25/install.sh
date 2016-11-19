@@ -93,7 +93,7 @@ grep -i "udr0" $AX25_CFGDIR/axports
 if [ $? -eq 1 ] ; then
    echo "No ax25 ports defined"
    mv $AX25_CFGDIR/axports $AX25_CFGDIR/axports-dist
-   echo "Original ax25ports saved as axports-dist"
+   echo "Original ax25 axports saved as axports-dist"
 
    prompt_read
 {
@@ -133,5 +133,9 @@ else
    echo "ax25d.conf already configured"
 fi
 
-echo "ax.25 config complete"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+echo "$(date "+%Y %m %d %T %Z"): ax.25 install script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo
+echo "ax.25 install script FINISHED"
+echo
 

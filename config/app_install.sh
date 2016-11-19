@@ -38,7 +38,7 @@ dbgecho "Using CALL SIGN: $CALLSIGN"
 
 # ===== main
 
-echo "app install script"
+echo "$myname script start"
 
 # make sure we're running as root
 if [[ $EUID != 0 ]] ; then
@@ -48,16 +48,20 @@ fi
 
 # Check if there are any args on command line
 if (( $# != 0 )) ; then
-
+   APP_SELECT=$1
    # check argument passed to this script
    case $1 in
    core)
+      echo "$myname: core"
    ;;
    rmsgw)
+      echo "$myname: rmsgw"
    ;;
    plu)
+      echo "$myname: paclink-unix"
    ;;
    pluimap)
+      echo "$myname: paclink-unix imap"
    ;;
    *)
       echo "Undefined app, must be one of $APP_CHOICES"
@@ -84,7 +88,7 @@ popd
 
 # configure systemd
 pushd ../systemd
-source ./install.sh
+/bin/bash ./install.sh
 popd
 
 
@@ -122,7 +126,7 @@ case $APP_SELECT in
 esac
 
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
-echo "$(date "+%Y %m %d %T %Z"): app install script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): app install ($APP_SELECT) script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "app install script FINISHED"
 echo

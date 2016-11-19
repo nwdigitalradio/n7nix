@@ -189,6 +189,8 @@ userbindir=/home/$USER/bin
 # if there are any args on command line just diff files
 
 if (( $# != 0 )) ; then
+   echo "Found $# args on command line: $1"
+   echo "Just diff'ing files"
    DiffFiles
    exit 0
 fi
@@ -212,5 +214,9 @@ systemctl enable ax25d.service
 systemctl enable ax25-mheardd.service
 
 systemctl daemon-reload
+
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+echo "$(date "+%Y %m %d %T %Z"): systemd install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
-echo "systemd install FINISHED"
+echo "systemd install script FINISHED"
+echo
