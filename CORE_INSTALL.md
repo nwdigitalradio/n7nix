@@ -71,10 +71,9 @@ sudo su
 * You will be required to supply the following:
   * Your callsign
   * SSID used for direwolf APRS (recommend 1)
-* When the script finishes & you see *Initial install script FINISHED*
+* When the script finishes & you see *core install script FINISHED*
 the new RPi image has been initialized and AX.25 & direwolf are
 installed.
-
 
 ## After CORE install
 
