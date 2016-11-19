@@ -2,7 +2,7 @@
 
 ## Install core components
 
-[Install core instructions](CORE_INSTALL.md)
+* This installation assumes you have already [installed core components](CORE_INSTALL.md)
 
 ## Install & configure RMS Gateway
 
@@ -15,8 +15,9 @@
   * Gridsquare of gateway's location
   * Winlink Gateway password
 
-* Execute the following script.
+* Execute the following script from the directory scripts were cloned to.
 ```bash
+cd config
 ./app_install.sh
 ```
 * When the script finishes & you see *app install script FINISHED* you are ready to test the RMS gateway
