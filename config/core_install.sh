@@ -54,8 +54,9 @@ if [ $? -eq 0 ] ; then
    if [ "$PASSFILE" = "$PASSGEN" ] ; then
       echo "User pi is using default password"
       echo "Need to change your password for user pi NOW"
-      echo "Run command passwd pi, then restart this script".
-      exit 1
+      passwd pi
+#      echo "Run command passwd pi, then restart this script".
+#      exit 1
    else "User pi not using default password."
    fi
 
@@ -105,7 +106,7 @@ dbgecho "Time zone: $DATETZ"
 if [ "$DATETZ" == "UTC" ] ; then
    echo " === Set time zone"
    echo " ie. select America, then scroll down to 'Los Angeles'"
-   echo " then hit tab & return"
+   echo " then hit tab & return ... wait for it"
    # pause to read above msg
    sleep 4
    dpkg-reconfigure tzdata
@@ -273,4 +274,5 @@ echo "$(date "+%Y %m %d %T %Z"): core install script FINISHED" >> $UDR_INSTALL_L
 echo
 echo "core install script FINISHED"
 echo
+/bin/bash ./app_install.sh core
 exit 0
