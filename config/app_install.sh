@@ -121,6 +121,8 @@ case $APP_SELECT in
    ;;
 esac
 
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+echo "$(date "+%Y %m %d %T %Z"): app install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "app install script FINISHED"
 echo

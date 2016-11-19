@@ -245,8 +245,11 @@ sed -i -e "s/^#wl2k-password=/wl2k-password=$PASSWD/" $PLU_CFG_FILE
 PORT=$(tail -1 /etc/ax25/axports | cut -d ' ' -f 1)
 sed -i -e "s/^#ax25port=/ax25port=$PORT/" $PLU_CFG_FILE
 
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+echo "$(date "+%Y %m %d %T %Z"): paclink-unix basic script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo
 echo "paclink-unix install & config FINISHED"
-
+echo
 # configure postfix
 source $CUR_DIR/postfix_install.sh $USER
 # configure mutt

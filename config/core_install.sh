@@ -245,7 +245,7 @@ else
    echo "direwolf already installed"
 fi
 
-echo "Set alsa levels for UDRC"
+echo "=== Set alsa levels for UDRC"
 
 # Does source directory for ax25 utils exist?
 SRC_DIR="/usr/local/src/udrc"
@@ -268,7 +268,9 @@ fi
 chmod +x set-udrc-din6.sh
 ./set-udrc-din6.sh  > /dev/null 2>&1
 
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+echo "$(date "+%Y %m %d %T %Z"): core install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
-echo "Initial install script FINISHED"
+echo "core install script FINISHED"
 echo
 exit 0

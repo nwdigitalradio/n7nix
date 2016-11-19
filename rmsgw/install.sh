@@ -151,6 +151,8 @@ if [ $? -ne 0 ] ; then
 fi
 # rm /etc/rmsgw/stat/.*
 
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+echo "$(date "+%Y %m %d %T %Z"): RMS Gateway updated" >> $UDR_INSTALL_LOGFILE
 echo -e "${BluW}RMS Gateway updated \t${Reset}"
 
 # (End of Script)

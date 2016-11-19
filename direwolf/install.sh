@@ -229,4 +229,8 @@ sed -i -e "/#IGLOGIN / s/#IGLOGIN .*/IGLOGIN $CALLSIGN $logincode\n/" $DIREWOLF_
 dbgecho "IGSERVER"
 sed -i -e "/#IGSERVER / s/^#//" $DIREWOLF_CFGFILE
 
-echo "direwolf config FINISHED"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+echo "$(date "+%Y %m %d %T %Z"): direwolf config script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo
+echo "direwolf config script FINISHED"
+echo

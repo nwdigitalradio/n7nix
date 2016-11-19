@@ -187,4 +187,8 @@ fi
 
 chown $USER:$USER /home/$USER/.muttrc
 
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+echo "$(date "+%Y %m %d %T %Z"): mutt install script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo
 echo "mutt install/config FINISHED"
+echo

@@ -110,4 +110,8 @@ echo "nobody:  $USER"
 
 newaliases
 
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+echo "$(date "+%Y %m %d %T %Z"): postfix config script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo
 echo "postfix config FINISHED"
+echo
