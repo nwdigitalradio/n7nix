@@ -49,55 +49,40 @@ fi
 # Check if there are any args on command line
 if (( $# != 0 )) ; then
    APP_SELECT=$1
-   # check argument passed to this script
-   case $1 in
-   core)
-      echo "$myname: core"
-   ;;
-   rmsgw)
-      echo "$myname: rmsgw"
-   ;;
-   plu)
-      echo "$myname: paclink-unix"
-   ;;
-   pluimap)
-      echo "$myname: paclink-unix imap"
-   ;;
-   *)
-      echo "Undefined app, must be one of $APP_CHOICES"
-      exit 1
-   ;;
-   esac
 else
-   echo "No app chosen, so installing RMS Gateway"
+   echo "No app chosen from command arg, so installing RMS Gateway"
 fi
-
-# prompt for a valid callsign
-get_callsign
-
-# configure ax25
-echo "Configure ax.25"
-# Needs a callsign
-source ../ax25/install.sh $CALLSIGN
-
-# configure direwolf
-# Needs a callsign
-pushd ../direwolf
-source ./install.sh $CALLSIGN
-popd
-
-# configure systemd
-pushd ../systemd
-/bin/bash ./install.sh
-popd
-
 
    # check argument passed to this script
 case $APP_SELECT in
    core)
+      echo "$myname: core"
+      # prompt for a valid callsign
+      get_callsign
+
+      # configure ax25
+      echo "Configure ax.25"
+      # Needs a callsign
+      source ../ax25/install.sh $CALLSIGN
+
+      # configure direwolf
+      # Needs a callsign
+      pushd ../direwolf
+      source ./install.sh $CALLSIGN
+      popd
+
+      # configure systemd
+      pushd ../systemd
+      /bin/bash ./install.sh
+      popd
+
       echo "core application install FINISHED"
    ;;
    rmsgw)
+      echo "$myname: rmsgw"
+      # prompt for a valid callsign
+      get_callsign
+
       # install rmsgw
       echo "Install RMS Gateway"
       pushd ../rmsgw
@@ -110,6 +95,7 @@ case $APP_SELECT in
       source ../rmsgw/config.sh $CALLSIGN
    ;;
    plu)
+      echo "$myname: paclink-unix"
       # install paclink-unix basic
       echo "Install paclink-unix"
       pushd ../plu
@@ -118,9 +104,12 @@ case $APP_SELECT in
 
    ;;
    pluimap)
+      echo "$myname: paclink-unix imap"
+
    ;;
    *)
       echo "Undefined app, must be one of $APPCHOICES"
+      echo "$(date "+%Y %m %d %T %Z"): app install ($APP_SELECT) script ERROR, undefined app" >> $UDR_INSTALL_LOGFILE
       exit 1
    ;;
 esac
