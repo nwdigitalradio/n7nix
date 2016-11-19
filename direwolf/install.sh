@@ -103,6 +103,7 @@ return $udrc_prod_id
 
 # ===== main
 
+echo
 echo "direwolf config START"
 
 # make sure we're running as root

@@ -57,6 +57,9 @@ dbgecho "Using SSID: $SSID"
 
 # ===== main
 
+echo
+echo "AX.25 config START"
+
 if [ ! -f "/etc/ax25/axports" ] && [ ! -f "$AX25_CFGDIR/axports" ] ; then
    echo "Need to install libax25, tools & apps"
    exit 1

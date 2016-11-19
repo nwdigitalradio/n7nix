@@ -53,7 +53,8 @@ dbgecho "Using CALL SIGN: $CALLSIGN"
 
 # ===== main
 
-echo "mutt install/config script"
+echo
+echo "mutt install/config START"
 
 # Test if mutt package has already been installed.
 is_pkg_installed $pkg_name

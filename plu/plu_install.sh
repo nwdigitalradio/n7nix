@@ -59,7 +59,8 @@ dbgecho "using USER: $USER"
 
 # ===== main
 
-echo "paclink-unix install/config script"
+echo
+echo "paclink-unix install/config START"
 
 # make sure we're running as root
 if [[ $EUID != 0 ]] ; then
