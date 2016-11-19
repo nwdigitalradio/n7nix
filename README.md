@@ -17,21 +17,23 @@ Note _deviation_ is stand alone and is not part of the install/config process.
 
 ### Core
 
-The core option installs
+**Core is required for any other packet apps using UDRC**. This option
+installs
 [direwolf](https://github.com/nwdigitalradio/n7nix/tree/master/direwolf)
 & [AX.25](https://github.com/nwdigitalradio/n7nix/tree/master/ax25)
-tools/apps/library.  Use this option if you want to run APRS or some
-APRS client that uses direwolf or AX.25. This option also configures
+tools/apps/library.  Use this option if you want to run APRS only or
+some APRS client that uses direwolf or AX.25. As part of the core
+requirements this option also configures
 [systemd](https://github.com/nwdigitalradio/n7nix/tree/master/systemd)
 to start direwolf & AX.25 apps like mheardd at boot time.
 
-* Script configures the following to start at boot using systemd
+* The core install script configures the following to start at boot using systemd
 transaction files.
   * ax.25
   * direwolf
   * mheardd
 
-The first script to run is
+Regardless of what you want to install the first script to run is
 [config/core_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
 which will do the initial configuring of the compass kernel & install
 AX.25 & direwolf.
@@ -52,8 +54,10 @@ for installing all apps required for RMS Gateway.
 ### paclink-unix
 
 * Two installation options:
-  * basic - installs paclink-unix, mutt & postfix
-  * imap - installs the above plus, dovecot imap mailserver & hostapd
+  * basic -
+  [installs paclink-unix, mutt & postfix](https://github.com/nwdigitalradio/n7nix/blob/master/PACLINK-UNIX_INSTALL.md)
+  * imap -
+  [installs the above plus, dovecot imap mailserver & hostapd](https://github.com/nwdigitalradio/n7nix/blob/master/PACLINK-UNIX-IMAP_INSTALL.md)
   WiFi access point, and dnsmasq to serve up DNS & DHCP when the RPi 3
   is not connected to a network.
 

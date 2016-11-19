@@ -6,3 +6,8 @@
 
 
 ## Install paclink-unix
+
+```bash
+cd config
+./app_install.sh plu
+```

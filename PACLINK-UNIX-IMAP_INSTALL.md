@@ -12,3 +12,8 @@
 
 * Once the basic installation of paclink-unix has been verified
 proceed to installing the IMAP server & host WiFi access point.
+
+```bash
+cd config
+./app_install.sh pluimap
+```

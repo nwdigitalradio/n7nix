@@ -41,7 +41,7 @@ apt-get update
 # Be patient, the following command will take some time
 # Also you may get a (q to quit) prompt to continue after reading about sudoers
 # list. Just hit 'q'
-apt-get upgrade
+apt-get upgrade -y
 # Just copy & paste the following line
 apt-get install -y mg jed rsync build-essential autoconf automake libtool git libasound2-dev whois libncurses5-dev
 # reboot
@@ -57,23 +57,24 @@ sudo su
 ./core_install.sh
 ```
 
-* note: to change your user password as root
-```bash
-passwd username
-```
+* You may be asked to change your password
+* You will be prompted to change hostname & set your time zone.
 * note: When changing time zone type first letter of location,
   * ie. (A)merica, (L)os Angeles
   * then use arrow keys to make selection
 * **When any choices appear on terminal just hit return**
   * ie. for /etc/ax25/axports nrports & rsports
-* When the script finishes & you see *Initial install script FINISHED* the new RPi image has been initialized and AX.25 & direwolf are installed.
 
-## Configure direwolf
+#### Configure direwolf
 
-* What remains is the  configuration of ax25, direwolf & systemd.
+* Part of core install is configuration of ax25, direwolf & systemd.
 * You will be required to supply the following:
   * Your callsign
   * SSID used for direwolf APRS (recommend 1)
+* When the script finishes & you see *Initial install script FINISHED*
+the new RPi image has been initialized and AX.25 & direwolf are
+installed.
+
 
 ## After CORE install
 
