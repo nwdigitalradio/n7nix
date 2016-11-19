@@ -32,7 +32,7 @@ transaction files.
   * mheardd
 
 The first script to run is
-[config/init_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/COMPASS_CFG.md)
+[config/core_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/COMPASS_CFG.md)
 which will do the initial configuring of the compass kernel & install
 AX.25 & direwolf.
 
