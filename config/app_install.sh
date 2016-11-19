@@ -61,7 +61,6 @@ case $APP_SELECT in
       get_callsign
 
       # configure ax25
-      echo "Configure ax.25"
       # Needs a callsign
       source ../ax25/install.sh $CALLSIGN
 
@@ -76,15 +75,14 @@ case $APP_SELECT in
       /bin/bash ./install.sh
       popd
 
-      echo "core application install FINISHED"
+      echo "core configuration FINISHED"
    ;;
    rmsgw)
-      echo "$myname: rmsgw"
+      # install rmsgw
+      echo "$myname: Install RMS Gateway"
       # prompt for a valid callsign
       get_callsign
 
-      # install rmsgw
-      echo "Install RMS Gateway"
       pushd ../rmsgw
       source ./install.sh
       popd
@@ -95,16 +93,15 @@ case $APP_SELECT in
       source ../rmsgw/config.sh $CALLSIGN
    ;;
    plu)
-      echo "$myname: paclink-unix"
       # install paclink-unix basic
-      echo "Install paclink-unix"
+      echo "$myname: Install paclink-unix"
       pushd ../plu
       source ./plu_install.sh
       popd
 
    ;;
    pluimap)
-      echo "$myname: paclink-unix imap"
+      echo "$myname: Install paclink-unix imap"
 
    ;;
    *)
@@ -117,5 +114,5 @@ esac
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 echo "$(date "+%Y %m %d %T %Z"): app install ($APP_SELECT) script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
-echo "app install script FINISHED"
+echo "app install ($APP_SELECT) script FINISHED"
 echo
