@@ -65,7 +65,7 @@ sudo su
 * **When any choices appear on terminal just hit return**
   * ie. for /etc/ax25/axports nrports & rsports
 
-#### Configure direwolf
+#### Core Configuration
 
 * Part of core install is configuration of ax25, direwolf & systemd.
 * You will be required to supply the following:
@@ -74,6 +74,11 @@ sudo su
 * When the script finishes & you see *core install script FINISHED*
 the new RPi image has been initialized and AX.25 & direwolf are
 installed.
+* **reboot again**
+```bash
+# reboot
+shutdown -r now
+```
 
 ## After CORE install
 
