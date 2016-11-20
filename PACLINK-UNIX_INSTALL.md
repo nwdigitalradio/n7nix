@@ -6,8 +6,12 @@
 
 
 ## Install paclink-unix
+* Execute the following script from the directory scripts were cloned to.
 
 ```bash
 cd config
+# should now be in ~/n7nix/config
+# become root
+sudo su
 ./app_install.sh plu
 ```
