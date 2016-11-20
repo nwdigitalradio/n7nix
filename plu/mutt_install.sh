@@ -124,7 +124,7 @@ fi
 if [ ! -f .muttrc ] ; then
    # Create a .muttrc heredoc without parameter expansion
    echo "Make a .muttrc file"
-   cat << 'EOT' >> /home/$USER/.muttrc
+   cat << 'EOT' > /home/$USER/.muttrc
 set editor="mg"			# light weight emacs type editor
 set hostname="winlink.org"
 set alias_file=~/.mutt/aliases	# if you have an aliases file:
@@ -178,9 +178,9 @@ EOT
    read REALNAME
 
 {
-echo "set from=$CALLSIGN@winlink.org	# set default 'from:' address"
-echo "set realname=\"$REALNAME\""
-echo "my_hdr Reply-To: $CALLSIGN@winlink.org"
+   echo "set from=$CALLSIGN@winlink.org	# set default 'from:' address"
+   echo "set realname=\"$REALNAME\""
+   echo "my_hdr Reply-To: $CALLSIGN@winlink.org"
 } >> /home/$USER/.muttrc
 else
    echo ".muttrc file already exists"
