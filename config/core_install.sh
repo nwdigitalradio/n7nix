@@ -19,6 +19,8 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
+START_DIR=$(pwd)
+
 echo " === Check for updates"
 if [ "$UPDATE_NOW" = "true" ] ; then
   apt-get update
@@ -114,7 +116,7 @@ fi
 
 echo " === Modify /boot/config.txt"
 
-grep udrc /boot/config > /dev/null 2>&1
+grep udrc /boot/config.txt > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
   # Add to bottom of file
   cat << EOT >> /boot/config.txt
@@ -229,7 +231,9 @@ fi
 # built libraries are installed in /usr/local/lib
 ldconfig
 
+echo " === libax25, ax25apps & ax25tools install FINISHED"
 echo "Test if direwolf has been installed"
+
 SRC_DIR="/usr/local/src/"
 cd "$SRC_DIR"
 if [ ! -f /etc/direwolf.conf ] ; then
@@ -274,5 +278,6 @@ echo "$(date "+%Y %m %d %T %Z"): core install script FINISHED" >> $UDR_INSTALL_L
 echo
 echo "core install script FINISHED"
 echo
-/bin/bash ./app_install.sh core
+cd $START_DIR
+/bin/bash $START_DIR/app_install.sh core
 exit 0
