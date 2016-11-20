@@ -134,7 +134,7 @@ set alias_file=~/.mutt/aliases	# if you have an aliases file:
 
 set check_mbox_size=yes
 set folder = $HOME/Mail     # All filenames reference from this
-#set spoolfile=$HOME/Mail
+set spoolfile=$HOME/Mail
 mailboxes +inbox               # where to find new messages
 set mbox_type=maildir          # the format e-mail is stored in
 set edit_headers=yes
@@ -187,6 +187,7 @@ else
 fi
 
 chown $USER:$USER /home/$USER/.muttrc
+
 
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 echo "$(date "+%Y %m %d %T %Z"): mutt install script FINISHED" >> $UDR_INSTALL_LOGFILE
