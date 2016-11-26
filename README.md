@@ -5,7 +5,7 @@
 This repo contains scripts & notes for taking a new COMPASS image and
 creating a working image that will boot up & run the following configurations:
 * Core only
-  * This includes direwolf & AX.25 with no other application
+  * This includes [direwolf](https://github.com/wb2osz/direwolf/blob/master/README.md) & [AX.25](http://www.linux-ax25.org/wiki/Main_Page) with no other application
 * RMS Winlink Gateway
 * paclink-unix in two flavors
   * paclink-unix basic which allows using a movemail e-mail client like Thunderbird
@@ -22,16 +22,10 @@ installs
 [direwolf](https://github.com/nwdigitalradio/n7nix/tree/master/direwolf)
 & [AX.25](https://github.com/nwdigitalradio/n7nix/tree/master/ax25)
 tools/apps/library.  Use this option if you want to run APRS only or
-some APRS client that uses direwolf or AX.25. As part of the core
+some packet client that uses direwolf or AX.25. As part of the core
 requirements this option also configures
 [systemd](https://github.com/nwdigitalradio/n7nix/tree/master/systemd)
-to start direwolf & AX.25 apps like mheardd at boot time.
-
-* The core install script configures the following to start at boot using systemd
-transaction files.
-  * ax.25
-  * direwolf
-  * mheardd
+to start direwolf, AX.25 attach & AX.25 apps like mheardd at boot time.
 
 Regardless of what you want to install the first script to run is
 [config/core_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
