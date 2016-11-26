@@ -1,18 +1,17 @@
 #!/bin/bash
 #
-# Arguments are parsed by position
-#  arg 1 is frequency of tone in Hz
-#  arg 2 is anything & will enable the second port (mini din-6)
+# Usage:
+#   measure_deviate.sh [-f _tone_frequency_][-c _connector_type_][-l _tone_duration_][-h]
 #
 # Examples:
 # On a UDRC II, send 2200 Hz sine wave out mini din-6 connector
-# ./measure_deviate.sh 2200 -
+#   for 30 seconds
+# ./measure_deviate.sh -f 2200 -c din6 -l 30
 #
 # On a UDRC II, send 1200 Hz sine wave out HD-15 connector
-# ./measure_deviate.sh 1200
+#   for 30 seconds
+# ./measure_deviate.sh -f 1200 -c hd15
 #
-# Uncomment this statement for debug statements
-#DEBUG=1
 
 scriptname="`basename $0`"
 
