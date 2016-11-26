@@ -1,13 +1,19 @@
 # How to use measure_deviate.sh
 
-#### Usage: measure_deviate.sh [-f <tone_frequency][-c <connector>[-l <tone_duration>][-h]
+#### Usage: measure_deviate.sh [-f _tone_frequency_][-c _connector_type_][-l _tone_duration_][-h]
 ```
- -f tone frequency in Hz (10 - 20000), default: 2200
- -c connector type either din6 or hd15, default: hd15
- -l length of tone in seconds, default 30
- -d set debug flag for more verbose console output
- -h no arg, display this message
+ -f, --frequency
+        tone frequency in Hz (10 - 20000), default: 2200
+ -c, --connector
+        connector type either din6 or hd15, default: hd15
+ -l, --length
+        length of tone in seconds, default 30
+ -d, --debug
+        set debug flag for more verbose console output
+ -h, --help
+        no arg, display this message
 ```
+
 * Use should be able to run this without being root
   * Make sure you are in groups gpio & audio
 
