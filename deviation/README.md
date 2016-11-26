@@ -13,6 +13,28 @@
  -h, --help
         no arg, display this message
 ```
+
+### Program Requirements ###
+* This script uses [gpio](http://wiringpi.com/), [sox](http://sox.sourceforge.net/) & [aplay](http://linuxcommand.org/man_pages/aplay1.html)
+* To install sox & aplay
+  * As root run the following:
+```bash
+apt-get install alsa-utils sox
+```
+
+* You can also install the _WiringPI_ program for gpio manipulation
+but the script will detect if it is not already installed & do it for
+you.
+  * For reference it does this:
+```bash
+git clone git://git.drogon.net/wiringPi
+cd wiringPi
+./build
+```
+
+
+### Notes ###
+
 * The script will run as long as the wavefile is playing.
 * You can stop the script at any time by hitting _ctrl-c_
 
