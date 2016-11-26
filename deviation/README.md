@@ -13,8 +13,10 @@
  -h, --help
         no arg, display this message
 ```
+* The script will run as long as the wavefile is playing.
+* You can stop the script at any time by hitting _ctrl-c_
 
-* Use should be able to run this without being root
+* Use should be able to run the script without being root
   * Make sure you are in groups gpio & audio
 
 ```bash
@@ -35,7 +37,7 @@ groups
 ```
 
 * The script doesn't bother to check for length of wave files so if
-you decide to change the duration of the tone delete that tone file first.
+you decide to change the duration of the tone, delete that tone file first.
 
 ### Debug notes ###
 
