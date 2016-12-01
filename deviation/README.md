@@ -1,6 +1,6 @@
 # How to use measure_deviate.sh
 
-#### Usage: measure_deviate.sh [-f _tone_frequency_][-c _connector_type_][-l _tone_duration_][-h]
+#### Usage: measure_deviate.sh [-f _tone_frequency_][-c _connector_type_][-l _tone_duration_][-d][-h]
 ```
  -f, --frequency
         tone frequency in Hz (10 - 20000), default: 2200
@@ -9,7 +9,7 @@
  -l, --length
         length of tone in seconds, default 30
  -d, --debug
-        set debug flag for more verbose console output
+        no arg, set debug flag for more verbose console output
  -h, --help
         no arg, display this message
 ```
@@ -38,7 +38,7 @@ cd wiringPi
 * The script will run as long as the wavefile is playing.
 * You can stop the script at any time by hitting _ctrl-c_
 
-* Use should be able to run the script without being root
+* You should be able to run the script without being root
   * Make sure you are in groups gpio & audio
 
 ```bash
