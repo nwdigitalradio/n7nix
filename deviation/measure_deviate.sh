@@ -211,9 +211,9 @@ fi
 
 # Won't work unless gpio 4 is set to ALT 0
 # gpio 4 (BCM) is calld gpio. 7 by WiringPi
-mode_gpio7=$(gpio readall | grep -i "gpio. 7" | cut -d "|" -f 5)
-if [ "$mode_gpio7" -ne "ALT0" ] ; then
-   echo "gpio 7 is in wrong mode: $mode_gpio7, should be: ALT0"
+mode_gpio7="$(gpio readall | grep -i "gpio. 7" | cut -d "|" -f 5 | tr -d '[:space:]')"
+if [ "$mode_gpio7" != "ALT0" ] ; then
+   echo "gpio 7 is in wrong mode: |$mode_gpio7|, should be: ALT0"
    exit 1
 fi
 
@@ -242,8 +242,8 @@ echo "Using PTT GPIO $gpio_pin with tone of $freq Hz"
 gpio -g mode $gpio_pin out
 gpio -g write $gpio_pin 1
 
-#aplay -vv -D hw:CARD=udrc,DEV=0 $wavefile
-aplay -vv -D "plughw:1,0" $wavefile
+aplay -vv -D hw:CARD=udrc,DEV=0 $wavefile
+#aplay -vv -D "plughw:1,0" $wavefile
 dbgecho "Return code from aplay: $?"
 
 # Turn off PTT
