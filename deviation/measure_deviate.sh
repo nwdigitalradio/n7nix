@@ -109,7 +109,7 @@ return $udrc_prod_id
 # ===== main
 
 PROGLIST="gpio sox aplay"
-EXITFLAG=false
+NEEDPKG_FLAG=false
 
 dbgecho "Verify required programs"
 # Verify required programs are installed
@@ -117,22 +117,13 @@ for prog_name in `echo ${PROGLIST}` ; do
    type -P $prog_name &> /dev/null
    if [ $? -ne 0 ] ; then
       echo "$scriptname: Need to Install $prog_name program"
-      if [ "$prog_name" == "gpio" ] ; then
-         echo
-         echo "=== Installing WiringPI for gpio program"
-	 git clone git://git.drogon.net/wiringPi
-	 cd wiringPi
-	./build
-	echo "=== Finished installing WiringPI"
-      else
-         EXITFLAG=true
-      fi
+         NEEDPKG_FLAG=true
    fi
 done
-if [ "$EXITFLAG" = "true" ] ; then
-   echo "Debian packages: for aplay install alsa-utils, for sox install sox"
-   echo "Exiting"
-   exit 1
+if [ "$NEEDPKG_FLAG" = "true" ] ; then
+   echo "Installing required packages"
+   dbgecho "Debian packages: for aplay install alsa-utils, for sox install sox, for gpio install wiringpi"
+   apt-get -y -q install alsa-utils sox wiringpi
 fi
 
 dbgecho "Parse command line args"
@@ -215,6 +206,14 @@ pid=$(pidof direwolf)
 if [ $? -eq 0 ] ; then
    echo "Direwolf is running, with a pid of $pid"
    echo "As root kill this process"
+   exit 1
+fi
+
+# Won't work unless gpio 4 is set to ALT 0
+# gpio 4 (BCM) is calld gpio. 7 by WiringPi
+mode_gpio7=$(gpio readall | grep -i "gpio. 7" | cut -d "|" -f 5)
+if [ "$mode_gpio7" -ne "ALT0" ] ; then
+   echo "gpio 7 is in wrong mode: $mode_gpio7, should be: ALT0"
    exit 1
 fi
 
