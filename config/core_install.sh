@@ -59,7 +59,8 @@ if [ $? -eq 0 ] ; then
       passwd pi
 #      echo "Run command passwd pi, then restart this script".
 #      exit 1
-   else "User pi not using default password."
+   else
+      echo "User pi not using default password."
    fi
 
 else
