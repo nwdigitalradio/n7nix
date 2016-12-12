@@ -21,7 +21,7 @@ function get_callsign() {
 if [ "$CALLSIGN" == "N0ONE" ] ; then
    read -t 1 -n 10000 discard
    echo "Enter call sign, followed by [enter]:"
-   read CALLSIGN
+   read -e CALLSIGN
 
    sizecallstr=${#CALLSIGN}
 

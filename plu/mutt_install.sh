@@ -26,7 +26,7 @@ function get_user() {
       USER=$(ls /home)
    else
       echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-      read USER
+      read -e USER
    fi
 }
 # ===== function get_callsign
@@ -35,7 +35,7 @@ function get_callsign() {
 
 if [ "$CALLSIGN" == "N0ONE" ] ; then
    echo "Enter call sign, followed by [enter]:"
-   read CALLSIGN
+   read -e CALLSIGN
 
    sizecallstr=${#CALLSIGN}
 
@@ -175,7 +175,7 @@ EOT
 
    # Last 3 lines in .muttrc require parameter expansion
    echo "Enter real name ie. Joe Blow, followed by [enter]:"
-   read REALNAME
+   read -e REALNAME
 
 {
    echo "set from=$CALLSIGN@winlink.org	# set default 'from:' address"

@@ -45,7 +45,7 @@ function get_ssid() {
 
 read -t 1 -n 10000 discard
 echo "Enter ssid (0 - 15) for direwolf APRS, followed by [enter]:"
-read SSID
+read -e SSID
 
 if [ -z "${SSID##*[!0-9]*}" ] ; then
    echo "Input: $SSID, not a positive integer"

@@ -89,7 +89,7 @@ if [ "$HOSTNAME" = "raspberrypi" ] || [ "$HOSTNAME" = "compass" ] ; then
    echo "Using default host name: $HOSTNAME, change it"
    echo "Enter new host name followed by [enter]:"
    read -t 1 -n 10000 discard
-   read HOSTNAME
+   read -e HOSTNAME
    echo "$HOSTNAME" > /etc/hostname
 fi
 
@@ -148,7 +148,7 @@ fi
 
 # To enable serial console disable bluetooth
 #  and change console to ttyAMA0
-if [ "SERIAL_CONSOLE" = "true" ] ; then
+if [ "$SERIAL_CONSOLE" = "true" ] ; then
    cat << EOT >> /boot/config.txt
 # Enable serial console
 dtoverlay=pi3-disable-bt

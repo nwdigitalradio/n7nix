@@ -42,7 +42,7 @@ else
       USER=$(ls /home)
    else
       echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-      read USER
+      read -e USER
    fi
 fi
 

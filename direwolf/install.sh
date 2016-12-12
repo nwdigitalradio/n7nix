@@ -32,7 +32,7 @@ function get_callsign() {
 
 if [ "$CALLSIGN" == "N0ONE" ] ; then
    echo "Enter call sign, followed by [enter]:"
-   read CALLSIGN
+   read -e CALLSIGN
 
    sizecallstr=${#CALLSIGN}
 
@@ -132,7 +132,7 @@ if (( `ls /home | wc -l` == 1 )) ; then
    USER=$(ls /home)
 else
   echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-  read USER
+  read -e USER
 fi
 
 # verify user name is legit

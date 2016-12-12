@@ -25,7 +25,7 @@ function get_callsign() {
 # Check if call sign var has already been set
 if [ "$CALLSIGN" == "N0ONE" ] ; then
    echo "Enter call sign, followed by [enter]:"
-   read CALLSIGN
+   read -e CALLSIGN
 
    sizecallstr=${#CALLSIGN}
 
@@ -47,7 +47,7 @@ function get_gridsquare() {
 # Check if gridsquare var has already been set
 if [ "$GRIDSQUARE" == "AA00aa" ] ; then
    echo "Enter grid square in the form AA00aa, follwed by [enter]:"
-   read GRIDSQUARE
+   read -e GRIDSQUARE
 
    sizegridsqstr=${#GRIDSQUARE}
 
@@ -80,10 +80,10 @@ fi
 dbgecho "Using SSID: $SSID"
 
 echo "Enter city name where gateway resides, follwed by [enter]:"
-read CITY
+read -e CITY
 
 echo "Enter state or province name where gateway resides, follwed by [enter]:"
-read STATE
+read -e STATE
 
 get_gridsquare
 
@@ -99,12 +99,12 @@ echo
 function prompt_read_chanxml() {
 
 echo "Enter Winlink Gateway password, followed by [enter]:"
-read PASSWD
+read -e PASSWD
 
 get_gridsquare
 
 echo "Enter radio Frequency in Hz (ie. 144000000, followed by [enter]:"
-read FREQUENCY
+read -e FREQUENCY
 
    sizefreqstr=${#FREQUENCY}
 

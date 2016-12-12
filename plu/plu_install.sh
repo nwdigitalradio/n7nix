@@ -36,7 +36,7 @@ if (( `ls /home | wc -l` == 1 )) ; then
    USER=$(ls /home)
 else
   echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-  read USER
+  read -e USER
 fi
 
 # verify user name is legit
@@ -213,7 +213,7 @@ fi
 
 # Get callsign
 echo "Enter call sign, followed by [enter]:"
-read CALLSIGN
+read -e CALLSIGN
 
 sizecallstr=${#CALLSIGN}
 
@@ -237,7 +237,7 @@ sed -i -e "s/^#email=.*/email=$USER@localhost/" $PLU_CFG_FILE
 
 # Set wl2k-password=
 echo "Enter Winlink password, followed by [enter]:"
-read PASSWD
+read -e PASSWD
 sed -i -e "s/^#wl2k-password=/wl2k-password=$PASSWD/" $PLU_CFG_FILE
 
 # Set ax25port=

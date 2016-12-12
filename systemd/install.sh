@@ -167,7 +167,7 @@ if (( `ls /home | wc -l` == 1 )) ; then
    USER=$(ls /home)
 else
   echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-  read USER
+  read -e USER
 fi
 
 # verify user name is legit
