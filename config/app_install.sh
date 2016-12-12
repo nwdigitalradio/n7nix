@@ -19,6 +19,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 function get_callsign() {
 
 if [ "$CALLSIGN" == "N0ONE" ] ; then
+   read -t 1 -n 10000 discard
    echo "Enter call sign, followed by [enter]:"
    read CALLSIGN
 
@@ -26,7 +27,7 @@ if [ "$CALLSIGN" == "N0ONE" ] ; then
 
    if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
       echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
-      exit 1
+      return 0
    fi
 
    # Convert callsign to upper case
@@ -34,6 +35,7 @@ if [ "$CALLSIGN" == "N0ONE" ] ; then
 fi
 
 dbgecho "Using CALL SIGN: $CALLSIGN"
+return 1
 }
 
 # ===== main
@@ -58,7 +60,9 @@ case $APP_SELECT in
    core)
       echo "$myname: core"
       # prompt for a valid callsign
-      get_callsign
+      while get_callsign ; do
+         echo "Input error, try again"
+      done
 
       # configure ax25
       # Needs a callsign
@@ -81,7 +85,9 @@ case $APP_SELECT in
       # install rmsgw
       echo "$myname: Install RMS Gateway"
       # prompt for a valid callsign
-      get_callsign
+      while get_callsign ; do
+         echo "Input error, try again"
+      done
 
       pushd ../rmsgw
       source ./install.sh

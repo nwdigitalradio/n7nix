@@ -19,6 +19,8 @@ function get_callsign() {
 
 # Check if call sign var has already been set
 if [ "$CALLSIGN" == "N0ONE" ] ; then
+
+   read -t 1 -n 10000 discard
    echo "Enter call sign, followed by [enter]:"
    read CALLSIGN
 
@@ -26,7 +28,7 @@ if [ "$CALLSIGN" == "N0ONE" ] ; then
 
    if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
       echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
-      exit 1
+      return 0
    fi
 
    # Convert callsign to upper case
@@ -34,25 +36,43 @@ if [ "$CALLSIGN" == "N0ONE" ] ; then
 fi
 
 dbgecho "Using CALL SIGN: $CALLSIGN"
+return 1
+}
+
+# ===== function get_ssid
+
+function get_ssid() {
+
+read -t 1 -n 10000 discard
+echo "Enter ssid (0 - 15) for direwolf APRS, followed by [enter]:"
+read SSID
+
+if [ -z "${SSID##*[!0-9]*}" ] ; then
+   echo "Input: $SSID, not a positive integer"
+   return 0
+fi
+
+sizessidstr=${#SSID}
+
+if (( sizessidstr > 2 )) || ((sizessidstr < 0 )) ; then
+   echo "Invalid ssid: $SSID, length = $sizessidstr, should be 1 or 2 numbers"
+   return 0
+fi
+
+dbgecho "Using SSID: $SSID"
+return 1
 }
 
 # ===== function prompt_read
 
 function prompt_read() {
-get_callsign
+while get_callsign ; do
+  echo "Input error, try again"
+done
 
-echo "Enter ssid for direwolf APRS, followed by [enter]:"
-read SSID
-
-sizessidstr=${#SSID}
-
-if (( sizessidstr > 2 )) || ((sizessidstr < 0 )) ; then
-   echo "Invalid ssid: $SSID, length = $sizessidstr"
-   exit 1
-fi
-
-dbgecho "Using SSID: $SSID"
-
+while get_ssid ; do
+  echo "Input error, try again"
+done
 }
 
 # ===== main
@@ -92,7 +112,7 @@ fi
 # Check for a valid callsign
 get_callsign
 
-grep -i "udr0" $AX25_CFGDIR/axports
+grep -i "$AX25PORT" $AX25_CFGDIR/axports
 if [ $? -eq 1 ] ; then
    echo "No ax25 ports defined"
    mv $AX25_CFGDIR/axports $AX25_CFGDIR/axports-dist

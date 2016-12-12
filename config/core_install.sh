@@ -6,8 +6,17 @@
 DEBUG=1
 
 UPDDATE_NOW=false
+SERIAL_CONSOLE=true
+
+# trap ctrl-c and call ctrl_c()
+trap ctrl_c INT
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+function ctrl_c() {
+        echo "Exiting script from trapped CTRL-C"
+	exit
+}
 
 # ===== main
 
@@ -56,9 +65,12 @@ if [ $? -eq 0 ] ; then
    if [ "$PASSFILE" = "$PASSGEN" ] ; then
       echo "User pi is using default password"
       echo "Need to change your password for user pi NOW"
+      read -t 1 -n 10000 discard
       passwd pi
-#      echo "Run command passwd pi, then restart this script".
-#      exit 1
+      if [ $? -ne 0 ] ; then
+         echo "Failed to set password, exiting"
+	 exit 1
+      fi
    else
       echo "User pi not using default password."
    fi
@@ -76,6 +88,7 @@ if [ "$HOSTNAME" = "raspberrypi" ] || [ "$HOSTNAME" = "compass" ] ; then
    # Change hostname
    echo "Using default host name: $HOSTNAME, change it"
    echo "Enter new host name followed by [enter]:"
+   read -t 1 -n 10000 discard
    read HOSTNAME
    echo "$HOSTNAME" > /etc/hostname
 fi
@@ -131,6 +144,16 @@ lcd_rotate=2
 
 #dtoverlay=udrc-boost-output
 EOT
+fi
+
+# To enable serial console disable bluetooth
+#  and change console to ttyAMA0
+if [ "SERIAL_CONSOLE" = "true" ] ; then
+   cat << EOT >> /boot/config.txt
+# Enable serial console
+dtoverlay=pi3-disable-bt
+EOT
+   sed -i -e "/console/ s/console=serial0/console=ttyAMA0/" /boot/cmdline.txt
 fi
 
 echo " === enable modules"
@@ -216,8 +239,22 @@ if [ ! -d "/etc/ax25" ] || [ ! -L "/etc/ax25" ] ; then
       ln -s /usr/local/etc/ax25 /etc/ax25
    fi
 else
-   echo " Found ax.25 link or directory"
+   echo " Found ax.25 link or directory /etc/ax25"
 fi
+# check if /var/ax25 exists as a directory or symbolic link
+if [ ! -d "/var/ax25" ] || [ ! -L "/var/ax25" ] ; then
+   if [ ! -d "/usr/local/var/ax25" ] ; then
+      echo "ax25 directory /usr/local/var/ax25 DOES NOT exist, ax25 install failed"
+      exit 1
+   else
+      echo "Making symbolic link to /var/ax25"
+      ln -s /usr/local/var/ax25 /var/ax25
+   fi
+else
+   echo " Found ax.25 link or directory /var/ax25"
+fi
+
+
 
 # Need to install libax25 as a package (libax25 0.0.12-rc2)
 # because it creates libax25.so.0
