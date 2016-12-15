@@ -17,6 +17,9 @@
 
 ## git a compass image
 
+* Compass is a file system image for the Raspberry Pi that contains a kernel with the driver for the Texas Instruments tlv320aic32x4 Codec module.
+* The NW Digital Radio UDRC II is a (hat)[https://github.com/raspberrypi/hats] that contains this codec plus routes GPIO pins to control PTT.
+
 * Download a Compass Linux image from http://archive.compasslinux.org/images
   * The 'lite' version is without a GUI
   * The full version has the LXDE Windows Manager & a graphic configuration tools for other stuff.

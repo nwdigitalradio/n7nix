@@ -13,11 +13,25 @@ creating a working image that will boot up & run the following configurations:
 
 Note _deviation_ is stand alone and is not part of the install/config process.
 
+Compass is a file system image for the Raspberry Pi that contains a
+kernel with the driver for the Texas Instruments tlv320aic32x4 DSP
+sound chip. Other than this codec driver the Compass image mimics the
+[Raspbian image](https://www.raspberrypi.org/downloads/raspbian/).
+
+The NW Digital Radio [UDRC
+II](http://nwdigitalradio.com/wp-content/uploads/2012/04/UDRC-IIDS.pdf) is a
+[hat](https://github.com/raspberrypi/hats) that contains the
+tlv320aic32x4 DSP sound chip plus routes GPIO pins to control PTT. It also has
+a 12V to 5V regulator so that you can run the Pi from a 12V supply.
+
+Only the direwolf configuration is specific to the [UDRC II
+hardware](http://nwdigitalradio.com/wp-content/uploads/2012/04/UDRC-IIDS.pdf)
+
 ## Installation scripts
 
 ### Core
 
-**Core is required for any other packet apps using UDRC**. This option
+**Core is required for any other packet apps using a UDRC**. This option
 installs
 [direwolf](https://github.com/nwdigitalradio/n7nix/tree/master/direwolf)
 & [AX.25](https://github.com/nwdigitalradio/n7nix/tree/master/ax25)
