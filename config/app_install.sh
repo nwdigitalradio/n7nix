@@ -8,8 +8,9 @@
 DEBUG=1
 
 myname="`basename $0`"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 CALLSIGN="N0ONE"
-APP_CHOICES="core, rmsgw, plu, pluimap"
+APP_CHOICES="core, rmsgw, plu, pluimap, uronode"
 APP_SELECT="rmsgw"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -40,7 +41,7 @@ return 1
 
 # ===== main
 
-echo "$myname script start"
+echo "$myname: script start"
 
 # make sure we're running as root
 if [[ $EUID != 0 ]] ; then
@@ -110,6 +111,12 @@ case $APP_SELECT in
       echo "$myname: Install paclink-unix imap"
 
    ;;
+   uronode)
+      echo "$myname: Install uronode"
+      pushd ../uronode
+      source ./uro_install.sh
+      popd
+   ;;
    *)
       echo "Undefined app, must be one of $APPCHOICES"
       echo "$(date "+%Y %m %d %T %Z"): app install ($APP_SELECT) script ERROR, undefined app" >> $UDR_INSTALL_LOGFILE
@@ -117,7 +124,6 @@ case $APP_SELECT in
    ;;
 esac
 
-UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 echo "$(date "+%Y %m %d %T %Z"): app install ($APP_SELECT) script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "app install ($APP_SELECT) script FINISHED"
