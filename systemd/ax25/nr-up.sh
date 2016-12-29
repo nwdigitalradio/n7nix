@@ -1,15 +1,28 @@
 #!/bin/bash
 #
+# Uncomment this statement for debug echos
+DEBUG=1
+
+SBINPATH="/usr/local/sbin"
+AX25_CFGDIR="/usr/local/etc/ax25"
 
 ENABLE_NR="true"
+
+#for debug only
 CALLSIGN="N7NIX"
 AX25PORT="udr0"
-NR_SSID="7"
-AX25_CFGDIR="/usr/local/etc/ax25"
+NR_SSID="6"
+ALIAS="UROLPZ"
+
+ROUTE_SSID="8"
+ROUTE_ALIAS="UNLPZ"
+# end debug
+
 # How often to send Netrom updates in minutes
 #  (Default is 60)
 NETROMADVTIME=120
 
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 if [ "$ENABLE_NR" = "true" ]; then
 
@@ -30,7 +43,7 @@ if [ "$ENABLE_NR" = "true" ]; then
       mv $AX25_CFGDIR/nrports $AX25_CFGDIR/nrports-dist
       echo "Original ax25 nrports saved as nrports-dist"
    {
-echo "netrom  $CALLSIGN-$NR_SSID       UNLPZ   255     Net/ROM Switch Port"
+echo "netrom  $CALLSIGN-$NR_SSID       $ALIAS   236     Net/ROM Switch Port"
    } >> $AX25_CFGDIR/nrports
    else
       echo "Netrom ports already config'ed"
@@ -44,10 +57,11 @@ echo "netrom  $CALLSIGN-$NR_SSID       UNLPZ   255     Net/ROM Switch Port"
       if [ $? -eq 0 ] ; then
          echo "Netrom enabled in kernel"
       else
-         echo "=== Netrom is not enabled, loading module"
+         echo "=== Netrom is not enabled in kernel, loading module"
 	 modprobe netrom
          if [ $? -eq 0 ] ; then
             echo "modprobe of Netrom failed"
+	    exit 1
          fi
       fi
    fi
@@ -60,7 +74,7 @@ echo "netrom  $CALLSIGN-$NR_SSID       UNLPZ   255     Net/ROM Switch Port"
       echo "netrom attach failed, exiting"
       exit 1
    fi
-   ifconfig nr0 44.24.197.66 netmask 255.255.255.0
+   ifconfig $netrom_dev 44.24.197.66 netmask 255.255.255.0
    if [ $? -eq 0 ] ; then
       echo "netrom interface $netrom_dev is configured"
    else
@@ -75,6 +89,8 @@ fi
 grep -i "$AX25PORT" $AX25_CFGDIR/nrbroadcast
 if [ $? -eq 1 ] ; then
    echo "nrbroadcast needs configuration"
+   # Add a comment char to every line that does not have one
+   sed -i '/^#/!s/^/# /g' $AX25_CFGDIR/nrbroadcast
 # setup nrbroadcast file
 # axport      min_obs def_qual       worst_qual     verbose
 {
@@ -103,6 +119,19 @@ else
    else
       echo "netrom daemon start FAILURE"
    fi
+fi
+
+if [ ! -z "$DEBUG" ] ; then
+# Add local machine to route
+$SBINPATH/nrparms -routes udr0 $CALLSIGN-$ROUTE_SSID + 120
+$SBINPATH/nrparms -nodes $CALLSIGN-$ROUTE_SSID + "$ROUTE_ALIAS" 120 6 "udr0" $CALLSIGN-$ROUTE_SSID
+
+if [ -f "/var/ax25/nrsave" ] ; then
+   echo "Display nrsave"
+   cat /var/ax25/nrsave
+else
+   echo "nrsave does not exist"
+fi
 fi
 
 echo

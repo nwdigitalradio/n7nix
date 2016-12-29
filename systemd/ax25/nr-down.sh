@@ -1,12 +1,13 @@
 #!/bin/bash
 #
+SBINPATH="/usr/local/sbin"
 
 # is netromd running?
 pidof netromd > /dev/null
 if [ $? -eq 0 ]; then
 
    # Save NetRom routes
-   /usr/local/sbin/nodesave -p /usr/local/sbin/ /var/ax25/nrsave && echo "N/R routes saved"
+   $SBINPATH/nodesave -p $SBINPATH /var/ax25/nrsave && echo "N/R routes saved"
 
    # Stop NetRom
    killall netromd > /dev/null
