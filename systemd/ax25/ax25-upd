@@ -4,7 +4,7 @@
 # Ax25, rose, & mkiss - are pre-loaded via /etc/modules or built into kernel
 #
 # Uncomment this statement for debug echos
-#DEBUG=1
+DEBUG=1
 
 SBINDIR=/usr/local/sbin
 BINDIR=/usr/local/bin
@@ -101,6 +101,10 @@ else
 fi
 
 /etc/ax25/ax25dev-parms
+
+# configure netrom
+# Needs a callsign
+source /home/pi/n7nix/systemd/ax25/nr-up.sh
 
 # AX25-upd (End)
 echo
