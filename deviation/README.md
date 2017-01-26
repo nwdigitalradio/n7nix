@@ -21,6 +21,12 @@
 ```bash
 apt-get install alsa-utils sox wiringpi
 ```
+### Use ###
+
+* Use measure_deviate.sh to generate a reference tone
+* Use [HowTo:Set Deviation via RTL](https://xastir.org/index.php/HowTo:Set_Deviation_via_RTL) to measure FM transmitter deviation.
+* The measure_deviate.sh script can be used to verify PTT & transmit path.
+ *  Listen for the generated tone using another radio.
 
 ### Notes ###
 
