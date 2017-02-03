@@ -105,8 +105,10 @@ if [ $? -eq 0 ] ; then
    # Make sure hostnames match
    HOSTNAME_CHECK=$(grep "127.0.1.1" /etc/hosts | awk {'print $2'})
    if [ "$HOSTNAME" != "$HOSTNAME_CHECK" ] ; then
-      echo "host names do NOT match between /etc/hostname & /etc/hosts"
-      exit 1
+      echo "Make host names match between /etc/hostname & /etc/hosts"
+      sed -i -e "/127.0.1.1/ s/127.0.1.1\t.*/127.0.1.1\t$HOSTNAME/" /etc/hosts
+   else
+      echo "host names match between /etc/hostname & /etc/hosts"
    fi
 else
    # Add a 127.0.1.1 entry to /etc/hosts
