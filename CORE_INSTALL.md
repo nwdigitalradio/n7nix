@@ -31,6 +31,11 @@ unzip image_2016_09-03-compass-lite.zip
 dd if=2016-09-03-compass-lite.img of=/dev/sdc bs=4M
 ```
 
+* To enable ssh on first boot mount flash drive & create ssh file in /boot partition
+```bash
+touch /media/boot/ssh
+```
+
 ## first boot
 * **Make sure Ethernet cable is plugged into a working network**
 * Power up, find IP address assigned to this device
@@ -74,7 +79,14 @@ sudo su
 * You will be required to supply the following:
   * Your callsign
   * SSID used for direwolf APRS (recommend 1)
-* When the script finishes & you see *core install script FINISHED*
+* When the script finishes & you see:
+
+```
+core configuration FINISHED
+
+app install (core) script FINISHED
+```
+
 the new RPi image has been initialized and AX.25 & direwolf are
 installed.
 * **reboot again**
@@ -100,11 +112,22 @@ following.
 ```bash
 tail -f /var/log/direwolf/direwolf.log
 ```
-* Open another console window to the pi and type:
+* Open another console window to the pi and as user pi type:
 ```bash
+cd
 cd bin
 ./ax25-status
 ```
+* There are 3 other progams in the bin directory that confirm that the installation went well.
+  * While in local bin directory as user pi
+```bash
+cd
+cd bin
+./piver.sh
+./udrcver.sh
+./sndcard.sh
+```
+
 ### Testing AX.25
 
 * In a console type:
