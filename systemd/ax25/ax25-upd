@@ -104,7 +104,7 @@ fi
 
 # configure netrom
 # Needs a callsign
-source /home/pi/n7nix/systemd/ax25/nr-up.sh
+# source /home/pi/n7nix/systemd/ax25/nr-up.sh
 
 # AX25-upd (End)
 echo
