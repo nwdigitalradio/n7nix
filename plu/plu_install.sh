@@ -149,7 +149,7 @@ fi
 ## For Debugging check conditional for building paclink-unix
 if [ -z "$DEFER_BUILD" ] ; then
    echo "=== building paclink-unix"
-   echo "This will take a few minutes, output is captured to build_log.out"
+   echo "This will take a few minutes, output is captured to $(pwd)/paclink-unix/build_log.out"
 
    pushd paclink-unix
 
@@ -225,26 +225,35 @@ fi
 # Convert callsign to upper case
 CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
 
-# Edit /usr/local/etc/wl2k.conf file
-# sed -i  save result to input file
+# Determine if paclink-unix has already been configured
 
-# Set mycall=
-sed -i -e "/mycall=/ s/mycall=.*/mycall=$CALLSIGN/" $PLU_CFG_FILE
+grep $CALLSIGN $PLU_CFG_FILE
+if [ $? -ne 0 ] ; then
 
-## Set email=user_name@localhost
+   # Edit /usr/local/etc/wl2k.conf file
+   # sed -i  save result to input file
 
-sed -i -e "s/^#email=.*/email=$USER@localhost/" $PLU_CFG_FILE
+   # Set mycall=
+   sed -i -e "/mycall=/ s/mycall=.*/mycall=$CALLSIGN/" $PLU_CFG_FILE
 
-# Set wl2k-password=
-echo "Enter Winlink password, followed by [enter]:"
-read -e PASSWD
-sed -i -e "s/^#wl2k-password=/wl2k-password=$PASSWD/" $PLU_CFG_FILE
+   ## Set email=user_name@localhost
 
-# Set ax25port=
-# Assume axports was set by a previous configuration script
-# get first arg in last line
-PORT=$(tail -1 /etc/ax25/axports | cut -d ' ' -f 1)
-sed -i -e "s/^#ax25port=/ax25port=$PORT/" $PLU_CFG_FILE
+   sed -i -e "s/^#email=.*/email=$USER@localhost/" $PLU_CFG_FILE
+
+   # Set wl2k-password=
+   echo "Enter Winlink password, followed by [enter]:"
+   read -e PASSWD
+   sed -i -e "s/^#wl2k-password=/wl2k-password=$PASSWD/" $PLU_CFG_FILE
+
+   # Set ax25port=
+   # Assume axports was set by a previous configuration script
+   # get first arg in last line
+   PORT=$(tail -1 /etc/ax25/axports | cut -d ' ' -f 1)
+   sed -i -e "s/^#ax25port=/ax25port=$PORT/" $PLU_CFG_FILE
+
+else
+   echo "$myname: paclink-unix has already been configured."
+fi
 
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 echo "$(date "+%Y %m %d %T %Z"): paclink-unix basic script FINISHED" >> $UDR_INSTALL_LOGFILE
