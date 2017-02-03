@@ -189,10 +189,24 @@ case $id_check_ret in
 ;;
 esac
 
+# Verify alsa enumerates udrc sound card
+
+CARDNO=$(aplay -l | grep -i udrc)
+
+if [ ! -z "$CARDNO" ] ; then
+   echo "udrc card number line: $CARDNO"
+   CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
+   echo "udrc is sound card #$CARDNO"
+else
+   echo "No udrc sound card found by aplay ... exiting"
+   exit 1
+fi
+
 dbgecho "MYCALL"
 sed -i -e "/MYCALL N0CALL/ s/N0CALL/$CALLSIGN0/" $DIREWOLF_CFGFILE
 dbgecho "ADEVICE"
-sed -i -e '/ADEVICE  plughw/ s/# ADEVICE  plughw:1,0/ADEVICE plughw:1,0 plughw:1,0/' $DIREWOLF_CFGFILE
+#sed -i -e '/ADEVICE  plughw/ s/# ADEVICE  plughw:1,0/ADEVICE plughw:1,0 plughw:1,0/' $DIREWOLF_CFGFILE
+sed -i -e '/ADEVICE  plughw/ s/# ADEVICE  plughw:1,0/ADEVICE CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/' $DIREWOLF_CFGFILE
 dbgecho "ACHANNELS"
 sed -i -e '/ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
 dbgecho "PTT"
