@@ -6,6 +6,7 @@
 #
 # Uncomment this statement for debug echos
 DEBUG=1
+INSTALL_PLU=false
 
 myname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
@@ -110,6 +111,14 @@ case $APP_SELECT in
    pluimap)
       echo "$myname: Install paclink-unix imap"
 
+      if [ "$INSTALL_PLU" == "true" ] ; then
+         pushd ../plu
+         source ./plu_install.sh
+         popd
+      fi
+      echo "$myname: Install hostapd & dovecot"
+      source ../hostap/hostap_install.sh
+      source ../mailserv/imapserv_install.sh
    ;;
    uronode)
       echo "$myname: Install uronode"
