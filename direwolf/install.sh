@@ -206,7 +206,7 @@ dbgecho "MYCALL"
 sed -i -e "/MYCALL N0CALL/ s/N0CALL/$CALLSIGN0/" $DIREWOLF_CFGFILE
 dbgecho "ADEVICE"
 #sed -i -e '/ADEVICE  plughw/ s/# ADEVICE  plughw:1,0/ADEVICE plughw:1,0 plughw:1,0/' $DIREWOLF_CFGFILE
-sed -i -e '/ADEVICE  plughw/ s/# ADEVICE  plughw:1,0/ADEVICE CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/' $DIREWOLF_CFGFILE
+sed -i -e '/ADEVICE  plughw/ s/# ADEVICE  plughw:1,0/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/' $DIREWOLF_CFGFILE
 dbgecho "ACHANNELS"
 sed -i -e '/ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
 dbgecho "PTT"
