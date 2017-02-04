@@ -32,8 +32,9 @@ dd if=2016-09-03-compass-lite.img of=/dev/sdc bs=4M
 ```
 
 * To enable ssh on first boot mount flash drive & create ssh file in /boot partition
+  * On debian systems this partition may get auto mounted on /media/`<user_name>`/boot
 ```bash
-touch /media/boot/ssh
+touch /media/<user_name>/boot/ssh
 ```
 
 ## first boot
@@ -41,7 +42,26 @@ touch /media/boot/ssh
 * Power up, find IP address assigned to this device
   * It can take several minutes to boot up on the initial boot because the file system is being expanded.
   * Be patient.
-* ssh into your RPi and do the following:
+
+#### Note if you get this message on your host machine
+```
+$ ssh pi@<rpi_ip_address>
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
+```
+* go into your .ssh directory, remove the known_hosts file & try again
+```bash
+cd .ssh
+rm known_hosts
+```
+* Now ssh into your RPi ...
+```bash
+ssh pi@<rpi_ip_address>
+```
+
+* and do the following:
 
 ```bash
 sudo su
@@ -107,24 +127,34 @@ following.
 
 ## Verifying CORE Install
 ### Testing direwolf & the UDRC
-
+#### Monitor Receive packets from direwolf
 * Open a console to the pi and type:
 ```bash
 tail -f /var/log/direwolf/direwolf.log
 ```
+* Tune your radio to the 2M 1200 baud APRS frequency 144.390 or some frequency known to have packet traffic
+  * You should now be able to see the packets decoded by direwolf
+
+#### Check status of all AX.25 & direwolf processes started with systemd
 * Open another console window to the pi and as user pi type:
 ```bash
-cd
-cd bin
+cd ~/bin
 ./ax25-status
 ```
+#### Verify version of Raspberry Pi, UDRC,
+
 * There are 3 other progams in the bin directory that confirm that the installation went well.
   * While in local bin directory as user pi
 ```bash
-cd
-cd bin
+cd ~/bin
 ./piver.sh
 ./udrcver.sh
+```
+
+#### check ALSA soundcard enumeration
+  * While in local bin directory as user pi
+```bash
+cd ~/bin
 ./sndcard.sh
 ```
 
@@ -134,7 +164,7 @@ cd bin
 ```bash
 netstat --ax25
 ```
-* You should see something like this:
+* You should see a list of open listening sockets that looks something like this:
 ```
 Active AX.25 sockets
 Dest       Source     Device  State        Vr/Vs    Send-Q  Recv-Q
@@ -142,7 +172,7 @@ Dest       Source     Device  State        Vr/Vs    Send-Q  Recv-Q
 *          N7NIX-2    ax0     LISTENING    000/000  0       0
 ```
 * In another console type:
-  * You need to run listen as root
+  * You need to run the _listen_ program as root
 ```bash
 sudo su
 listen -at
