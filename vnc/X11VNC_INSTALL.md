@@ -8,11 +8,13 @@ Virtual Network Computing (VNC) is a graphical desktop sharing system
 that uses the Remote Frame Buffer protocol (RFB) to remotely control
 another computer. Check [wikipedia]
 (https://en.wikipedia.org/wiki/Virtual_Network_Computing) for more
-info.  There are 67 vnc programs listed in [Comparison of remote desktop
+info.  There are 67 vnc programs listed in [Comparison of remote
+desktop
 software](https://en.wikipedia.org/wiki/Comparison_of_remote_desktop_software)
 so you have choices.  One of the choices is x11vnc recommend by Ken
-Kostner N7IBP. Ken supplied this systemd service file & setup notes which will start
-x11vnc during boot.
+Kostner N7IBP. Ken supplied this [systemd
+service](https://github.com/nwdigitalradio/n7nix/blob/master/vnc/vnc.service)
+file & these setup notes which will start x11vnc during boot.
 
 
 ## Install & systemd service file setup
@@ -23,7 +25,10 @@ Users will need to install x11vnc since it's not installed automatically
 sudo apt-get install x11vnc
 ```
 
-Copy the service file [vnc.service](https://github.com/wb2osz/direwolf/blob/master/vnc.service) to /lib/systemd/system then enable with
+Copy the service file
+[vnc.service](https://github.com/nwdigitalradio/n7nix/blob/master/vnc/vnc.service)
+to /lib/systemd/system then enable with
+
 ```bash
 sudo systemctl enable vnc.service
 ````
@@ -41,7 +46,7 @@ If you need to temporarily stop it use:
 sudo systemctl stop vnc
 ```
 
-and to disable start on boot do
+and to disable *start on boot* do
 ```
 sudo systemctl disable vnc
 ```
