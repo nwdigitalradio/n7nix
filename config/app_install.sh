@@ -109,11 +109,11 @@ case $APP_SELECT in
 
    ;;
    pluimap)
-      echo "$myname: Install paclink-unix imap"
+      echo "$myname: Install paclink-unix with imap"
 
       if [ "$INSTALL_PLU" == "true" ] ; then
          pushd ../plu
-         source ./plu_install.sh
+         source ./pluimap_install.sh
          popd
       fi
       echo "$myname: Install hostapd & dovecot"
