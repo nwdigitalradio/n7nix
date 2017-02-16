@@ -1,0 +1,27 @@
+# systemd service file to start  x11vnc
+[Unit]
+Description=x11vnc startup
+Wants= lightdm.service
+After=networkd-online.target lightdm.service
+
+[Service]
+Type=simple
+# Run as normal pi user - feel free to change...
+User=pi
+Group=pi
+Nice=5
+Environment=DISPLAY=:0
+ExecStart=/usr/bin/x11vnc -display :0 -forever -shared -loop -avahi -bg
+# options that might be useful
+# -allow 192.168.
+# -geometry 1824x970
+# Use SIGINT to stop
+KillSignal=SIGINT
+# Auto restart on crash
+Restart=on-failure
+# Tag things in the log
+SyslogIdentifier=x11vnc
+#StandardOutput=syslog
+
+[Install]
+WantedBy=multi-user.target
