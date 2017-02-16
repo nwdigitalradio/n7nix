@@ -18,7 +18,7 @@
 ## git a compass image
 
 * Compass is a file system image for the Raspberry Pi that contains a kernel with the driver for the Texas Instruments tlv320aic32x4 Codec module.
-* The NW Digital Radio UDRC II is a (hat)[https://github.com/raspberrypi/hats] that contains this codec plus routes GPIO pins to control PTT.
+* The NW Digital Radio UDRC II is a [hat](https://github.com/raspberrypi/hats) that contains this codec plus routes GPIO pins to control PTT.
 
 * Download a Compass Linux image from http://archive.compasslinux.org/images
   * The 'lite' version is without a GUI
@@ -124,6 +124,16 @@ following.
   * [RMS Gateway](RMSGW_INSTALL.md)
   * [paclink-unix](PACLINK-UNIX_INSTALL.md)
   * [paclink-unix with IMAP server](PACLINK-UNIX-IMAP_INSTALL.md)
+
+### How to Enable Serial console
+
+* To Enable a serial console on a Raspberry Pi 3 change 2 files
+  * Disable bluetooth in /boot/config.txt
+```
+dtoverlay=pi3-disable-bt
+```
+  * Specify serial console port in /boot/cmdline.txt
+    * Change console=serial0 to console=ttyAMA0
 
 ## Verifying CORE Install
 ### Testing direwolf & the UDRC
