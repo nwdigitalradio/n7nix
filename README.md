@@ -105,4 +105,4 @@ nice article on how to do that using an RTL SDR dongle.
 
 #### [vnc](https://github.com/nwdigitalradio/n7nix/blob/master/vnc/vnc.service)
 
-* systemd service file supplied by Ken Kostner K7IPB.
+* systemd service file supplied by Ken Koster K7IPB.

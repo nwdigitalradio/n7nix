@@ -12,7 +12,7 @@ info.  There are 67 vnc programs listed in [Comparison of remote
 desktop
 software](https://en.wikipedia.org/wiki/Comparison_of_remote_desktop_software)
 so you have choices.  One of the choices is x11vnc recommend by Ken
-Kostner N7IBP. Ken supplied this [systemd
+Koster N7IBP. Ken supplied this [systemd
 service](https://github.com/nwdigitalradio/n7nix/blob/master/vnc/vnc.service)
 file & these setup notes which will start x11vnc during boot.
 
