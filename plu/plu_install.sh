@@ -10,6 +10,7 @@ DEBUG=1
 myname="`basename $0`"
 SRC_DIR="/usr/local/src"
 PLU_CFG_FILE="/usr/local/etc/wl2k.conf"
+POSTFIX_CFG_FILE="/etc/postfix/transport"
 PLU_VAR_DIR="/usr/local/var/wl2k"
 
 BUILD_PKG_REQUIRE="build-essential autoconf automake libtool"
@@ -23,6 +24,20 @@ function is_pkg_installed() {
 
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
 }
+# ===== files_exist
+function files_exist() {
+   retcode=1
+
+   for filename in `echo ${CFG_FILES}` ; do
+      if [ ! -f "$filename" ] ; then
+         retcode=0
+      else
+         echo "File check found: $filename"
+      fi
+   done
+   return $retcode
+}
+
 # ===== function get_user
 function get_user() {
 
@@ -110,6 +125,11 @@ for pkg_name in `echo ${INSTALL_PKG_REQUIRE}` ; do
    fi
 done
 
+# Get user name, $USER
+get_user
+MUTT_CFG_FILE="/home/$USER/.muttrc"
+CFG_FILES="$PLU_CFG_FILE $MUTT_CFG_FILE $POSTFIX_CFG_FILE"
+
 if [ "$needs_pkg" = "true" ] ; then
    echo
    echo -e "=== Installing required packages"
@@ -122,6 +142,14 @@ if [ "$needs_pkg" = "true" ] ; then
       echo "Required package install failed. Please try this command manually:"
       echo "apt-get -y $INSTALL_PKG_REQUIRE"
       exit 1
+   fi
+else
+   # Does NOT need any package
+   # Have paclink-unix, mutt & postfix already been installed?
+   files_exist
+   if [ $? -eq 1 ] ; then
+      echo "paclink-unix, mutt & postfix already installed ..."
+      exit 0
    fi
 fi
 
@@ -200,7 +228,7 @@ echo "=== configuring paclink-unix"
 
 # set permissions for /usr/local/var/wl2k directory
 # Check user name
-get_user
+# get_user previously set $USER
 chown -R $USER:mail $PLU_VAR_DIR
 
 # Add user to group mail
