@@ -141,7 +141,7 @@ following.
 dtoverlay=pi3-disable-bt
 ```
   * Specify serial console port in /boot/cmdline.txt
-    * Change console=serial0 to console=ttyAMA0
+    * Change console=serial0 to console=ttyAMA0,115200
 
 ## Verifying CORE Install
 ### Testing direwolf & the UDRC
