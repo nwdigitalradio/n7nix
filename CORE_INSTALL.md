@@ -36,6 +36,14 @@ dd if=2016-09-03-compass-lite.img of=/dev/sdc bs=4M
 ```bash
 touch /media/<user_name>/boot/ssh
 ```
+* Another way to enable ssh by creating ssh file in boot partition by manually mounting boot partition
+  * The x in sdx1 is a letter you must accuartely determine
+```
+mount /dev/sdx1 /media/sd
+# Verify that you have in fact mounted the boot partition
+touch /media/sd/ssh
+umount /media/sd
+```
 
 ## first boot
 * **Make sure Ethernet cable is plugged into a working network**
@@ -51,7 +59,7 @@ $ ssh pi@<rpi_ip_address>
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
 ```
-* go into your .ssh directory, remove the known_hosts file & try again
+* go into your workstation .ssh directory, remove the known_hosts file & try again
 ```bash
 cd .ssh
 rm known_hosts
@@ -70,7 +78,7 @@ apt-get update
 # Also you may get a (q to quit) prompt to continue after reading about sudoers
 # list. Just hit 'q'
 apt-get upgrade -y
-# Just copy & paste the following line
+# Just copy & paste the following line into your ssh console
 apt-get install -y mg jed rsync build-essential autoconf automake libtool git libasound2-dev whois libncurses5-dev
 # reboot
 shutdown -r now
