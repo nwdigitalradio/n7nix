@@ -6,7 +6,7 @@
 #
 # Uncomment this statement for debug echos
 DEBUG=1
-INSTALL_PLU=false
+INSTALL_PLU=true
 
 myname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
@@ -116,9 +116,6 @@ case $APP_SELECT in
          source ./pluimap_install.sh
          popd
       fi
-      echo "$myname: Install hostapd & dovecot"
-      source ../hostap/hostap_install.sh
-      source ../mailserv/imapserv_install.sh
    ;;
    uronode)
       echo "$myname: Install uronode"
