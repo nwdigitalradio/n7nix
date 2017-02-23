@@ -5,7 +5,10 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
+myname="`basename $0`"
+
 echo "$myname: paclink-unix with imap install"
+echo "$myname: Install paclink-unix, hostapd & dovecot"
 # First install basic paclink-unix
 ./plu_install.sh
 
