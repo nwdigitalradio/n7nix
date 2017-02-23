@@ -7,7 +7,7 @@ myname="`basename $0`"
 
 #
 # Required programs
-MAIL_PKG_REQUIRELIST="postfix dovecot"
+MAIL_PKG_REQUIRELIST="postfix dovecot-core dovecot-imapd"
 EXITFLAG=false
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -18,7 +18,7 @@ if [ ! -f /etc/mailname ] ; then
    echo "$(hostname).localdomain" > /etc/mailname
 fi
 
-for prog_name in `echo ${MAIL_PKG_REQUIRE}` ; do
+for prog_name in `echo ${MAIL_PKG_REQUIRELIST}` ; do
 
    type -P $prog_name &>/dev/null
    if [ $? -ne 0 ] ; then
@@ -30,7 +30,7 @@ done
 if [ "$EXITFLAG" = "true" ] ; then
    debconf-set-selections <<< "postfix postfix/mailname string $(hostname).localhost"
    debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-   apt-get install -y postfix dovecot
+   apt-get install -y postfix dovecot-core dovecot-imapd
 fi
 
 
@@ -111,8 +111,8 @@ sed -i -e "/inet_listener imaps {/,/}/ s/#ssl =.*/ssl = yes/" /etc/dovecot/conf.
 
 # Turn ssl on
 sed -i -e "/ssl =/ s/ssl =.*/ssl = yes/" /etc/dovecot/conf.d/10-ssl.conf
-sed -i -e "|#ssl_cert| s|#ssl_cert =.*|/etc/ssl/certs/dovecot.pem|" /etc/dovecot/conf.d/10-ssl.conf
-sed -i -e "|#ssl_key| s|#ssl_key =.*|/etc/ssl/private/dovecot.pem|" /etc/dovecot/conf.d/10-ssl.conf
+sed -i -e "/#ssl_cert / s|#ssl_cert =.*|ssl_cert = </etc/ssl/certs/dovecot.pem|" /etc/dovecot/conf.d/10-ssl.conf
+sed -i -e "/#ssl_key / s|#ssl_key =.*|ssl_key = </etc/ssl/private/dovecot.pem|" /etc/dovecot/conf.d/10-ssl.conf
 sed -i -e "/#ssl_protocols =/ s/#ssl_protocols =.*/ssl_protocols = !SSLv2 !SSLv3/" /etc/dovecot/conf.d/10-ssl.conf
 
 # uncomment listen config line
