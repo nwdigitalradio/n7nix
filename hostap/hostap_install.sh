@@ -1,5 +1,7 @@
 #! /bin/bash
 #
+# Currently not working need to setup
+# hosts, resolv.conf /etc/network/interfaces /etc/dhcpcd.conf
 DEBUG=1
 
 myname="`basename $0`"
@@ -258,4 +260,6 @@ for service_name in `echo ${SERVICELIST}` ; do
    fi
 done
 
-exit 0
+echo
+echo "hostap install & config FINISHED"
+echo
