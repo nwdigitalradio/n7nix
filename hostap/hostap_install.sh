@@ -60,6 +60,10 @@ return $HAS_WIFI
 function copy_dnsmasq() {
 
 echo "DEBUG: copy_dnsmasq arg: $1"
+if [ -z "$1" ] ; then
+   echo "$myname: function copy_dnsmasq() needs an argument ... exiting"
+   exit 1
+fi
 
 # Create a new file
 cat > $1/dnsmasq.conf <<EOT
@@ -78,6 +82,10 @@ EOT
 function copy_hostapd() {
 
 echo "DEBUG: copy_hostapd: arg $1"
+if [ -z "$1" ] ; then
+   echo "$myname: function copy_hostapd() needs an argument ... exiting"
+   exit 1
+fi
 
 # Create a new file
 
