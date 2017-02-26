@@ -7,10 +7,16 @@
 ```
 systemctl status dovecot
 ```
+*  Should see 'active (running)' in the output
+
 ### Check that dovecot is listening
 * As root
 ```
 telnet localhost 143
+```
+* for a graceful exit type:
+```
+e logout
 ```
 
 ## local ssl connection
@@ -30,7 +36,7 @@ OK Dovecot ready.
 * Now type
 
 ```
-CAPABILITY
+a CAPABILITY
 ```
 
 * to ask Dovecot what it is capable of.
@@ -45,7 +51,7 @@ OK Capability completed.
 * IMAP server is now capable. End the connection by typing:
 
 ```
-LOGOUT
+e LOGOUT
 ```
 ```
 connect: Connection refused
@@ -55,9 +61,13 @@ connect:errno=111
 postconf | grep -e '^mydomain' -e '^myhostname' -e '^myorigin'
 ```
 
-* This worked
+* As user ie. not root
 ```
 mutt -f imap://pi@localhost
+```
+* Get this, need to fix:
+```
+ WARNING: Server hostname does not match certificate
 ```
 
 ```
