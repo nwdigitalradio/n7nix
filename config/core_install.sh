@@ -155,7 +155,7 @@ if [ "$SERIAL_CONSOLE" = "true" ] ; then
 # Enable serial console
 dtoverlay=pi3-disable-bt
 EOT
-   sed -i -e "/console/ s/console=serial0/console=ttyAMA0/" /boot/cmdline.txt
+   sed -i -e "/console/ s/console=serial0/console=ttyAMA0, 115200/" /boot/cmdline.txt
 fi
 
 echo " === enable modules"
