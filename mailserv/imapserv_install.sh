@@ -7,7 +7,8 @@ myname="`basename $0`"
 
 #
 # Required programs
-MAIL_PKG_REQUIRELIST="postfix dovecot-core dovecot-imapd"
+# Note telnet is used to test a dovecot mail server
+MAIL_PKG_REQUIRELIST="postfix dovecot-core dovecot-imapd telnet"
 EXITFLAG=false
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
