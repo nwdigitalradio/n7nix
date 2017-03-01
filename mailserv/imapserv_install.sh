@@ -98,7 +98,7 @@ else
 transport_maps = hash:/etc/postfix/transport
 smtp_host_lookup = dns, native
 # Needs to match mail client config
-home_mailbox = Mail/"
+home_mailbox = Mail/
 EOT
 fi
 
