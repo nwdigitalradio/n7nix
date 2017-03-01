@@ -10,10 +10,11 @@ su
 apt-get install nodejs npm
 npm install -g websocket connect finalhandler serve-static
 
-cd /usr/local/src/webapp
+cd /usr/local/src/paclink-unix/webapp
 #wget https://code.jquery.com/jquery-3.1.1.min.js
 #cp jquery-3.1.1.min.js jquery.js
 npm install jquery
+cp node_modules/jquery/jquery.min.js jquery.js
 ```
 
 
