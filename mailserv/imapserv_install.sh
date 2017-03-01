@@ -13,25 +13,37 @@ EXITFLAG=false
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function is_pkg_installed
+
+function is_pkg_installed() {
+
+return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
+}
+
 # ===== main
 
 if [ ! -f /etc/mailname ] ; then
    echo "$(hostname).localdomain" > /etc/mailname
 fi
 
-for prog_name in `echo ${MAIL_PKG_REQUIRELIST}` ; do
+# check if packages are installed
+dbgecho "Check packages: $PKG_REQUIRELIST"
+needs_pkg=false
 
-   type -P $prog_name &>/dev/null
-   if [ $? -ne 0 ] ; then
-      echo "$myname: Need to Install $prog_name program"
-      EXITFLAG=true
+for pkg_name in `echo ${PKG_REQUIRELIST}` ; do
+
+   is_pkg_installed $pkg_name
+   if [ $? -eq 0 ] ; then
+      echo "$myname: Will Install $pkg_name program"
+      needs_pkg=true
+      break
    fi
 done
 
-if [ "$EXITFLAG" = "true" ] ; then
+if [ "$needs_pkg" = "true" ] ; then
    debconf-set-selections <<< "postfix postfix/mailname string $(hostname).localhost"
    debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-   apt-get install -y postfix dovecot-core dovecot-imapd
+   apt-get install -y -q $PKG_REQUIRELIST
 fi
 
 
@@ -67,7 +79,7 @@ dbgecho "using USER: $USER"
 ### Configure postfix
 
 # Check if postfix master file has been modified
-grep "wl2k" /etc/postfix/master.cf
+grep "wl2k" /etc/postfix/master.cf  > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
    {
       echo "wl2k      unix  -       n       n       -       1      pipe"
@@ -85,8 +97,28 @@ else
    cat << EOT >> /etc/postfix/main.cf
 transport_maps = hash:/etc/postfix/transport
 smtp_host_lookup = dns, native
+# Needs to match mail client config
+home_mailbox = Mail/"
 EOT
 fi
+
+# Check if postfix sasl has already been configured
+grep -i "smtpd_sasl_type = dovecot" /etc/postfix/main.cf > /dev/null 2>&1
+if [ $? -eq 0 ] ; then
+   echo "postscript sasl already configured."
+else
+   cat << EOT >> /etc/postfix/main.cf
+# SASL parameters
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_auth_enable = yes
+EOT
+fi
+
+# Uncomment smtps
+sed -i -e "/#smtps / s/^#//" /etc/postfix/master.cf
+sed -i -e "/#  -o syslog_name=/ s/^#//" /etc/postfix/master.cf
+sed -i -e "/#  -o smtpd_tls_wrappermode=/ s/^#//" /etc/postfix/master.cf
 
 ### Configure dovecot
 
@@ -110,6 +142,17 @@ sed -i -e "/port = 993/ s/#port = 993/port = 993/" /etc/dovecot/conf.d/10-master
 sed -i -e "/inet_listener imaps {/,/}/ s/#ssl =.*/ssl = yes/" /etc/dovecot/conf.d/10-master.conf
 # Might have to configure a unix_listener for postfix smtp-auth
 
+grep -i "#unix_listener \/var\/spool\/postfix\/private\/auth" /etc/dovecot/conf.d/10-master.conf  > /dev/null 2>&1
+if [ $? -eq 0 ] ; then
+   sed -i -e '/  # Postfix smtp-auth/a\
+  unix_listener \/var\/spool\/postfix\/private\/auth {\
+    mode = 0666\n    user = postfix\n    group = postfix\n   }\n' /etc/dovecot/conf.d/10-master.conf
+
+   # delete the line with #unix_listener and the two lines following
+   sed -i -e  "/#unix_listener \/var\/spool\/postfix\/private\/auth/,+2 d" /etc/dovecot/conf.d/10-master.conf
+else
+   echo "unix_listener already configured in /etc/dovecot/conf.d/10-master.conf"
+fi
 # Turn ssl on
 sed -i -e "/ssl =/ s/ssl =.*/ssl = yes/" /etc/dovecot/conf.d/10-ssl.conf
 sed -i -e "/#ssl_cert / s|#ssl_cert =.*|ssl_cert = </etc/ssl/certs/dovecot.pem|" /etc/dovecot/conf.d/10-ssl.conf
@@ -122,7 +165,8 @@ sed -i -e "/#listen / s/^#//" /etc/dovecot/dovecot.conf
 ### --- further postfix config
 ### --- NEED TO VERIFY
 #postconf -e "mailbox_command = /usr/lib/dovecot/deliver"
-#systemctl restart postfix
+systemctl restart postfix
+systemctl restart dovecot
 
 echo
 echo "imapserv install & config FINISHED"
