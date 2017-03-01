@@ -63,7 +63,7 @@ fi
 dbgecho "using USER: $USER"
 
 # Check if postfix master file has been modified
-grep "wl2k" /etc/postfix/master.cf
+grep "wl2k" /etc/postfix/master.cf  > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
    {
       echo "wl2k      unix  -       n       n       -       1      pipe"
