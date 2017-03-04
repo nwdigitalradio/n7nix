@@ -46,7 +46,6 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
-
 # check if packages are installed
 dbgecho "Check packages: $PKG_REQUIRE"
 needs_pkg=false

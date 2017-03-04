@@ -18,7 +18,7 @@
 * Execute the following script from the directory scripts were cloned to.
 ```bash
 cd config
-./app_install.sh
+./app_install.sh rmsgw
 ```
 * When the script finishes & you see *app install script FINISHED* you are ready to test the RMS gateway
 * Reboot your pi one more time login & verify the hostname changed
