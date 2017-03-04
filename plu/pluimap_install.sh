@@ -22,13 +22,14 @@ pushd ../hostap
 source ./hostap_install.sh
 popd
 
+# Setup node.js & modules required to run the plu web page.
 echo "$myname: Install nodejs & npm"
 cd webapp
 apt-get install nodejs npm
 npm install -g websocket connect finalhandler serve-static
 # jquery should be installed in same directory as plu.html
 npm install jquery
-cp node_modules/jquery/dist/jquery.min.js .
+cp node_modules/jquery/dist/jquery.min.js jquery.js
 
 echo "$myname: NOTE: You need to start paclink-unix web server"
 echo "$myname: As root cd /usr/local/src/paclink-unix/webapp then nodejs plu-server.js"
