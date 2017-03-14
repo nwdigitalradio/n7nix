@@ -24,7 +24,7 @@ a21041)
 a22042)
    echo " Pi 2 Model B with BCM2837 Mfg by Embest"
 ;;
-a02082)
+a02082 | a32082)
    echo " Pi 3 Model B Mfg by Sony"
    HAS_WIFI=true
 ;;
