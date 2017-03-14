@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Verifiy that aplay enumerates udrc sound card
+# Verify that aplay enumerates udrc sound card
 
 CARDNO=$(aplay -l | grep -i udrc)
 
