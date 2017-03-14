@@ -38,3 +38,8 @@ shutdown -r now
 ```bash
 tail -f /var/log/rms.debug
 ```
+* If you see this:
+```
+tail: cannot open '/var/log/rms.debug' for reading: No such file or directory
+```
+* on new installations the log file will be empty for up to 1/2 hour or so.
