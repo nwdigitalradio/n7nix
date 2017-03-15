@@ -6,10 +6,10 @@
 
 Virtual Network Computing (VNC) is a graphical desktop sharing system
 that uses the Remote Frame Buffer protocol (RFB) to remotely control
-another computer. Check [wikipedia]
-(https://en.wikipedia.org/wiki/Virtual_Network_Computing) for more
-info.  There are 67 vnc programs listed in [Comparison of remote
-desktop
+another computer. Check
+[wikipedia](https://en.wikipedia.org/wiki/Virtual_Network_Computing)
+for more info.  There are 67 vnc programs listed in [Comparison of
+remote desktop
 software](https://en.wikipedia.org/wiki/Comparison_of_remote_desktop_software)
 so you have choices.  One of the choices is x11vnc recommend by Ken
 Koster N7IBP. Ken supplied this [systemd
