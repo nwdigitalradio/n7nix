@@ -1,0 +1,11 @@
+
+Sun Mar 26 15:48:30 PDT 2017  Basil Gunn <basil@pacabunga.com>
+
+    * Put check in for installation of these pacakges:
+      * jed rsync build-essential autoconf automake libtool git libasound2-dev whois libncurses5-dev
+    * Commented out: dtoverlay=udrc in /boot/config.txt
+    * Detect if a symbolic link of: /etc/ax25 already exists
+      * /usr/local/etc/ax25 /etc/ax25
+    * Use the direwolf package from compass repo
+
+      File modified: config/core_install.sh
