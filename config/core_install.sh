@@ -7,15 +7,42 @@ DEBUG=1
 
 UPDDATE_NOW=false
 SERIAL_CONSOLE=true
+myname="`basename $0`"
 
-# trap ctrl-c and call ctrl_c()
+# trap ctrl-c and call function ctrl_c()
 trap ctrl_c INT
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function is_pkg_installed
+
+function is_pkg_installed() {
+
+return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
+}
+
+# ===== function ctrl_c trap handler
+
 function ctrl_c() {
         echo "Exiting script from trapped CTRL-C"
 	exit
+}
+
+# ===== install direwolf from source
+
+function install_direwolf_source() {
+   echo "=== Install direwolf from source"
+   SRC_DIR="/usr/local/src/"
+   cd "$SRC_DIR"
+   git clone https://www.github.com/wb2osz/direwolf
+   cd direwolf
+   make
+   make install
+   make install-conf
+   # The following failed
+   #  make install-rpi
+   echo "copying direwolf config file from source to /etc/direwolf.conf"
+   cp /root/direwolf.conf /etc
 }
 
 # ===== main
@@ -32,9 +59,16 @@ START_DIR=$(pwd)
 
 echo " === Check for updates"
 if [ "$UPDATE_NOW" = "true" ] ; then
-  apt-get update
-  apt-get upgrade
-  apt-get install -y mg jed rsync build-essential autoconf automake libtool git libasound2-dev whois libncurses5-dev
+   apt-get update
+   apt-get upgrade
+fi
+
+# Check if build tools have been installed.
+pkg_name="build-essential"
+is_pkg_installed $pkg_name
+if [ $? -eq 0 ] ; then
+   echo "$myname: Will Install $pkg_name package"
+   apt-get install -y -q mg jed rsync build-essential autoconf automake libtool git libasound2-dev whois libncurses5-dev
 fi
 
 if [ ! -d /lib/modules/$(uname -r)/ ] ; then
@@ -138,7 +172,7 @@ if [ $? -ne 0 ] ; then
   cat << EOT >> /boot/config.txt
 
 # enable udrc
-dtoverlay=udrc
+# dtoverlay=udrc
 force_turbo=1
 
 # Rotate lcd screen
@@ -210,7 +244,7 @@ if [ ! -d $AX25_SRCDIR/libax25 ] || [ ! -d $AX25_SRCDIR/ax25tools ] || [ ! -d $A
 #   git clone https://www.github.com/ve7fet/linuxax25/
 fi
 
-if [ ! -f "$AX25_SRCDIR/updAX25.sh" ] ; then
+if [ ! -e "$AX25_SRCDIR/updAX25.sh" ] ; then
    echo "Getting AX.25 update script failed, can NOT locate: $AX25_SRCDIR/updAX25.sh."
    exit 1
 fi
@@ -237,62 +271,83 @@ if [ ! -d "/etc/ax25" ] || [ ! -L "/etc/ax25" ] ; then
       echo "ax25 directory /usr/local/etc/ax25 DOES NOT exist, ax25 install failed"
       exit 1
    else
-      echo "Making symbolic link to /etc/ax25"
-      ln -s /usr/local/etc/ax25 /etc/ax25
+      # Detect if /etc/ax25 is already a symbolic link
+      if [[ -L "/etc/ax25" ]] ; then
+         echo "Symbolic link to /etc/ax25 ALREADY exists"
+      else
+         echo "Making symbolic link to /etc/ax25"
+         ln -s /usr/local/etc/ax25 /etc/ax25
+      fi
    fi
 else
-   echo " Found ax.25 link or directory /etc/ax25"
+   echo " Found link or directory /etc/ax25"
 fi
+
 # check if /var/ax25 exists as a directory or symbolic link
 if [ ! -d "/var/ax25" ] || [ ! -L "/var/ax25" ] ; then
    if [ ! -d "/usr/local/var/ax25" ] ; then
       echo "ax25 directory /usr/local/var/ax25 DOES NOT exist, ax25 install failed"
       exit 1
    else
-      echo "Making symbolic link to /var/ax25"
-      ln -s /usr/local/var/ax25 /var/ax25
+      # Detect if /var/ax25 is already a symbolic link
+      if [[ -L "/var/ax25" ]] ; then
+         echo " Symbolic link to /var/ax25 ALREADY exists"
+      else
+         echo "Making symbolic link to /var/ax25"
+         ln -s /usr/local/var/ax25 /var/ax25
+      fi
    fi
 else
-   echo " Found ax.25 link or directory /var/ax25"
+   echo " Found link or directory /var/ax25"
 fi
-
-
 
 # Need to install libax25 as a package (libax25 0.0.12-rc2)
 # because it creates libax25.so.0
 
 apt-get install -y -q libax25
 if [ $? -ne 0 ] ; then
-   echo "Problem installing libax25 package"
+   echo " Problem installing libax25 package"
    exit 1
 fi
 
 # pkg installed libraries are installed in /usr/lib
 # built libraries are installed in /usr/local/lib
 ldconfig
-
 echo " === libax25, ax25apps & ax25tools install FINISHED"
-echo "Test if direwolf has been installed"
 
-SRC_DIR="/usr/local/src/"
-cd "$SRC_DIR"
-if [ ! -f /etc/direwolf.conf ] ; then
-   echo "=== Install direwolf"
-   git clone https://www.github.com/wb2osz/direwolf
-   cd direwolf
-   make
-   make install
-   make install-conf
-   # This failed
-#  make install-rpi
-   cp /root/direwolf.conf /etc
+# Test if direwolf has previously been installed.
+#  - if not installed try installing Debian package
+#  - if package install fails try installing from github repo.
+
+echo "Test if direwolf has been installed"
+# type command will return 0 if program is installed
+type -P direwolf &>/dev/null
+if [ $? -ne 0 ] ; then
+   # Get here if direwolf NOT installed, to install package
+   apt-get install -y -q direwolf
+   if [ $? -ne 0 ] || [ ! -e /usr/share/doc/direwolf/examples/direwolf.conf* ]; then
+      echo "Problem installing direwolf package"
+      install_direwolf_source
+   else
+      echo "direwolf package successfully installed."
+      echo "copying direwolf config file from package to /etc/direwolf.conf"
+      cp /usr/share/doc/direwolf/examples/direwolf.conf* /etc
+      gunzip direwolf.conf.gz
+   fi
 else
    echo "direwolf already installed"
 fi
 
-echo "=== Set alsa levels for UDRC"
+if [ ! -e /etc/direwolf.conf ] ; then
+   echo "Direwolf: NO config file found!!"
+   echo "$myname: direwolf install failed!"
+   exit 1
+else
+   echo "direwolf: config file found OK"
+fi
 
-# Does source directory for ax25 utils exist?
+echo "=== Set alsa levels for UDRC"
+# Does source directory for udrc alsa level setup script exist?
 SRC_DIR="/usr/local/src/udrc"
 
 if [ ! -d $SRC_DIR ] ; then

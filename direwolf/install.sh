@@ -56,7 +56,7 @@ udrc_prod_id=0
 dbgecho "Starting udrc id check"
 
 # Does firmware file exist
-if [ -f $firmware_prodfile ] ; then
+if [ -e $firmware_prodfile ] ; then
    # Read product file
    UDRC_PROD="$(cat $firmware_prodfile)"
    sizeprodstr=${#UDRC_PROD}
@@ -153,19 +153,28 @@ dbgecho "using USER: $USER"
 
 # Check if direwolf config file exists in /etc
 filename="direwolf.conf"
-if [ ! -f "/etc/$filename" ] ; then
-   if [ -f "/home/$USER/$filename" ] ; then
-      echo "Coping /home/$USER/$filename"
-      cp /home/$USER/$filename /etc
-   elif [ -f "/root/$filename" ] ; then
-      echo "Coping /root/$filename"
-      cp /root/$filename /etc
+if [ ! -e "/etc/$filename" ] ; then
+   # Check for a Debian package install
+   if [ -e "/usr/share/doc/direwolf/examples/direwolf.conf*" ] ; then
+      echo "Coping /usr/share/doc/direwolf/examples/direwolf.conf*"
+      cp /usr/share/doc/direwolf/examples/direwolf.conf* /etc
+      gunzip direwolf.conf.gz
    else
-      echo "$filename not found in /home/$USER or /root"
-      exit 1
+      # Check for a source install to users home dir
+      if [ -e "/home/$USER/$filename" ] ; then
+         echo "Coping /home/$USER/$filename"
+         cp /home/$USER/$filename /etc
+      # Check for a source install by root
+      elif [ -e "/root/$filename" ] ; then
+         echo "Coping /root/$filename"
+         cp /root/$filename /etc
+      else
+         echo "$myname: $filename not found in /home/$USER, /root or /usr/share/doc/example/direwolf"
+         exit 1
+      fi
    fi
 else
-   echo "Found /etc/$filename config file."
+   echo "Found an existing /etc/$filename config file."
 fi
 
 # Check which UDRC product is found
