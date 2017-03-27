@@ -43,6 +43,9 @@ function install_direwolf_source() {
    #  make install-rpi
    echo "copying direwolf config file from source to /etc/direwolf.conf"
    cp /root/direwolf.conf /etc
+   # Build from source puts executable in /usr/local/bin
+   # Copy executable here to not have to edit sysd/direwolf.service file
+   cp /usr/local/bin/direwolf /usr/bin
 }
 
 # ===== main
@@ -332,7 +335,7 @@ if [ $? -ne 0 ] ; then
       echo "direwolf package successfully installed."
       echo "copying direwolf config file from package to /etc/direwolf.conf"
       cp /usr/share/doc/direwolf/examples/direwolf.conf* /etc
-      gunzip direwolf.conf.gz
+      gunzip /etc/direwolf.conf.gz
    fi
 else
    echo "direwolf already installed"
