@@ -27,6 +27,12 @@ a 12V to 5V regulator so that you can run the Pi from a 12V supply.
 Only the direwolf configuration is specific to the [UDRC II
 hardware](http://nwdigitalradio.com/wp-content/uploads/2012/04/UDRC-IIDS.pdf)
 
+These scripts were meant to be run **once** starting from  a clean image. They
+might work if used more than once but they were not tested for that
+case. If an installation fails I would like to know about it. Please
+post any problems you might have on the [UDRC
+forum](https://nw-digital-radio.groups.io/g/udrc/).
+
 ## Installation scripts
 
 ### Core
