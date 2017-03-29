@@ -79,7 +79,12 @@ for installing all apps required for RMS Gateway.
 
 This is a light weight paclink-unix install that gives functionality
 to use an e-mail client on the Raspberry Pi to compose & send winlink
-messages
+messages.
+
+Installs the following:
+* paclink-unix to format e-mail
+* postfix for the mail transfer agent
+* mutt for the mail user agent
 
 #### paclink-unix imap
 
@@ -92,13 +97,13 @@ connected to the Internet.
 
 Installs the following:
 * paclink-unix to format e-mail
+* postfix for the mail transfer agent
+* [dovecot](https://github.com/nwdigitalradio/n7nix/tree/master/mailserv), imap e-mail server
 * [hostapdd](https://github.com/nwdigitalradio/n7nix/tree/master/hostap)
 to enable a Raspberry Pi 3 to be a virtual access point
-* [dovecot](https://github.com/nwdigitalradio/n7nix/tree/master/mailserv), imap e-mail server
 * dnsmasq to allow connecting to the Raspbery Pi when it is not
 connected to a network
 * nodejs to host the control page for paclink-unix
-* postfix for the mail transfer agent
 * iptables to enable NAT
 
 
