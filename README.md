@@ -84,17 +84,24 @@ messages
 #### paclink-unix imap
 
 This installs functionality to use any imap e-mail client & to access
-paclink-unix from a browser. This allows using a WiFi device (smart
+paclink-unix from a browser. It allows using a WiFi device (smart
 phone, tablet, laptop) to compose a Winlink message & envoke
-paclink-unix to send the message.
+paclink-unix to send the message. This is also configured to cough up
+a dhcp config for your mobil device if your RPi 3 is in a car not
+connected to the Internet.
 
 Installs the following:
-
+* paclink-unix to format e-mail
 * [hostapdd](https://github.com/nwdigitalradio/n7nix/tree/master/hostap)
-to enable WiFi for a Raspberry Pi 3
+to enable a Raspberry Pi 3 to be a virtual access point
 * [dovecot](https://github.com/nwdigitalradio/n7nix/tree/master/mailserv), imap e-mail server
 * dnsmasq to allow connecting to the Raspbery Pi when it is not
 connected to a network
+* nodejs to host the control page for paclink-unix
+* postfix for the mail transfer agent
+* iptables to enable NAT
+
+
 
 
 
