@@ -8,7 +8,7 @@
 
 ## What is Winlink
 * Radio messaging system administered by volunteers that uses HAM radio frequencies.
-* Takes SMTP compliant e-mail messages and using B2 Forwarding Protocol & transports them via
+* Takes SMTP compliant e-mail messages and using B2 Forwarding Protocol transports them via:
   * Amateur radio
   * Telnet
 
@@ -16,17 +16,19 @@
 
 ## Winlink components
 
-* CMS - Common Message Server (maintained by Winlink)
-* RMS - Radio Mail Server (maintained by you)
+* CMS - Common Message Server
+  * maintained by Winlink
+* RMS - Radio Mail Server
+  * maintained by you
 * Client e-mail message mangler
 
 #HSLIDE
 
 ## Why the Pi?
 
-* Raspberry Pi 3 draws:
-  * 1.4 W idle
-  * ~3.7 W under heavy load
+* Raspberry Pi 3 power draw:
+  * 1.4 W  idle
+  * ~3.7 W  under heavy load
   * https://www.pidramble.com/wiki/benchmarks/power-consumption
 
 * Runs Linux
@@ -45,10 +47,12 @@
 
 * Internet connection
 
+* For an RMS Gateway Winlink has expectation that you run it 24/7.
+
 #HSLIDE
 
 ## Software Components
-* (assume sound card)
+###### assume sound card
 
 * Direwolf
 
@@ -136,6 +140,7 @@
 ##### Forums
 * https://groups.yahoo.com/neo/groups/paclink-unix/
 * https://groups.yahoo.com/neo/groups/LinuxRMS/
+* https://nw-digital-radio.groups.io/g/udrc/
 
 ##### This presentation
-* https://gitpitch.com/nwdigitalradio/n7nix/winlink
+* https://gitpitch.com/nwdigitalradio/n7nix/
