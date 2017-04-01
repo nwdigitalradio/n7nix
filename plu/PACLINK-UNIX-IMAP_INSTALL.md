@@ -5,7 +5,7 @@
 * This installation assumes you have already [installed core components](CORE_INSTALL.md)
 
 
-## Install paclink-unix Dovecot & hostap
+## Install paclink-unix, Dovecot & hostap
 
 * This script will install the following:
   * paclink-unix basic
