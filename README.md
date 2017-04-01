@@ -69,9 +69,11 @@ for installing all apps required for RMS Gateway.
 
 * Two installation options:
   * basic -
-  [installs paclink-unix, mutt & postfix](https://github.com/nwdigitalradio/n7nix/blob/master/PACLINK-UNIX_INSTALL.md)
+  [installs paclink-unix, mutt &
+  postfix](https://github.com/nwdigitalradio/n7nix/blob/master/plu/PACLINK-UNIX_INSTALL.md)
   * imap -
-  [installs the above plus, dovecot imap mailserver & hostapd](https://github.com/nwdigitalradio/n7nix/blob/master/PACLINK-UNIX-IMAP_INSTALL.md)
+  [installs the above plus, dovecot imap mailserver &
+  hostapd](https://github.com/nwdigitalradio/n7nix/blob/master/plu/PACLINK-UNIX-IMAP_INSTALL.md)
   WiFi access point, and dnsmasq to serve up DNS & DHCP when the RPi 3
   is not connected to a network.
 
