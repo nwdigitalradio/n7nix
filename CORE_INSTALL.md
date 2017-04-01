@@ -129,9 +129,9 @@ shutdown -r now
 test & verify this functionality or continue on to install one of the
 following.
 
-  * [RMS Gateway](../rmsgw/README.md)
-  * [paclink-unix](../plu/PACLINK-UNIX_INSTALL.md)
-  * [paclink-unix with IMAP server](../plu/PACLINK-UNIX-IMAP_INSTALL.md)
+  * [RMS Gateway](./rmsgw/README.md)
+  * [paclink-unix](./plu/PACLINK-UNIX_INSTALL.md)
+  * [paclink-unix with IMAP server](./plu/PACLINK-UNIX-IMAP_INSTALL.md)
 
 ### How to Enable Serial console
 
