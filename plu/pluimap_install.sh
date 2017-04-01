@@ -31,6 +31,7 @@ npm install -g websocket connect finalhandler serve-static
 npm install jquery
 cp node_modules/jquery/dist/jquery.min.js jquery.js
 
+echo
 echo "$myname: NOTE: You need to start paclink-unix web server"
 echo "$myname: As root cd /usr/local/src/paclink-unix/webapp then nodejs plu-server.js"
 echo
