@@ -1,4 +1,21 @@
-# Test Mail client
+# paclink-unix, 2 install options
+
+## [basic](PACLINK-UNIX_INSTALL.md)
+* Enables mail clients that support Unix movemail.
+  * Thunderbird & [mutt](http://www.mutt.org/) or an upstream version of mutt called [NeoMutt](https://www.neomutt.org/)
+
+## [with imap server](PACLINK-UNIX-IMAP_INSTALL.md)
+* Enables IMAP mail clients over WiFi
+  * I use [K-9 Mail](https://k9mail.github.io/) on my Android mobil device
+
+# How to Test Mail client
+###### Sending mail is a two step process
+* Compose an e-mail with your e-mail app
+* Send the e-mail with paclink-unix with a web interface
+
+###### Receiving mail is a two step process
+* Get e-mail using paclink-unix
+* Reading an e-mail with your e-mail app
 
 ## Test PLU web interface
 
@@ -6,7 +23,6 @@
 
 #### Install node.js & required modules
 * nodejs & the required modules are installed with the _plu/pluimap_install.sh_ script
-  * To see what gets installed
 
 ### Test webapp
 
