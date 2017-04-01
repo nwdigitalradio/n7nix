@@ -129,9 +129,9 @@ shutdown -r now
 test & verify this functionality or continue on to install one of the
 following.
 
-  * [RMS Gateway](RMSGW_INSTALL.md)
-  * [paclink-unix](PACLINK-UNIX_INSTALL.md)
-  * [paclink-unix with IMAP server](PACLINK-UNIX-IMAP_INSTALL.md)
+  * [RMS Gateway](../rmsgw/README.md)
+  * [paclink-unix](../plu/PACLINK-UNIX_INSTALL.md)
+  * [paclink-unix with IMAP server](../plu/PACLINK-UNIX-IMAP_INSTALL.md)
 
 ### How to Enable Serial console
 
@@ -146,6 +146,8 @@ dtoverlay=pi3-disable-bt
 ## Verifying CORE Install
 ### Testing direwolf & the UDRC
 #### Monitor Receive packets from direwolf
+* Connect a cable from your UDRC to your radio.
+* Tune to an active digital frequency such as 2M APRS, 144.390 MHz
 * Open a console to the pi and type:
 ```bash
 tail -f /var/log/direwolf/direwolf.log
@@ -204,34 +206,29 @@ mheard
 * You should see something like this:
 ```
 Callsign  Port Packets   Last Heard
-VE7RYF-8   udr0      7   Thu Nov 10 14:04:20
-VE7RYF     udr0      3   Thu Nov 10 14:03:01
-VE7CRP-8   udr0      5   Thu Nov 10 14:01:59
-VE7CRD-8   udr0      7   Thu Nov 10 14:00:45
-VE7AVV-8   udr0      3   Thu Nov 10 14:00:12
-VE7AVV     udr0      1   Thu Nov 10 14:00:12
-VA7VOP     udr0      2   Thu Nov 10 13:59:56
-VE7CRD     udr0      2   Thu Nov 10 13:59:37
-VA7BLD-8   udr0      6   Thu Nov 10 13:59:28
-VA7BLD     udr0      2   Thu Nov 10 13:59:27
-VE7WOD-8   udr0      6   Thu Nov 10 13:58:33
-VE7SOK-8   udr0      5   Thu Nov 10 13:57:42
-VE7SOK     udr0      2   Thu Nov 10 13:57:41
-VE7CRP     udr0      1   Thu Nov 10 13:51:59
-PBBS       udr0      1   Thu Nov 10 13:38:33
-VE7SPR-8   udr0      1   Thu Nov 10 13:38:23
-VE7XPL-9   udr0     42   Thu Nov 10 13:29:57
-WB4KGY-3   udr0      1   Thu Nov 10 13:29:52
-N7NIX-3    udr0      2   Thu Nov 10 13:29:17
-N7NIX-10   udr0    277   Thu Nov 10 13:26:56
-N7NIX      udr0    184   Thu Nov 10 13:26:49
-VE7GEL-10  udr0      1   Thu Nov 10 13:18:28
-WA7EBH-15  udr0      4   Thu Nov 10 13:18:18
-VA7MAS     udr0     13   Thu Nov 10 13:17:48
-VE7WOL-9   udr0     26   Thu Nov 10 13:17:45
-W7COA-9    udr0     30   Thu Nov 10 13:17:40
-K7KCA-3    udr0      3   Thu Nov 10 13:17:33
-VA7DRW-9   udr0      5   Thu Nov 10 13:17:29
-VA7BUG-9   udr0      1   Thu Nov 10 13:16:47
-VE7RYF-10  udr0      8   Thu Nov 10 13:16:18
+KG7HQ-15   udr0     72   Sat Apr  1 08:52:59
+N7DKL-9    udr0      8   Sat Apr  1 08:52:46
+W7COA-9    udr0     23   Sat Apr  1 08:52:28
+BALDI      udr0      2   Sat Apr  1 08:52:18
+WA7EBH-15  udr0      2   Sat Apr  1 08:52:13
+VA7RKC-9   udr0      1   Sat Apr  1 08:52:06
+VE7OLG-9   udr0      2   Sat Apr  1 08:51:53
+VE7ZKI-8   udr0      3   Sat Apr  1 08:51:48
+VA7MAS     udr0      6   Sat Apr  1 08:51:37
+SEDRO      udr0      2   Sat Apr  1 08:51:35
+VE7ZNS     udr0      1   Sat Apr  1 08:51:22
+W7WEC-9    udr0      7   Sat Apr  1 08:51:19
+SNOVAL     udr0      1   Sat Apr  1 08:50:58
+VE7FAA-9   udr0      8   Sat Apr  1 08:50:37
+WB4KGY-3   udr0      1   Sat Apr  1 08:49:36
+VE7NV-1    udr0      1   Sat Apr  1 08:48:52
+KF7VOP     udr0      1   Sat Apr  1 08:48:35
+VA7HXD     udr0      1   Sat Apr  1 08:47:53
+NG7W       udr0      3   Sat Apr  1 08:47:26
+VE7MKF-3   udr0      3   Sat Apr  1 08:46:48
+K7KCA-12   udr0     11   Sat Apr  1 08:46:19
+LDYSMH     udr0      1   Sat Apr  1 08:46:00
+DOGMTN     udr0      1   Sat Apr  1 08:45:44
+VE7RVT-12  udr0      1   Sat Apr  1 08:44:36
+VA7MP      udr0      1   Sat Apr  1 08:43:04
 ```
