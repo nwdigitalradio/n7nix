@@ -11,7 +11,8 @@ creating a working image that will boot up & run the following configurations:
   * paclink-unix basic which allows using a movemail e-mail client like Thunderbird
   * paclink-unix imap which allows using any e-mail client that supports IMAP.
 
-Note _deviation_ is stand alone and is not part of the install/config process.
+Note _deviation_ is stand alone and is not part of the install/config
+process. Also files in vnc & uronode are currently not used as well.
 
 Compass is a file system image for the Raspberry Pi that contains a
 kernel with the driver for the Texas Instruments tlv320aic32x4 DSP
@@ -109,9 +110,6 @@ connected to a network
 * iptables to enable NAT
 
 
-
-
-
 ### Other
 
 #### [deviation](https://github.com/nwdigitalradio/n7nix/tree/master/deviation)
@@ -126,3 +124,5 @@ nice article on how to do that using an RTL SDR dongle.
 #### [vnc](https://github.com/nwdigitalradio/n7nix/blob/master/vnc)
 
 * systemd service file supplied by Ken Koster K7IPB.
+
+#### [uronode]
