@@ -5,7 +5,7 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
-UPDDATE_NOW=false
+UPDATE_NOW=false
 SERIAL_CONSOLE=true
 myname="`basename $0`"
 
@@ -60,13 +60,14 @@ fi
 
 START_DIR=$(pwd)
 
-echo " === Check for updates"
 if [ "$UPDATE_NOW" = "true" ] ; then
+   echo " === Check for updates"
    apt-get update
    apt-get upgrade
 fi
 
 # Check if build tools have been installed.
+echo " === Check build tools"
 pkg_name="build-essential"
 is_pkg_installed $pkg_name
 if [ $? -eq 0 ] ; then
