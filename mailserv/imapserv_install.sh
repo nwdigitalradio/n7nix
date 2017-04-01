@@ -27,10 +27,10 @@ if [ ! -f /etc/mailname ] ; then
 fi
 
 # check if packages are installed
-dbgecho "Check packages: $PKG_REQUIRELIST"
+dbgecho "Check packages: $MAIL_PKG_REQUIRELIST"
 needs_pkg=false
 
-for pkg_name in `echo ${PKG_REQUIRELIST}` ; do
+for pkg_name in `echo ${MAIL_PKG_REQUIRELIST}` ; do
 
    is_pkg_installed $pkg_name
    if [ $? -eq 0 ] ; then
@@ -43,7 +43,11 @@ done
 if [ "$needs_pkg" = "true" ] ; then
    debconf-set-selections <<< "postfix postfix/mailname string $(hostname).localhost"
    debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-   apt-get install -y -q $PKG_REQUIRELIST
+   apt-get install -y -q $MAIL_PKG_REQUIRELIST
+else
+   echo
+   echo "No Mail Package installation required, Is this a subsequent install?"
+   echo
 fi
 
 
