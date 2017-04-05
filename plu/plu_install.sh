@@ -193,8 +193,9 @@ if [ -z "$DEFER_BUILD" ] ; then
    echo "=== running configure"
    ./configure --enable-postfix >> build_log.out 2>> build_error.out
    if [ "$?" -ne 0 ] ; then echo "build failed at configure"; exit 1; fi
-   echo "=== making paclink-unix"
-   make >> build_log.out 2>> build_error.out
+   num_cores=$(nproc --all)
+   echo "=== making paclink-unix using $num_cores cores"
+   make -j$num_cores >> build_log.out 2>> build_error.out
    if [ "$?" -ne 0 ] ; then echo "build failed at make"; exit 1; fi
    echo "=== installing paclink-unix"
    make install >> build_log.out 2>> build_error.out

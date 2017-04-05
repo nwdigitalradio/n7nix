@@ -106,7 +106,7 @@ return $udrc_prod_id
 echo
 echo "direwolf config START"
 
-# make sure we're running as root
+# Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root."
    exit 1

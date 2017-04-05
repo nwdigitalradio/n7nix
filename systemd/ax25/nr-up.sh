@@ -28,7 +28,7 @@ if [ "$ENABLE_NR" = "true" ]; then
 
    echo "Starting up Netrom"
 
-   # make sure we're running as root
+   # Be sure we're running as root
    if [[ $EUID != 0 ]] ; then
       echo "Must be root"
       exit 1

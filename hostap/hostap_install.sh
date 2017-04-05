@@ -69,7 +69,7 @@ fi
 cat > $1/dnsmasq.conf <<EOT
 interface=wlan0      # Use interface wlan0
 listen-address=10.0.44.1
-bind-interfaces      # Bind to the interface to make sure we aren't sending things elsewhere
+bind-interfaces      # Bind to the interface to be sure we aren't sending things elsewhere
 server=8.8.8.8       # Forward DNS requests to Google DNS
 domain-needed        # Don't forward short names
 bogus-priv           # Never forward addresses in the non-routed address spaces.

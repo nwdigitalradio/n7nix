@@ -31,12 +31,13 @@ function ctrl_c() {
 # ===== install direwolf from source
 
 function install_direwolf_source() {
-   echo "=== Install direwolf from source"
+   num_cores=$(nproc --all)
+   echo "=== Install direwolf from source using $num_cores cores"
    SRC_DIR="/usr/local/src/"
    cd "$SRC_DIR"
    git clone https://www.github.com/wb2osz/direwolf
    cd direwolf
-   make
+   make -j$num_cores
    make install
    make install-conf
    # The following failed
@@ -52,7 +53,7 @@ function install_direwolf_source() {
 
 echo "Initial core install/config script"
 
-# make sure we're running as root
+# Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root"
    exit 1
@@ -135,12 +136,12 @@ fi
 # Get hostname again incase it was changed
 HOSTNAME=$(cat /etc/hostname | tail -1)
 
-# Make sure system host name can be resolved
+# Be sure system host name can be resolved
 
 grep "127.0.1.1" /etc/hosts
 if [ $? -eq 0 ] ; then
    # Found 127.0.1.1 entry
-   # Make sure hostnames match
+   # Be sure hostnames match
    HOSTNAME_CHECK=$(grep "127.0.1.1" /etc/hosts | awk {'print $2'})
    if [ "$HOSTNAME" != "$HOSTNAME_CHECK" ] ; then
       echo "Make host names match between /etc/hostname & /etc/hosts"

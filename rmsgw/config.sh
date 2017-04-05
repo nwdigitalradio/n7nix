@@ -175,7 +175,7 @@ if [ "$EXITFLAG" = "true" ] ; then
   exit 1
 fi
 
-# make sure we're running as root
+# Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root to config rmsgw"
    exit 1

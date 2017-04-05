@@ -44,7 +44,7 @@ return 1
 
 echo "$myname: script start"
 
-# make sure we're running as root
+# Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "$myname: Must be root"
    exit 1

@@ -92,7 +92,7 @@ echo "FINISHED comparing files"
 
 function CopyFiles() {
 
-# make sure we're running as root
+# Be sure we're running as root
 if (( `id -u` != 0 )); then
    echo "Sorry, must be root.  Exiting...";
    exit 1;
@@ -196,7 +196,7 @@ if (( $# != 0 )) ; then
    exit 0
 fi
 
-# make sure we're running as root
+# Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root to install. Checking files"
    DiffFiles

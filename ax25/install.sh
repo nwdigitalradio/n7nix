@@ -98,7 +98,7 @@ else
    echo " Found ax.25 link or directory"
 fi
 
-# make sure we're running as root
+# Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root to modify /etc files"
    exit 1

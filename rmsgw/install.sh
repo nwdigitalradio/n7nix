@@ -40,7 +40,7 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
 # provided by Charles S. Schuman ( K4GBB )  \n${Red}               k4gbb1@gmail.com \n${Reset}"
 echo -e "${BluW}\n \t  Install Linux RMS Gate \n${White}  Parts of this Script provided by Charles S. Schuman ( K4GBB )  \n${Reset}"
 
-# make sure we're running as root
+# Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root"
    exit 1
@@ -125,12 +125,13 @@ if [ $? -ne 0 ] ; then
  exit 1
 fi
 
-echo -e "${BluW}\tCompiling RMS Source file \t${Reset}"
+num_cores=$(nproc --all)
+echo -e "${BluW}\tCompiling RMS Source file using $num_cores cores\t${Reset}"
 
 cd $SRC_DIR/$ROOTFILE_NAME$rms_ver
 
 # Redirect stderr to stdout
-make > $RMS_BUILD_FILE 2>&1
+make -j$num_cores > $RMS_BUILD_FILE 2>&1
 if [ $? -ne 0 ] ; then
    echo -e "${BluW}$Red} \tCompile error${White} - check $RMS_BUILD_FILE File \t${Reset}"
    exit 1
