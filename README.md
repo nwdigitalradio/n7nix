@@ -125,4 +125,4 @@ nice article on how to do that using an RTL SDR dongle.
 
 * systemd service file supplied by Ken Koster K7IPB.
 
-#### [uronode]
+#### uronode
