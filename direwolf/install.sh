@@ -224,7 +224,7 @@ sed -i -e '/#PTT GPIO 25/ s/#PTT GPIO 25/PTT GPIO 12/' $DIREWOLF_CFGFILE
 dbgecho "CHANNEL1"
 sed -i -e "/#CHANNEL 1/ s/#CHANNEL 1/CHANNEL 1\nPTT GPIO 23\nMODEM 1200\nMYCALL $CALLSIGN1\n/" $DIREWOLF_CFGFILE
 
-echo "Config ILOGIN"
+echo "Config Internet Gateway LOGIN"
 
 # Igates need a code so they can log into the tier 2 servers.
 # It is based on your callsign, and there is a utility called
