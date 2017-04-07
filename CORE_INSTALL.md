@@ -68,6 +68,7 @@ rm known_hosts
 ```bash
 ssh pi@<rpi_ip_address>
 ```
+* You are logging in as user __pi__, with password __raspberry__
 
 * and do the following:
 
