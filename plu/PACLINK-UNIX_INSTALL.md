@@ -4,7 +4,6 @@
 
 * This installation assumes you have already [installed core components](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
 
-
 ## Install paclink-unix
 * Execute the following script from the directory scripts were cloned to.
 

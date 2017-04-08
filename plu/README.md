@@ -1,4 +1,4 @@
-# paclink-unix, 2 install options
+# paclink-unix has 2 install options
 
 ## [basic](PACLINK-UNIX_INSTALL.md)
 * Enables mail clients that support Unix movemail.
@@ -28,7 +28,7 @@
 
 * nodejs should be started manually like this:
 ```
-su
+sudo su
 cd /usr/local/src/paclink-unix/webapp
 nodejs plu-server.js
 ```

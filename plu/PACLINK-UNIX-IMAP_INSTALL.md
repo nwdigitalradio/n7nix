@@ -28,8 +28,10 @@
   * Organizational Unit Name, skip
   * server FQDN ( eg. check_test5.localnet
   * email address
-* For host access point
+* For host access point you will be required to enter:
   * SSID (eg. bacon)
+
+### Start the install script
 
 ```bash
 sudo su
@@ -40,6 +42,8 @@ cd n7nix/config
 
 ```
 paclink-unix with imap, install script FINISHED
+
+app install (pluimap) script FINISHED
 ```
 
 ## Start paclink-unix webserver
