@@ -27,7 +27,7 @@ echo "$myname: Install nodejs, npm & jquery"
 
 cd /usr/local/src/paclink-unix/webapp
 
-apt-get install nodejs npm
+apt-get install -y -q nodejs npm
 npm install -g websocket connect finalhandler serve-static
 
 # jquery should be installed in same directory as plu.html
