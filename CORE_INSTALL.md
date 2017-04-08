@@ -162,9 +162,19 @@ tail -f /var/log/direwolf/direwolf.log
 cd ~/bin
 ./ax25-status
 ```
+
+* In the same directory you can stop and start the entire ax.25/tnc
+stack including direwolf with these commands:
+  * Note you need to do this as root
+
+```bash
+sudo su
+./ax25-stop
+./ax25-start
+```
 #### Verify version of Raspberry Pi, UDRC,
 
-* There are 3 other progams in the bin directory that confirm that the installation went well.
+* There are some other progams in the bin directory that confirm that the installation went well.
   * While in local bin directory as user pi
 ```bash
 cd ~/bin
@@ -192,8 +202,8 @@ Dest       Source     Device  State        Vr/Vs    Send-Q  Recv-Q
 *          N7NIX-10   ax0     LISTENING    000/000  0       0
 *          N7NIX-2    ax0     LISTENING    000/000  0       0
 ```
-* In another console type:
-  * You need to run the _listen_ program as root
+* In another console as root type:
+
 ```bash
 sudo su
 listen -at
