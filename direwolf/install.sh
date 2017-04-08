@@ -230,7 +230,7 @@ echo "Config Internet Gateway LOGIN"
 # It is based on your callsign, and there is a utility called
 # callpass in Xastir that will compute it.
 
-type -P callpass &>/dev/null
+type -P ./callpass &>/dev/null
 if [ $? -ne 0 ] ; then
    echo "Building callpass"
    gcc -o callpass callpass.c
@@ -245,11 +245,13 @@ if [ $? -ne 0 ] ; then
 fi
 
 logincode=$(./callpass $CALLSIGN)
+
 # Get last argument in string
 logincode="${logincode##* }"
 echo "Login code for $CALLSIGN for APRS tier 2 servers: $logincode"
 
-sed -i -e "/#IGLOGIN / s/#IGLOGIN .*/IGLOGIN $CALLSIGN $logincode\n/" $DIREWOLF_CFGFILE
+# Changed per Doug Kingston's suggestion
+sed -i -e "/^[#]*IGLOGIN / s/^[#]*IGLOGIN .*/IGLOGIN $CALLSIGN $logincode\n/" $DIREWOLF_CFGFILE
 dbgecho "IGSERVER"
 sed -i -e "/#IGSERVER / s/^#//" $DIREWOLF_CFGFILE
 
