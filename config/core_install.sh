@@ -306,14 +306,10 @@ else
    echo " Found link or directory /var/ax25"
 fi
 
-# Need to install libax25 as a package (libax25 0.0.12-rc2)
-# because it creates libax25.so.0
+# Since libax25 was built from source
+# need to add a symbolic link to the /usr/lib directory
 
-apt-get install -y -q libax25
-if [ $? -ne 0 ] ; then
-   echo " Problem installing libax25 package"
-   exit 1
-fi
+ln -s /usr/local/lib/libax25.so.1 /usr/lib/libax25.so.0
 
 # pkg installed libraries are installed in /usr/lib
 # built libraries are installed in /usr/local/lib
