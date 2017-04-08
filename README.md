@@ -62,7 +62,7 @@ In order to install the Linux RMS Gateway you must register with Winlink to get 
 password for a gateway.
 
 See
-[RMSGW_INSTALL.md](https://github.com/nwdigitalradio/n7nix/blob/master/RMSGW_INSTALL.md)
+[RMSGW_INSTALL.md](https://github.com/nwdigitalradio/n7nix/blob/master/rmsgw/README.md)
 for details on installing RMS Gateway functionality.
 
 See
