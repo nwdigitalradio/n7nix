@@ -108,7 +108,7 @@ sudo su
 * You will be required to supply the following:
   * Your callsign
   * SSID used for direwolf APRS (recommend 1)
-* When the script finishes & you see:
+* When the script finishes you should see:
 
 ```
 core configuration FINISHED

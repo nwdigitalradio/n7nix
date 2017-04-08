@@ -14,10 +14,14 @@
   * State or province where gateway resides (recommend abbreviation)
   * Gridsquare of gateway's location
   * Winlink Gateway password
+  * Radio frequency in Hz
 
-* Execute the following script from the directory scripts were cloned to.
+* Execute the following script as root from the directory scripts were cloned to.
 ```bash
-cd config
+cd n7nix/config
+# should now be in ~/n7nix/config
+# become root
+sudo su
 ./app_install.sh rmsgw
 ```
 * When the script finishes & you see *app install script FINISHED* you are ready to test the RMS gateway
