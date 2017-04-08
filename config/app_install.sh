@@ -79,7 +79,7 @@ case $APP_SELECT in
       # configure systemd
       pushd ../systemd
       /bin/bash ./install.sh
-      popd
+      popd > /dev/null
 
       echo "core configuration FINISHED"
    ;;
@@ -93,7 +93,7 @@ case $APP_SELECT in
 
       pushd ../rmsgw
       source ./install.sh
-      popd
+      popd > /dev/null
 
       # configure rmsgw
       echo "Configure RMS Gateway"
@@ -105,7 +105,7 @@ case $APP_SELECT in
       echo "$myname: Install paclink-unix"
       pushd ../plu
       source ./plu_install.sh
-      popd
+      popd > /dev/null
 
    ;;
    pluimap)
@@ -114,14 +114,14 @@ case $APP_SELECT in
       if [ "$INSTALL_PLU" == "true" ] ; then
          pushd ../plu
          source ./pluimap_install.sh
-         popd
+         popd > /dev/null
       fi
    ;;
    uronode)
       echo "$myname: Install uronode"
       pushd ../uronode
       source ./uro_install.sh
-      popd
+      popd > /dev/null
    ;;
    *)
       echo "Undefined app, must be one of $APPCHOICES"
