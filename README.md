@@ -11,8 +11,11 @@ creating a working image that will boot up & run the following configurations:
   * paclink-unix basic which allows using a movemail e-mail client like Thunderbird
   * paclink-unix imap which allows using any e-mail client that supports IMAP.
 
-Note _deviation_ is stand alone and is not part of the install/config
-process. Also files in vnc & uronode are currently not used as well.
+**Note:** These scripts are meant to be run once **only** on a fresh image.
+
+**Note:** _deviation_ is stand alone and is not part of the install/config
+process.
+Files in _vnc_ & uronode are also currently not used for core install.
 
 Compass is a file system image for the Raspberry Pi that contains a
 kernel with the driver for the Texas Instruments tlv320aic32x4 DSP
@@ -28,7 +31,7 @@ a 12V to 5V regulator so that you can run the Pi from a 12V supply.
 Only the direwolf configuration is specific to the [UDRC II
 hardware](http://nwdigitalradio.com/wp-content/uploads/2012/04/UDRC-IIDS.pdf)
 
-These scripts were meant to be run **once** starting from  a clean image. They
+These scripts were meant to be run **once only** starting from  a clean image. They
 might work if used more than once but they were not tested for that
 case. If an installation fails I would like to know about it. Please
 post any problems you might have on the [UDRC
