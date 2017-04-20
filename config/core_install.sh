@@ -4,19 +4,19 @@
 #
 # Uncomment this statement for debug echos
 DEBUG=1
+myname="`basename $0`"
 
 # do upgrade, update outside of script since it can take some time
 UPDATE_NOW=false
 
-# edit the following list for with your favorite text editor
+# Edit the following list with your favorite text editor
 #   and set NONESSENTIAL_PKG to true
 NONESSENTIAL_PKG_LIST="mg jed whois"
 # set this to true if you even want non essential packages installed
 NONESSENTIAL_PKG=true
 
-# If the following is set to true bluetooth will not work
-SERIAL_CONSOLE=true
-myname="`basename $0`"
+# If the following is set to true bluetooth will be disabled
+SERIAL_CONSOLE=false
 
 # trap ctrl-c and call function ctrl_c()
 trap ctrl_c INT
@@ -37,7 +37,7 @@ function ctrl_c() {
 	exit
 }
 
-# ===== install direwolf from source
+# ===== function install direwolf from source
 
 function install_direwolf_source() {
    num_cores=$(nproc --all)
@@ -231,6 +231,7 @@ fi
 # To enable serial console disable bluetooth
 #  and change console to ttyAMA0
 if [ "$SERIAL_CONSOLE" = "true" ] ; then
+   echo "=== Disabling Bluetooth & enabling serial console"
    cat << EOT >> /boot/config.txt
 # Enable serial console
 dtoverlay=pi3-disable-bt
