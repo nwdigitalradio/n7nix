@@ -79,8 +79,6 @@ apt-get update
 # Also you may get a (q to quit) prompt to continue after reading about sudoers
 # list. Just hit 'q'
 apt-get upgrade -y
-# Just copy & paste the following line into your ssh console
-apt-get install -y mg jed rsync build-essential autoconf automake libtool git libasound2-dev whois libncurses5-dev
 # reboot
 shutdown -r now
 ```

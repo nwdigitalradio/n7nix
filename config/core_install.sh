@@ -5,7 +5,16 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
+# do upgrade, update outside of script since it can take some time
 UPDATE_NOW=false
+
+# edit the following list for with your favorite text editor
+#   and set NONESSENTIAL_PKG to true
+NONESSENTIAL_PKG_LIST="mg jed whois"
+# set this to true if you even want non essential packages installed
+NONESSENTIAL_PKG=true
+
+# If the following is set to true bluetooth will not work
 SERIAL_CONSOLE=true
 myname="`basename $0`"
 
@@ -67,13 +76,45 @@ if [ "$UPDATE_NOW" = "true" ] ; then
    apt-get upgrade
 fi
 
-# Check if build tools have been installed.
+# NON essential package install section
+
+if [ "$NONESSENTIAL_PKG" = "true" ] ; then
+   # Check if non essential packages have been installed
+   echo "=== Check for non essential packages"
+   needs_pkg=false
+
+   for pkg_name in `echo ${NONESSENTIAL_PKG_LIST}` ; do
+
+      is_pkg_installed $pkg_name
+      if [ $? -eq 0 ] ; then
+         echo "$myname: Will Install $pkg_name program"
+         needs_pkg=true
+         break
+      fi
+   done
+
+   if [ "$needs_pkg" = "true" ] ; then
+      echo -e "Installing some non essential packages"
+
+      apt-get install -y -q $NONESSENTIAL_PKG_LIST
+      if [ "$?" -ne 0 ] ; then
+         echo "Non essential packages install failed. Please try this command manually:"
+         echo "apt-get install -y $NONESSENTIAL_PKG_LIIST"
+         exit 1
+      fi
+   fi
+
+   echo "Non essential packages installed."
+fi
+
+# build tools install section
+
 echo " === Check build tools"
 pkg_name="build-essential"
 is_pkg_installed $pkg_name
 if [ $? -eq 0 ] ; then
    echo "$myname: Will Install $pkg_name package"
-   apt-get install -y -q mg jed rsync build-essential autoconf automake libtool git libasound2-dev whois libncurses5-dev
+   apt-get install -y -q rsync build-essential autoconf automake libtool git libasound2-dev libncurses5-dev
 fi
 
 if [ ! -d /lib/modules/$(uname -r)/ ] ; then
