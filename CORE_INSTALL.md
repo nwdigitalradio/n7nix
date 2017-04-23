@@ -79,6 +79,7 @@ apt-get update
 # Also you may get a (q to quit) prompt to continue after reading about sudoers
 # list. Just hit 'q'
 apt-get upgrade -y
+apt-get install git
 # reboot
 shutdown -r now
 ```
@@ -86,6 +87,7 @@ shutdown -r now
 * relogin as same user (probably pi) and execute the following commands.
 
 ```bash
+
 git clone https://github.com/nwdigitalradio/n7nix
 cd n7nix/config
 sudo su

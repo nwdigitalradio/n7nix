@@ -15,6 +15,7 @@ NONESSENTIAL_PKG_LIST="mg jed whois"
 # set this to true if you even want non essential packages installed
 NONESSENTIAL_PKG=true
 
+BUILDTOOLS_PKG_LIST="rsync build-essential autoconf dh-autoreconf automake libtool git libasound2-dev libncurses5-dev"
 # If the following is set to true bluetooth will be disabled
 SERIAL_CONSOLE=false
 
@@ -99,8 +100,7 @@ if [ "$NONESSENTIAL_PKG" = "true" ] ; then
       apt-get install -y -q $NONESSENTIAL_PKG_LIST
       if [ "$?" -ne 0 ] ; then
          echo "Non essential packages install failed. Please try this command manually:"
-         echo "apt-get install -y $NONESSENTIAL_PKG_LIIST"
-         exit 1
+         echo "apt-get install -y -q $NONESSENTIAL_PKG_LIIST"
       fi
    fi
 
@@ -110,12 +110,30 @@ fi
 # build tools install section
 
 echo " === Check build tools"
-pkg_name="build-essential"
-is_pkg_installed $pkg_name
-if [ $? -eq 0 ] ; then
-   echo "$myname: Will Install $pkg_name package"
-   apt-get install -y -q rsync build-essential autoconf automake libtool git libasound2-dev libncurses5-dev
+needs_pkg=false
+
+for pkg_name in `echo ${BUILDTOOLS_PKG_LIST}` ; do
+
+   is_pkg_installed $pkg_name
+   if [ $? -eq 0 ] ; then
+      echo "$myname: Will Install $pkg_name program"
+      needs_pkg=true
+      break
+   fi
+done
+
+if [ "$needs_pkg" = "true" ] ; then
+   echo -e "Installing some build tool packages"
+
+   apt-get install -y -q $BUILDTOOLS_PKG_LIST
+   if [ "$?" -ne 0 ] ; then
+      echo "Build tools package install failed. Please try this command manually:"
+      echo "apt-get install -y -q $BUILDTOOLS_PKG_LIIST"
+      exit 1
+   fi
 fi
+
+echo "Build Tools packages installed."
 
 if [ ! -d /lib/modules/$(uname -r)/ ] ; then
    echo "Modules directory /lib/modules/$(uname -r)/ does NOT exist"
@@ -172,7 +190,6 @@ if [ "$HOSTNAME" = "raspberrypi" ] || [ "$HOSTNAME" = "compass" ] ; then
    read -e HOSTNAME
    echo "$HOSTNAME" > /etc/hostname
 fi
-
 
 # Get hostname again incase it was changed
 HOSTNAME=$(cat /etc/hostname | tail -1)
