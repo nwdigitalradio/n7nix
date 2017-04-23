@@ -100,7 +100,7 @@ if [ "$NONESSENTIAL_PKG" = "true" ] ; then
       apt-get install -y -q $NONESSENTIAL_PKG_LIST
       if [ "$?" -ne 0 ] ; then
          echo "Non essential packages install failed. Please try this command manually:"
-         echo "apt-get install -y -q $NONESSENTIAL_PKG_LIIST"
+         echo "apt-get install -y $NONESSENTIAL_PKG_LIIST"
       fi
    fi
 
@@ -128,7 +128,7 @@ if [ "$needs_pkg" = "true" ] ; then
    apt-get install -y -q $BUILDTOOLS_PKG_LIST
    if [ "$?" -ne 0 ] ; then
       echo "Build tools package install failed. Please try this command manually:"
-      echo "apt-get install -y -q $BUILDTOOLS_PKG_LIIST"
+      echo "apt-get install -y $BUILDTOOLS_PKG_LIIST"
       exit 1
    fi
 fi
