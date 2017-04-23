@@ -29,6 +29,13 @@
   * For mutt
     * Real name (ie. Joe Blow)
 
+##### A note about the winlink password required by paclink-unix
+* If you are not yet a registered Winlink user, just hit enter when prompted for the Winlink password
+  * You will receive the password later on in the process from winlink.org
+  * Once you receive your password you will enter it manually in file _/usr/local/etc/wl2k.conf_
+    * Set the _wl2k-password=_ line with your new password.
+* For new Winlink users [this link](https://winlink.org/user) has information on creating a new Winlink account
+
 ### Start the install script
 
 * Execute the following script from the directory that scripts were cloned to.
@@ -54,7 +61,7 @@ paclink-unix install should now be installed & functional installed.
 
 #### Verify message composition
 
-* compose an e-mail with your e-mail client & verify that a new file appears in /usr/local/var/outbox
+* compose an e-mail with your e-mail client & verify that a new file appears in _/usr/local/var/wl2k/outbox_
 
 #### Verify Winlink telnet connection - wl2ktelnet test
 
@@ -64,18 +71,45 @@ paclink-unix install should now be installed & functional installed.
 ```bash
 wl2ktelnet
 ```
+#### Find an RMS Gateways near you - 2 methods
+
+##### 1 - Use the winlink web site
+
+* Go to http://winlink.org/RMSChannels
+  * Click on the _Packet_ button & locate your area on the map
+
+##### 2 - Run a script to interrogate winlink web services server
+* run either of these script found in _https://github.com/nwdigitalradio/Winlink4Linux_
+  * gatewaylist.sh
+  * rmslist.sh
+* Both of these scripts will give similar output in different formats
+
+###### gatewaylist.sh
+```bash
+./gatewaylist.sh <distance_in_miles>
+```
+* defaults set a distance of 30 miles & GRID SQUARE cn88nl
+  * If you edit the script run the _-l_ option to build a new list
+* requires the _cURL_ package
+* Edit the _GRIDSQUARE=_ line at the top of the script with your gridsquare
+* _-m <miles>_ sets the distance in miles of local RMS stations
+* _-c_  gives a count of local stations found
+* _-l_  build a new RMS station proximity list
+* _-h_  lists all command line arguments
+
+###### rmslist.sh
+```bash
+./rmslist.sh <integer_distance_in_miles> <maidenhead_grid_square>
+```
+* defaults set a distance of 30 miles & GRID SQUARE cn88nl
+* requires both _cURL_ and the json parsing utility _jq_
+  * If run as root will install both packages automatically
+* Displays a list of RMS Gateway call signs, frequency used & distance in miles from your Grid Square location.
 
 #### Verify a radio connection - wl2kax25 test
 
-* Find an RMS Gateways near you
-  * Go to http://winlink.org/RMSChannels
-    * Click on the _Packet_ button & locate your area on the map
-  * run either of these script found in https://github.com/nwdigitalradio/Winlink4Linux
-    * gatewaylist.sh
-    * rmslist.sh
-
 ```bash
-wl2kax25 -c <some_RMS_Gateway>
+wl2kax25 -c <some_RMS_Gateway_callsign>
 # or
-wl2kax25 -c <some_RMS_Gateway> <some_digipeater>
+wl2kax25 -c <some_RMS_Gateway_callsign> <some_digipeater>
 ```
