@@ -34,7 +34,7 @@
   * You will receive the password later on in the process from winlink.org
   * Once you receive your password you will enter it manually in file _/usr/local/etc/wl2k.conf_
     * Set the _wl2k-password=_ line with your new password.
-* For new Winlink users [this link](https://winlink.org/user) has information on creating a new Winlink account
+* For new Winlink users [this link](https://winlink.org/user) has information on creating a Winlink account
 
 ### Start the install script
 
@@ -55,7 +55,7 @@ mutt install/config FINISHED
 app install (plu) script FINISHED
 ```
 
-paclink-unix install should now be installed & functional installed.
+paclink-unix install should now be installed & functional.
 
 ## Verify the paclink-unix install
 
@@ -71,7 +71,7 @@ paclink-unix install should now be installed & functional installed.
 ```bash
 wl2ktelnet
 ```
-#### Find an RMS Gateways near you - 2 methods
+#### Find an RMS Gateway near you - 2 methods
 
 ##### 1 - Use the winlink web site
 
@@ -86,7 +86,7 @@ wl2ktelnet
 
 ###### gatewaylist.sh
 ```bash
-./gatewaylist.sh <distance_in_miles>
+./gatewaylist.sh
 ```
 * defaults set a distance of 30 miles & GRID SQUARE cn88nl
   * If you edit the script run the _-l_ option to build a new list
