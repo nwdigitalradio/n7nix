@@ -3,7 +3,9 @@
 echo "== failed & loaded but inactive units=="
 systemctl --failed --all
 echo
-echo "== direwolf pid $(pidof direwolf) =="
+echo "== direwolf =="
+echo "  pid: $(pidof direwolf)"
+echo "  ver: $(direwolf -v 2>/dev/null | grep -m 1 -i version)"
 echo "== /proc/sys =="
 ls /proc/sys/net/
 ls /proc/sys/net/ax25

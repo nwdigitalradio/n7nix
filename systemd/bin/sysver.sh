@@ -9,3 +9,5 @@ echo "----- lsb_release"
 lsb_release -a
 echo "---- systemd"
 hostnamectl
+echo "----- direwolf"
+echo " ver: $(direwolf -v 2>/dev/null | grep -m 1 -i version)"
