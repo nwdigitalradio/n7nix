@@ -31,11 +31,20 @@
 * For host access point you will be required to enter:
   * SSID (eg. bacon)
 
+* When dialog box for configuring iptables-persistent pops up just hit enter for:
+  * 'Save current IPv4 rules?'
+  * 'Save current IPv6 rules?'
+
 ### Start the install script
 
+* Execute the following script from the directory that scripts were cloned to.
+  * Should be starting from your login home directory eg. /home/pi
+
 ```bash
-sudo su
 cd n7nix/config
+# should now be in ~/n7nix/config
+# become root
+sudo su
 ./app_install.sh pluimap
 ```
 * Upon completion you should see:

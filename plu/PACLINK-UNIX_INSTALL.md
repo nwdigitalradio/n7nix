@@ -34,11 +34,12 @@
   * You will receive the password later on in the process from winlink.org
   * Once you receive your password you will enter it manually in file _/usr/local/etc/wl2k.conf_
     * Set the _wl2k-password=_ line with your new password.
-* For new Winlink users [this link](https://winlink.org/user) has information on creating a Winlink account
+* For new Winlink users [this link](https://winlink.org/user) has information on creating a Winlink account & getting a password.
 
 ### Start the install script
 
 * Execute the following script from the directory that scripts were cloned to.
+  * Should be starting from your login home directory eg. /home/pi
 
 ```bash
 cd n7nix/config
@@ -61,7 +62,8 @@ paclink-unix install should now be installed & functional.
 
 #### Verify message composition
 
-* compose an e-mail with your e-mail client & verify that a new file appears in _/usr/local/var/wl2k/outbox_
+* As your normal login user (eg. pi, not root) compose an e-mail with your e-mail client
+  * Next verify that a new file appears in _/usr/local/var/wl2k/outbox_
 
 #### Verify Winlink telnet connection - wl2ktelnet test
 
