@@ -45,6 +45,8 @@ systemctl is-enabled NetworkManager.service
 if [ $? -eq 0 ] ; then
   systemctl disable NetworkManager.service
 fi
+systemctl daemon-reload
+systemctl restart dhcpcd.service
 service networking restart
 
 echo
