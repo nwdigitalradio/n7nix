@@ -35,7 +35,7 @@ echo "START comparing files ..."
 
 for filename in `echo ${AX25_FILES}` ; do
 
-# Check if file exists.
+   # Check if file exists.
    if [ -f "/etc/ax25/$filename" ] ; then
       dbgecho "Comparing $filename"
       diff -s ax25/$filename /etc/ax25/$filename
@@ -134,7 +134,7 @@ logrotate -v -f /etc/logrotate.d/direwolf
 echo "test log rotate, view status after ..."
 grep direwolf /var/lib/logrotate/status
 
-# Check if file exists.
+# Check if directory exists.
 if [ ! -d "$userbindir" ] ; then
    mkdir $userbindir
 fi
