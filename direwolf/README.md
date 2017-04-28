@@ -36,5 +36,27 @@ sudo su
 ```
 
 The scripts ax25-stop, ax25-start, ax25-status were previously
-Installed part of the [core
+Installed as part of the [core
 install.](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
+
+### How to refresh a previously cloned repository
+
+* If you need to refresh your previously cloned n7nix repository in order to pick up the latest files do the following.
+  * As user pi, **NOT** root
+
+```bash
+cd
+cd n7nix
+git pull origin master
+
+# Verify update.sh is in the direwolf directory
+ls direwolf
+```
+
+* You can now run the _update.sh_ script as root:
+
+```bash
+cd  direwolf
+sudo su
+./update.sh
+```
