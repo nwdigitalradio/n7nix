@@ -106,6 +106,19 @@ ExecStart=/usr/bin/direwolf -di -t 0 -c /etc/direwolf.conf -p
     * page 67 of __Dire Wolf User Guide__
   * Also Section 9.14 Logging on page 104
 
+**NOTE:** if you change the config file or the command line options you will have to restart direwolf to make the new options take effect.
+
+```
+cd ~/bin
+# Should be in directory /home/pi/bin
+# Now become root
+sudo su
+./ax25-stop
+./ax25-start
+
+# Check that everything is running
+./ax25-status
+```
 
 ### How to refresh a previously cloned repository
 
