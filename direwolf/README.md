@@ -61,7 +61,7 @@ restart the _tail_ command if you leave it running for longer than a day.
 
 ### How to change what is output to logfile
 * References to __Dire Wolf User Guide__ are for Version 1.4 -- April 2017
-* To change command line options as root you need to as root edit the following file:
+* To change command line options you need to edit the following file as root:
   *  /etc/systemd/system/direwolf.service
   * Look for this line in the file:
 
