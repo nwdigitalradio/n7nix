@@ -39,6 +39,74 @@ The scripts ax25-stop, ax25-start, ax25-status were previously
 Installed as part of the [core
 install.](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
 
+### How to watch received packets
+
+* Since direwolf is run as a daemon all standard output goes to the log file here:
+
+```
+/etc/direwolf/direwolf.log
+```
+
+* To watch the contents of this file as it changes:
+
+```bash
+tail -f /var/log/direwolf/direwolf.log
+```
+
+* The above command will let you see everything that would be sent to
+the console if direwolf was started in a console instead of as a daemon by systemd.
+
+* This log file gets rotated about once a day so you may have to
+restart the _tail_ command if you leave it running for longer than a day.
+
+### How to change what is output to logfile
+* References to __Dire Wolf User Guide__ are for Version 1.4 -- April 2017
+* To change command line options as root you need to as root edit the following file:
+  *  /etc/systemd/system/direwolf.service
+  * Look for this line in the file:
+
+```
+ExecStart=/usr/bin/direwolf -t 0 -c /etc/direwolf.conf -p
+```
+
+* In the __Dire Wolf User Guide__ look for section 9.15 Command Line Options around page 107
+
+```
+-d x   Debug options
+   a = AGWPE network protocol client
+   k = KISS serial port client
+   n = KISS network client
+   u = Redisplay non-ASCII characters in hexadecimal
+   p = Packet hex dump
+   g = GPS interface
+   t = Tracker beacon
+   o = Output controls such as PTT and DCD
+   i = IGate
+   h = Hamlib verbose level. Repeat for more.
+   m = monitor heard station list.
+   f = packet filtering. Use ff for details of individual filter specifications.
+```
+* For example to show packets being sent to the APRS TIER 2 server
+  * Edit the /etc/systemd/system/direwolf.service file by adding the _-di_ option like this:
+
+```
+ExecStart=/usr/bin/direwolf -di -t 0 -c /etc/direwolf.conf -p
+```
+
+* From the same page also check the suppress output options.
+
+```
+-q x Quiet (suppress output) options
+   h = Omit the _heard_ line with audio level.
+   d = Omit decoding of APRS packets.
+```
+
+* You could also set LOGDIR in /etc/direwolf.conf
+  * See Section 9.3 Logging of received packets
+    * page 67 of __Dire Wolf User Guide__
+  * Also Section 9.14 Logging on page 104
+
+
 ### How to refresh a previously cloned repository
 
 * If you need to refresh your previously cloned n7nix repository in order to pick up the latest files do the following.
