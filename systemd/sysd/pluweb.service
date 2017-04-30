@@ -1,14 +1,15 @@
 [Unit]
 Description=node.js server for paclink-unix
-After=network.service       # Requires some service to run first
+After=network.service
 
 [Service]
 ExecStart=/usr/bin/nodejs /usr/local/src/paclink-unix/webapp/plu-server.js
-WorkingDirectory=/usr/local/src/paclink-unix/webapp   # Required on some systems
+# Using the following causes 200/CHDIR error
+# WorkingDirectory=/usr/local/src/paclink-unix/webapp
 Restart=always
-RestartSec=10                       # Restart service after 10 seconds if node service crashes
-StandardOutput=syslog               # Output to syslog
-StandardError=syslog                # Output to syslog
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
 SyslogIdentifier=pluweb
 
 [Install]
