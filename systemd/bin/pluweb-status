@@ -1,0 +1,4 @@
+#! /bin/bash
+#
+systemctl is-enabled pluweb.service
+systemctl status pluweb.service
