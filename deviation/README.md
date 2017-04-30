@@ -46,7 +46,8 @@ usermod -a -G audio <your_user_name>
 usermod -a -G gpio <your_user_name>
 ```
 
-* You will need to log back in to have groups take affect
+* You will need to log back in to have groups take effect.
+
 ```bash
 su <your_user_name>
 # now verify
