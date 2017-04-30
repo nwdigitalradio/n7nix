@@ -78,19 +78,34 @@ nodejs plu-server.js
 
 ### Testing webapp
 
-#### Install node.js & required modules
+#### node.js & required modules
 * nodejs & the required modules are installed with the _plu/pluimap_install.sh_ script
 
 ### Test webapp
 
-* nodejs should be started manually like this:
+* nodejs & the paclink-unix web app are started automatically with systemd
+* Check that systemd started the web app
+  * as login user (ie. pi)
+
 ```
-sudo su
-cd /usr/local/src/paclink-unix/webapp
-nodejs plu-server.js
+pluweb-status
+```
+* Verify that _active (running)_ is displayed
+
+* There are also 2 commands to start & stop the node.js paclink-unix web app
+
+```
+pluweb-stop
+pluweb-start
 ```
 
-* This will take over the console & outputs a verbose amount of debug statements from the node.js app, _plu-server.js_
+* In order to continuously view the web app log you need to execute the following as root:
+
+```
+sudo su
+jounalctl -f -u pluweb.service
+```
+
 * Now open a browser & go to: __your_ip_address__:8082
 * Should see something like the following:
 
@@ -99,6 +114,7 @@ nodejs plu-server.js
 ![plu](images/pluwebcapture.png)
 
 ---
+* Click on the _Outbox_ button
 
 # Configure a mail client
 
