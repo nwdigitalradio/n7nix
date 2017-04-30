@@ -115,6 +115,9 @@ connected to a network
 
 ### Other
 
+#### [Alpine mail client](https://github.com/nwdigitalradio/n7nix/blob/master/alpine/README.md)
+* Notes on building & getting the alpine mail client to work with paclink-unix.
+
 #### [deviation](https://github.com/nwdigitalradio/n7nix/tree/master/deviation)
 
 * Script that generates a tone file using sox, turns on correct PTT
