@@ -29,6 +29,9 @@ console=ttyAMA0,115200
 ### Test output & Push to Talk
 
 #### Using beacon test
+
+* Tune your radio to APRS frequency 2M 144.390 MHz.
+
 ```bash
 cd n7nix/debug
 sudo su
