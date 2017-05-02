@@ -15,6 +15,7 @@
 ```
 
 ### Program Requirements ###
+* direwolf must **NOT** be running
 * This script uses [gpio](http://wiringpi.com/), [sox](http://sox.sourceforge.net/) & [aplay](http://linuxcommand.org/man_pages/aplay1.html)
 * To install sox, aplay & gpio
   * As root run the following:
@@ -67,3 +68,10 @@ flag on the command line.
 enabled.
     * **LOL Outp** and **LOR Outp** are enabled if you see 00 in a box directly above them.
     * Toggle enable by hitting the letter __m__
+
+* The alsamixer levels are dependent on which radio you have.
+* For setting your transmit output level (deviation):
+  * 'Lo Drive' is the analog control and the preferred way to set level.
+  * 'PCM' is the digital control & will set how many bits the DAC will use.
+
+* **NOTE:** If you can't get close enough with the 'Lo Drive' control (doubtful) then use the 'PCM' control.

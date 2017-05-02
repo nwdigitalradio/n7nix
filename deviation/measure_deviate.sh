@@ -181,7 +181,7 @@ fi
 # Validate connector type
 case $connector in
    din6)
-      # use channel 0 PTT gpio
+      # use channel 0 or 1 PTT gpio
       if [ "$UDRCII" == "true" ] ; then
       # uses audio channel 1 PTT gpio
          gpio_pin=23
