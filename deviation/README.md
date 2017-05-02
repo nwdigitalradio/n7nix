@@ -16,6 +16,11 @@
 
 ### Program Requirements ###
 * direwolf must **NOT** be running
+```
+cd ~/bin
+sudo su
+ax25-stop
+```
 * This script uses [gpio](http://wiringpi.com/), [sox](http://sox.sourceforge.net/) & [aplay](http://linuxcommand.org/man_pages/aplay1.html)
 * To install sox, aplay & gpio
   * As root run the following:
