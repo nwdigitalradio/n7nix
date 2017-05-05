@@ -10,9 +10,9 @@
   * Periodically check the paclink-unix outbox for any messages to be sent.
 
 ##### Config Destination Email Recepients
-* A daily mail message will be sent to which ever email address SENDTO in wl2klog_sendmail.sh is set to.
+* A daily mail message will be sent to which ever email address SENDTO in _wl2klog_sendmail.sh_ is set to.
   * If the SENDTO variable is left as _N0ONE_ then the script will get a CALLSIGN from the direwolf config file & send it to `<callsign>`@winlink.org
-  * To send the report to a different call sign or more than one call sign just enter the call sign(s) on the SENDTO line in wl2klog_sendmail.sh
+  * To send the report to a different call sign or more than one call sign just enter the call sign(s) on the __SENDTO=__ line in _wl2klog_sendmail.sh_
   * If you want to address the mail report to something other than a winlink address than a full address is required.
 * For example:
 ```
@@ -24,7 +24,7 @@ SENDTO="n7nix kf7fit some_guy@bogusisp.com"
 The _wl2klog_sendmail.sh_ script currently defaults to using telnet as
 the transport. This is convenient for testing but you will probably
 want to change that to using your radio & connecting to an RMS Gateway.
-Modify the __wl2ktranSport=__ line to set the transport you want to use.
+Modify the __wl2ktransport=__ line to set the transport you want to use.
 
 * The _-s_ option is used to specify transmit only, do not pick up any messages
 * The _-c_ option specifies the destination RMS Gateway callsign
