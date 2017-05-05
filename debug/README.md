@@ -1,6 +1,12 @@
 ﻿# DEBUG notes
 #####  Collection of notes & scripts that might help solve problems
 
+## [Mail daily reports using Winlink](https://github.com/nwdigitalradio/n7nix/blob/master/debug/MAILSYSREPORT.md)
+* Use 3 scripts to:
+  * Generate a report
+  * Email report
+  * Check outbox for files to send
+
 ## Enable serial console
 * Enabling the serial port on a Raspberry Pi 3 will **disable** bluetooth
 * In file /boot/config.txt add
