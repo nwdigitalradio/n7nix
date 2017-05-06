@@ -8,12 +8,21 @@ USER=$(whoami)
 scriptname="`basename $0`"
 
 userbindir=/home/$USER/bin
+usertmpdir=/home/$USER/tmp
 REQUIRED_SCRIPTS="wl2k_outboxchk.sh wl2klog_genmail.sh wl2klog_install.sh wl2klog_sendmail.sh"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
-# ==== main
+# ==== Function checkDir
+#  arg: directory to verify
+#  -- creates directory $1, if it does not exist
+checkDir() {
+   if [ ! -d "$1" ] ; then
+      mkdir -p "$1"
+   fi
+}
 
+# ==== main
 
 # Be sure we are NOT running as root
 if (( `id -u` == 0 )); then
@@ -21,6 +30,9 @@ if (( `id -u` == 0 )); then
    echo "Login as user with Winlink email account."
    exit 1;
 fi
+
+# Check if local tmp directory exists
+checkDir $usrbindir
 
 # Check for previous install
 for filename in `echo ${REQUIRED_SCRIPTS}` ; do
