@@ -7,6 +7,14 @@ USER=pi
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
+# ===== main
+
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root."
+   exit 1
+fi
+
 # prompt for user name
 # Check if there is only a single user on this system
 

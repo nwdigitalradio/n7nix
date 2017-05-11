@@ -9,7 +9,8 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 # ===== main
 
-echo "$scriptname: script start"
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: image install script START" >> $UDR_INSTALL_LOGFILE
+echo
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
@@ -30,7 +31,7 @@ pushd ../plu
 source ./pluimap_install.sh
 popd > /dev/null
 
-echo "$(date "+%Y %m %d %T %Z"): image install script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: image install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "image install script FINISHED"
 echo

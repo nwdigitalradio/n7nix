@@ -83,6 +83,12 @@ done
 echo
 echo "AX.25 config START"
 
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root to modify /etc files"
+   exit 1
+fi
+
 if [ ! -f "/etc/ax25/axports" ] && [ ! -f "$AX25_CFGDIR/axports" ] ; then
    echo "Need to install libax25, tools & apps"
    exit 1
@@ -99,12 +105,6 @@ if [ ! -d "/etc/ax25" ] || [ ! -L "/etc/ax25" ] ; then
    fi
 else
    echo " Found ax.25 link or directory"
-fi
-
-# Be sure we're running as root
-if [[ $EUID != 0 ]] ; then
-   echo "Must be root to modify /etc files"
-   exit 1
 fi
 
 # if there are any args on command line assume it's a callsign

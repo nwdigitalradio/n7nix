@@ -163,7 +163,6 @@ sed -i -e "/144000000/ s/144000000/$FREQUENCY/" $RMSGW_CHANFILE
 echo
 echo "rmsgw config START"
 echo "Check for required files ..."
-EXITFLAG=false
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
@@ -171,6 +170,7 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
+EXITFLAG=false
 for prog_name in `echo ${REQUIRED_PRGMS}` ; do
    type -P $prog_name &>/dev/null
    if [ $? -ne 0 ] ; then

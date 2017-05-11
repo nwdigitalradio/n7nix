@@ -163,6 +163,12 @@ fi
 
 echo "Config hostap on an RPi 3"
 
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root."
+   exit 1
+fi
+
 is_rpi3
 if [ $? -eq "0" ] ; then
    echo "Not running on an RPi 3 ... exiting"

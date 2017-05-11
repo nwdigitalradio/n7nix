@@ -8,8 +8,16 @@ DEBUG=1
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
+# ===== Main
+
 echo "$scriptname: paclink-unix with imap configure"
 echo "$scriptname: Config paclink-unix, hostapd, dovecot, node.js & systemd files"
+
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root."
+   exit 1
+fi
 
 # First configure basic paclink-unix
 ./plu_config.sh

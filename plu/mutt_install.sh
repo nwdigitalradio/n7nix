@@ -21,6 +21,12 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/
 echo
 echo "mutt install START"
 
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root."
+   exit 1
+fi
+
 # Test if mutt package has already been installed.
 is_pkg_installed $pkg_name
 if [ $? -ne 0 ] ; then

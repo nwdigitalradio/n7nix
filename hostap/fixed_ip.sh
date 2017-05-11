@@ -11,6 +11,12 @@ lan_router="10.0.42.1"
 
 wlan_ipaddr="10.0.44.1"
 
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root."
+   exit 1
+fi
+
 cat <<EOT > /etc/network/interfaces
 source-directory /etc/network/interfaces.d
 

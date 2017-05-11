@@ -152,6 +152,12 @@ echo "FINISHED copying files"
 echo
 echo "systemd install START"
 
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root to install."
+   exit 1
+fi
+
 #if [ -z "$1" ] ; then
 #   echo "No args found just copy files"
 #   CopyFiles
@@ -193,13 +199,6 @@ userbindir=/home/$USER/bin
 if (( $# != 0 )) ; then
    echo "Found $# args on command line: $1"
    echo "Just diff'ing files"
-   DiffFiles
-   exit 0
-fi
-
-# Be sure we're running as root
-if [[ $EUID != 0 ]] ; then
-   echo "Must be root to install. Checking files"
    DiffFiles
    exit 0
 fi

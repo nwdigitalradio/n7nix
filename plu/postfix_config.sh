@@ -28,6 +28,13 @@ function get_user() {
 
 echo
 echo "Postfix config START"
+
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root."
+   exit 1
+fi
+
 # Get list of users with home directories
 USERLIST="$(ls /home)"
 USERLIST="$(echo $USERLIST | tr '\n' ' ')"

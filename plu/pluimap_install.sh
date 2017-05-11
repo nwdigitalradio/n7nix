@@ -11,6 +11,14 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 echo "$scriptname: paclink-unix with imap install"
 echo "$scriptname: Install paclink-unix, hostapd, dovecot, node.js & systemd files"
 
+# ===== Main
+
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root."
+   exit 1
+fi
+
 # First install basic paclink-unix
 ./plu_install.sh
 
