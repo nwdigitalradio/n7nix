@@ -27,6 +27,39 @@ function is_pkg_installed() {
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
 }
 
+# ===== function get_user
+function get_user() {
+
+# prompt for user name
+# Check if there is only a single user on this system
+
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+if (( `ls /home | wc -l` == 1 )) ; then
+   USER=$(ls /home)
+else
+  echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+  read -e USER
+fi
+
+# verify user name is legit
+userok=false
+
+for username in $USERLIST ; do
+  if [ "$USER" = "$username" ] ; then
+     userok=true;
+  fi
+done
+
+if [ "$userok" = "false" ] ; then
+   echo "User name does not exist,  must be one of: $USERLIST"
+   exit 1
+fi
+
+dbgecho "using USER: $USER"
+}
+
 # ===== function files_exist()
 function files_exist() {
    retcode=1

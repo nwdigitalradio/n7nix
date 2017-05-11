@@ -94,7 +94,7 @@ case $APP_SELECT in
       # install paclink-unix basic
       echo "$scriptname: Install paclink-unix"
       pushd ../plu
-      source ./plu_install.sh
+      source ./plu_config.sh
       popd > /dev/null
 
    ;;
@@ -102,13 +102,7 @@ case $APP_SELECT in
       echo "$scriptname: Install paclink-unix with imap"
 
       pushd ../plu
-      source ./pluimap_install.sh
-      popd > /dev/null
-   ;;
-   uronode)
-      echo "$scriptname: Install uronode"
-      pushd ../uronode
-      source ./uro_install.sh
+      source ./pluimap_config.sh
       popd > /dev/null
    ;;
    *)
