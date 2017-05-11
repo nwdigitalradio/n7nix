@@ -3,7 +3,9 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
-myname="`basename $0`"
+scriptname="`basename $0`"
+pkgname="direwolf"
+
 VER="1.4"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -12,7 +14,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 function is_pkg_installed() {
 dbgecho "Checking package: $1"
-return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
+return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
 }
 
 # ===== function install direwolf from source
@@ -47,7 +49,7 @@ echo "direwolf upgrade START"
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
-   echo "$myname: Must be root."
+   echo "$scriptname: Must be root."
    exit 1
 fi
 
@@ -56,7 +58,7 @@ fi
 # Check version of direwolf installed
 type -P direwolf &>/dev/null
 if [ $? -ne 0 ] ; then
-   echo "$myname: No direwolf program found in path"
+   echo "$scriptname: No direwolf program found in path"
    exit 1
 else
    dire_ver=$(direwolf -v 2>/dev/null | grep -m 1 -i version | cut -d " " -f4)
@@ -67,14 +69,13 @@ fi
 if [ -f "/etc/direwolf.conf" ] ; then
    echo "Verified existing direwolf config file"
 else
-   echo "$myname: Direwolf config file: /etc/direwolf.conf DOES NOT EXIST, not upgrading"
+   echo "$scriptname: Direwolf config file: /etc/direwolf.conf DOES NOT EXIST, not upgrading"
    exit 1
 fi
 
 # Is direwolf package already installed?
-pkgname="direwolf"
 is_pkg_installed "$pkgname"
-if [ $? -eq 0 ] ; then
+if [ $? -ne 0 ] ; then
    echo "$pkgname NOT installed from a package"
 else
    echo "$pkgname is already installed from a package, uninstalling."

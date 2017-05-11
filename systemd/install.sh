@@ -3,7 +3,8 @@
 # Uncomment this statement for debug echos
 # DEBUG=1
 USER=pi
-myname="`basename $0`"
+scriptname="`basename $0`"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 AX25_FILES="ax25-downd  ax25-upd  ax25dev-parms"
 BIN_FILES="ax25-start  ax25-status  ax25-stop"
@@ -24,7 +25,7 @@ EXITFLAG=false
 for prog_name in `echo ${REQUIRED_FILES}` ; do
    type -P $prog_name &>/dev/null
    if [ $? -ne 0 ] ; then
-      echo "$myname: Need to Install $prog_name program"
+      echo "$scriptname: Need to Install $prog_name program"
       EXITFLAG=true
    fi
 done
@@ -205,18 +206,6 @@ fi
 
 CopyFiles
 
-systemctl enable ax25dev.path
-systemctl enable direwolf.service
-# For conditioning network services
-systemctl enable systemd-networkd.service
-systemctl enable systemd-networkd-wait-online.service
-# enable remaining ax25 services
-systemctl enable ax25d.service
-systemctl enable ax25-mheardd.service
-
-systemctl daemon-reload
-
-UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 echo "$(date "+%Y %m %d %T %Z"): systemd install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "systemd install script FINISHED"

@@ -1,13 +1,15 @@
 #!/bin/bash
 #
 # Install paclink-unix from source tree
+# Also installs mutt & postfix
 #
-
 # Uncomment this statement for debug echos
 DEBUG=1
 #DEFER_BUILD=1
 
-myname="`basename $0`"
+scriptname="`basename $0`"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+
 SRC_DIR="/usr/local/src"
 PLU_CFG_FILE="/usr/local/etc/wl2k.conf"
 POSTFIX_CFG_FILE="/etc/postfix/transport"
@@ -22,9 +24,10 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 function is_pkg_installed() {
 
-return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
+return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
 }
-# ===== files_exist
+
+# ===== function files_exist()
 function files_exist() {
    retcode=1
 
@@ -38,44 +41,10 @@ function files_exist() {
    return $retcode
 }
 
-# ===== function get_user
-function get_user() {
-
-# prompt for user name
-# Check if there is only a single user on this system
-
-USERLIST="$(ls /home)"
-USERLIST="$(echo $USERLIST | tr '\n' ' ')"
-
-if (( `ls /home | wc -l` == 1 )) ; then
-   USER=$(ls /home)
-else
-  echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-  read -e USER
-fi
-
-# verify user name is legit
-userok=false
-
-for username in $USERLIST ; do
-  if [ "$USER" = "$username" ] ; then
-     userok=true;
-  fi
-done
-
-if [ "$userok" = "false" ] ; then
-   echo "User name does not exist,  must be one of: $USERLIST"
-   exit 1
-fi
-
-dbgecho "using USER: $USER"
-}
-
-
 # ===== main
 
 echo
-echo "paclink-unix install/config START"
+echo "paclink-unix install START"
 
 # make sure we're running as root
 if [[ $EUID != 0 ]] ; then
@@ -92,8 +61,8 @@ needs_pkg=false
 for pkg_name in `echo ${BUILD_PKG_REQUIRE}` ; do
 
    is_pkg_installed $pkg_name
-   if [ $? -eq 0 ] ; then
-      echo "$myname: Will Install $pkg_name package"
+   if [ $? -ne 0 ] ; then
+      echo "$scriptname: Will Install $pkg_name package"
       needs_pkg=true
       break
    fi
@@ -118,8 +87,8 @@ needs_pkg=false
 for pkg_name in `echo ${INSTALL_PKG_REQUIRE}` ; do
 
    is_pkg_installed $pkg_name
-   if [ $? -eq 0 ] ; then
-      echo "$myname: Will Install $pkg_name package"
+   if [ $? -ne 0 ] ; then
+      echo "$scriptname: Will Install $pkg_name package"
       needs_pkg=true
       break
    fi
@@ -201,7 +170,7 @@ if [ -z "$DEFER_BUILD" ] ; then
    make install >> build_log.out 2>> build_error.out
    if [ "$?" -ne 0 ] ; then echo "build failed at make install"; exit 1; fi
 
-   popd
+   popd > /dev/null
 fi
 
 echo "=== test files 'missing' & 'test-driver'"
@@ -216,8 +185,8 @@ EXITFLAG=false
 for prog_name in `echo ${REQUIRED_PRGMS}` ; do
    type -P $prog_name &>/dev/null
    if [ $? -ne 0 ] ; then
-      echo "$myname: paclink-unix not installed properly"
-      echo "$myname: Need to Install $prog_name program"
+      echo "$scriptname: paclink-unix not installed properly"
+      echo "$scriptname: Need to Install $prog_name program"
       EXITFLAG=true
    fi
 done
@@ -225,71 +194,11 @@ if [ "$EXITFLAG" = "true" ] ; then
   exit 1
 fi
 
-echo "=== configuring paclink-unix"
-
-# set permissions for /usr/local/var/wl2k directory
-# Check user name
-# get_user previously set $USER
-chown -R $USER:mail $PLU_VAR_DIR
-
-# Add user to group mail
-if id -nG "$USER" | grep -qw mail; then
-    echo "$USER already belongs to group mail"
-else
-    echo "Adding $USER to group mail"
-    usermod -a -G mail $USER
-fi
-
-# Get callsign
-echo "Enter call sign, followed by [enter]:"
-read -e CALLSIGN
-
-sizecallstr=${#CALLSIGN}
-
-if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
-   echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
-   exit 1
-fi
-
-# Convert callsign to upper case
-CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
-
-# Determine if paclink-unix has already been configured
-
-grep $CALLSIGN $PLU_CFG_FILE
-if [ $? -ne 0 ] ; then
-
-   # Edit /usr/local/etc/wl2k.conf file
-   # sed -i  save result to input file
-
-   # Set mycall=
-   sed -i -e "/mycall=/ s/mycall=.*/mycall=$CALLSIGN/" $PLU_CFG_FILE
-
-   ## Set email=user_name@localhost
-
-   sed -i -e "s/^#email=.*/email=$USER@localhost/" $PLU_CFG_FILE
-
-   # Set wl2k-password=
-   echo "Enter Winlink password, followed by [enter]:"
-   read -e PASSWD
-   sed -i -e "s/^#wl2k-password=/wl2k-password=$PASSWD/" $PLU_CFG_FILE
-
-   # Set ax25port=
-   # Assume axports was set by a previous configuration script
-   # get first arg in last line
-   PORT=$(tail -1 /etc/ax25/axports | cut -d ' ' -f 1)
-   sed -i -e "s/^#ax25port=/ax25port=$PORT/" $PLU_CFG_FILE
-
-else
-   echo "$myname: paclink-unix has already been configured."
-fi
-
-UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
-echo "$(date "+%Y %m %d %T %Z"): paclink-unix basic script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): paclink-unix basic install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
-echo "paclink-unix install & config FINISHED"
+echo "paclink-unix install FINISHED"
 echo
 # configure postfix
-source $CUR_DIR/postfix_install.sh $USER
+source $CUR_DIR/postfix_install.sh
 # configure mutt
 source $CUR_DIR/mutt_install.sh $USER $CALLSIGN

@@ -5,7 +5,9 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
-myname="`basename $0`"
+scriptname="`basename $0`"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+
 CALLSIGN="N0ONE"
 GRIDSQUARE="AA00aa"
 AX25PORT="udr0"
@@ -163,22 +165,22 @@ echo "rmsgw config START"
 echo "Check for required files ..."
 EXITFLAG=false
 
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root to config rmsgw"
+   exit 1
+fi
+
 for prog_name in `echo ${REQUIRED_PRGMS}` ; do
    type -P $prog_name &>/dev/null
    if [ $? -ne 0 ] ; then
-      echo "$myname: RMS Gateway not installed properly"
-      echo "$myname: Need to Install $prog_name program"
+      echo "$scriptname: RMS Gateway not installed properly"
+      echo "$scriptname: Need to Install $prog_name program"
       EXITFLAG=true
    fi
 done
 if [ "$EXITFLAG" = "true" ] ; then
   exit 1
-fi
-
-# Be sure we're running as root
-if [[ $EUID != 0 ]] ; then
-   echo "Must be root to config rmsgw"
-   exit 1
 fi
 
 # if there are any args on command line assume it's a callsign
@@ -343,7 +345,6 @@ fi
 # run mksysop.py
 # Check /etc/rmsgw/new-sysop.xml
 
-UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 echo "$(date "+%Y %m %d %T %Z"): rmsgw config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "rmsgw config script FINISHED"

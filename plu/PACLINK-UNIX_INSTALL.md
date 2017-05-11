@@ -94,7 +94,7 @@ wl2ktelnet
   * If you edit the script run the _-l_ option to build a new list
 * requires the _cURL_ package
 * Edit the _GRIDSQUARE=_ line at the top of the script with your gridsquare
-* _-m <miles>_ sets the distance in miles of local RMS stations
+* _-m `<miles>`_ sets the distance in miles of local RMS stations
 * _-c_  gives a count of local stations found
 * _-l_  build a new RMS station proximity list
 * _-h_  lists all command line arguments

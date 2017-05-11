@@ -23,7 +23,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 function is_pkg_installed() {
 
-return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
+return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
 }
 
 # ===== function get_user
@@ -71,7 +71,7 @@ needs_pkg=false
 for pkg_name in `echo ${PKG_REQUIRE}` ; do
 
    is_pkg_installed $pkg_name
-   if [ $? -eq 0 ] ; then
+   if [ $? -ne 0 ] ; then
       echo "$myname: Will Install $pkg_name package"
       needs_pkg=true
       break

@@ -26,9 +26,11 @@
 * Unzip and copy the uncompressed image to the SD card using the procedure outlined on the [Raspberry Pi site](https://www.raspberrypi.org/documentation/installation/installing-images/)
   * For example, see below:
     * **Note:** If you don't get the output device correct of=/dev/sdx you can ruin what ever you have installed on workstation hard drive
+    * Below is an example only, the dates on the files will change.
+
 ```bash
-unzip image_2016_09-03-compass-lite.zip
-dd if=2016-09-03-compass-lite.img of=/dev/sdc bs=4M
+unzip image-2016_05-23-compass-lite.zip
+dd if=2016-05-23-compass-lite.img of=/dev/sdc bs=4M
 ```
 
 * To enable ssh on first boot mount flash drive & create ssh file in /boot partition

@@ -9,7 +9,8 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
-myname="`basename $0`"
+scriptname="`basename $0`"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 # Color Codes
 Reset='\e[0m'
@@ -31,7 +32,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 function is_pkg_installed() {
 
-return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
+return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
 }
 
 # ===== main
@@ -53,8 +54,8 @@ needs_pkg=false
 for pkg_name in `echo ${PKG_REQUIRE}` ; do
 
    is_pkg_installed $pkg_name
-   if [ $? -eq 0 ] ; then
-      echo "$myname: Will Install $pkg_name program"
+   if [ $? -ne 0 ] ; then
+      echo "$scriptname: Will Install $pkg_name program"
       needs_pkg=true
       break
    fi
@@ -151,7 +152,6 @@ if [ $? -ne 0 ] ; then
 fi
 # rm /etc/rmsgw/stat/.*
 
-UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 echo "$(date "+%Y %m %d %T %Z"): RMS Gateway updated" >> $UDR_INSTALL_LOGFILE
 echo -e "${BluW}RMS Gateway updated \t${Reset}"
 
