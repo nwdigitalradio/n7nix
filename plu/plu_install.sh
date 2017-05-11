@@ -163,7 +163,6 @@ if [ ! -d $SRC_DIR ] ; then
       exit 1
    fi
 fi
-apt-get install postfix libdb-dev libglib2.0-0 zlib1g-dev libncurses5-dev libdb5.3-dev libgmime-2.6-dev
 
 cd $SRC_DIR
 
