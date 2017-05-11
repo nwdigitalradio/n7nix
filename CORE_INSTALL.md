@@ -86,26 +86,112 @@ apt-get install git
 shutdown -r now
 ```
 ## after reboot
-* relogin as same user (probably pi) and execute the following commands.
+
+* relogin as same user (probably pi), get the install script repo and start the install.
+  * There are different scripts for program installation & program configuration.
+  * The install scripts should run unattended, where as the configuration script will prompt you for pertinent things
+
+#### Get the install script repo
 
 ```bash
-
 git clone https://github.com/nwdigitalradio/n7nix
 cd n7nix/config
-sudo su
-./core_install.sh
 ```
 
-* You may be asked to change your password
+### Two ways to do the install
+
+#### 1. Install everything in one shot, then config what you want
+
+* This method is used to install a number of programs where the
+Internet access is good and then do the config **without** requiring an
+Internet connection.
+  * Advantages:
+    * Can run mostly unattended ie. just 2 prompts
+      * The prompts are for configuring _iptables-persistent_ for
+      saving current IPv4 & IPv6 rules.
+        * Just hit return with **Yes** (default) selected
+    * Can be used to build a known good image
+  * This was the way the SeaPac workshop image was created
+
+```bash
+sudo su
+# Should be in _n7nix/config_ directory
+./image_install.sh
+```
+* Upon completion you should see this on the console:
+```
+image install script FINISHED
+```
+
+##### After the Install, config core whatever else you want
+
+* RMS Gateway & paclink-unix require the core install, so do that
+first
+  * core includes, direwowlf, ax25, systemd
+
+```bash
+./core_config.sh
+
+# reboot the RPi
+# test direwolf, ax25
+```
+
+* At this point direwolf is operational & if you are connected to the
+data port on a radio you can [view incoming packets](https://github.com/nwdigitalradio/n7nix/blob/master/direwolf/README.md).
+
+```
+# If RMS Gateway is required then
+./app_config.sh rmsgw
+# test RMS Gateway
+
+# If paclink-unix with mail server is required then
+./app_config.sh pluimap
+# test plu with imap
+
+# If basic paclink-unix is required
+./app_config.sh plu
+# test basic plu
+
+```
+
+
+#### 2. Install a component, config a component, test a component
+
+* For this method you would do the following steps:
+  * install core, config core, test core
+  * install RMS Gateway, config, test RMS Gateway
+  * install paclink-unix, config, test paclink-unix
+
+```bash
+sudo su
+./core_install.sh
+./core_config.sh
+# test direwolf, ax25
+
+# If RMS Gateway is required then
+./app_install.sh rmsgw
+./app_config.sh rmsgw
+# test RMS Gateway
+
+# If basic paclink-unix is required
+./app_install.sh plu
+./app_config.sh plu
+# test basic plu
+
+# If paclink-unix with mail server is required then
+./app_install.sh pluimap
+./app_config.sh pluimap
+# test plu with imap
+
+```
+
+#### Core Configuration
+
+* You will probably be asked to change your password
 * You will be prompted to change hostname & set your time zone.
 * note: When changing time zone type first letter of location,
   * ie. (A)merica, (L)os Angeles
   * then use arrow keys to make selection
-* **When any choices appear on terminal just hit return**
-  * ie. for /etc/ax25/axports nrports & rsports
-
-#### Core Configuration
-
 * Part of core install is configuration of ax25, direwolf & systemd.
 * You will be required to supply the following:
   * Your callsign
@@ -118,8 +204,9 @@ core configuration FINISHED
 app install (core) script FINISHED
 ```
 
-the new RPi image has been initialized and AX.25 & direwolf are
+Now the RPi image has been initialized and AX.25 & direwolf are
 installed.
+
 * **reboot again**
 ```bash
 # reboot
@@ -143,8 +230,12 @@ following.
 ```
 dtoverlay=pi3-disable-bt
 ```
-  * Specify serial console port in /boot/cmdline.txt
+  * Specify serial console port in _/boot/cmdline.txt_
     * Change console=serial0 to console=ttyAMA0,115200
+    * For example:
+```
+dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait
+```
 
 ## Verifying CORE Install
 ### Testing direwolf & the UDRC

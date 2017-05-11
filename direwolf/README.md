@@ -1,6 +1,6 @@
 # Direwolf installation files
 
-###### install.sh
+###### config.sh
 * direwolf is normally installed as part of the [core installation.](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
 * This install script is called from the config/core_install.sh script.
 

@@ -4,7 +4,7 @@
 
 * This installation assumes you have already [installed core components](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
 
-## Install & configure RMS Gateway
+## Configure RMS Gateway
 
 * What remains is the  configuration of RMS Gateway
 * You will be required to supply the following:
@@ -17,14 +17,18 @@
   * Radio frequency in Hz
 
 * Execute the following script as root from the directory scripts were cloned to.
+  * **NOTE:** if you used _image_install.sh_ to install everything at
+once then running _app_install.sh is **NOT** required.
+
 ```bash
 cd n7nix/config
 # should now be in ~/n7nix/config
 # become root
 sudo su
 ./app_install.sh rmsgw
+./app_config.sh rmsgw
 ```
-* When the script finishes & you see *app install script FINISHED* you are ready to test the RMS gateway
+* When the script finishes & you see *app config rmsgw script FINISHED* and you are ready to test the RMS gateway.
 * Reboot your pi one more time login & verify the hostname changed
   * You should see your console prompt like this: pi@your_host_name:
 
