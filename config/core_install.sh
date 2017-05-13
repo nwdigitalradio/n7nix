@@ -149,19 +149,14 @@ fi
 
 echo " === Modify /boot/config.txt"
 
-grep udrc /boot/config.txt > /dev/null 2>&1
+grep "force_turbo" /boot/config.txt > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
   # Add to bottom of file
   cat << EOT >> /boot/config.txt
 
-# enable udrc
+# enable udrc if no eeprom
 # dtoverlay=udrc
 force_turbo=1
-
-# Rotate lcd screen
-lcd_rotate=2
-
-#dtoverlay=udrc-boost-output
 EOT
 fi
 
