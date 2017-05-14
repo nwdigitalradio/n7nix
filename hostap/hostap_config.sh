@@ -77,7 +77,7 @@ fi
 
 # Create a new file
 
-echo "Enter Service set identifier(SSID) for new WiFi access point, followed by [enter]:"
+echo "Enter Service set identifier (SSID) for new WiFi access point, followed by [enter]:"
 read -e SSID
 
 # Create a new file

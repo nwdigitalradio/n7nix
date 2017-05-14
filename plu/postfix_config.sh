@@ -24,6 +24,26 @@ function get_user() {
    fi
 }
 
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
+
 # ===== main
 
 echo
@@ -46,21 +66,7 @@ else
    get_user
 fi
 
-# verify user name is legit
-userok=false
-dbgecho "$scriptname: Verify user name: $USER"
-for username in $USERLIST ; do
-   if [ "$USER" = "$username" ] ; then
-      userok=true;
-   fi
-done
-
-if [ "$userok" = "false" ] ; then
-   echo "User name ($USER) does not exist,  must be one of: $USERLIST"
-   exit 1
-fi
-
-dbgecho "using USER: $USER"
+check_user
 
 # Check if postfix has been installed
 program_name="postfix"

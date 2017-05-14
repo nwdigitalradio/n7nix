@@ -115,7 +115,7 @@ Internet connection.
 
 ```bash
 sudo su
-# Should be in _n7nix/config_ directory
+# Execute from n7nix/config directory
 ./image_install.sh
 ```
 * Upon completion you should see this on the console:
@@ -123,43 +123,54 @@ sudo su
 image install script FINISHED
 ```
 
-##### After the Install, config core whatever else you want
+##### After the Install, config core & then whatever else you want
 
 * RMS Gateway & paclink-unix require the core install, so do that
 first
   * core includes, direwowlf, ax25, systemd
 
 ```bash
-./core_config.sh
-
-# reboot the RPi
-# test direwolf, ax25
+./app_config.sh core
 ```
 
-* At this point direwolf is operational & if you are connected to the
+* You should see this on the last line of the console
+  * _app config (core) script FINISHED_
+
+* Now reboot the RPi and test direwolf, ax25 for functionality
+
+* At this point direwolf & AX.25 is operational & if you are connected to the
 data port on a radio you can [view incoming packets](https://github.com/nwdigitalradio/n7nix/blob/master/direwolf/README.md).
 
+##### Now configure RMS Gateway or paclink-unix
+
 ```
+cd n7nix/config
+sudo su
+
 # If RMS Gateway is required then
 ./app_config.sh rmsgw
 # test RMS Gateway
-
-# If paclink-unix with mail server is required then
-./app_config.sh pluimap
-# test plu with imap
 
 # If basic paclink-unix is required
 ./app_config.sh plu
 # test basic plu
 
+# If paclink-unix with mail server is required then
+./app_config.sh pluimap
+# test plu with imap
+
 ```
 
-
+### Alternate Install /  Config method
 #### 2. Install a component, config a component, test a component
 
 * For this method you would do the following steps:
-  * install core, config core, test core
+  * Always install/config core first
+    * install core, config core, test core
+* **If** you want RMS Gateway functionality
   * install RMS Gateway, config, test RMS Gateway
+* **If** you want Winlink client functionality
+  * C
   * install paclink-unix, config, test paclink-unix
 
 ```bash

@@ -66,10 +66,14 @@ case $APP_SELECT in
       while get_callsign ; do
          echo "Input error, try again"
       done
+      # configure core
+      source ./core_config.sh
 
       # configure ax25
       # Needs a callsign
-      source ../ax25/config.sh $CALLSIGN
+      pushd ../ax25
+      source ./config.sh $CALLSIGN
+      popd > /dev/null
 
       # configure direwolf
       # Needs a callsign
@@ -79,6 +83,7 @@ case $APP_SELECT in
 
       # configure systemd
       pushd ../systemd
+      /bin/bash ./install.sh
       /bin/bash ./config.sh
       popd > /dev/null
 

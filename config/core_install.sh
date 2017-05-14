@@ -336,13 +336,41 @@ else
    echo "direwolf already installed"
 fi
 
+# This will happen if something else has already installed direwolf
 if [ ! -e /etc/direwolf.conf ] ; then
-   echo "Direwolf: NO config file found!!"
+   echo "Direwolf: config file NOT installed!"
+   echo "copying direwolf config file from package to /etc/direwolf.conf"
+   cp /usr/share/doc/direwolf/examples/direwolf.conf* /etc
+   gunzip /etc/direwolf.conf.gz
+fi
+
+if [ ! -e /etc/direwolf.conf ] ; then
    echo "$scriptname: direwolf install failed!"
    exit 1
 else
    echo "direwolf: config file found OK"
 fi
+
+SRC_DIR="/usr/local/src/udrc"
+
+# Does source directory for udrc alsa level setup script exist?
+if [ ! -d $SRC_DIR ] ; then
+   mkdir -p $SRC_DIR
+   if [ $? -ne 0 ] ; then
+      echo "Problems creating source directory: $SRC_DIR"
+      exit 1
+   fi
+else
+   dbgecho "Source dir: $SRC_DIR already exists"
+fi
+
+cd $SRC_DIR
+wget -O set-udrc-din6.sh -qt 3 https://goo.gl/7rXUFJ
+if [ $? -ne 0 ] ; then
+   echo "FAILED to download alsa level setup file."
+   exit 1
+fi
+chmod +x set-udrc-din6.sh
 
 echo "$(date "+%Y %m %d %T %Z"): core install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo

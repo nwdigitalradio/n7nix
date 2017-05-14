@@ -10,6 +10,55 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function get_user
+
+function get_user() {
+   # Check if there is only a single user on this system
+   if (( `ls /home | wc -l` == 1 )) ; then
+      USER=$(ls /home)
+   else
+      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+      read -e USER
+   fi
+}
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
+
+# ===== function CopyBinFiles
+
+function CopyBinFiles() {
+
+# Check if directory exists.
+if [ ! -d "$userbindir" ] ; then
+   mkdir $userbindir
+fi
+
+cp /home/$USER/n7nix/systemd/bin/* $userbindir
+chown -R $USER:$USER $userbindir
+
+echo
+echo "FINISHED copying files"
+}
+
+
 # ===== main
 
 echo "Initial core config script"
@@ -107,30 +156,24 @@ if [ "$DATETZ" == "UTC" ] ; then
 fi
 
 echo "=== Set alsa levels for UDRC"
-# Does source directory for udrc alsa level setup script exist?
-SRC_DIR="/usr/local/src/udrc"
 
-if [ ! -d $SRC_DIR ] ; then
-   mkdir -p $SRC_DIR
-   if [ $? -ne 0 ] ; then
-      echo "Problems creating source directory: $SRC_DIR"
-      exit 1
-   fi
-else
-   dbgecho "Source dir: $SRC_DIR already exists"
-fi
-cd $SRC_DIR
-wget -O set-udrc-din6.sh -qt 3 https://goo.gl/7rXUFJ
-if [ $? -ne 0 ] ; then
-   echo "FAILED to download alsa level setup file."
-   exit 1
-fi
-chmod +x set-udrc-din6.sh
+# Get list of users with home directories
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+get_user
+check_user
+
+userbindir=/home/$USER/bin
+CopyBinFiles
+
+cd $userbindir
 ./set-udrc-din6.sh  > /dev/null 2>&1
+retcode="$?"
+dbgecho "Set sound card levels return: $retcode"
+cd $START_DIR
 
 echo "$(date "+%Y %m %d %T %Z"): core config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "core config script FINISHED"
 echo
-cd $START_DIR
-/bin/bash $START_DIR/app_config.sh core

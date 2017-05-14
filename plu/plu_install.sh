@@ -230,7 +230,7 @@ echo "$(date "+%Y %m %d %T %Z"): paclink-unix basic install script FINISHED" >> 
 echo
 echo "paclink-unix install FINISHED"
 echo
-# configure postfix
+# install postfix
 source $CUR_DIR/postfix_install.sh
-# configure mutt
+# install mutt
 source $CUR_DIR/mutt_install.sh $USER $CALLSIGN

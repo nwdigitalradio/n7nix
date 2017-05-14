@@ -150,10 +150,12 @@ dbgecho "using USER: $USER"
 filename="direwolf.conf"
 if [ ! -e "/etc/$filename" ] ; then
    # Check for a Debian package install
-   if [ -e "/usr/share/doc/direwolf/examples/direwolf.conf*" ] ; then
+   if [ -e "/usr/share/doc/direwolf/examples/direwolf.conf.gz" ] ; then
       echo "Coping /usr/share/doc/direwolf/examples/direwolf.conf*"
       cp /usr/share/doc/direwolf/examples/direwolf.conf* /etc
+      pushd /etc
       gunzip direwolf.conf.gz
+      popd > /dev/null
    else
       # Check for a source install to users home dir
       if [ -e "/home/$USER/$filename" ] ; then
@@ -164,7 +166,7 @@ if [ ! -e "/etc/$filename" ] ; then
          echo "Coping /root/$filename"
          cp /root/$filename /etc
       else
-         echo "$scriptname: $filename not found in /home/$USER, /root or /usr/share/doc/example/direwolf"
+         echo "$scriptname: $filename not found in /home/$USER, /root or /usr/share/doc/direwolf/examples/"
          exit 1
       fi
    fi

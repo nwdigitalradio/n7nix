@@ -55,6 +55,10 @@ paclink-unix with imap, install script FINISHED
 app install (pluimap) script FINISHED
 ```
 
+#### Note: you will also have to run the hostap/fixed_ip.sh script
+* You **MUST** read this script first to set up your fixed ip addresses for both eth0 & wlan interfaces.
+* You **MUST** reboot after running the hostap/fixed_ip.sh script
+
 ## Start paclink-unix webserver
 
 * In a separate console window start up the node.js server for
@@ -66,6 +70,9 @@ cd /usr/local/src/paclink-unix/webapp
 nodejs plu-server.js
 ````
 # How to Test Mail client
+###### Associate your device with RPi WiFi Access Point
+* Find the list of WiFi Access Points & select the one on the RPi
+
 ###### Sending mail is a two step process
 * Compose an e-mail with your e-mail app
 * Send the e-mail with paclink-unix with a web interface
