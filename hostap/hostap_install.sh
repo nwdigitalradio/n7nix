@@ -76,6 +76,12 @@ fi
 # check if packages are installed
 dbgecho "Check packages: $PKGLIST"
 
+# Fix for iptables-persistent broken
+#  https://discourse.osmc.tv/t/failed-to-start-load-kernel-modules/3163/14
+#  https://www.raspberrypi.org/forums/viewtopic.php?f=63&t=174648
+
+sed -i -e 's/^#*/#/' /etc/modules-load.d/cups-filters.conf
+
 for pkg_name in `echo ${PKGLIST}` ; do
 
    is_pkg_installed $pkg_name
