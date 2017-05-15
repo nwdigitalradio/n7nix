@@ -1,13 +1,22 @@
 ﻿# DEBUG notes
 #####  Collection of notes & scripts that might help solve problems
 
-## [Mail daily reports using Winlink](https://github.com/nwdigitalradio/n7nix/blob/master/debug/MAILSYSREPORT.md)
+#### Contents
+
+1. Cronjob & scripts to e-mail daily reports using Winlink
+2. Enable the serial console on an RPi 3
+3. Push-to-Talk GPIOs used by an UDRC & UDRC II
+4. Direwolf/UDRC - test output channels & push to talk
+5. How to capture everything you typed on a console
+6. Some scripts to display useful information for debug
+
+## [1. Mail daily reports using Winlink](https://github.com/nwdigitalradio/n7nix/blob/master/debug/MAILSYSREPORT.md)
 * Use 3 scripts to:
   * Generate a report
   * Email report
   * Check outbox for files to send
 
-## Enable serial console
+## 2. Enable serial console
 * Enabling the serial port on a Raspberry Pi 3 will **disable** bluetooth
 * In file /boot/config.txt add
 ```
@@ -23,14 +32,22 @@ console=ttyAMA0,115200
 ```
 
 
-### PTT Push to Talk & RPi GPIOs
+## 3. PTT Push to Talk & RPi GPIOs
+* These are the GPIO numbers to use in direwolf.conf
+  * ie. for Channel 1 Properties
+```
+CHANNEL 1
+PTT GPIO 23
+MODEM 1200
+```
+
 
 | device  |  chan 0  |  chan 1   |
 |---------|----------|-----------|
 | UDRC    |  12 both |   12 both |
 | UDRC II |  12 HD15 |   23 DIN6 |
 
-## direwolf
+## 4. Direwolf/UDRC testing
 
 ### Test output & Push to Talk
 
@@ -55,7 +72,17 @@ sudo su
 #### Using gpio, sox & aplay
 
 * Requires direwolf to **NOT** be running
-* Use the measure_deviate.sh script found in [this repository](https://github.com/nwdigitalradio/n7nix/tree/master/deviation)
+  * If you installed direwolf with the n7nix scripts then stop direwolf like this:
+```bash
+cd
+cd bin
+sudo su
+./ax25-stop
+
+# to restart direwolf
+./ax25-start
+```
+* Use the _measure_deviate.sh_ script found in [this repository](https://github.com/nwdigitalradio/n7nix/tree/master/deviation)
 
 #### Using speaker-test
 
@@ -68,7 +95,23 @@ speaker-test -Dplughw:udrc -c2 -f1200 -tsine -l0
 ```
 * This gives a looping on/off 1200 HZ tone
 
-## Scripts to display useful information
+## 5. Capture everything typed on the console
+
+* This program will capture everyting you type on a console
+  * When you are done, type exit
+
+```
+script logfilename.txt
+```
+then at the end of a session run:
+
+```bash
+exit
+```
+
+* Now there will be a history of everything typed in the whatever file name you gave to logfilename.
+
+## 6. Scripts to display useful information
 
 #### sysver.sh
 
