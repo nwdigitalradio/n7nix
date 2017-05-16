@@ -36,14 +36,21 @@
     * Set the _wl2k-password=_ line with your new password.
 * For new Winlink users [this link](https://winlink.org/user) has information on creating a Winlink account & getting a password.
 
-### Start the install script
+### Start the Install Script
+
+* **NOTE: You might already have an image with paclink-unix installed**
+  * Check for any of these conditions:
+    * If you installed everything at once using _image_install.sh_
+    * If you already have run _app_install.sh pluimap_
+    * If you have an image from SeaPac
+  * Then continue on to  __Start the Config Script__ section
 
 * Execute the following script from the directory that scripts were cloned to.
   * Should be starting from your login home directory eg. /home/pi
 
 ```bash
 cd n7nix/config
-# should now be in ~/n7nix/config
+# should now be in directory ~/n7nix/config
 # become root
 sudo su
 ./app_install.sh plu
@@ -58,9 +65,25 @@ app install (plu) script FINISHED
 
 paclink-unix install should now be installed & functional.
 
+### Start the Config Script
+
+```bash
+cd n7nix/config
+# should now be in directory ~/n7nix/config
+# become root
+sudo su
+./app_config.sh plu
+```
+
+* When the script finishes you should see:
+
+```
+app config (plu) script FINISHED
+
+```
 ## Verify the paclink-unix install
 
-#### Verify message composition
+### Verify message composition
 
 * As your normal login user (eg. pi, not root) compose an e-mail with your e-mail client
   * Next verify that a new file appears in _/usr/local/var/wl2k/outbox_
@@ -73,7 +96,18 @@ paclink-unix install should now be installed & functional.
 ```bash
 wl2ktelnet
 ```
-#### Find an RMS Gateway near you - 2 methods
+###### Bad Winlink Password Symptom
+```
+wl2ktelnet: <*** [1] Secure login failed - account password does not match. - Disconnecting (207.32.162.17)
+wl2ktelnet: unrecognized command (len 94): /*** [1] Secure login failed - account password does not match. - Disconnecting (207.32.162.17)/
+```
+* If you get the above message when running _wl2ktelnet_ then you need to edit the following file with a valid Winlink password.
+```
+/usr/local/etc/wl2k.conf
+```
+* Edit the _wl2k-password=_ line.
+
+### Find an RMS Gateway near you - 2 methods
 
 ##### 1 - Use the winlink web site
 
@@ -108,7 +142,7 @@ wl2ktelnet
   * If run as root will install both packages automatically
 * Displays a list of RMS Gateway call signs, frequency used & distance in miles from your Grid Square location.
 
-#### Verify a radio connection - wl2kax25 test
+### Verify a radio connection - wl2kax25 test
 
 ```bash
 wl2kax25 -c <some_RMS_Gateway_callsign>

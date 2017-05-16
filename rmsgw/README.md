@@ -4,7 +4,7 @@
 
 * This installation assumes you have already [installed core components](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
 
-## Configure RMS Gateway
+## Install RMS Gateway
 
 * What remains is the  configuration of RMS Gateway
 * You will be required to supply the following:
@@ -16,9 +16,17 @@
   * Winlink Gateway password
   * Radio frequency in Hz
 
-* Execute the following script as root from the directory scripts were cloned to.
-  * **NOTE:** if you used _image_install.sh_ to install everything at
-once then running _app_install.sh is **NOT** required.
+### Start the Install Script
+
+* **NOTE: You might already have an image with RMS Gateway installed**
+  * Check for any of these conditions:
+    * If you installed everything at once using _image_install.sh_
+    * If you already have run _app_install.sh rmsgw_
+    * If you have an image from SeaPac
+  * Then continue on to  __Start the Config Script__ section
+
+* Execute the following script from the directory that scripts were cloned to.
+  * Should be starting from your login home directory eg. /home/pi
 
 ```bash
 cd n7nix/config
@@ -26,9 +34,25 @@ cd n7nix/config
 # become root
 sudo su
 ./app_install.sh rmsgw
+```
+### Start the Config Script
+
+* Execute the following script from the directory that scripts were cloned to.
+  * Should be starting from your login home directory eg. /home/pi
+
+```bash
+cd n7nix/config
+# should now be in directory ~/n7nix/config
+# become root
+sudo su
 ./app_config.sh rmsgw
 ```
-* When the script finishes & you see *app config rmsgw script FINISHED* and you are ready to test the RMS gateway.
+
+* When the script finishes you should see:
+```
+app config rmsgw script FINISHED
+```
+* You are now ready to test the RMS gateway.
 * Reboot your pi one more time login & verify the hostname changed
   * You should see your console prompt like this: pi@your_host_name:
 

@@ -35,14 +35,21 @@
   * 'Save current IPv4 rules?'
   * 'Save current IPv6 rules?'
 
-### Start the install script
+### Start the Install Script
+
+* **NOTE: You might already have an image with paclink-unix imap installed**
+  * Check for any of these conditions:
+    * If you installed everything at once using _image_install.sh_
+    * If you already have run _app_install.sh pluimap_
+    * If you have an image from SeaPac
+  * Then continue on to  __Start the Config Script__ section
 
 * Execute the following script from the directory that scripts were cloned to.
   * Should be starting from your login home directory eg. /home/pi
 
 ```bash
 cd n7nix/config
-# should now be in ~/n7nix/config
+# should now be in directory ~/n7nix/config
 # become root
 sudo su
 ./app_install.sh pluimap
@@ -54,24 +61,35 @@ paclink-unix with imap, install script FINISHED
 
 app install (pluimap) script FINISHED
 ```
+### Start the Config Script
+
+```bash
+cd n7nix/config
+# should now be in directory ~/n7nix/config
+# become root
+sudo su
+./app_config.sh pluimap
+```
+
+* When the script finishes you should see:
+
+```
+app config (pluimap) script FINISHED
+```
 
 #### Note: you will also have to run the hostap/fixed_ip.sh script
 * You **MUST** read this script first to set up your fixed ip addresses for both eth0 & wlan interfaces.
 * You **MUST** reboot after running the hostap/fixed_ip.sh script
 
-## Start paclink-unix webserver
-
-* In a separate console window start up the node.js server for
-paclink-unix control.
-
-```bash
-sudo su
-cd /usr/local/src/paclink-unix/webapp
-nodejs plu-server.js
-````
 # How to Test Mail client
-###### Associate your device with RPi WiFi Access Point
+###### Associate your device running your email client to the RPi WiFi Access Point
 * Find the list of WiFi Access Points & select the one on the RPi
+  * Look for the name you entered during configuration:
+
+```
+Enter Service set identifier (SSID) for new WiFi access point, followed by [enter]:
+```
+
 
 ###### Sending mail is a two step process
 * Compose an e-mail with your e-mail app
@@ -83,16 +101,11 @@ nodejs plu-server.js
 
 ## Test PLU web interface
 
-### Testing webapp
-
-#### node.js & required modules
-* nodejs & the required modules are installed with the _plu/pluimap_install.sh_ script
-
 ### Test webapp
 
 * nodejs & the paclink-unix web app are started automatically with systemd
 * Check that systemd started the web app
-  * as login user (ie. pi)
+  * as login user (ie. pi) run the following:
 
 ```
 pluweb-status
