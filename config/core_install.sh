@@ -8,6 +8,9 @@ DEBUG=1
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
+#DIREWOLF SOURCE VERSION to build
+DW_VER="1.4"
+
 # do upgrade, update outside of script since it can take some time
 UPDATE_NOW=false
 
@@ -46,17 +49,17 @@ function ctrl_c() {
 
 function install_direwolf_source() {
    num_cores=$(nproc --all)
-   echo "=== Install direwolf version $VER from source using $num_cores cores"
+   echo "=== Install direwolf version $DW_VER from source using $num_cores cores"
    SRC_DIR="/usr/local/src/"
    cd "$SRC_DIR"
 # This gets current HOT version
 #   git clone https://www.github.com/wb2osz/direwolf
 #   cd direwolf
 
-   # This gets version $VER
-   wget https://github.com/wb2osz/direwolf/archive/$VER.zip
-   unzip $VER.zip
-   cd direwolf-$VER
+   # This gets version $DW_VER
+   wget https://github.com/wb2osz/direwolf/archive/$DW_VER.zip
+   unzip $DW_VER.zip
+   cd direwolf-$DW_VER
 
    make -j$num_cores
    make install
@@ -345,7 +348,7 @@ echo "Test if direwolf has been installed"
 # type command will return 0 if program is installed
 type -P direwolf &>/dev/null
 if [ $? -ne 0 ] ; then
-   install_direwolfs_source
+   install_direwolf_source
 else
    echo "direwolf already installed"
 fi
