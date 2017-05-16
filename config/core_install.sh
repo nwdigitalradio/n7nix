@@ -46,21 +46,45 @@ function ctrl_c() {
 
 function install_direwolf_source() {
    num_cores=$(nproc --all)
-   echo "=== Install direwolf from source using $num_cores cores"
+   echo "=== Install direwolf version $VER from source using $num_cores cores"
    SRC_DIR="/usr/local/src/"
    cd "$SRC_DIR"
-   git clone https://www.github.com/wb2osz/direwolf
-   cd direwolf
+# This gets current HOT version
+#   git clone https://www.github.com/wb2osz/direwolf
+#   cd direwolf
+
+   # This gets version $VER
+   wget https://github.com/wb2osz/direwolf/archive/$VER.zip
+   unzip $VER.zip
+   cd direwolf-$VER
+
    make -j$num_cores
    make install
    make install-conf
-   # The following failed
-   #  make install-rpi
+
+   # This failed: make install-rpi
+
    echo "copying direwolf config file from source to /etc/direwolf.conf"
    cp /root/direwolf.conf /etc
    # Build from source puts executable in /usr/local/bin
    # Copy executable here to not have to edit sysd/direwolf.service file
    cp /usr/local/bin/direwolf /usr/bin
+}
+
+# ===== function install direwolf package
+
+function install_direwolf_pkg() {
+   echo "=== Install direwolf package"
+   apt-get install -y -q direwolf
+   if [ $? -ne 0 ] || [ ! -e /usr/share/doc/direwolf/examples/direwolf.conf* ]; then
+      echo "Problem installing direwolf package"
+      install_direwolf_source
+   else
+      echo "direwolf package successfully installed."
+      echo "copying direwolf config file from package to /etc/direwolf.conf"
+      cp /usr/share/doc/direwolf/examples/direwolf.conf* /etc
+      gunzip /etc/direwolf.conf.gz
+   fi
 }
 
 # ===== main
@@ -321,17 +345,7 @@ echo "Test if direwolf has been installed"
 # type command will return 0 if program is installed
 type -P direwolf &>/dev/null
 if [ $? -ne 0 ] ; then
-   # Get here if direwolf NOT installed, to install package
-   apt-get install -y -q direwolf
-   if [ $? -ne 0 ] || [ ! -e /usr/share/doc/direwolf/examples/direwolf.conf* ]; then
-      echo "Problem installing direwolf package"
-      install_direwolf_source
-   else
-      echo "direwolf package successfully installed."
-      echo "copying direwolf config file from package to /etc/direwolf.conf"
-      cp /usr/share/doc/direwolf/examples/direwolf.conf* /etc
-      gunzip /etc/direwolf.conf.gz
-   fi
+   install_direwolfs_source
 else
    echo "direwolf already installed"
 fi

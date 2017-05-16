@@ -26,11 +26,13 @@ function install_direwolf_source() {
    cd "$SRC_DIR"
 # This gets current HOT version
 #   git clone https://www.github.com/wb2osz/direwolf
+#   cd direwolf
 
-   # This gets version $VER beta
-   wget https://github.com/wb2osz/direwolf/archive/$VER-beta.zip
-   unzip $VER-beta.zip
-   cd direwolf-$VER-beta
+   # This gets version $VER
+   wget https://github.com/wb2osz/direwolf/archive/$VER.zip
+   unzip $VER.zip
+   cd direwolf-$VER
+
    make -j$num_cores
    make install
 
