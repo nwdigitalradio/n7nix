@@ -24,6 +24,12 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/
 
 # ===== main
 
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root."
+   exit 1
+fi
+
 if [ ! -f /etc/mailname ] ; then
    echo "$(hostname).localdomain" > /etc/mailname
 fi
