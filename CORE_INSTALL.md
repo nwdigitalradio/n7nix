@@ -174,6 +174,7 @@ sudo su
   * install paclink-unix, config, test paclink-unix
 
 ```bash
+cd n7nix/config
 sudo su
 ./core_install.sh
 ./core_config.sh
