@@ -100,7 +100,7 @@ cd n7nix/config
 
 ### Two ways to do the install
 
-#### 1. Install everything in one shot, then config what you want
+#### 1. Install both RMS Gateway & paclink-unix in one shot, then config what you want
 
 * This method is used to install a number of programs where the
 Internet access is good and then do the config **without** requiring an
@@ -123,25 +123,20 @@ sudo su
 image install script FINISHED
 ```
 
-##### After the Install, config core & then whatever else you want
+##### After Core Install, config core & then whatever else you want
 
-* RMS Gateway & paclink-unix require the core install, so do that
+* Both RMS Gateway & paclink-unix require the core install, so do that
 first
   * core includes, direwowlf, ax25, systemd
 
 ```bash
 ./app_config.sh core
 ```
-
-* You should see this on the last line of the console
-  * _app config (core) script FINISHED_
-
-* Now reboot the RPi and test direwolf, ax25 for functionality
-
-* At this point direwolf & AX.25 is operational & if you are connected to the
-data port on a radio you can [view incoming packets](https://github.com/nwdigitalradio/n7nix/blob/master/direwolf/README.md).
+###### See **Core Configuration** below
 
 ##### Now configure RMS Gateway or paclink-unix
+
+After Core packages are configure, you can config RMS Gateway or paclink-unix
 
 ```
 cd n7nix/config
@@ -170,7 +165,6 @@ sudo su
 * **If** you want RMS Gateway functionality
   * install RMS Gateway, config, test RMS Gateway
 * **If** you want Winlink client functionality
-  * C
   * install paclink-unix, config, test paclink-unix
 
 ```bash
@@ -179,7 +173,11 @@ sudo su
 ./core_install.sh
 ./core_config.sh
 # test direwolf, ax25
+```
 
+###### See **Core Configuration** below
+
+```bash
 # If RMS Gateway is required then
 ./app_install.sh rmsgw
 ./app_config.sh rmsgw
@@ -196,8 +194,10 @@ sudo su
 # test plu with imap
 
 ```
+## Core Configuration
 
-#### Core Configuration
+* Configuring core does not take long
+  * Be sure to reboot after
 
 * You will probably be asked to change your password
 * You will be prompted to change hostname & set your time zone.
@@ -225,7 +225,13 @@ installed.
 shutdown -r now
 ```
 
-## After CORE install
+* Now reboot the RPi and test direwolf, ax25 for functionality
+
+* At this point direwolf & AX.25 is operational & if you are connected to the
+data port on a radio you can [view incoming packets](https://github.com/nwdigitalradio/n7nix/blob/master/direwolf/README.md).
+
+
+## After CORE configuration
 
 * Core provides APRS & AX.25 packet functionality so you can either
 test & verify this functionality or continue on to install one of the
@@ -249,7 +255,7 @@ dtoverlay=pi3-disable-bt
 dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait
 ```
 
-## Verifying CORE Install
+## Verifying CORE Install/Config
 ### Testing direwolf & the UDRC
 #### Monitor Receive packets from direwolf
 * Connect a cable from your UDRC to your radio.
