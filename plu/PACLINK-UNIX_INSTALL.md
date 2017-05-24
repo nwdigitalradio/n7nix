@@ -67,6 +67,8 @@ paclink-unix install should now be installed & functional.
 
 ### Start the Config Script
 
+* This does not take long
+
 ```bash
 cd n7nix/config
 # should now be in directory ~/n7nix/config
@@ -115,7 +117,7 @@ wl2ktelnet: unrecognized command (len 94): /*** [1] Secure login failed - accoun
   * Click on the _Packet_ button & locate your area on the map
 
 ##### 2 - Run a script to interrogate winlink web services server
-* run either of these script found in _https://github.com/nwdigitalradio/Winlink4Linux_
+* run either of these script found in your local bin directory ie. _/home/pi/bin_
   * gatewaylist.sh
   * rmslist.sh
 * Both of these scripts will give similar output in different formats
@@ -126,7 +128,7 @@ wl2ktelnet: unrecognized command (len 94): /*** [1] Secure login failed - accoun
 ```
 * defaults set a distance of 30 miles & GRID SQUARE cn88nl
   * If you edit the script run the _-l_ option to build a new list
-* requires the _cURL_ package
+* requires both the _cURL_ and the json parsing utility _jq_
 * Edit the _GRIDSQUARE=_ line at the top of the script with your gridsquare
 * _-m `<miles>`_ sets the distance in miles of local RMS stations
 * _-c_  gives a count of local stations found
@@ -148,4 +150,30 @@ wl2ktelnet: unrecognized command (len 94): /*** [1] Secure login failed - accoun
 wl2kax25 -c <some_RMS_Gateway_callsign>
 # or
 wl2kax25 -c <some_RMS_Gateway_callsign> <some_digipeater>
+```
+
+##### Example console output of a Winlink radio connection
+
+```
+$ wl2kax25 -c ve7vic-10
+Connected to AX.25 stack
+Child process
+wl2kax25: ---
+
+wl2kax25: <WARA Winlink Node
+wl2kax25: <[WL2K-3.2-B2FWIHJM$]
+wl2kax25: sid [WL2K-3.2-B2FWIHJM$] inboundsidcodes -B2FWIHJM$
+wl2kax25: <;PQ: 75494215
+wl2kax25: Challenge received: 75494215
+wl2kax25: <Perth CMS via VE7VIC >
+wl2kax25: >[UnixLINK-0.5-B2FIHM$]
+wl2kax25: >;PR: 12911535
+wl2kax25: >; VE7VIC-10 DE N7NIX QTC 0
+wl2kax25: >FF
+wl2kax25: <FQ
+Child process exiting
+EOF on child fd, terminating communications loop.
+Closing ax25 connection
+Child exit status: 0
+Waiting for AX25 peer ... timeout
 ```
