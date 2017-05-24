@@ -21,7 +21,6 @@ NONESSENTIAL_PKG_LIST="mg jed whois"
 NONESSENTIAL_PKG=true
 
 BUILDTOOLS_PKG_LIST="rsync build-essential autoconf dh-autoreconf automake libtool git libasound2-dev libncurses5-dev"
-REMOVE_PKG_LIST="libax25 libax25-dev ax25-apps ax25-tools"
 
 # If the following is set to true, bluetooth will be disabled
 SERIAL_CONSOLE=false
@@ -43,6 +42,101 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/
 function ctrl_c() {
         echo "Exiting script from trapped CTRL-C"
 	exit
+}
+
+# ===== function install build tools
+
+function install_build_tools() {
+# build tools install section
+
+echo " === Check build tools"
+needs_pkg=false
+
+for pkg_name in `echo ${BUILDTOOLS_PKG_LIST}` ; do
+
+   is_pkg_installed $pkg_name
+   if [ $? -ne 0 ] ; then
+      echo "$scriptname: Will Install $pkg_name program"
+      needs_pkg=true
+      break
+   fi
+done
+
+if [ "$needs_pkg" = "true" ] ; then
+   echo -e "Installing some build tool packages"
+
+   apt-get install -y -q $BUILDTOOLS_PKG_LIST
+   if [ "$?" -ne 0 ] ; then
+      echo "Build tools package install failed. Please try this command manually:"
+      echo "apt-get install -y $BUILDTOOLS_PKG_LIIST"
+      exit 1
+   fi
+fi
+
+echo "Build Tools packages installed."
+}
+
+# ===== function setup ax25 config directories
+
+function ax25_config_dirs() {
+
+echo "Check ax25 config dir"
+
+# check if /etc/ax25 exists as a directory or symbolic link
+if [ ! -d "/etc/ax25" ] || [ ! -L "/etc/ax25" ] ; then
+   if [ ! -d "/usr/local/etc/ax25" ] ; then
+      echo "ax25 directory /usr/local/etc/ax25 DOES NOT exist, ax25 install failed"
+      exit 1
+   else
+      # Detect if /etc/ax25 is already a symbolic link
+      if [[ -L "/etc/ax25" ]] ; then
+         echo "Symbolic link to /etc/ax25 ALREADY exists"
+      else
+         echo "Making symbolic link to /etc/ax25"
+         ln -s /usr/local/etc/ax25 /etc/ax25
+      fi
+   fi
+else
+   echo " Found link or directory /etc/ax25"
+fi
+
+# check if /var/ax25 exists as a directory or symbolic link
+if [ ! -d "/var/ax25" ] || [ ! -L "/var/ax25" ] ; then
+   if [ ! -d "/usr/local/var/ax25" ] ; then
+      echo "ax25 directory /usr/local/var/ax25 DOES NOT exist, ax25 install failed"
+      exit 1
+   else
+      # Detect if /var/ax25 is already a symbolic link
+      if [[ -L "/var/ax25" ]] ; then
+         echo " Symbolic link to /var/ax25 ALREADY exists"
+      else
+         echo "Making symbolic link to /var/ax25"
+         ln -s /usr/local/var/ax25 /var/ax25
+      fi
+   fi
+else
+   echo " Found link or directory /var/ax25"
+fi
+}
+
+# ===== function setup ax25 lib
+
+function ax25_lib() {
+
+# Since libax25 was built from source
+# need to add a symbolic link to the /usr/lib directory
+libname=/usr/lib/libax25.so.0
+if [[ -L "$libname" ]] ; then
+   echo " Symbolic link to $libname ALREADY exists"
+else
+   echo "Making symbolic link to $libname"
+   ln -s /usr/local/lib/libax25.so.1 $libname
+fi
+
+# pkg installed libraries are installed in /usr/lib
+# built libraries are installed in /usr/local/lib
+ldconfig
+
 }
 
 # ===== function install direwolf from source
@@ -108,6 +202,8 @@ if [ "$UPDATE_NOW" = "true" ] ; then
    apt-get upgrade
 fi
 
+install_build_tools
+
 # NON essential package install section
 
 if [ "$NONESSENTIAL_PKG" = "true" ] ; then
@@ -138,40 +234,30 @@ if [ "$NONESSENTIAL_PKG" = "true" ] ; then
    echo "Non essential packages installed."
 fi
 
-# build tools install section
-
-echo " === Check build tools"
-needs_pkg=false
-
-for pkg_name in `echo ${BUILDTOOLS_PKG_LIST}` ; do
-
-   is_pkg_installed $pkg_name
-   if [ $? -ne 0 ] ; then
-      echo "$scriptname: Will Install $pkg_name program"
-      needs_pkg=true
-      break
-   fi
-done
-
-if [ "$needs_pkg" = "true" ] ; then
-   echo -e "Installing some build tool packages"
-
-   apt-get install -y -q $BUILDTOOLS_PKG_LIST
-   if [ "$?" -ne 0 ] ; then
-      echo "Build tools package install failed. Please try this command manually:"
-      echo "apt-get install -y $BUILDTOOLS_PKG_LIIST"
-      exit 1
-   fi
-fi
-
-echo "Build Tools packages installed."
-
 if [ ! -d /lib/modules/$(uname -r)/ ] ; then
    echo "Modules directory /lib/modules/$(uname -r)/ does NOT exist"
    echo "Probably need to reboot, type: "
    echo "shutdown -r now"
    echo "and log back in"
    exit 1
+fi
+
+echo " === enable modules"
+grep ax25 /etc/modules > /dev/null 2>&1
+if [ $? -ne 0 ] ; then
+
+# Add to bottom of file
+cat << EOT >> /etc/modules
+
+i2c-dev
+ax25
+EOT
+fi
+
+lsmod | grep -i ax25 > /dev/null 2>&1
+if [ $? -ne 0 ] ; then
+   echo "enable ax25 module"
+   insmod /lib/modules/$(uname -r)/kernel/net/ax25/ax25.ko
 fi
 
 echo " === Modify /boot/config.txt"
@@ -198,147 +284,22 @@ EOT
    sed -i -e "/console/ s/console=serial0/console=ttyAMA0,115200/" /boot/cmdline.txt
 fi
 
-echo " === enable modules"
-grep ax25 /etc/modules > /dev/null 2>&1
-if [ $? -ne 0 ] ; then
-
-# Add to bottom of file
-cat << EOT >> /etc/modules
-
-i2c-dev
-ax25
-EOT
-fi
-
-lsmod | grep -i ax25 > /dev/null 2>&1
-if [ $? -ne 0 ] ; then
-   echo "enable ax25 module"
-   insmod /lib/modules/$(uname -r)/kernel/net/ax25/ax25.ko
-fi
-
+# Add ax25 packages here
 echo " === Install libax25, ax25apps & ax25tools"
-# libax25, ax25apps & ax25tools are about to be installed from source
-# - first check that any packages are installed and uninstall them
-echo " Check for previous packages installed"
+cd $START_DIR
+cd ..
+echo "Installing from this directory $(pwd)"
 
-for pkg_name in `echo ${REMOVE_PKG_LIST}` ; do
+dpkg -i ./ax25/debpkg/libax25_1.0.5-1_armhf.deb
+dpkg -i ./ax25/debpkg/ax25apps_1.0.5-1_armhf.deb
+dpkg -i ./ax25/debpkg/ax25tools_1.0.3-1_armhf.deb
 
-   is_pkg_installed $pkg_name
-   if [ $? -eq 0 ] ; then
-      echo "$scriptname: Will remove $pkg_name"
-      apt-get purge -y -q $pkg_name
-      if [ "$?" -ne 0 ] ; then
-         echo "Conflicting package removal failed. Please try this command manually:"
-         echo "apt-get purge -y $pkg_name"
-      fi
-   fi
-done
+ax25_config_dirs
+ax25_lib
 
-echo "Begin building libax25, ax25apps & ax25tools "
-
-# Does source directory for ax25 utils exist?
-SRC_DIR="/usr/local/src/ax25"
-
-if [ ! -d $SRC_DIR ] ; then
-   mkdir -p $SRC_DIR
-   if [ $? -ne 0 ] ; then
-      echo "Problems creating source directory: $SRC_DIR"
-      exit 1
-   fi
-else
-   dbgecho "Source dir: $SRC_DIR already exists"
-fi
-
-cd $SRC_DIR
-# There are 2 sources for the "unofficial" libax25/tools/apps
-#  One is from the github source directory
-#  The other is from the github archive directory
-#  They produce different source directories
-
-AX25_SRCDIR=$SRC_DIR/linuxax25-master
-#AX25_SRCDIR=$SRC_DIR/linuxax25
-
-if [ ! -d $AX25_SRCDIR/libax25 ] || [ ! -d $AX25_SRCDIR/ax25tools ] || [ ! -d $AX25_SRCDIR/ax25apps ] ; then
-
-   dbgecho "Proceding to download AX.25 library, tools & apps"
-   dbgecho "Check: $AX25_SRCDIR/libax25  $AX25_SRCDIR/ax25tools  $AX25_SRCDIR/ax25apps"
-   echo "Getting AX.25 update script from github"
-   wget https://github.com/ve7fet/linuxax25/archive/master.zip
-   unzip -q master.zip
-#   git clone https://www.github.com/ve7fet/linuxax25/
-fi
-
-if [ ! -e "$AX25_SRCDIR/updAX25.sh" ] ; then
-   echo "Getting AX.25 update script failed, can NOT locate: $AX25_SRCDIR/updAX25.sh."
-   exit 1
-fi
-
-# Test if script is executable
-if [ ! -x "$AX25_SRCDIR/updAX25.sh" ] ; then
-   echo "Making executable: $AX25_SRCDIR/updAX25.sh."
-   chmod +x $AX25_SRCDIR/updAX25.sh
-fi
-
-# Finally run the AX.25 update script
-cd $AX25_SRCDIR
-./updAX25.sh
-# libraries are installed in /usr/local/lib
-ldconfig
-cd $AX25_SRCDIR/ax25tools
-make installconf
-cd $AX25_SRCDIR/ax25apps
-make installconf
-
-# check if /etc/ax25 exists as a directory or symbolic link
-if [ ! -d "/etc/ax25" ] || [ ! -L "/etc/ax25" ] ; then
-   if [ ! -d "/usr/local/etc/ax25" ] ; then
-      echo "ax25 directory /usr/local/etc/ax25 DOES NOT exist, ax25 install failed"
-      exit 1
-   else
-      # Detect if /etc/ax25 is already a symbolic link
-      if [[ -L "/etc/ax25" ]] ; then
-         echo "Symbolic link to /etc/ax25 ALREADY exists"
-      else
-         echo "Making symbolic link to /etc/ax25"
-         ln -s /usr/local/etc/ax25 /etc/ax25
-      fi
-   fi
-else
-   echo " Found link or directory /etc/ax25"
-fi
-
-# check if /var/ax25 exists as a directory or symbolic link
-if [ ! -d "/var/ax25" ] || [ ! -L "/var/ax25" ] ; then
-   if [ ! -d "/usr/local/var/ax25" ] ; then
-      echo "ax25 directory /usr/local/var/ax25 DOES NOT exist, ax25 install failed"
-      exit 1
-   else
-      # Detect if /var/ax25 is already a symbolic link
-      if [[ -L "/var/ax25" ]] ; then
-         echo " Symbolic link to /var/ax25 ALREADY exists"
-      else
-         echo "Making symbolic link to /var/ax25"
-         ln -s /usr/local/var/ax25 /var/ax25
-      fi
-   fi
-else
-   echo " Found link or directory /var/ax25"
-fi
-
-# Since libax25 was built from source
-# need to add a symbolic link to the /usr/lib directory
-filename=/usr/lib/libax25.so.0
-if [[ -L "$filename" ]] ; then
-   echo " Symbolic link to $filename ALREADY exists"
-else
-   echo "Making symbolic link to $filename"
-   ln -s /usr/local/lib/libax25.so.1 /usr/lib/libax25.so.0
-fi
-
-# pkg installed libraries are installed in /usr/lib
-# built libraries are installed in /usr/local/lib
-ldconfig
 echo " === libax25, ax25apps & ax25tools install FINISHED"
+
+cd $START_DIR
 
 # Test if direwolf has previously been installed.
 #  - if not installed try installing Debian package
@@ -367,6 +328,8 @@ if [ ! -e /etc/direwolf.conf ] ; then
 else
    echo "direwolf: config file found OK"
 fi
+
+echo " === direwolf install FINISHED"
 
 SRC_DIR="/usr/local/src/udrc"
 
