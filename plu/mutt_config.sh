@@ -50,7 +50,7 @@ dbgecho "Using CALL SIGN: $CALLSIGN"
 # ===== main
 
 echo
-echo "mutt config START"
+echo "=== mutt config START"
 
 # Get list of users with home directories
 USERLIST="$(ls /home)"

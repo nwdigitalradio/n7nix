@@ -66,7 +66,7 @@ function files_exist() {
 # ===== main
 
 echo
-echo "paclink-unix config START"
+echo "=== paclink-unix config START"
 
 # make sure we're running as root
 if [[ $EUID != 0 ]] ; then
