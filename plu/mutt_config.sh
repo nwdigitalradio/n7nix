@@ -122,7 +122,7 @@ if [ ! -f .muttrc ] ; then
    # Create a .muttrc heredoc without parameter expansion
    echo "Make a .muttrc file"
    cat << 'EOT' > /home/$USER/.muttrc
-set editor="mg"			# light weight emacs type editor
+set editor="nano"			# light weight emacs type editor
 set hostname="winlink.org"
 set alias_file=~/.mutt/aliases	# if you have an aliases file:
 #source $alias_file		# load aliases
