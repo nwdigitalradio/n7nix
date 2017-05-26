@@ -49,7 +49,8 @@ echo "You are about to lose your SSH session"
 echo "Login in using lan address: $lan_ipaddr or wlan address: $wlan_ipaddr"
 systemctl is-enabled NetworkManager.service
 if [ $? -eq 0 ] ; then
-  systemctl disable NetworkManager.service
+   echo "Disabling Network Manager"
+   systemctl disable NetworkManager.service
 fi
 systemctl daemon-reload
 systemctl restart dhcpcd.service
