@@ -21,7 +21,10 @@ PKG_REQUIRE="jq curl"
 do_it_flag=0
 
 max_distance=30        # default max distance of RMS Gateways
+# grid square location for Lopez Island, WA
 grid_square="cn88nl"   # default grid square location or origin
+# grid square location for 414 N Prom, Seaside, OR 97138
+# grid_square="cn85ax"
 
 # Define a single white space for column formating
 singlewhitespace=" "

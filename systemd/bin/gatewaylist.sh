@@ -8,7 +8,11 @@
 
 myname="`basename $0`"
 user=$(whoami)
+
+# grid square location for Lopez Island, WA
 GRIDSQUARE="cn88nl"
+# grid square location for 414 N Prom, Seaside, OR 97138
+# GRIDSQUARE="cn85ax"
 MAXDIST="30"
 # Create a temporary file for cURL output
 WINLINK_TMP_FILE="/tmp/rmsgwprox.json"
@@ -16,10 +20,11 @@ WINLINK_TMP_FILE="/tmp/rmsgwprox.json"
 
 # ===== function usage
 function usage() {
-   echo "Usage: $scriptname [-c][-l][-m<max_distance_in_miles> [-s][-h]" >&2
+   echo "Usage: $scriptname [-c][-l][-m <max_distance_in_miles>[-g <grid_square>][-s][-h]" >&2
    echo "   -c | --count  count number of RMS Stations"
    echo "   -l | --list  build list of RMS Stations"
    echo "   -m | --max  arg max distance in miles"
+   echo "   -g | --gridsquare arg grid square location"
    echo "   -s | --show  show all Stations"
    echo "   -d | --debug  set debug flag"
    echo "   -h | --help  display this message"
@@ -60,8 +65,14 @@ while [[ $# -gt 0 ]] ; do
       -m|--maxdist)
 	 BUILDLISTFLAG="true"
          MAXDIST=$2
-	 shift #past argument
+	 shift # past argument
 	 echo "Got maxdist arg of $MAXDIST"
+         ;;
+      -g|--gridsquare)
+	 BUILDLISTFLAG="true"
+         GRIDSQUARE=$2
+	 shift # past argument
+	 echo "Got GRIDSQUARE arg of $GRIDSQUARE"
          ;;
       -h|--help)
          usage
