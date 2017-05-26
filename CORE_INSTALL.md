@@ -130,9 +130,13 @@ first
   * core includes, direwowlf, ax25, systemd
 
 ```bash
+sudo su
+# Execute from n7nix/config directory
 ./app_config.sh core
 ```
 ###### See **Core Configuration** below
+
+**NOTE:** After ./app_config.sh core you must reboot
 
 ##### Now configure RMS Gateway or paclink-unix
 
@@ -171,8 +175,8 @@ sudo su
 cd n7nix/config
 sudo su
 ./core_install.sh
-./core_config.sh
-# test direwolf, ax25
+./app_config.sh core
+# now test direwolf, ax25
 ```
 
 ###### See **Core Configuration** below
