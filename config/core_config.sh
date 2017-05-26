@@ -122,6 +122,9 @@ fi
 # Get hostname again incase it was changed
 HOSTNAME=$(cat /etc/hostname | tail -1)
 
+echo "=== Set mail hostname"
+echo "$HOSTNAME.localhost" > /etc/mailname
+
 # Be sure system host name can be resolved
 
 grep "127.0.1.1" /etc/hosts
@@ -139,7 +142,7 @@ else
    # Add a 127.0.1.1 entry to /etc/hosts
    sed -i '1i\'"127.0.1.1\t$HOSTNAME $HOSTNAME.localnet" /etc/hosts
    if [ $? -ne 0 ] ; then
-      echo "Failed to modify /etchosts file"
+      echo "Failed to modify /etc/hosts file"
    fi
 fi
 
