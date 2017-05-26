@@ -6,4 +6,3 @@ systemctl disable ircnodedashboard
 systemctl disable dstarconfig
 
 echo "Dstar stopped"
-

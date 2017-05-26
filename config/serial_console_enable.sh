@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 #
 # Script to enable the serial port console which will disable bluetooth
 #

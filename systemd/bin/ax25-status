@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 #
 echo "== failed & loaded but inactive units=="
 systemctl --failed --all

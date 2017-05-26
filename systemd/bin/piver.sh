@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 #
 # Raspberry Pi version check based on Revision number from cpuinfo
 
