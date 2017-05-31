@@ -123,7 +123,7 @@ pluweb-start
 
 ```
 sudo su
-jounalctl -f -u pluweb.service
+journalctl -f -u pluweb.service
 ```
 
 * Now open a browser & go to: __your_ip_address__:8082
