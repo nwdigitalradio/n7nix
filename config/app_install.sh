@@ -74,7 +74,7 @@ case $APP_SELECT in
       popd > /dev/null
    ;;
    *)
-      echo "Undefined app, must be one of $APPCHOICES"
+      echo "Undefined app, must be one of $APP_CHOICES"
       echo "$(date "+%Y %m %d %T %Z"): app install ($APP_SELECT) script ERROR, undefined app" >> $UDR_INSTALL_LOGFILE
       exit 1
    ;;
