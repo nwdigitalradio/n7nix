@@ -3,7 +3,7 @@
 # UDRC ID EEPROM check
 # - return the product ID found in EEPROM
 #
-# 0 = no EEPROM or no devicetree found
+# 0 = no EEPROM or no device tree found
 # 1 = HAT found but not a UDRC
 # 2 = UDRC
 # 3 = UDRC II
@@ -21,7 +21,7 @@ NWDIG_VENDOR_NAME="NW Digital Radio"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
-# ===== EEPROM id_check =====
+# ===== function EEPROM id_check =====
 
 function id_check() {
 # Initialize to EEPROM not found
@@ -79,7 +79,7 @@ fi
 return $udrc_prod_id
 }
 
-# ===== display_id_eeprom =====
+# ===== function display_id_eeprom =====
 
 function display_id_eeprom() {
    echo "     HAT ID EEPROM"
