@@ -17,6 +17,10 @@ scriptname="`basename $0`"
 
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
+firmware_vendorfile="/sys/firmware/devicetree/base/hat/vendor"
+
+PROD_ID_NAMES=("INVALID" "INVALID" "UDRC" "UDRC II" "1WSpot")
+NWDIG_VENDOR_NAME="NW Digital Radio"
 
 # Default to using this tone in HZ
 freq=2200
