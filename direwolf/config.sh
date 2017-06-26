@@ -10,7 +10,7 @@ USER=pi
 CALLSIGN="N0ONE"
 CALLSIGN0="$CALLSIGN-1"
 CALLSIGN1="$CALLSIGN-2"
-UDRCII=false
+
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
@@ -43,7 +43,13 @@ fi
 dbgecho "Using CALL SIGN: $CALLSIGN"
 }
 
-# ===== function udrc id_check
+# ===== function EEPROM id_check
+# Return code:
+# 0 = no EEPROM or no device tree found
+# 1 = HAT found but not a UDRC
+# 2 = UDRC
+# 3 = UDRC II
+# 4 = 1WSpot
 
 function id_check() {
 # Initialize to EEPROM not found
@@ -51,48 +57,56 @@ udrc_prod_id=0
 dbgecho "Starting udrc id check"
 
 # Does firmware file exist
-if [ -e $firmware_prodfile ] ; then
+if [ -f $firmware_prodfile ] ; then
    # Read product file
    UDRC_PROD="$(cat $firmware_prodfile)"
-   sizeprodstr=${#UDRC_PROD}
-   dbgecho "UDRC_PROD: $UDRC_PROD, size: $sizeprodstr"
-   if (( $sizeprodstr < 34 )) ; then
-      dbgecho "Probably not a Universal Digital Radio Controller: $UDRC_PROD"
-      udrc_prod_id=1
-   elif [ "${UDRC_PROD:0:34}" == "Universal Digital Radio Controller" ] ; then
-      dbgecho "Definitely some kind of UDRC"
-   else
-      echo "Found something but not a UDRC: $UDRC_PROD"
-      udrc_prod_id=1
-   fi
-
-   # get last 2 characters in product file
-   UDRC_PROD=${UDRC_PROD: -2}
+   # Read product file
+   FIRM_VENDOR="$(cat $firmware_vendorfile)"
    # Read product id file
    UDRC_ID="$(cat $firmware_prod_idfile)"
    #get last character in product id file
    UDRC_ID=${UDRC_ID: -1}
-   udrc_prod_id=$UDRC_ID
 
-   dbgecho "Product: $UDRC_PROD, Id: $UDRC_ID"
-   if [ "$UDRC_PROD" == "II" ] && [ "$UDRC_ID" == "3" ] ; then
-      dbgecho "Found a UDRC II"
-      chan2ptt_gpio=23
-      UDRCII=true
-   elif [ "$UDRC_PROD" == "er" ] && [ "$UDRC_ID" == "2" ] ; then
-      dbgecho "Found an original UDRC"
-      chan2ptt_gpio=12
+   dbgecho "UDRC_PROD: $UDRC_PROD, ID: $UDRC_ID"
+
+   if [[ "$FIRM_VENDOR" == "$NWDIG_VENDOR_NAME" ]] ; then
+      case $UDRC_PROD in
+         "Universal Digital Radio Controller")
+            udrc_prod_id=2
+         ;;
+         "Universal Digital Radio Controller II")
+            udrc_prod_id=3
+         ;;
+         "1WSpot")
+            udrc_prod_id=4
+         ;;
+         *)
+            echo "Found something but not a UDRC: $UDRC_PROD"
+            udrc_prod_id=1
+         ;;
+      esac
    else
-      dbgecho "No UDRC found"
+
+      dbgecho "Probably not a NW Digital Radio product: $FIRM_VENDOR"
       udrc_prod_id=1
    fi
 
+   if [ udrc_prod_id != 0 ] && [ udrc_prod_id != 1 ] ; then
+      if (( UDRC_ID == udrc_prod_id )) ; then
+         dbgecho "Product ID match: $udrc_prod_id"
+      else
+         echo "Product ID MISMATCH $UDRC_ID : $udrc_prod_id"
+         udrc_prod_id=1
+      fi
+   fi
+   dbgecho "Found HAT for ${PROD_ID_NAMES[$UDRC_ID]} with product ID: $UDRC_ID"
 else
    # RPi HAT ID EEPROM may not have been programmed in engineering samples
    # or there is no RPi HAT installed.
    udrc_prod_id=0
 fi
 
+dbgecho "Finished udrc id check"
 return $udrc_prod_id
 }
 
@@ -179,15 +193,21 @@ id_check
 id_check_ret="$?"
 
 case $id_check_ret in
-1)
+0|1)
    echo "No UDRC found, exiting"
    exit 1
 ;;
 2)
    echo "Original UDRC is installed."
+   chan2ptt_gpio=12
 ;;
 3)
    echo "UDRC II installed"
+   chan2ptt_gpio=23
+;;
+4)
+   echo "One Watt Spot installed"
+   chan2ptt_gpio=23
 ;;
 *)
    echo "Invalid udrc id ... exiting"
