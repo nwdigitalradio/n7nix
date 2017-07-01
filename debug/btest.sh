@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # btest.sh
+# Added sequence number 7/1/2017
 #
 # beacon options
 # -c source callsign
@@ -18,10 +19,12 @@ BEACON="/usr/local/sbin/beacon"
 CALLSIGN="NOONE"
 ax25port=udr0
 #ax25port=vhf0
+SEQUENCE_FILE="sequence.tmp"
 
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== main
 # must run as root
 if [[ $EUID -ne 0 ]]; then
   echo "*** Run as root ***" 2>&1
@@ -41,6 +44,12 @@ grepret=$(grep $ax25port /etc/ax25/axports)
 if [ $? -ne 0 ]; then
     echo "$myname: **** ax25 port $ax25port does not exist"
     exit 1
+fi
+
+seqnum=0
+# get sequence number
+if [ -e $SEQUENCE_FILE ] ; then
+   seqnum=`cat $SEQUENCE_FILE`
 fi
 
 if [ ! -e /etc/direwolf.conf ] ; then
@@ -80,7 +89,11 @@ timestamp=$(date "+%d %T %Z")
 # ; object
 
 echo " Sent \
- BEACON -c $CALLNOSID-11 -d 'APUDR1 via WIDE1-1' -l -s $ax25port :$CALLPAD:$timestamp $CALLNOSID beacon test from host $(hostname)"
-$BEACON -c $CALLNOSID-11 -d 'APUDR1 via WIDE1-1' -l -s $ax25port ":$CALLPAD:$timestamp $CALLNOSID beacon test from host $(hostname)"
+ BEACON -c $CALLNOSID-11 -d 'APUDR1 via WIDE1-1' -l -s $ax25port :$CALLPAD:$timestamp $CALLNOSID beacon test from host $(hostname) Seq: $seqnum"
+$BEACON -c $CALLNOSID-11 -d 'APUDR1 via WIDE1-1' -l -s $ax25port ":$CALLPAD:$timestamp $CALLNOSID beacon test from host $(hostname) Seq: $seqnum"
+
+# increment sequence number
+((seqnum++))
+echo $seqnum > $SEQUENCE_FILE
 
 exit 0
