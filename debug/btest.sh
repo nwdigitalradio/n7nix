@@ -19,7 +19,7 @@ BEACON="/usr/local/sbin/beacon"
 CALLSIGN="NOONE"
 ax25port=udr0
 #ax25port=vhf0
-SEQUENCE_FILE="sequence.tmp"
+SEQUENCE_FILE="/tmp/sequence.tmp"
 
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -32,7 +32,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # has the beacon program been installed
-type -P beacon &>/dev/null
+type -P $BEACON &>/dev/null
 if [ $? -ne 0 ] ; then
    # Get here if beacon program NOT installed.
    echo "$myname: ax25tools not installed."
