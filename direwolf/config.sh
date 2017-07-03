@@ -211,7 +211,7 @@ case $id_check_ret in
 ;;
 4)
    echo "One Watt Spot installed"
-   chan2ptt_gpio=23
+   chan1ptt_gpio=-23
 ;;
 *)
    echo "Invalid udrc id ... exiting"
