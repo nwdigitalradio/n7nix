@@ -118,7 +118,7 @@ else
    udrc_prod_id=0
 fi
 
-dbgecho "Finished udrc id check"
+dbgecho "Finished udrc id check: $udrc_prod_id"
 return $udrc_prod_id
 }
 
@@ -184,8 +184,9 @@ done
 
 # Verify a UDRC HAT is installed
 id_check
-if [ $? -eq 0 ] || [ $? -eq 1 ] ; then
-   echo "No UDRC found, exiting ..."
+id_check_ret=$?
+if [ $id_check_ret -eq 0 ] || [ $id_check_ret -eq 1 ] ; then
+   echo "No UDRC found, id_check=$id_check_ret exiting ..."
    exit 1
 fi
 
