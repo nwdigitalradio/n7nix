@@ -110,7 +110,7 @@ else
    udrc_prod_id=0
 fi
 
-dbgecho "Finished udrc id check"
+dbgecho "Finished udrc id check: $udrc_prod_id"
 return $udrc_prod_id
 }
 
