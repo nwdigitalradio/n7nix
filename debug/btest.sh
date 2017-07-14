@@ -87,10 +87,13 @@ fi
 timestamp=$(date "+%d %T %Z")
 
 # ; object
-
+# Separate out string of beacon_msg to learn why extra characters are
+# appearing at end of string on APRS.fi
+# eg: 0A<0x0f> [Invalid message packet]
+beacon_msg=":$CALLPAD:$timestamp $CALLNOSID beacon test from host $(hostname) Seq: $seqnum"
 echo " Sent \
- BEACON -c $CALLNOSID-11 -d 'APUDR1 via WIDE1-1' -l -s $ax25port :$CALLPAD:$timestamp $CALLNOSID beacon test from host $(hostname) Seq: $seqnum"
-$BEACON -c $CALLNOSID-11 -d 'APUDR1 via WIDE1-1' -l -s $ax25port ":$CALLPAD:$timestamp $CALLNOSID beacon test from host $(hostname) Seq: $seqnum"
+ BEACON -c $CALLNOSID-11 -d 'APUDR1 via WIDE1-1' -l -s $ax25port "${beacon_msg}""
+$BEACON -c $CALLNOSID-11 -d 'APUDR1 via WIDE1-1' -l -s $ax25port "${beacon_msg}"
 
 # increment sequence number
 ((seqnum++))
