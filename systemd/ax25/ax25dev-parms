@@ -1,15 +1,18 @@
 #!/bin/bash
-awk '/device/ { print $7 }' /tmp/ax25-config.tmp > /tmp/ax25-config-tmp
-read Device < /tmp/ax25-config-tmp
 
-echo "Checking for Device ${Device}"
-if [[ -z "$Device" ]] ; then
-   echo "Device string no characters"
-   Device="ax0"
+if [[ $# -gt 0 ]] ; then
+   Device=$1
+else
+   awk '/device/ { print $7 }' /tmp/ax25-config.tmp > /tmp/ax25-config-tmp
+   read Device < /tmp/ax25-config-tmp
+
+   if [[ -z "$Device" ]] ; then
+      Device="ax0"
+      echo "Set Device to default: $Device"
+   fi
 fi
 
-   echo "Using Device = $Device"
-
+echo "Using Device = $Device"
 
 if [ -d /proc/sys/net/ax25/$Device ] ; then
  PARMDIR="/proc/sys/net/ax25/$Device"
@@ -32,7 +35,7 @@ echo 0       > $PARMDIR/protocol
         ifconfig $Device netmask 255.255.255.255
         echo " Port ${PORTNAME} attached to ${Device} "
 else
-        echo "** Error setting $Device parms**"
+        echo "** Error setting Device: $Device parms**"
 fi
 echo "ax25dev-parms finished"
 exit 0
