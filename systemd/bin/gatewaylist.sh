@@ -6,7 +6,7 @@
 #  d - debug mode, do not send e-mail
 #
 
-myname="`basename $0`"
+scriptname="`basename $0`"
 user=$(whoami)
 
 # grid square location for Lopez Island, WA
@@ -38,7 +38,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 type -P curl &>/dev/null
 if [ $? -ne 0 ] ; then
-  echo "$myname: Install cURL please"
+  echo "$scriptname: Install cURL please"
   exit 1
 fi
 # if there are no args default to show RMS Gateways & Count of gateways
