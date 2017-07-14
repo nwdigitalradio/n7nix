@@ -1,0 +1,74 @@
+#!/bin/bash
+# Script to bring up a TNC using a serial port, like a KPC3+
+
+SBINDIR=/usr/local/sbin
+BINDIR=/usr/local/bin
+
+PORTNAME="vhf0"
+SERIALPORT="/dev/ttyUSB0"
+
+# Set Sysctl values
+sysctl -w kernel.panic=30
+sysctl -w kernel.panic_on_oops=30
+
+ echo "Start Port ${PORTNAME} with device ${SERIALPORT}"
+# Attach KISS-device /dev/ttyS0 to Port 0
+  $SBINDIR/kissattach -l  ${SERIALPORT} ${PORTNAME} 44.128.4.2 >/tmp/ax25-config.tmp_1
+  echo "kissattach retcode: $?"
+  awk '/device/ { print $7 }' /tmp/ax25-config.tmp_1 > /tmp/ax25-config-tmp_1
+  read Device < /tmp/ax25-config-tmp_1
+
+# Install Parameter: P=128, W=10, TX-Delay=200
+# original
+#  $SBINDIR/kissparms -p ${PORTNAME} -f no -l 20 -r 63 -s 50 -t 800
+# from HowTo:AX25_-_Ubuntu/Debian#Installing_AX.25_Packages
+#  $SBINDIR/kissparms -p ${PORTNAME} -f no -l 100 -r 32 -s 200 -t 500
+# for 9600
+#$SBINDIR/kissparms -p ${PORTNAME} -f no -r 32 -s 20 -t 300
+# for 1200 baud
+$SBINDIR/kissparms -p ${PORTNAME} -f no  -r 63 -s 50 -t 800
+
+# Check for Device
+ echo "Checking for Device ${Device}"
+ if [ -d /proc/sys/net/ax25/$Device ]
+    then cd /proc/sys/net/ax25/$Device/
+       /etc/ax25/ax25dev-parms $Device
+       ifconfig $Device netmask 255.255.255.255
+       echo "ifconfig retcode: $?"
+
+       echo " Port ${PORTNAME} attached to ${Device} "
+# Adding route causes broadcast out ax.25 interface
+#       /sbin/route add -net 44.0.0.0 netmask 255.0.0.0 dev ${Device}
+#       echo " net 44 route added for $Device "
+    else
+       echo "** Error setting $Device parms**"
+ fi
+# Port0 (End)
+
+# ONLY beacon when running an RMS Gateway
+CALLSIGN="N7NIX"
+$SBINDIR/beacon \
+	-c ${CALLSIGN}\
+	-d "beacon " \
+	-t 35 \
+	${PORTNAME} \
+	"RMS Gate = ${CALLSIGN}-10"
+  echo $! > /var/run/beacon.pid
+
+
+## Start axip with log level 3
+# echo "Starting ax25ipd"
+# $SBINDIR/ax25ipd -l3 -c /etc/ax25/ax25ipd.conf
+# echo $! > /var/run/ax25ipd.pid
+# echo "ax25ipd started"
+
+# Enable External Logons
+$SBINDIR/ax25d -l /var/log/ax25 &
+echo $! > /var/run/ax25d.pid
+echo "ax25d started with logging enabled"
+# display active ax25 sockets
+  sleep 1
+  /bin/netstat --ax25
+
+# AX25-up (End)
+
