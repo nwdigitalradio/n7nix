@@ -8,6 +8,10 @@ DEBUG=1
 scriptname="`basename $0`"
 SSID="NOT_SET"
 
+# ===== function debugecho
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+
 # ===== function is_rpi3
 
 function is_rpi3() {
