@@ -89,6 +89,12 @@ function set_static_wan()
 {
 iface="wlan0"
 echo "$scriptname: writing files for static WAN ip address"
+
+ip_addr=$1
+ip_root=${ip_addr%.*}
+network_addr="$ip_root.0"
+bcast_addr="$ip_root.255"
+
 fname="/etc/dhcpcd.conf"
 grep -i "interface $iface" $fname > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
@@ -109,10 +115,10 @@ if [ $? -ne 0 ] ; then
    cat <<EOT >> /etc/network/interfaces
 allow-hotplug wlan0
 iface wlan0 inet static
-  address $1
+  address $ip_addr
   netmask 255.255.255.0
-  network 10.0.44.0
-  broadcast 10.0.44.255
+  network $network_addr
+  broadcast $bcast_addr
 EOT
 
 else
