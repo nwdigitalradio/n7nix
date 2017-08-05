@@ -13,9 +13,9 @@ SET_WIFI_IPADDR="false"
 
 scriptname="`basename $0`"
 
-lan_ipaddr="10.0.42.91"
-lan_router="10.0.42.1"
+# WiFi ip address Should be on a different subnet than Lan ip address
 wan_ipaddr="10.0.44.1"
+ip_parse=
 
 # ===== function debugecho
 
@@ -134,12 +134,6 @@ function usage() {
 
 # ===== main
 
-# Be sure we're running as root
-#if [[ $EUID != 0 ]] ; then
-#   echo "Must be root."
-#   exit 1
-#fi
-
 # Check if eth0 network interface is already up
 ifcheck=$(grep -i eth0 /etc/network/interfaces)
 retcode=$?
@@ -181,9 +175,15 @@ if (( $# != 0 )) ; then
    esac
    shift # past argument or value
 done
+fi
 
+# Be sure we're running as root
+if [[ "$DEBUG_MODE" = "false" ]] && [[ $EUID != 0 ]] ; then
+   echo "Must be root."
+   exit 1
+fi
 
-else
+if [[ -z $ip_parse ]] ; then
    echo -n "Enter entire ip address or last octet for $ip_root followed by [enter]"
    read -ep ": " ip_parse
 fi
@@ -225,9 +225,12 @@ echo "ip addr: $lan_ipaddr, lan router: $lan_router, ip root: $ip_root"
 
 # if DEBUG_MODE is true don't write any files
 if [ "$DEBUG_MODE" = "false" ] ; then
-   set_static_lan $lan_ipaddr $lan_router
+
+# Set either WiFi or Lan fixed ip address not both
    if [ "SET_WIFI_IPADDR" = "true" ] ; then
       set_static_wlan $wan_ipaddr
+   else
+      set_static_lan $lan_ipaddr $lan_router
    fi
 else
    echo "$scriptname: Using DEBUG_MODE, no files written"
