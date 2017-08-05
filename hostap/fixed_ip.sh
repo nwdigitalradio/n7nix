@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Set a fixed ip address
+# Set a fixed ip address for WiFi & LAN
 #
 # Edit files:
 #  /etc/network/interfaces
