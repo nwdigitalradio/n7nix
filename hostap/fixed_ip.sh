@@ -12,6 +12,8 @@ DEBUG_RESET_NETWORKING="false"
 SET_WIFI_IPADDR="false"
 
 scriptname="`basename $0`"
+lanif="eth0"
+#lanif="enp3s0"
 
 # WiFi ip address Should be on a different subnet than Lan ip address
 wan_ipaddr="10.0.44.1"
@@ -54,7 +56,7 @@ function valid_ip()
 
 function set_static_lan()
 {
-iface="eth0"
+iface="$lanif"
 echo "$scriptname: writing files for static LAN ip address"
 fname="/etc/dhcpcd.conf"
 grep -i "interface $iface" $fname > /dev/null 2>&1
@@ -140,12 +142,12 @@ function usage() {
 
 # ===== main
 
-# Check if eth0 network interface is already up
-ifcheck=$(grep -i eth0 /etc/network/interfaces)
+# Check if $lanif network interface is already up
+ifcheck=$(grep -i $lanif /etc/network/interfaces)
 retcode=$?
-# Does eth0 exist?
+# Does $lanif exist?
 if [ $retcode -eq 0 ] ; then
-   ip_current=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
+   ip_current=$(ip addr show $lanif | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
    ip_root=${ip_current%.*}
 fi
 
