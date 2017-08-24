@@ -1,0 +1,11 @@
+#/bin/sh
+DAEMON=./tracker-up
+DAEMONHALT=./tracker-down
+DESC=tracker
+
+echo -n "Restarting $DESC: "
+$DAEMONHALT
+sleep 1
+$DAEMON
+
+exit 0

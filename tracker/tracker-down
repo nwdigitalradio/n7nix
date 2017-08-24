@@ -1,0 +1,4 @@
+#!/bin/bash
+
+screen -X -S Tracker quit
+# screen -X -S Spy quit

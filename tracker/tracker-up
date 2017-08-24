@@ -1,0 +1,8 @@
+#!/bin/sh
+echo "Starting Tracker"
+touch /tmp/aprs_tracker.log
+screen -dmS Tracker -c .screenrc.trk
+#echo "Starting Spy"
+#screen -dmS Spy -c /etc/tracker/.screenrc.spy
+screen -ls
+echo "finished starting tracker"
