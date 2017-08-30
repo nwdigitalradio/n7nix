@@ -21,7 +21,20 @@ JSON_C_SRC_DIR="$SRC_DIR/json-c"
 LIBFAP_VER="1.5"
 
 #PKGLIST="hostapd dnsmasq iptables iptables-persistent"
-PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool nodejs npm libgps-dev"
+PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool nodejs npm libgps-dev iptables screen"
+
+# ===== function dbgecho
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function is_pkg_installed
+
+function is_pkg_installed() {
+
+return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
+}
+
+# ===== main
 
 # Don't be root
 if [[ $EUID == 0 ]] ; then
@@ -39,7 +52,7 @@ else
    git clone https://github.com/n7nix/dantracker
 fi
 
-# as root
+# as root install a bunch of stuff
 sudo apt-get -y install $PKGLIST
 # get latest version of npm
 # sudo npm install npm -g
@@ -140,8 +153,34 @@ else
    mv jquery-3.2.1.min.js jquery.js
 fi
 
+# Note: This should be in core_install.sh
+#
+# These rules block Bonjour/Multicast DNS (mDNS) addresses from iTunes
+# or Avahi daemon.  Avahi is ZeroConf/Bonjour compatible and installed
+# by default.
+#
+# Setup iptables then install iptables-persistent or manually update
+# rules.v4
+
+# Setup some iptable rules
+sudo ./iptable-up.sh
+
+pkg_name="iptables-persistent"
+is_pkg_installed $pkg_name
+if [ $? -ne 0 ] ; then
+   # installing iptables-persistent automatically saves current iptable
+   # rules to /etc/iptables/rules.v4
+   echo "$scriptname: Will Install $pkg_name program"
+   sudo apt-get -y install iptables-persistent
+else
+   # Since iptables-peristent is already installed have to update
+   # rules to /etc/iptables/rules.v4 manually
+   sudo iptables-save > /etc/iptables/rules.v4   
+fi
+
 if [ -f $TRACKER_CFG_DIR/aprs_tracker.ini ] ; then
    echo "** tracker already config'ed in $TRACKER_CFG_DIR"
+   echo "** please edit manually."
 else
    su cp $TRACKER_SRC_DIR/examples/aprs_tracker.ini $TRACKER_CFG_DIR
 fi
