@@ -1,0 +1,14 @@
+[Unit]
+Description=dantracker
+BindsTo=sys-subsystem-net-devices-ax0.device
+After=network.service
+After=ax25dev.service
+After=sys-subsystem-net-devices-ax0.device
+
+[Service]
+ExecStart=/bin/bash -c '/home/gunn/bin/tracker-up'
+RemainAfterExit=yes
+ExecStop=/bin/bash -c '/home/gunn/bin/tracker-down'
+
+[Install]
+WantedBy=multi-user.target
