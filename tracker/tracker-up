@@ -1,8 +1,11 @@
 #!/bin/sh
 echo "Starting Tracker"
 touch /tmp/aprs_tracker.log
-screen -dmS Tracker -c .screenrc.trk
+cd /home/gunn/bin
+screen -dmS Tracker -c /home/gunn/bin/.screenrc.trk
 #echo "Starting Spy"
 #screen -dmS Spy -c /etc/tracker/.screenrc.spy
+# Set led0 to heartbeat blink
+echo heartbeat > /sys/class/leds/led0/trigger
 screen -ls
 echo "finished starting tracker"

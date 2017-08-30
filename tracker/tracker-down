@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
 screen -X -S Tracker quit
+# Set led0 to default behavior
+echo mmc0 > /sys/class/leds/led0/trigger
 # screen -X -S Spy quit
