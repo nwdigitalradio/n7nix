@@ -1,6 +1,6 @@
 #/bin/sh
-DAEMON=/usr/gunn/bin/tracker-up
-DAEMONHALT=/usr/gunn/bin/tracker-down
+DAEMON=/home/gunn/bin/tracker-up
+DAEMONHALT=/home/gunn/bin/tracker-down
 DESC=tracker
 
 echo -n "Restarting $DESC: "
