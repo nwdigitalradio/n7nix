@@ -3,8 +3,8 @@
 # Install latest version of dantracker
 #
 # How to install latest version of node
-# https://learn.adafruit.com/node-embedded-development/installing-node-dot-js?
-# 
+# https://nodejs.org/en/download
+#
 DEBUG=1
 FORCE_BUILD="false"
 
@@ -12,16 +12,20 @@ scriptname="`basename $0`"
 user=$(whoami)
 
 SRC_DIR="/home/$user/dev"
-TRACKER_DEST_DIR="/home/$user/tmp/tracker"
+BIN_DIR="/home/$user/bin"
+TRACKER_DEST_DIR="$BIN_DIR"
 TRACKER_CFG_DIR="/etc/tracker"
 TRACKER_SRC_DIR="$SRC_DIR/dantracker"
+TRACKER_N7NIX_DIR="/home/$user/n7nix/tracker"
 
 LIBFAP_SRC_DIR="$SRC_DIR/libfap"
 JSON_C_SRC_DIR="$SRC_DIR/json-c"
 LIBFAP_VER="1.5"
 
+SERVICE_NAME="tracker.service"
+BIN_FILES="iptable-up.sh iptable-flush.sh iptable-check.sh tracker-up tracker-down tracker-restart .screenrc.trk"
 #PKGLIST="hostapd dnsmasq iptables iptables-persistent"
-PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool nodejs npm libgps-dev iptables screen"
+PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool libgps-dev iptables screen"
 
 # ===== function dbgecho
 
@@ -42,6 +46,12 @@ if [[ $EUID == 0 ]] ; then
    exit 1
 fi
 
+pushd
+
+if [ ! -d $SRC_DIR ] ; then
+   mkdir -p $SRC_DIR
+fi
+
 # Need to get tracker source before building libfap
 if [ -d $TRACKER_SRC_DIR ] ; then
    echo "** already have tracker source"
@@ -52,17 +62,30 @@ else
    git clone https://github.com/n7nix/dantracker
 fi
 
+popd
+
 # as root install a bunch of stuff
 sudo apt-get -y install $PKGLIST
-# get latest version of npm
-# sudo npm install npm -g
-sudo npm -g install ctype iniparser websocket connect serve-static finalhandler
 
-cd
+node_file_name="node-v8.4.0-linux-armv7l.tar.xz"
+
+if [ ! -f $node_file_name ] ; then
+   echo "Download node.js from nodejs.org"
+   wget https://nodejs.org/dist/v8.4.0/$node_file_name
+   current_dir=$(pwd)
+   pushd /usr/local
+   sudo tar --strip-components 1 -xvf $current_dir/$node_file_name
+   echo "node version: $(/usr/local/bin/node -v)"
+   echo "npm version: $(/usr/local/bin/npm -v)"
+   echo
+   echo "== get node modules"
+   sudo npm -g install ctype iniparser websocket connect serve-static finalhandler
+   cd
+fi
 
 if [ -d $SRC_DIR/libfap-$LIBFAP_VER ] ; then
    echo "** already have libfap-$LIBFAP_VER source"
-else 
+else
    echo
    echo "== get libfap source"
    # Get libfap [http://pakettiradio.net/libfap/]
@@ -73,6 +96,7 @@ else
    wget http://pakettiradio.net/downloads/libfap/$LIBFAP_VER/libfap-$LIBFAP_VER.tar.gz
    tar -zxvf libfap-$LIBFAP_VER.tar.gz
 
+   echo
    echo "== build libfap"
    # run the fap patch
    cd libfap-$LIBFAP_VER
@@ -91,7 +115,7 @@ else
    cd $SRC_DIR
    wget http://ndevilla.free.fr/iniparser/iniparser-3.1.tar.gz
    tar -zxvf iniparser-3.1.tar.gz
-
+   echo
    echo "== build libiniparser source"
    cd iniparser
    sudo cp src/iniparser.h  /usr/local/include
@@ -137,9 +161,12 @@ else
 fi
 
 if [ -d $TRACKER_DEST_DIR ] ; then
-   echo "** tracker already installed to $TRACKER_DEST_DIR"
-else
    mkdir -p $TRACKER_DEST_DIR
+fi
+
+echo
+echo "== install dantracker"
+
    cd $TRACKER_SRC_DIR
    cp scripts/* $TRACKER_DEST_DIR
    cp aprs  $TRACKER_DEST_DIR
@@ -151,7 +178,21 @@ else
    cd $TRACKER_DEST_DIR/webapp/jQuery
    wget https://code.jquery.com/jquery-3.2.1.min.js
    mv jquery-3.2.1.min.js jquery.js
-fi
+
+
+# This overwrites some of the dantracker scripts from the n7nix repo
+echo
+echo "== setup bin dir"
+for filename in `echo ${BIN_FILES}` ; do
+   cp $TRACKER_N7NIX_DIR/$filename $BIN_DIR
+done
+
+echo
+echo "== setup systemd service"
+cp $TRACKER_N7NIX_DIR/$SERVICE_NAME /etc/systemd/system/
+systemctl enable $SERVICE_NAME
+systemctl daemon-reload
+systemctl start $SERVICE_NAME
 
 # Note: This should be in core_install.sh
 #
@@ -163,7 +204,9 @@ fi
 # rules.v4
 
 # Setup some iptable rules
-sudo ./iptable-up.sh
+echo
+echo "== setup iptables"
+sudo $BIN_DIR/iptable-up.sh
 
 pkg_name="iptables-persistent"
 is_pkg_installed $pkg_name
@@ -175,14 +218,14 @@ if [ $? -ne 0 ] ; then
 else
    # Since iptables-peristent is already installed have to update
    # rules to /etc/iptables/rules.v4 manually
-   sudo iptables-save > /etc/iptables/rules.v4   
+   sudo iptables-save > /etc/iptables/rules.v4
 fi
 
 if [ -f $TRACKER_CFG_DIR/aprs_tracker.ini ] ; then
    echo "** tracker already config'ed in $TRACKER_CFG_DIR"
    echo "** please edit manually."
 else
-   su cp $TRACKER_SRC_DIR/examples/aprs_tracker.ini $TRACKER_CFG_DIR
+   sudo cp $TRACKER_SRC_DIR/examples/aprs_tracker.ini $TRACKER_CFG_DIR
 fi
-
+echo
 echo "finished building/installing dantracker"
