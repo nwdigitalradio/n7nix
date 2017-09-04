@@ -176,8 +176,10 @@ cd n7nix/config
 sudo su
 ./core_install.sh
 ./app_config.sh core
-# now test direwolf, ax25
 ```
+* now **reboot** & test direwolf, ax25
+  * see below: **Testing direwolf & the UDRC**
+
 
 ###### See **Core Configuration** below
 
