@@ -1,6 +1,13 @@
 #!/bin/bash
 #
-# Install latest version of dantracker
+# Install current version of dantracker
+# Builds & copies files
+#
+# Builds:
+#   - libiniparser
+#   - libfap
+#   - json-c
+#   - dantracker
 #
 # How to install latest version of node
 # https://nodejs.org/en/download
@@ -21,6 +28,8 @@ TRACKER_N7NIX_DIR="/home/$user/n7nix/tracker"
 LIBFAP_SRC_DIR="$SRC_DIR/libfap"
 JSON_C_SRC_DIR="$SRC_DIR/json-c"
 LIBFAP_VER="1.5"
+LIBINIPARSER_VER="3.1"
+NODEJS_VER="8.4.0"
 
 SERVICE_NAME="tracker.service"
 BIN_FILES="iptable-up.sh iptable-flush.sh iptable-check.sh tracker-up tracker-down tracker-restart .screenrc.trk"
@@ -64,11 +73,11 @@ fi
 # as root install a bunch of stuff
 sudo apt-get -y install $PKGLIST
 
-node_file_name="node-v8.4.0-linux-armv7l.tar.xz"
+node_file_name="node-v$NODEJS_VER-linux-armv7l.tar.xz"
 
 if [ ! -f $node_file_name ] ; then
    echo "Download node.js from nodejs.org"
-   wget https://nodejs.org/dist/v8.4.0/$node_file_name
+   wget https://nodejs.org/dist/v$NODEJS_VER/$node_file_name
    current_dir=$(pwd)
    pushd /usr/local
    sudo tar --strip-components 1 -xvf $current_dir/$node_file_name
@@ -110,8 +119,8 @@ else
    echo
    echo "== get libiniparser source"
    cd $SRC_DIR
-   wget http://ndevilla.free.fr/iniparser/iniparser-3.1.tar.gz
-   tar -zxvf iniparser-3.1.tar.gz
+   wget http://ndevilla.free.fr/iniparser/iniparser-$LIBINIPARSER_VER.tar.gz
+   tar -zxvf iniparser-$LIBINIPARSER_VER.tar.gz
    echo
    echo "== build libiniparser source"
    cd iniparser
