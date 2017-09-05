@@ -46,7 +46,6 @@ if [[ $EUID == 0 ]] ; then
    exit 1
 fi
 
-pushd
 
 if [ ! -d $SRC_DIR ] ; then
    mkdir -p $SRC_DIR
@@ -61,8 +60,6 @@ else
    cd $SRC_DIR
    git clone https://github.com/n7nix/dantracker
 fi
-
-popd
 
 # as root install a bunch of stuff
 sudo apt-get -y install $PKGLIST
@@ -179,20 +176,12 @@ echo "== install dantracker"
    wget https://code.jquery.com/jquery-3.2.1.min.js
    mv jquery-3.2.1.min.js jquery.js
 
-
 # This overwrites some of the dantracker scripts from the n7nix repo
 echo
 echo "== setup bin dir"
 for filename in `echo ${BIN_FILES}` ; do
    cp $TRACKER_N7NIX_DIR/$filename $BIN_DIR
 done
-
-echo
-echo "== setup systemd service"
-cp $TRACKER_N7NIX_DIR/$SERVICE_NAME /etc/systemd/system/
-systemctl enable $SERVICE_NAME
-systemctl daemon-reload
-systemctl start $SERVICE_NAME
 
 # Note: This should be in core_install.sh
 #
@@ -221,11 +210,23 @@ else
    sudo iptables-save > /etc/iptables/rules.v4
 fi
 
+if [ ! -d $TRACKER_CFG_DIR ] ; then
+   sudo mkdir -p $TRACKER_CFG_DIR
+fi
+
 if [ -f $TRACKER_CFG_DIR/aprs_tracker.ini ] ; then
    echo "** tracker already config'ed in $TRACKER_CFG_DIR"
    echo "** please edit manually."
 else
-   sudo cp $TRACKER_SRC_DIR/examples/aprs_tracker.ini $TRACKER_CFG_DIR
+   sudo cp $TRACKER_N7NIX_DIR/aprs_tracker.ini $TRACKER_CFG_DIR
 fi
+
 echo
-echo "finished building/installing dantracker"
+echo "== setup systemd service"
+sudo cp $TRACKER_N7NIX_DIR/$SERVICE_NAME /etc/systemd/system/
+sudo systemctl enable $SERVICE_NAME
+sudo systemctl daemon-reload
+sudo systemctl start $SERVICE_NAME
+
+echo
+echo "finished building & installing dantracker"
