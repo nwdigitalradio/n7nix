@@ -20,7 +20,10 @@ user=$(whoami)
 
 SRC_DIR="/home/$user/dev"
 BIN_DIR="/home/$user/bin"
+BIN_DIR_1="/usr/local/bin"
+
 TRACKER_DEST_DIR="$BIN_DIR"
+TRACKER_DEST_DIR_1="$BIN_DIR_1"
 TRACKER_CFG_DIR="/etc/tracker"
 TRACKER_SRC_DIR="$SRC_DIR/dantracker"
 TRACKER_N7NIX_DIR="/home/$user/n7nix/tracker"
@@ -176,6 +179,7 @@ echo "== install dantracker"
    cd $TRACKER_SRC_DIR
    cp scripts/* $TRACKER_DEST_DIR
    cp aprs  $TRACKER_DEST_DIR
+   sudo cp aprs  $TRACKER_DEST_DIR_1
    rsync -av $TRACKER_SRC_DIR/webapp $TRACKER_DEST_DIR
    rsync -av $TRACKER_SRC_DIR/images $TRACKER_DEST_DIR/webapp
    if [ ! -d $TRACKER_DEST_DIR/webapp/jQuery ] ; then
