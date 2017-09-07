@@ -1,8 +1,8 @@
 #!/bin/sh
 echo "Starting Tracker"
 touch /tmp/aprs_tracker.log
-cd /home/gunn/bin
-screen -dmS Tracker -c /home/gunn/bin/.screenrc.trk
+cd /home/$user/bin
+screen -dmS Tracker -c /home/$user/bin/.screenrc.trk
 #echo "Starting Spy"
 #screen -dmS Spy -c /etc/tracker/.screenrc.spy
 # Set led0 to heartbeat blink

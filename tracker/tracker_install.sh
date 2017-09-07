@@ -196,6 +196,9 @@ for filename in `echo ${BIN_FILES}` ; do
    cp $TRACKER_N7NIX_DIR/$filename $BIN_DIR
 done
 
+sed -i -e "s/\$user/$user/" $BIN_DIR/tracker-up
+sed -i -e "s/\$user/$user/" $BIN_DIR/tracker-restart
+
 # Note: This should be in core_install.sh
 #
 # These rules block Bonjour/Multicast DNS (mDNS) addresses from iTunes
@@ -234,6 +237,7 @@ else
    sudo cp $TRACKER_N7NIX_DIR/aprs_tracker.ini $TRACKER_CFG_DIR
 fi
 
+sed -i -e "s/\$user/$user/" $TRACKER_N7NIX_DIR/$SERVICE_NAME
 echo
 echo "== setup systemd service"
 sudo cp $TRACKER_N7NIX_DIR/$SERVICE_NAME /etc/systemd/system/
