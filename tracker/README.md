@@ -2,11 +2,20 @@
 * Everything mentioned below is handled in install script tracker_install.sh
 
 ### Setup
-* copy these files to /home/<user>/bin
+* copy these files to `/usr/local/bin`
+```
+aprs
+```
+
+* copy these files to `/etc/tracker`
+```
+apr_tracker.ini
+```
+
+* copy these files to `/home/<user>/bin`
 ```
 aprs
 aprs.ini
-aprs_tracker.ini
 aprstest.ini
 iptable-up.sh
 iptable_notes.txt
@@ -17,7 +26,7 @@ tracker-down
 tracker-restart
 tracker-up
 ```
-* copy these files to /home/<user>/bin/webapp
+* copy these files to `/home/<user>/bin/webapp`
 ```
 acidTabs.js
 favicon.ico
