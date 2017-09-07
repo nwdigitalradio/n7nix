@@ -39,7 +39,7 @@ tracker.html
 
 ```
 
-* copy this file to /etc/systemd/system
+* copy this file to `/etc/systemd/system`
 ```
 tracker.service
 ```
