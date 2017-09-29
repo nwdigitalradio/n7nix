@@ -1,6 +1,6 @@
 # Linux paclink-unix install for UDRC
 
-## Install core components
+## Install core components for Raspberry Pi with a UDRC sound card
 
 * This installation assumes you have already [installed core components](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
 
@@ -38,7 +38,7 @@
 
 ### Start the Install Script
 
-* **NOTE: You might already have an image with paclink-unix installed**
+* **NOTE: You might already have a Raspberry Pi SD card image with paclink-unix installed**
   * Check for any of these conditions:
     * If you installed everything at once using _image_install.sh_
     * If you already have run _app_install.sh pluimap_
