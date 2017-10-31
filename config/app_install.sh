@@ -62,7 +62,6 @@ case $APP_SELECT in
    ;;
    pluimap)
       echo "$scriptname: Install paclink-unix with imap"
-
       pushd ../plu
       source ./pluimap_install.sh
       popd > /dev/null
@@ -73,6 +72,23 @@ case $APP_SELECT in
       source ./uro_install.sh
       popd > /dev/null
    ;;
+   tracker)
+      echo "$scriptname: Install dantracker"
+      pushd ../tracker
+      source ./tracker_install.sh
+      popd > /dev/null
+   ;;
+   messanger)
+   # Install pluimap & nixtracker
+      echo "$scriptname: Install messanger appliance"
+      pushd ../plu
+      source ./pluimap_install.sh
+      popd > /dev/null
+      pushd ../tracker
+      source ./tracker_install.sh
+      popd > /dev/null
+   ;;
+
    *)
       echo "Undefined app, must be one of $APP_CHOICES"
       echo "$(date "+%Y %m %d %T %Z"): app install ($APP_SELECT) script ERROR, undefined app" >> $UDR_INSTALL_LOGFILE

@@ -97,15 +97,20 @@ case $APP_SELECT in
    ;;
    plu)
       # install paclink-unix basic
-      echo "$scriptname: Install paclink-unix"
+      echo "$scriptname: Config paclink-unix"
       pushd ../plu
       source ./plu_config.sh
       popd > /dev/null
 
    ;;
    pluimap)
-      echo "$scriptname: Install paclink-unix with imap"
-
+      echo "$scriptname: Config paclink-unix with imap"
+      pushd ../plu
+      source ./pluimap_config.sh
+      popd > /dev/null
+   ;;
+   messanger)
+      echo "$scriptname: Config messanger appliance"
       pushd ../plu
       source ./pluimap_config.sh
       popd > /dev/null
