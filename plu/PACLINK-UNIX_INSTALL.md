@@ -46,7 +46,7 @@
   * Then continue on to  __Start the Config Script__ section
 
 * Execute the following script from the directory that scripts were cloned to.
-  * Should be starting from your login home directory eg. /home/pi
+  * Should be starting from your login home directory for example on a Raspberry Pi _/home/pi_
 
 ```bash
 cd n7nix/config
