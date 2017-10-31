@@ -2,6 +2,7 @@
 #
 # btest.sh
 # Added sequence number 7/1/2017
+# Added choice of beacon types 10/12/2017
 #
 # beacon options
 # -c source callsign
@@ -13,7 +14,7 @@
 # beacon [-c <src_call>] [-d <dest_call>[digi ..]] [-l] [-m] [-s] [-t interval] [-v] port "message"
 # Uncomment this statement for debug echos
 DEBUG=1
-myname="`basename $0`"
+scriptname="`basename $0`"
 
 BEACON="/usr/local/sbin/beacon"
 CALLSIGN="NOONE"
@@ -21,8 +22,23 @@ ax25port=udr0
 #ax25port=vhf0
 SEQUENCE_FILE="/tmp/sequence.tmp"
 
+# BEACON_TYPE choices:
+#  mesg_beacon - message beacon
+#  posit_beacon - position beacon
+# Set default beacon
+BEACON_TYPE="mesg_beacon"
+
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function usage
+function usage() {
+   echo "Usage: $scriptname [-p][-m][-h]" >&2
+   echo "   -p | --position  send a position beacon"
+   echo "   -m | --message   send a message beacon"
+   echo "   -h | --help      display this message"
+   echo
+}
 
 # ===== main
 # must run as root
@@ -35,14 +51,14 @@ fi
 type -P $BEACON &>/dev/null
 if [ $? -ne 0 ] ; then
    # Get here if beacon program NOT installed.
-   echo "$myname: ax25tools not installed."
+   echo "$scriptname: ax25tools not installed."
    exit 1
 fi
 
 # determine if axport exists
 grepret=$(grep $ax25port /etc/ax25/axports)
 if [ $? -ne 0 ]; then
-    echo "$myname: **** ax25 port $ax25port does not exist"
+    echo "$scriptname: **** ax25 port $ax25port does not exist"
     exit 1
 fi
 
@@ -55,7 +71,7 @@ fi
 if [ ! -e /etc/direwolf.conf ] ; then
    dbgecho "Direwolf: NO config file found!!"
    if [ "$CALLSIGN" = "NOONE" ] ; then
-      echo "$myname: need to edit this script with your CALLSIGN"
+      echo "$scriptname: need to edit this script with your CALLSIGN"
       exit 1
    fi
 else
@@ -65,9 +81,42 @@ else
 fi
 
 if [ "$CALLSIGN" = "NOONE" ] ; then
-   echo "$myname: need to edit this script with your CALLSIGN"
+   echo "$scriptname: need to edit this script with your CALLSIGN"
    exit 1
 fi
+
+# parse command line options
+# if there are no args default to out put a message beacon
+if [[ $# -eq 0 ]] ; then
+   BEACON_TYPE="mesg_beacon"
+fi
+
+# if there are any args then parse them
+while [[ $# -gt 0 ]] ; do
+   key="$1"
+
+   case $key in
+      -m|--message)
+         echo "Send a message beacon"
+	 BEACON_TYPE="mesg_beacon"
+	 ;;
+      -p|--position)
+         echo "Send a position beacon"
+	 BEACON_TYPE="posit_beacon"
+	 ;;
+      -h|--help)
+         usage
+	 exit 0
+	 ;;
+      *)
+	echo "Unknown option: $key"
+	usage
+	exit 1
+	;;
+   esac
+shift # past argument or value
+done
+
 
 # pad aprs Message format addressee field to 9 characters
 if (( ${#CALLSIGN} == 9 )) ; then
@@ -90,7 +139,13 @@ timestamp=$(date "+%d %T %Z")
 # Separate out string of beacon_msg to learn why extra characters are
 # appearing at end of string on APRS.fi
 # eg: 0A<0x0f> [Invalid message packet]
-beacon_msg=":$CALLPAD:$timestamp $CALLNOSID beacon test from host $(hostname) Seq: $seqnum"
+
+if [ "$BEACON_TYPE" = "mesg_beacon" ] ; then
+   beacon_msg=":$CALLPAD:$timestamp $CALLNOSID beacon test from host $(hostname) Seq: $seqnum"
+else
+   beacon_msg="!4829.06N/12254.12W-$timestamp, from $(hostname) Seq: $seqnum"
+fi
+
 echo " Sent \
  BEACON -c $CALLNOSID-11 -d 'APUDR1 via WIDE1-1' -l -s $ax25port "${beacon_msg}""
 $BEACON -c $CALLNOSID-11 -d 'APUDR1 via WIDE1-1' -l -s $ax25port "${beacon_msg}"
