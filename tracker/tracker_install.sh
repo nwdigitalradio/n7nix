@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Install current version of dantracker
-# Builds & copies files
+# Install current version of either:
+#  dantracker or nixtracker
 #
 # Builds:
 #   - libiniparser
 #   - libfap
 #   - json-c
-#   - dantracker
+#   - dantracker or nixtracker
 #
 # How to install latest version of node
 # https://nodejs.org/en/download
@@ -22,10 +22,15 @@ SRC_DIR="/home/$user/dev"
 BIN_DIR="/home/$user/bin"
 BIN_DIR_1="/usr/local/bin"
 
+# tracker type can be either dan or nix
+# nixtracker adds Winlink ability
+tracker_type="nix"
+#tracker_type="dan"
+
 TRACKER_DEST_DIR="$BIN_DIR"
 TRACKER_DEST_DIR_1="$BIN_DIR_1"
 TRACKER_CFG_DIR="/etc/tracker"
-TRACKER_SRC_DIR="$SRC_DIR/dantracker"
+TRACKER_SRC_DIR="$SRC_DIR/${tracker_type}tracker"
 TRACKER_N7NIX_DIR="/home/$user/n7nix/tracker"
 
 LIBFAP_SRC_DIR="$SRC_DIR/libfap"
@@ -50,13 +55,51 @@ function is_pkg_installed() {
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
 }
 
+# ===== function get_user
+function get_user() {
+
+# prompt for user name
+# Check if there is only a single user on this system
+
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+if (( `ls /home | wc -l` == 1 )) ; then
+   USER=$(ls /home)
+else
+  echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+  read -e USER
+fi
+
+# verify user name is legit
+userok=false
+
+for username in $USERLIST ; do
+  if [ "$USER" = "$username" ] ; then
+     userok=true;
+  fi
+done
+
+if [ "$userok" = "false" ] ; then
+   echo "User name does not exist,  must be one of: $USERLIST"
+   exit 1
+fi
+
+dbgecho "using USER: $USER"
+}
+
 # ===== main
 
 # Don't be root
 if [[ $EUID == 0 ]] ; then
    echo "Don't be root"
    exit 1
+   # Switching users has problems
+   get_user
+   exec su "$USER" "$0" "$@"
 fi
+
+echo "$scriptname: Install tracker with UID: $EUID"
 
 
 if [ ! -d $SRC_DIR ] ; then
@@ -68,9 +111,9 @@ if [ -d $TRACKER_SRC_DIR ] ; then
    echo "** already have tracker source"
 else
    echo
-   echo "== get dantracker source"
+   echo "== get ${tracker_type}tracker source"
    cd $SRC_DIR
-   git clone https://github.com/n7nix/dantracker
+   git clone https://github.com/n7nix/${tracker_type}tracker
 fi
 
 # as root install a bunch of stuff
@@ -88,7 +131,7 @@ if [ ! -f $node_file_name ] ; then
    echo "npm version: $(/usr/local/bin/npm -v)"
    echo
    echo "== get node modules"
-   sudo npm -g install ctype iniparser websocket connect serve-static finalhandler
+   sudo npm -g install ctype iniparser websocket connect serve-static finalhandler uid-number
    cd
 fi
 
@@ -164,7 +207,7 @@ if [ -f $TRACKER_SRC_DIR/aprs ] ; then
    echo "** already built tracker"
 else
    echo
-   echo "== build dantracker"
+   echo "== build ${tracker_type}tracker"
    cd $TRACKER_SRC_DIR
    make
 fi
@@ -174,7 +217,7 @@ if [ -d $TRACKER_DEST_DIR ] ; then
 fi
 
 echo
-echo "== install dantracker"
+echo "== install ${tracker_type}tracker"
 
    cd $TRACKER_SRC_DIR
    cp scripts/* $TRACKER_DEST_DIR
@@ -189,7 +232,7 @@ echo "== install dantracker"
    wget https://code.jquery.com/jquery-3.2.1.min.js
    mv jquery-3.2.1.min.js jquery.js
 
-# This overwrites some of the dantracker scripts from the n7nix repo
+# This overwrites some of the ${tracker_type}tracker scripts from the n7nix repo
 echo
 echo "== setup bin dir"
 for filename in `echo ${BIN_FILES}` ; do
@@ -246,4 +289,4 @@ sudo systemctl daemon-reload
 sudo systemctl start $SERVICE_NAME
 
 echo
-echo "finished building & installing dantracker"
+echo "finished building & installing ${tracker_type}tracker"
