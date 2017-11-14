@@ -1,9 +1,9 @@
 #!/bin/bash
 #
 # If UDRC is the HAT then these GPIOs are available:
-#  BCM  wPi
-#  16  gpio.27
-#  17  gpio. 0
+#  BCM  wPi     cut
+#  16  gpio.27  11
+#  17  gpio. 0   5
 
 gpio_num="17"
 wpi_num="gpio. 0"
