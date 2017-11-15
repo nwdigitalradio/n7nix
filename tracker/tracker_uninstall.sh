@@ -8,22 +8,13 @@ DEBUG=1
 FORCE_BUILD="false"
 
 scriptname="`basename $0`"
-user=$(whoami)
 
-SRC_DIR="/home/$user/dev"
-BIN_DIR="/home/$user/bin"
 BIN_DIR_1="/usr/local/bin"
 
 # tracker type can be either dan or nix
 # nixtracker adds Winlink ability
 tracker_type="nix"
 #tracker_type="dan"
-
-TRACKER_DEST_DIR="$BIN_DIR"
-TRACKER_DEST_DIR_1="$BIN_DIR_1"
-TRACKER_CFG_DIR="/etc/tracker"
-TRACKER_SRC_DIR="$SRC_DIR/${tracker_type}tracker"
-TRACKER_N7NIX_DIR="/home/$user/n7nix/tracker"
 
 LIBFAP_SRC_DIR="$SRC_DIR/libfap"
 JSON_C_SRC_DIR="$SRC_DIR/json-c"
@@ -83,22 +74,24 @@ dbgecho "using USER: $USER"
 # ===== main
 
 # Don't be root
-if [[ $EUID == 0 ]] ; then
-   echo "Don't be root"
-   exit 1
-   # Switching users has problems
-   get_user
-   exec su "$USER" "$0" "$@"
-fi
+#if [[ $EUID == 0 ]] ; then
+#   echo "Don't be root"
+#   exit 1
+#fi
 
 echo "$scriptname: Install tracker with UID: $EUID"
 
+get_user
+SRC_DIR="/home/$USER/dev"
+BIN_DIR="/home/$USER/bin"
+TRACKER_N7NIX_DIR="/home/$USER/n7nix/tracker"
 
-if [ ! -d $SRC_DIR ] ; then
-   mkdir -p $SRC_DIR
-fi
+TRACKER_DEST_DIR="$BIN_DIR"
+TRACKER_DEST_DIR_1="$BIN_DIR_1"
+TRACKER_CFG_DIR="/etc/tracker"
+TRACKER_SRC_DIR="$SRC_DIR/${tracker_type}tracker"
 
-# Need to get tracker source before building libfap
+# Remove tracker source
 if [ -d $TRACKER_SRC_DIR ] ; then
    rm -R $TRACKER_SRC_DIR
    echo "** tracker source directory: $TRACKER_SRC_DIR removed"
@@ -125,7 +118,7 @@ echo "== remove ${tracker_type}tracker"
    rm $TRACKER_DEST_DIR/aprs
    sudo rm aprs  $TRACKER_DEST_DIR_1/aprs
 
-   rm -R $TRACKER_DEST_DIR/webapp $TRACKER_DEST_DIR
+   rm -R $TRACKER_DEST_DIR/webapp
 
    $BIN_DIR/iptable-flush.sh
 
@@ -135,8 +128,8 @@ for filename in `echo ${BIN_FILES}` ; do
    rm $BIN_DIR/$filename
 done
 
-if [ ! -d $TRACKER_CFG_DIR ] ; then
-   sudo rm -R $TRACKER_CFG_DIR
+if [ -f $TRACKER_CFG_DIR/aprs_tracker.ini ] ; then
+   sudo rm $TRACKER_CFG_DIR/aprs_tracker.ini
 fi
 
 if [ -f /etc/systemd/system/$SERVICE_NAME ] ; then
