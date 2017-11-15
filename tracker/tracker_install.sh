@@ -39,7 +39,6 @@ LIBFAP_VER="1.5"
 LIBINIPARSER_VER="3.1"
 NODEJS_VER="8.4.0"
 
-SERVICE_NAME="tracker.service"
 BIN_FILES="iptable-up.sh iptable-flush.sh iptable-check.sh tracker-up tracker-down tracker-restart .screenrc.trk"
 #PKGLIST="hostapd dnsmasq iptables iptables-persistent"
 PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool libgps-dev iptables screen"
@@ -133,6 +132,8 @@ if [ ! -f $node_file_name ] ; then
    echo "== get node modules"
    sudo npm -g install ctype iniparser websocket connect serve-static finalhandler uid-number
    cd
+else
+   echo "** already have nodejs source"
 fi
 
 if [ -d $SRC_DIR/libfap-$LIBFAP_VER ] ; then
@@ -212,7 +213,12 @@ else
    make
 fi
 
-if [ -d $TRACKER_DEST_DIR ] ; then
+# Check if /home/$user/bin is a file
+if [ -f $TRACKER_DEST_DIR ] ; then
+   rm $TRACKER_DEST_DIR
+fi
+
+if [ ! -d $TRACKER_DEST_DIR ] ; then
    mkdir -p $TRACKER_DEST_DIR
 fi
 
@@ -235,6 +241,12 @@ echo "== install ${tracker_type}tracker"
 # This overwrites some of the ${tracker_type}tracker scripts from the n7nix repo
 echo
 echo "== setup bin dir"
+if [ ! -d $BIN_DIR ] ; then
+   mkdir -p $BIN_DIR
+fi
+
+cp $TRACKER_N7NIX_DIR/.${tracker_type}screenrc.trk $TRACKER_N7NIX_DIR/.screenrc.trk
+
 for filename in `echo ${BIN_FILES}` ; do
    cp $TRACKER_N7NIX_DIR/$filename $BIN_DIR
 done
@@ -280,13 +292,30 @@ else
    sudo cp $TRACKER_N7NIX_DIR/aprs_tracker.ini $TRACKER_CFG_DIR
 fi
 
-sed -i -e "s/\$user/$user/" $TRACKER_N7NIX_DIR/$SERVICE_NAME
 echo
 echo "== setup systemd service"
-sudo cp $TRACKER_N7NIX_DIR/$SERVICE_NAME /etc/systemd/system/
-sudo systemctl enable $SERVICE_NAME
-sudo systemctl daemon-reload
-sudo systemctl start $SERVICE_NAME
+
+# Check for an incompatible service entry installed with pluimap
+SERVICE_NAME="pluweb.service"
+if [ -f /etc/systemd/system/$SERVICE_NAME ] ; then
+   sudo systemctl stop $SERVICE_NAME
+   sudo systemctl disable $SERVICE_NAME
+   rm /etc/systemd/system/$SERVICE_NAME
+fi
+
+
+SERVICE_NAME="tracker.service"
+
+# Check if systemd service has already been installed
+if [ ! -f /etc/systemd/system/$SERVICED_NAME ] ; then
+   sed -i -e "s/\$user/$user/" $TRACKER_N7NIX_DIR/$SERVICE_NAME
+   sudo cp $TRACKER_N7NIX_DIR/$SERVICE_NAME /etc/systemd/system/
+   sudo systemctl enable $SERVICE_NAME
+   sudo systemctl daemon-reload
+   sudo systemctl start $SERVICE_NAME
+else
+   echo "System service $SERVICE_NAME already installed."
+fi
 
 echo
 echo "finished building & installing ${tracker_type}tracker"
