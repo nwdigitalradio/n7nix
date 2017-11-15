@@ -85,7 +85,10 @@ case $APP_SELECT in
       source ./pluimap_install.sh
       popd > /dev/null
       pushd ../tracker
-      source ./tracker_install.sh
+      echo "Change to normal login user & cd to ~/n7nix/tracker"
+      echo "Now run tracker_install.sh"
+
+##      source ./tracker_install.sh
       popd > /dev/null
    ;;
 
