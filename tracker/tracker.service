@@ -1,5 +1,5 @@
 [Unit]
-Description=dantracker
+Description=aprs_tracker
 BindsTo=sys-subsystem-net-devices-ax0.device
 After=network.service
 After=ax25dev.service
