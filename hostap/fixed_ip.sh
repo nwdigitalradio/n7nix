@@ -1,11 +1,13 @@
 #!/bin/bash
 #
 # Set a fixed lan ip address
+#  Usage: $scriptname [-l][-s][-w][-d][-h] last_ip_octet or complete ip address
 #
 # Edit file:
 #  /etc/dhcpcd.conf
 # Check file:
 #  /etc/network/interfaces
+#
 #DEBUG=1
 DEBUG_MODE="false"
 DEBUG_RESET_NETWORKING="false"
