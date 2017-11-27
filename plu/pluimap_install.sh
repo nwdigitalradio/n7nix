@@ -44,11 +44,16 @@ npm install -g websocket connect finalhandler serve-static
 npm install jquery
 cp node_modules/jquery/dist/jquery.min.js jquery.js
 
-echo "$scriptname: Install systemd files for paclink-unix web service."
-service_name="pluweb.service"
-# Setup systemd files for paclink-unix web server auto start
-if [ ! -f "/etc/systemd/system/$service_name" ] ; then
-   echo "File /etc/systemd/system/$service_name DOES NOT EXIST"
+# If there are any command line args do not install this service file
+# A different service file is used to install paclink-unix with a
+# tracker.
+if( (( $# == 0 )) ; then
+   echo "$scriptname: Install systemd files for paclink-unix web service."
+   service_name="pluweb.service"
+   # Setup systemd files for paclink-unix web server auto start
+   if [ ! -f "/etc/systemd/system/$service_name" ] ; then
+      echo "File /etc/systemd/system/$service_name DOES NOT EXIST"
+   fi
 fi
 
 echo "$(date "+%Y %m %d %T %Z"): plu with imap install script FINISHED" >> $UDR_INSTALL_LOGFILE

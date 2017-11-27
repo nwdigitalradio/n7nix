@@ -82,7 +82,8 @@ case $APP_SELECT in
    # Install pluimap & nixtracker
       echo "$scriptname: Install messanger appliance"
       pushd ../plu
-      source ./pluimap_install.sh
+      # Command line arg prevents installation of pluweb.service
+      source ./pluimap_install.sh -
       popd > /dev/null
       pushd ../tracker
       echo "Change to normal login user & cd to ~/n7nix/tracker"
