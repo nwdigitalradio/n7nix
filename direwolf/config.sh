@@ -240,10 +240,10 @@ sed -i -e '/ADEVICE  plughw/ s/# ADEVICE  plughw:1,0/ADEVICE plughw:CARD=udrc,DE
 dbgecho "ACHANNELS"
 sed -i -e '/ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
 dbgecho "PTT"
-sed -i -e '/#PTT GPIO 25/ s/#PTT GPIO 25/PTT GPIO 12/' $DIREWOLF_CFGFILE
+sed -i -e "/#PTT GPIO 25/ s/#PTT GPIO 25/PTT GPIO $chan1ptt/" $DIREWOLF_CFGFILE
 # Set up the second channel
 dbgecho "CHANNEL1"
-sed -i -e "/#CHANNEL 1/ s/#CHANNEL 1/CHANNEL 1\nPTT GPIO 23\nMODEM 1200\nMYCALL $CALLSIGN1\n/" $DIREWOLF_CFGFILE
+sed -i -e "/#CHANNEL 1/ s/#CHANNEL 1/CHANNEL 1\nPTT GPIO $chan2ptt\nMODEM 1200\nMYCALL $CALLSIGN1\n/" $DIREWOLF_CFGFILE
 
 echo "Config Internet Gateway LOGIN"
 
