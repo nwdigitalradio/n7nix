@@ -6,7 +6,7 @@ sset 'ADC Level' -2.0dB
 sset 'LO Driver Gain' 0dB
 sset 'PCM' 0.0dB
 
-#  Turn on AFOUT 
+#  Turn on AFOUT
 sset 'CM_L to Left Mixer Negative Resistor' '10 kOhm'
 sset 'IN1_L to Left Mixer Positive Resistor' '10 kOhm'
 
