@@ -75,3 +75,8 @@ tail -f /var/log/rms.debug
 tail: cannot open '/var/log/rms.debug' for reading: No such file or directory
 ```
 * on new installations the log file will be empty for up to 1/2 hour or so.
+
+### Sending daily RMS Gateway reports via email using CRON
+
+* See [Sending System reports via Winlink using CRON](https://github.com/nwdigitalradio/n7nix/blob/master/debug/MAILSYSREPORT.md)
+  * From the [debug repository](https://github.com/nwdigitalradio/n7nix/tree/master/debug)
