@@ -47,7 +47,7 @@ cp node_modules/jquery/dist/jquery.min.js jquery.js
 # If there are any command line args do not install this service file
 # A different service file is used to install paclink-unix with a
 # tracker.
-if( (( $# == 0 )) ; then
+if (( $# == 0 )) ; then
    echo "$scriptname: Install systemd files for paclink-unix web service."
    service_name="pluweb.service"
    # Setup systemd files for paclink-unix web server auto start
