@@ -233,4 +233,4 @@ echo
 # install postfix
 source $CUR_DIR/postfix_install.sh
 # install mutt
-source $CUR_DIR/mutt_install.sh $USER $CALLSIGN
+source $CUR_DIR/../email/mutt_install.sh $USER $CALLSIGN
