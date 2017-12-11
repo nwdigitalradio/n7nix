@@ -30,6 +30,7 @@ tracker_type="nix"
 TRACKER_DEST_DIR="$BIN_DIR"
 TRACKER_DEST_DIR_1="$BIN_DIR_1"
 TRACKER_CFG_DIR="/etc/tracker"
+TRACKER_CFG_FILE="$TRACKER_CFG_DIR/aprs_tracker.ini"
 TRACKER_SRC_DIR="$SRC_DIR/${tracker_type}tracker"
 TRACKER_N7NIX_DIR="/home/$user/n7nix/tracker"
 
@@ -285,11 +286,19 @@ if [ ! -d $TRACKER_CFG_DIR ] ; then
    sudo mkdir -p $TRACKER_CFG_DIR
 fi
 
-if [ -f $TRACKER_CFG_DIR/aprs_tracker.ini ] ; then
+if [ -f $TRACKER_CFG_FILE ] ; then
    echo "** tracker already config'ed in $TRACKER_CFG_DIR"
    echo "** please edit manually."
 else
-   sudo cp $TRACKER_N7NIX_DIR/aprs_tracker.ini $TRACKER_CFG_DIR
+   sudo cp $TRACKER_N7NIX_FILE $TRACKER_CFG_DIR
+fi
+
+# Need to set a user in config file
+CFG_USER=$(grep -i "user" $TRACKER_CFG_FILE | cut -d"=" -f2 | tr -d ' ')
+if [ -z $CFG_USER ] ; then
+{
+echo "user = $user"
+} >> $TRACKER_CFG_FILE
 fi
 
 echo
@@ -300,7 +309,7 @@ SERVICE_NAME="pluweb.service"
 if [ -f /etc/systemd/system/$SERVICE_NAME ] ; then
    sudo systemctl stop $SERVICE_NAME
    sudo systemctl disable $SERVICE_NAME
-   rm /etc/systemd/system/$SERVICE_NAME
+   sudo rm /etc/systemd/system/$SERVICE_NAME
 fi
 
 
