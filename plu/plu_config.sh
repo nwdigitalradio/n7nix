@@ -153,4 +153,4 @@ echo
 # configure postfix
 source $CUR_DIR/postfix_config.sh $USER
 # configure mutt
-source $CUR_DIR/../email/mutt_config.sh $USER $CALLSIGN
+source $CUR_DIR/../email/mutt/mutt_config.sh $USER $CALLSIGN
