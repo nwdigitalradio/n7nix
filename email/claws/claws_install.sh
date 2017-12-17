@@ -2,7 +2,8 @@
 #
 # claws_install.sh [user_name] [callsign]
 #
-# claws-email needs to run to create all the initial config files.
+# claws-email needs to run so that the claws-mail setup wizard creates
+# all the initial config files.
 #
 # Config claws-email for an imap server
 # Edit these account setting variables
@@ -42,6 +43,27 @@ function get_user() {
       echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
       read -e USER
    fi
+}
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+   dbgecho " "
+   dbgecho "using USER: $USER"
+   dbgecho " "
 }
 
 # ===== get_tmp_fname
@@ -112,28 +134,15 @@ if [ -z "$USER" ] ; then
    echo "USER string is null, get_user"
    get_user
 else
-   echo "USER=$USER, not null"
+   echo "USER=$USER, OK"
 fi
 
 # verify user name is legit
-userok=false
-
-for username in $USERLIST ; do
-   if [ "$USER" = "$username" ] ; then
-      userok=true;
-   fi
-done
-
-if [ "$userok" = "false" ] ; then
-   echo "User name does not exist,  must be one of: $USERLIST"
-   exit 1
-fi
+check_user
 
 if [ $user != $USER ] ; then
    echo "Please login as $USER"
    exit 1
-else
-   dbgecho "using USER: $USER"
 fi
 
 pkg_name="claws-mail"
@@ -147,6 +156,14 @@ if [ $? -ne 0 ] ; then
    echo " After running claws-mail, run this install script again."
    echo " See install notes in readme."
    exit 0
+fi
+
+# Check if claws-mail is running
+# if 'pgrep' returns 0, the process is running
+if pgrep claws-mail > /dev/null 2>&1 ; then
+
+  echo "claws-mail program is running, exit elaws-mail then re-run script."
+  exit 1
 fi
 
 echo "Enter real name ie. Joe Blow, followed by [enter]:"
@@ -172,7 +189,6 @@ else
    fi
    cp accountrc "$claws_mail_cfg_file"
 fi
-
 
 echo "Change  name=$REALNAME"
 sed -i -e "/name=/ s/name=.*/name=$REALNAME/" $claws_mail_cfg_file
