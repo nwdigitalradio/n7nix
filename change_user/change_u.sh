@@ -57,8 +57,14 @@ dbgecho "using USER: $USER"
 
 # ===== main
 
-# check if group exists
+# must be root
+if [[ $EUID != 0 ]] ; then
+   echo "Login as root"
+   exit 1
+fi
 
+# check if group exists
+echo "Checking if groups exist"
 for GROUP in $GROUP_LIST ; do
    if [ $(getent group $GROUP) ]; then
      echo "group $GROUP exists."
@@ -68,8 +74,10 @@ for GROUP in $GROUP_LIST ; do
    fi
 done
 
+get_user
 
 # check if user is in group
+echo "Checking if user is in groups"
 for GROUP in $GROUP_LIST ; do
    if id -nG "$USER" | grep -qw "$GROUP"; then
       echo $USER belongs to $GROUP
