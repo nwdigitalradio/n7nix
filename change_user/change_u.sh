@@ -1,6 +1,16 @@
 #!/bin/bash
 #
-# Setup groups for a new user
+# This script will setup groups for a new user
+# But also need to replace 'pi' with new user name in these files:
+#  - /usr/bin/raspi-config
+#  - /etc/lightdm/lightdm.conf
+# now run sudo raspi-config
+# Select the third option:
+#   3 Enable Boot to Desktop/Scratch
+# Select the second option:
+#   2 Desktop Log in as user 'bob' at the graphical desktop
+# Doing this allows configuration files to be written to automatically
+# boot into the GUI with a changed user name (not pi)
 #
 # Uncomment this statement for debug echos
 DEBUG=1
