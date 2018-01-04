@@ -34,7 +34,7 @@ if [ $? -ne 0 ] ; then
    apt-get install -y -q $pkg_name
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): postfix install script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: postfix install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "postfix install FINISHED"
 echo

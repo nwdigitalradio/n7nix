@@ -218,7 +218,7 @@ fi
 
 CopyFiles
 
-echo "$(date "+%Y %m %d %T %Z"): systemd install script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: systemd install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "systemd install script FINISHED"
 echo

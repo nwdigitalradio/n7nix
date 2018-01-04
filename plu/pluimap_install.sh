@@ -56,7 +56,7 @@ if (( $# == 0 )) ; then
    fi
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): plu with imap install script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: plu with imap install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "paclink-unix with imap, install script FINISHED"
 echo

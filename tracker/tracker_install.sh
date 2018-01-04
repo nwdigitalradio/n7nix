@@ -16,6 +16,7 @@ DEBUG=1
 FORCE_BUILD="false"
 
 scriptname="`basename $0`"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 user=$(whoami)
 
 SRC_DIR="/home/$user/dev"
@@ -326,5 +327,7 @@ else
    echo "System service $SERVICE_NAME already installed."
 fi
 
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: ${tracker_type}tracker install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
-echo "finished building & installing ${tracker_type}tracker"
+echo "${tracker_type}tracker build & install FINISHED"
+echo

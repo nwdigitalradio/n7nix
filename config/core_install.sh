@@ -352,7 +352,7 @@ if [ $? -ne 0 ] ; then
 fi
 chmod +x set-udrc-din6.sh
 
-echo "$(date "+%Y %m %d %T %Z"): core install script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: core install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "core install script FINISHED"
 echo

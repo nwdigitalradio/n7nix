@@ -122,7 +122,7 @@ case $APP_SELECT in
    ;;
 esac
 
-echo "$(date "+%Y %m %d %T %Z"): app config ($APP_SELECT) script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: app config ($APP_SELECT) script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "app config ($APP_SELECT) script FINISHED"
 echo

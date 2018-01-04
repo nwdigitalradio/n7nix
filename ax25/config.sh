@@ -159,7 +159,7 @@ else
    echo "ax25d.conf already configured"
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): ax.25 install script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: ax.25 install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "ax.25 config script FINISHED"
 echo

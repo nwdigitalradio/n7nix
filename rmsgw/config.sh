@@ -345,7 +345,7 @@ fi
 # run mksysop.py
 # Check /etc/rmsgw/new-sysop.xml
 
-echo "$(date "+%Y %m %d %T %Z"): rmsgw config script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: rmsgw config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "rmsgw config script FINISHED"
 echo

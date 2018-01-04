@@ -26,7 +26,7 @@ systemctl enable ax25-mheardd.service
 
 systemctl daemon-reload
 
-echo "$(date "+%Y %m %d %T %Z"): systemd config script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: systemd config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "systemd config script FINISHED"
 echo

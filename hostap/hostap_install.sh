@@ -6,6 +6,7 @@
 DEBUG=1
 
 scriptname="`basename $0`"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 SSID="NOT_SET"
 
 # Required pacakges
@@ -91,7 +92,7 @@ for pkg_name in `echo ${PKGLIST}` ; do
    fi
 done
 
-echo "$(date "+%Y %m %d %T %Z"): hostap install script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: hostap install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "hostap install FINISHED"
 echo

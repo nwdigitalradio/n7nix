@@ -204,8 +204,7 @@ sed -i -e "/signature_path=/ s/signature_path=.*/signature_path=\/home\/$USER\/\
 echo "Change smtp_user_id=$USER"
 sed -i -e "/smtp_user_id=/ s/smtp_user_id=.*/smtp_user_id=$USER/" $claws_mail_cfg_file
 
-#sudo sh -c "echo 'VNCSERVERS=\"1:root\"' >> /etc/sysconfig/configfile" (note that the inner double-quotes must be escaped)
-sudo sh -c "echo $(date "+%Y %m %d %T %Z"): claws-mail install script FINISHED >> $UDR_INSTALL_LOGFILE"
+sudo sh -c "echo $(date "+%Y %m %d %T %Z"): $scriptname: claws-mail install script FINISHED >> $UDR_INSTALL_LOGFILE"
 echo
 echo "claws-mail install FINISHED"
 echo

@@ -58,7 +58,7 @@ else
    echo
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): imapserv install script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: imapserv install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "imapserv install FINISHED"
 echo

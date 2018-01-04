@@ -6,6 +6,7 @@
 DEBUG=1
 
 scriptname="`basename $0`"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 SSID="NOT_SET"
 
 # ===== function debugecho
@@ -254,7 +255,7 @@ for service_name in `echo ${SERVICELIST}` ; do
    fi
 done
 
-echo "$(date "+%Y %m %d %T %Z"): hostap config script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: hostap config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "hostap config FINISHED"
 echo

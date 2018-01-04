@@ -276,7 +276,7 @@ sed -i -e "/^[#]*IGLOGIN / s/^[#]*IGLOGIN .*/IGLOGIN $CALLSIGN $logincode\n/" $D
 dbgecho "IGSERVER"
 sed -i -e "/#IGSERVER / s/^#//" $DIREWOLF_CFGFILE
 
-echo "$(date "+%Y %m %d %T %Z"): direwolf config script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: direwolf config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "direwolf config script FINISHED"
 echo

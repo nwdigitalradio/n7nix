@@ -136,7 +136,7 @@ sed -i -e "/#listen / s/^#//" /etc/dovecot/dovecot.conf
 systemctl restart postfix
 systemctl restart dovecot
 
-echo "$(date "+%Y %m %d %T %Z"): imapserv config script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: imapserv config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "imapserv config FINISHED"
 echo

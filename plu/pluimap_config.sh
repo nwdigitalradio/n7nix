@@ -54,7 +54,7 @@ else
    echo "ERROR: $service_name did NOT start."
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): plu with imap config script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: plu with imap config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "paclink-unix with imap, config script FINISHED"
 echo

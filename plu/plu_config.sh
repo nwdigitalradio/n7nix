@@ -146,7 +146,7 @@ else
    echo "$scriptname: paclink-unix has already been configured."
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): paclink-unix basic config FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: paclink-unix basic config FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "paclink-unix basic config FINISHED"
 echo

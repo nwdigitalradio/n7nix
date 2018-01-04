@@ -205,6 +205,13 @@ if [ -z "$DEFER_BUILD" ] ; then
    popd > /dev/null
 fi
 
+# Check that source dir belongs to user to that they can do a git pull
+#  if required.
+echo "=== test owner & group id of source directory"
+if [ $(stat -c "%U" $SRC_DIR/paclink-unix) != "$USER" ] || $(stat -c "%U" $SRC_DIR/paclink-unix) != "$USER" ] ; then
+   chown -R $USER:$USER $SRC_DIR/paclink-unix
+fi
+
 echo "=== test files 'missing' & 'test-driver'"
 pwd
 ls -salt $SRC_DIR/paclink-unix/missing $SRC_DIR/paclink-unix/test-driver
@@ -226,7 +233,7 @@ if [ "$EXITFLAG" = "true" ] ; then
   exit 1
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): paclink-unix basic install script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: paclink-unix basic install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "paclink-unix install FINISHED"
 echo

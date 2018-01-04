@@ -4,6 +4,7 @@
 DEBUG=1
 
 scriptname="`basename $0`"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 pkgname="direwolf"
 
 VER="1.4"
@@ -125,6 +126,8 @@ install_direwolf_source
 
 dire_new_ver=$(direwolf -v 2>/dev/null | grep -m 1 -i version)
 
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: direwolf update script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo
 echo "direwolf version was: $dire_ver is now: $dire_new_ver"
 
 exit 0

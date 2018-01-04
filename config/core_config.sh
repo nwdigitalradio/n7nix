@@ -4,8 +4,8 @@
 #
 # Uncomment this statement for debug echos
 DEBUG=1
-scriptname="`basename $0`"
 
+scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -176,7 +176,7 @@ retcode="$?"
 dbgecho "Set sound card levels return: $retcode"
 cd $START_DIR
 
-echo "$(date "+%Y %m %d %T %Z"): core config script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: core config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "core config script FINISHED"
 echo

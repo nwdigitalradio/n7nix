@@ -127,7 +127,7 @@ echo "nobody:  $USER"
 
 newaliases
 
-echo "$(date "+%Y %m %d %T %Z"): postfix config script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: postfix config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "postfix config FINISHED"
 echo
