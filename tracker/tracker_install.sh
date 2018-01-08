@@ -308,15 +308,14 @@ echo "== setup systemd service"
 # Check for an incompatible service entry installed with pluimap
 SERVICE_NAME="pluweb.service"
 if [ -f /etc/systemd/system/$SERVICE_NAME ] ; then
+   echo "Replacing $SERVICE_NAME"
    sudo systemctl stop $SERVICE_NAME
    sudo systemctl disable $SERVICE_NAME
    sudo rm /etc/systemd/system/$SERVICE_NAME
 fi
 
-
-SERVICE_NAME="tracker.service"
-
 # Check if systemd service has already been installed
+SERVICE_NAME="tracker.service"
 if [ ! -f /etc/systemd/system/$SERVICED_NAME ] ; then
    sed -i -e "s/\$user/$user/" $TRACKER_N7NIX_DIR/$SERVICE_NAME
    sudo cp $TRACKER_N7NIX_DIR/$SERVICE_NAME /etc/systemd/system/
