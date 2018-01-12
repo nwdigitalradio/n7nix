@@ -20,6 +20,7 @@ GROUP_LIST="adm mail dialout cdrom sudo audio video plugdev games users input ne
 
 USER=
 GROUP=
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function get_user
 function get_user() {
