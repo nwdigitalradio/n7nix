@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# This script copies the components of a kernel, to their appropriate
-# directories on a mounted SD card
+# This script copies the components of a kernel, to appropriate
+# directories on a mounted SD card or a local directory.
 #
-# *** You MUST make sure that the variable flash_dev is set properly or
-# you could hose your workstation.
+# *** When coping to a mounted SD card you MUST make sure that the
+# variable flash_dev is set properly or you could hose your workstation.
 #
 # This script should be run from the base directory where kernel was
 # built.
