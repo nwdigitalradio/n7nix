@@ -12,6 +12,14 @@
 # Doing this allows configuration files to be written to automatically
 # boot into the GUI with a changed user name (not pi)
 #
+# From Kenny, captured for reference
+# If you edit /etc/dbus-1/system.d/bluetooth.conf
+# Change the line:
+#   <deny send_destination="org.bluez"/>
+# to:
+#  <allow send_destination="org.bluez"/>
+# and reboot
+#
 # Uncomment this statement for debug echos
 DEBUG=1
 #
