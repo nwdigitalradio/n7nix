@@ -1,5 +1,10 @@
 ## Overview steps to install a modified kernel
 
+All of the steps take place on a Linux workstation. The first step
+is to plug a 16GB flash part into your flash reader and the last
+step is to unplug the flash part & install it in your Raspberry
+Pi.
+
 * Get a root file system image
 * Copy image to flash part
 * Get a modified kernel
@@ -29,9 +34,10 @@ unzip image_<date>-compass-lite.zip
   *  **Need to modify these variables: flash_dev & img_date to suit**
   * **WARNING: Verify variable flash_dev in flashit.sh is in fact the flash device!**
     * **if it isn't you can hose your workstation**
+
   * Assumes:
-    * you can mount the fat32 partition at /mnt/fat32
-    * you can mount the ext4 partition at /mnt/ext4
+    * You can mount the fat32 partition at /mnt/fat32
+    * You can mount the ext4 partition at /mnt/ext4
     * flashit.sh script is in same directory as image directory
     * Run as root
 ```
@@ -83,8 +89,12 @@ cd n7nix/kernbuild
 ```
 * **WARNING: Verify variable flash_dev in kern_cpy_flash.sh is in fact the flash device!**
   * **if it isn't you can hose your workstation**
+
+  * Assumes:
+    * You can mount the fat32 partition at /mnt/fat32
+    * You can mount the ext4 partition at /mnt/ext4
+    * Run as root
 ```
-# as root run
 ./kern_cpy_flash.sh
 ```
 
@@ -95,7 +105,7 @@ rsync: chown "/mnt/fat32/overlays/.adau1977-adc.dtbo.X6QxJg" failed: Operation n
 ```
 
 * You are done, install flash part on RPi & boot
-  * To verify that you are running a custom kernel
+  * To verify that you are running a custom kernel:
 ```
 cat /proc/version
 ```
