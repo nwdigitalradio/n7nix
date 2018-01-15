@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# Build a linux kernel
+# Assume
 TOOLS_DIR=/home/gunn/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-
 #TOOLS_DIR=/home/gunn/projects/rpi/tools/arm-bcm2708/arm-rpi-4.9.3-linux-gnueabihf/bin/arm-linux-gnueabihf-
 #TOOLS_DIR=/home/gunn/projects/rpi/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-
@@ -37,7 +40,6 @@ if [ $? -ne 0 ] ; then
 fi
 
 echo "============================"
-echo "COPY files to SD card"
-
+echo "Building kernel $(make kernelversion) Finished"
 
 exit 0
