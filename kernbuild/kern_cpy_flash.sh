@@ -16,11 +16,12 @@ KERNEL=kernel7
 BOOT_DIR=/mnt/fat32
 FS_DIR=/mnt/ext4
 
+# For reference only
 # Run from Linux kernel base address
 #SRC_DIR=/home/gunn/dev/github
 #SRC_BOOTDIR="arch/arm/boot"
 
-# Run from git repo after running kern_cpy_local.sh
+# Run from git repo
 SRC_DIR="$(pwd)/kern"
 SRC_BOOTDIR="$SRC_DIR/boot"
 
@@ -99,8 +100,14 @@ fi
 rsync -au $SRC_BOOTDIR/dts/overlays/README $BOOT_DIR/overlays/
 
 sync
+
+echo
+echo "==== directory of $BOOT_DIR"
 ls -salt $BOOT_DIR
+echo
+echo "==== directory of $FS_DIR"
 ls -salt $FS_DIR
+echo
 umount $BOOT_DIR
 umount $FS_DIR
 
