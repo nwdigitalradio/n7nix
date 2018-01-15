@@ -69,6 +69,7 @@ if [ "$FULL_UPDATE" == "true" ] ; then
    fi
 fi
 
+# back-up existing kernel image
 SRC_FILE="$BOOT_DIR/$KERNEL.img"
 cp  $SRC_FILE $BOOT_DIR/$KERNEL-backup.img
 if [ $? -ne 0 ] ; then
@@ -76,6 +77,7 @@ if [ $? -ne 0 ] ; then
    exit 1
 fi
 
+# copy a new kernel image
 SRC_FILE="$SRC_BOOTDIR/zImage"
 cp $SRC_FILE $BOOT_DIR/$KERNEL.img
 if [ $? -ne 0 ] ; then
