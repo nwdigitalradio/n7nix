@@ -15,7 +15,14 @@ KERNEL=kernel7
 
 BOOT_DIR=/mnt/fat32
 FS_DIR=/mnt/ext4
-SRC_DIR=/home/gunn/dev/github
+
+# Run from Linux kernel base address
+#SRC_DIR=/home/gunn/dev/github
+#SRC_BOOTDIR="arch/arm/boot"
+
+# Run from git repo after running kern_cpy_local.sh
+SRC_DIR="$(pwd)/kern"
+SRC_BOOTDIR="$SRC_DIR/boot"
 
 # must run as root
 if [[ $EUID -ne 0 ]]; then
@@ -55,7 +62,7 @@ fi
 # Depending on what's been worked on usually do not have to
 #  refresh the modules after each kernel build.
 if [ "$FULL_UPDATE" == "true" ] ; then
-   rsync -auv $SRC_DIR/lib/modules/* $FS_DIR/lib/modules
+   rsync -au $SRC_DIR/lib/modules/* $FS_DIR/lib/modules
    if [ $? -ne 0 ] ; then
       echo "Problem rsyncing modules dir"
       exit 1
@@ -69,25 +76,25 @@ if [ $? -ne 0 ] ; then
    exit 1
 fi
 
-SRC_FILE="arch/arm/boot/zImage"
+SRC_FILE="$SRC_BOOTDIR/zImage"
 cp $SRC_FILE $BOOT_DIR/$KERNEL.img
 if [ $? -ne 0 ] ; then
    echo "Problem copying file: $SRC_FILE"
 fi
 
-SRC_FILE="arch/arm/boot/dts/*.dtb"
-rsync -av  "$SRC_FILE" $BOOT_DIR/
+SRC_FILE="$SRC_BOOTDIR/dts/*.dtb"
+rsync -au --exclude=".*" $SRC_FILE $BOOT_DIR
 if [ $? -ne 0 ] ; then
    echo "Problem copying file: $SRC_FILE"
 fi
 
-SRC_FILE="arch/arm/boot/dts/overlays/*.dtb*"
-rsync -av "$SRC_FILE" $BOOT_DIR/overlays/
+SRC_FILE="$SRC_BOOTDIR/dts/overlays/*.dtb*"
+rsync -au --exclude=".*" $SRC_FILE $BOOT_DIR/overlays/
 if [ $? -ne 0 ] ; then
    echo "Problem copying file: $SRC_FILE"
 fi
 
-rsync -auv arch/arm/boot/dts/overlays/README $BOOT_DIR/overlays/
+rsync -au $SRC_BOOTDIR/dts/overlays/README $BOOT_DIR/overlays/
 
 sync
 ls -salt $BOOT_DIR
