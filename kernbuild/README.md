@@ -10,10 +10,22 @@
 After building a kernel you need to copy the kernel image & device tree & overlay files to
 the boot partition and the modules to the root file system.
 
-#### cpy_local_kern.sh
+#### kern_cpy_flash.sh
 
+* Copies kernel components from a linux kernel tree or some other directory struct to a flash card
 * Requires an SD card with a boot partition & root file system partitiion.
+* Copies from this directory structure to appropriate RPi file system
 
-#### cpy_remote_kern.sh
+```
+$BASE_DIR/lib/modules/
+$BASE_DIR/boot/
+$BASE_DIR/boot/dts/*.dtb
+$BASE_DIR/boot/dts/overlays/*.dtb*
+```
+#### kern_cpy_local.sh
+
+* copies kernel components from a linux tree to some other location like a github repo
+
+#### kern_cpy_remote.sh
 
 * Requires a network connection
