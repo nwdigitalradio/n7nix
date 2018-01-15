@@ -1,99 +1,134 @@
 #!/bin/bash
 #
-# This script copies the components of a kernel, to appropriate
-# directories on a mounted SD card or a local directory.
+# kern_cpy_local.sh
 #
-# *** When coping to a mounted SD card you MUST make sure that the
-# variable flash_dev is set properly or you could hose your workstation.
+# This script copies the components of a kernel to a local directory
+# structure. It must be run from the base of the destination directory
 #
-# This script should be run from the base directory where kernel was
-# built.
+# *** Run this script at the root directory of where you want to place
+# the kernel components so that you don't hose your workstation.
+#
 
-flash_dev=sde
-FULL_UPDATE=true
+# Debug flag to show what would be copied
+#DRY_RUN="true"
+
+BASE_DIR="$(pwd)/kern"
 KERNEL=kernel7
+user="$(whoami)"
 
-BOOT_DIR=/mnt/fat32
-FS_DIR=/mnt/ext4
-SRC_DIR=/home/gunn/dev/github
 
-# must run as root
-if [[ $EUID -ne 0 ]]; then
-  echo "*** Run as root" 2>&1
+BOOT_DIR="$BASE_DIR/boot"
+FS_DIR="$BASE_DIR"
+SRC_DIR="/home/$user/dev/github/"
+SRC_LINUXDIR="/home/$user/dev/github/linux"
+SRC_BOOTDIR="$SRC_LINUXDIR/arch/arm/boot"
+
+# Don't run as root
+if [[ $EUID -eq 0 ]]; then
+  echo "*** Run as user not root" 2>&1
   exit 1
 fi
 
+
 if [ ! -d $BOOT_DIR ] ; then
-   mkdir -p $BOOT_DIR
+   mkdir -p $BOOT_DIR/dts/overlays
+   echo "Made directory $BOOT_DIR/dts/overlays"
 fi
 
-if [ ! -d $FS_DIR ] ; then
-   mkdir -p $FS_DIR
+if [ ! -d "$FS_DIR/lib/modules" ] ; then
+   mkdir -p "$FS_DIR/lib/modules"
+   echo "Made directory $FS_DIR/lib/modules"
 fi
 
-if [ ! -e "/dev/${flash_dev}1" ] ; then
-   echo "Flash device: ${flash_dev}1 does not exist, exiting"
-   exit 1
-fi
+pushd $SRC_LINUXDIR > /dev/null
+kernel_version="$(make kernelversion)"
+popd > /dev/null
 
-if [ ! -e "/dev/${flash_dev}2" ] ; then
-   echo "Flash device: ${flash_dev}2 does not exist, exiting"
-   exit 1
-fi
+echo $kernel_version > $BASE_DIR/version
+echo "Copying files for kernel version $kernel_version"
 
-mount /dev/${flash_dev}1 $BOOT_DIR
-if [ $? -ne 0 ] ; then
-   echo "Mount failed on: /dev/${flash_dev}1"
-   exit 1
-fi
-mount /dev/${flash_dev}2 $FS_DIR
-if [ $? -ne 0 ] ; then
-   echo "Mount failed on: /dev/${flash_dev}2"
-   exit 1
-fi
-
-# Depending on what's been worked on usually do not have to
-#  refresh the modules after each kernel build.
-if [ "$FULL_UPDATE" == "true" ] ; then
-   rsync -auv $SRC_DIR/lib/modules/* $FS_DIR/lib/modules
+#  refresh the modules
+DEST_DIR="$FS_DIR/lib/modules"
+if [ "$DRY_RUN" = "true" ] ; then
+   echo "Copying $(ls -1 $SRC_DIR/lib/modules/* | wc -l) modules to: $DEST_DIR"
+else
+   rsync -au $SRC_DIR/lib/modules/* $DEST_DIR
    if [ $? -ne 0 ] ; then
-      echo "Problem rsyncing modules dir"
+      echo "Problem rsyncing modules: "
       exit 1
    fi
 fi
 
-SRC_FILE="$BOOT_DIR/$KERNEL.img"
-cp  $SRC_FILE $BOOT_DIR/$KERNEL-backup.img
-if [ $? -ne 0 ] ; then
-   echo "Problem backing up file: $SRC_FILE"
-   exit 1
+SRC_FILE="$SRC_LINUXDIR/$KERNEL.img"
+DEST_FILE="$BOOT_DIR/$KERNEL-backup.img"
+if [ -f "$SRC_FILE" ] ; then
+   if [ "$DRY_RUN" = "true" ] ; then
+      echo "Copying($ls -1 $SRC_FILE | wc -l) backup kernel: $DEST_FILE"
+   else
+      cp  $SRC_FILE $DEST_FILE
+      if [ $? -ne 0 ] ; then
+         echo "Problem backing up file: $SRC_FILE"
+         exit 1
+      fi
+   fi
 fi
 
-SRC_FILE="arch/arm/boot/zImage"
-cp $SRC_FILE $BOOT_DIR/$KERNEL.img
-if [ $? -ne 0 ] ; then
-   echo "Problem copying file: $SRC_FILE"
+SRC_FILE="$SRC_BOOTDIR/zImage"
+DEST_FILE="$BOOT_DIR/zImage"
+if [ "$DRY_RUN" = "true" ] ; then
+   echo "Copying $(ls -1 $SRC_FILE | wc -l) kernel file to: $DEST_FILE"
+else
+   cp $SRC_FILE $DEST_FILE
+   if [ $? -ne 0 ] ; then
+      echo "Problem copying file: $SRC_FILE"
+   fi
 fi
 
-SRC_FILE="arch/arm/boot/dts/*.dtb"
-rsync -av  "$SRC_FILE" $BOOT_DIR/
-if [ $? -ne 0 ] ; then
-   echo "Problem copying file: $SRC_FILE"
+SRC_FILE="$SRC_BOOTDIR/dts/*.dtb"
+DEST_DIR="$BOOT_DIR/dts"
+if [ "$DRY_RUN" = "true" ] ; then
+   echo "Copying $(ls -1 $SRC_FILE | wc -l) device tree binary files to: $DEST_DIR"
+else
+   rsync -a $SRC_FILE "$DEST_DIR"
+   if [ $? -ne 0 ] ; then
+      echo "Problem copying files: $SRC_FILE"
+   fi
 fi
 
-SRC_FILE="arch/arm/boot/dts/overlays/*.dtb*"
-rsync -av "$SRC_FILE" $BOOT_DIR/overlays/
-if [ $? -ne 0 ] ; then
-   echo "Problem copying file: $SRC_FILE"
+SRC_FILE="$SRC_BOOTDIR/dts/overlays/*.dtb*"
+DEST_DIR="$BOOT_DIR/dts/overlays/"
+if [ "$DRY_RUN" = "true" ] ; then
+   echo "Copying $(ls -1 $SRC_FILE | wc -l) device tree binary files to: $DEST_DIR"
+else
+   rsync -a $SRC_FILE "$DEST_DIR"
+   if [ $? -ne 0 ] ; then
+      echo "Problem copying file: $SRC_FILE"
+   fi
 fi
 
-rsync -auv arch/arm/boot/dts/overlays/README $BOOT_DIR/overlays/
+SRC_FILE="$SRC_BOOTDIR/dts/overlays/README"
+DEST_DIR="$BOOT_DIR/dts/overlays/"
+if [ "$DRY_RUN" = "true" ] ; then
+   echo "Copying $(ls -1 $SRC_FILE | wc -l) overlay README file to: $DEST_DIR"
+else
+   rsync -au $SRC_FILE $DEST_DIR
+fi
 
-sync
-ls -salt $BOOT_DIR
-ls -salt $FS_DIR
-umount $BOOT_DIR
-umount $FS_DIR
+if [ "$DRY_RUN" != "true" ] ; then
+   sync
+   echo
+   echo "==== directory of $BOOT_DIR"
+   ls -salt $BOOT_DIR
+   echo
+   echo "==== directory of $BOOT_DIR/dts"
+   ls -salt $BOOT_DIR/dts
+   echo
+#   echo "==== directory of $BOOT_DIR/dts/overlays"
+#   ls -salt $BOOT_DIR/dts/overlays
+#   echo
+   echo "==== directory of $FS_DIR"
+   ls -salt $FS_DIR
+fi
 
 echo
-echo "*** Finished copying updated kernel to flash"
+echo "*** Finished copying kernel components to $BASE_DIR"
