@@ -1,4 +1,4 @@
-## Notes on building a custom kernel or RPi and coping to proper director.
+## Notes on building a custom kernel for RPi and copying to proper directory
 
 #### build.sh
 
@@ -12,9 +12,11 @@ the boot partition and the modules to the root file system.
 
 #### kern_cpy_flash.sh
 
-* Copies kernel components from a linux kernel tree or some other directory struct to a flash card
+* Copies kernel components to a flash card either from:
+  * a linux kernel tree or
+  * some other directory struct created by kern_cpy_local.sh
 * Requires an SD card with a boot partition & root file system partitiion.
-* Copies from this directory structure to appropriate RPi file system
+* Copies from the following directory structure to appropriate RPi file system
 
 ```
 $BASE_DIR/lib/modules/
