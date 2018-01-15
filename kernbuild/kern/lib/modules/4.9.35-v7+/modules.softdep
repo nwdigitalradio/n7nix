@@ -1,0 +1,2 @@
+# Soft dependencies extracted from modules themselves.
+softdep snd_soc_udrc pre: snd_soc_tlv320aic32x4 snd_soc_bcm2835_i2s
