@@ -14,9 +14,13 @@
 * uses udr_defconfig file
 * modules are copied to ../lib/modules
 * builds all files required to boot an RPi
+* Assumes cross compile build tools are already installed.
+  * Used this [Kernel Building link](https://www.raspberrypi.org/documentation/linux/kernel/building.md) as reference.
 
-After building a kernel you need to copy the kernel image & device tree & overlay files to
-the boot partition and the modules to the root file system.
+After building a kernel you need to copy the kernel image & device
+tree & overlay files to the boot partition and the modules to the root
+file system partition. That is facilitated by the kern_cpy_*.sh
+scripts described below.
 
 #### kern_cpy_flash.sh
 

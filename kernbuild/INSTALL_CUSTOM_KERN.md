@@ -37,7 +37,6 @@ unzip image_<date>-compass-lite.zip
 
   * Assumes:
     * You can mount the fat32 partition at /mnt/fat32
-    * You can mount the ext4 partition at /mnt/ext4
     * flashit.sh script is in same directory as image directory
     * Run as root
 ```
@@ -75,9 +74,10 @@ You can either test this image out now to see if it boots or proceed
 to put a modified kernel on the flash part
 
 ### Get a modifed kernel
-* The modified kernel exists in this repo in the __kern__ directory.
+* The modified kernel exists in this repo in the _kern_ directory.
+* Run git as user not root.
 ```
-# Clone my repo
+# Clone repo as user
 git clone https://github.com/nwdigitalradio/n7nix
 ```
 
@@ -93,7 +93,9 @@ cd n7nix/kernbuild
   * Assumes:
     * You can mount the fat32 partition at /mnt/fat32
     * You can mount the ext4 partition at /mnt/ext4
-    * Run as root
+    * Run as root in same directory as directory _kern_
+      *  ie. run it from the cloned repo
+
 ```
 ./kern_cpy_flash.sh
 ```

@@ -29,7 +29,6 @@ if [[ $EUID -eq 0 ]]; then
   exit 1
 fi
 
-
 if [ ! -d $BOOT_DIR ] ; then
    mkdir -p $BOOT_DIR/dts/overlays
    echo "Made directory $BOOT_DIR/dts/overlays"

@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# kern_cpy_flash.sh
+#
 # This script copies the components of a kernel, to appropriate
 # directories on a mounted SD card or a local directory.
 #
