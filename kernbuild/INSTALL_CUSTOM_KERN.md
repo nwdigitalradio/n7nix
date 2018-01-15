@@ -28,7 +28,7 @@ unzip image_<date>-compass-lite.zip
 * See [flashit.sh script](https://github.com/nwdigitalradio/n7nix/blob/master/kernbuild/flashit.sh) for reference
   *  **Need to modify these variables: flash_dev & img_date to suit**
   * **WARNING: Verify variable flash_dev in flashit.sh is in fact the flash device!**
-    * ** if it isn't you can hose your workstation **
+    * **if it isn't you can hose your workstation**
   * Assumes:
     * you can mount the fat32 partition at /mnt/fat32
     * you can mount the ext4 partition at /mnt/ext4
