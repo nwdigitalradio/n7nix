@@ -1,9 +1,19 @@
 #!/bin/bash
 #
+# kern_cpy_remote.sh
+#
+
 FULL_UPDATE=false
 IPADDR="118"
 #DEST_DIR=/var/lib/tftpboot
-DEST_DIR=/home/gunn/var/lib
+user="$(whoami)"
+DEST_DIR=/home/$user/var/lib
+
+# Don't run as root
+if [[ $EUID -eq 0 ]]; then
+  echo "*** Run as user not root" 2>&1
+  exit 1
+fi
 
 # Check for any arguments
 if (( $# != 0 )) ; then
