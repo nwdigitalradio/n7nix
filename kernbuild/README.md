@@ -35,7 +35,7 @@ $BASE_DIR/boot/dts/overlays/*.dtb*
 #### kern_cpy_local.sh
 
 * Copies kernel components from a linux tree to some other location like a github repo
-* Used to refresh the %%kern%% directory in the repo
+* Used to refresh the _kern_ directory in the repo
 
 #### kern_cpy_remote.sh
 
