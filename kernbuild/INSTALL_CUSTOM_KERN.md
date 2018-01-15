@@ -3,7 +3,7 @@
 * Get a root file system image
 * Copy image to flash part
 * Get a modified kernel
-* copy onto flash part
+* Copy modified kernel to flash part
 
 
 ### Get a root file system image
@@ -81,8 +81,8 @@ umount /mnt/fat32
 umount /mnt/ext4
 cd n7nix/kernbuild
 ```
-* ** WARNING: Verify variable flash_dev in kern_cpy_flash.sh is in fact the flash device! **
-  * ** if it isn't you can hose your workstation **
+* **WARNING: Verify variable flash_dev in kern_cpy_flash.sh is in fact the flash device!**
+  * **if it isn't you can hose your workstation**
 ```
 # as root run
 ./kern_cpy_flash.sh
