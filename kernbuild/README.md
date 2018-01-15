@@ -1,5 +1,13 @@
 ## Notes on building a custom kernel for RPi and copying to proper directory
 
+##### Brief description of repo contents
+* build.sh - build a Linux kernel starting from default config
+* flashit.sh - copies an RPi root file system to a flash part
+* kern_cpy_flash.sh - copy kernel components to a flash part
+* kern_cpy_local.sh - copy kernel components to a local directory (repo)
+* kern_cpy_remote.sh - copy kernel components to a remote machine
+* kern directory contains kernel components
+
 #### build.sh
 
 * Displays tools version & git branch being built
@@ -26,8 +34,10 @@ $BASE_DIR/boot/dts/overlays/*.dtb*
 ```
 #### kern_cpy_local.sh
 
-* copies kernel components from a linux tree to some other location like a github repo
+* Copies kernel components from a linux tree to some other location like a github repo
+* Used to refresh the %%kern%% directory in the repo
 
 #### kern_cpy_remote.sh
 
-* Requires a network connection
+* Requires a network connection to a remote machine
+* Reference only, haven't used it in a while so probably doesn't work.
