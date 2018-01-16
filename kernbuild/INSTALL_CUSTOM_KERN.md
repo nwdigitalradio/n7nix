@@ -41,7 +41,9 @@ unzip image_<date>-compass-lite.zip
     * Run as root
 ```
 time dd if=${img_date}-compass.img of=/dev/sde bs=1M status=progress
+mount ${flash_dev}1 /mnt/fat32
 touch /mnt/fat32/ssh
+umount /mnt/fat32
 ```
 * Be patient, this will take a while if you are flashing the non compass-lite version.
   * On the other hand if it doesn't take several minutes then the copy propably didn't work.
@@ -61,8 +63,9 @@ Finished flashing part
 
 ##### For UDRX
 
-* Add the following line to bottom of /boot/config.txt ie. /mnt/fat32/config.txt
+* Add the following lines to bottom of /boot/config.txt ie. /mnt/fat32/config.txt
 ```
+force_turbo=1
 dtoverlay=udrx
 ```
 * Also uncomment this line in the same file
