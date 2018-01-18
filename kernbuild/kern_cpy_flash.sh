@@ -75,9 +75,15 @@ if [ "$FULL_UPDATE" == "true" ] ; then
    fi
 fi
 
-# back-up existing kernel image
+# back-up existing kernel image to $KERNEL-n.img
 SRC_FILE="$BOOT_DIR/$KERNEL.img"
-cp  $SRC_FILE $BOOT_DIR/$KERNEL-backup.img
+n=
+kernfile=$KERNEL.img
+while [ -f "$BOOT_DIR/$kernfile" ] ; do
+  n=$(( ${n:=0} + 1 ))
+  kernfile=$KERNEL-$n.img
+done
+cp  $SRC_FILE $BOOT_DIR/$kernfile
 if [ $? -ne 0 ] ; then
    echo "Problem backing up file: $SRC_FILE"
    exit 1
