@@ -2,14 +2,17 @@
 #
 # kern_cpy_flash.sh
 #
-# This script copies the components of a kernel, to appropriate
-# directories on a mounted SD card or a local directory.
+# This script copies the components of a kernel to appropriate
+# directories on a mounted SD card.
 #
-# *** When coping to a mounted SD card you MUST make sure that the
-# variable flash_dev is set properly or you could hose your workstation.
+# *** When you MUST make sure that the variable flash_dev is set
+# properly or you could hose your workstation.
 #
-# This script should be run from the base directory where kernel was
-# built.
+# This script should be run from the base directory where kernel
+# components were copied. If running from a git clone you can run it in
+# the same directory it was cloned to. The only requirement is that
+# there should be a `kern` directory with all the kernel components in
+# it.
 
 flash_dev=sde
 FULL_UPDATE=true
@@ -23,7 +26,7 @@ FS_DIR=/mnt/ext4
 #SRC_DIR=/home/gunn/dev/github
 #SRC_BOOTDIR="arch/arm/boot"
 
-# Run from git repo
+# Run from local directory created by kern_cpy_local.sh
 SRC_DIR="$(pwd)/kern"
 SRC_BOOTDIR="$SRC_DIR/boot"
 
@@ -101,15 +104,20 @@ fi
 
 rsync -au $SRC_BOOTDIR/dts/overlays/README $BOOT_DIR/overlays/
 
+echo
+echo "==== syncing writes to partitions"
 sync
 
 echo
 echo "==== directory of $BOOT_DIR"
 ls -salt $BOOT_DIR
+
 echo
 echo "==== directory of $FS_DIR"
 ls -salt $FS_DIR
+
 echo
+echo "==== unmounting partitions $BOOT_DIR & $FS_DIR"
 umount $BOOT_DIR
 umount $FS_DIR
 
