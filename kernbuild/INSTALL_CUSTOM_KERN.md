@@ -68,7 +68,7 @@ Finished flashing part
 force_turbo=1
 dtoverlay=udrx
 ```
-* Also uncomment this line in the same file
+* Also UNcomment this line in the same file
 ```
 #dtparam=spi=on
 ```
