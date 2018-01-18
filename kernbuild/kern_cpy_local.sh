@@ -3,7 +3,7 @@
 # kern_cpy_local.sh
 #
 # This script copies the components of a kernel to a local directory
-# structure. It must be run from the base of the destination directory
+# structure. It needs to be run from the base of the destination directory
 #
 # *** Run this script at the root directory of where you want to place
 # the kernel components so that you don't hose your workstation.
@@ -16,11 +16,22 @@ BASE_DIR="$(pwd)/kern"
 KERNEL=kernel7
 user="$(whoami)"
 
-
+# destination directory
 BOOT_DIR="$BASE_DIR/boot"
 FS_DIR="$BASE_DIR"
-SRC_DIR="/home/$user/dev/github/"
-SRC_LINUXDIR="/home/$user/dev/github/linux"
+
+# kernel source tree for compass kernel
+#SRC_DIR="/home/$user/dev/github/"
+#SRC_LINUXDIR="$SRC_DIR/linux"
+
+# kernel source tree for experimental raspian kernel
+kernver="4.9.77"
+# specify the modules directory
+SRC_DIR="/home/kernel/raspi_linux"
+# specify the kernel source tree
+SRC_LINUXDIR="$SRC_DIR/raspi_$kernver"
+
+# kernel source tree for
 SRC_BOOTDIR="$SRC_LINUXDIR/arch/arm/boot"
 
 # Don't run as root
