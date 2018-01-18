@@ -6,7 +6,10 @@
 * kern_cpy_flash.sh - copy kernel components to a flash part
 * kern_cpy_local.sh - copy kernel components to a local directory (repo)
 * kern_cpy_remote.sh - copy kernel components to a remote machine
-* kern directory contains kernel components
+* kern_upd_udrc.sh - Used to find the differences between a compass
+reference kernel source tree and a raspian kernel.
+* kern directory contains kernel components suitable for coping to
+flash part
 
 #### build.sh
 * must be run from base of kernel tree
@@ -27,10 +30,10 @@ scripts described below.
 
 #### kern_cpy_flash.sh
 
-* Copies kernel components to a flash card either from:
-  * a linux kernel tree or
-  * some other directory struct created by kern_cpy_local.sh
+* Copies kernel components to a flash card.
 * Requires an SD card with a boot partition & root file system partitiion.
+* Needs to be run below directory containing kernel components created
+by kern_cpy_local.sh
 * Copies from the following directory structure to appropriate RPi file system
 
 ```
@@ -42,9 +45,22 @@ $BASE_DIR/boot/dts/overlays/*.dtb*
 #### kern_cpy_local.sh
 
 * Copies kernel components from a linux tree to some other location like a github repo
-* Used to refresh the _kern_ directory in the repo
+* Used to refresh the _kern_ directory in the repo or other directory
+* Needs to run from a location to conventiently store kernel
+components like tmp or a repo directory.
+* Need to edit script with directory location of kernel source tree
 
 #### kern_cpy_remote.sh
 
 * Requires a network connection to a remote machine
 * Reference only, haven't used it in a while so probably doesn't work.
+
+#### kern_upd_udrc.sh
+
+* Contains a list of files that are needed for udrc/udrx support
+* Need to edit the following in this script:
+  * directory & version of target raspian source tree
+  * directory of reference compass kernel tree.
+* Can be run from any directory as user.
+* Does a diff & counts line differences of required files to
+facilitate modifying existing kernel files.
