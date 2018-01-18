@@ -9,7 +9,10 @@
 * kern directory contains kernel components
 
 #### build.sh
-
+* must be run from base of kernel tree
+```
+.\build.sh
+```
 * Displays tools version & git branch being built
 * uses udr_defconfig file
 * modules are copied to ../lib/modules
