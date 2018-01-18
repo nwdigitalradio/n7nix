@@ -1,5 +1,10 @@
 #!/bin/bash
 #
+# First as root `adduser <username>`
+# Then as root run this script to set up groups for the new user
+# Then edit /etc/lightdm/lightdm.conf
+#  Change autologin-user=pi to new user
+#
 # This script will setup groups for a new user
 # But also need to replace 'pi' with new user name in these files:
 #  - /usr/bin/raspi-config
