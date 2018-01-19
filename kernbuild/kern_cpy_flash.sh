@@ -96,12 +96,14 @@ if [ $? -ne 0 ] ; then
    echo "Problem copying file: $SRC_FILE"
 fi
 
+# copy dtb files to boot_dir
 SRC_FILE="$SRC_BOOTDIR/dts/*.dtb"
 rsync -au --exclude=".*" $SRC_FILE $BOOT_DIR
 if [ $? -ne 0 ] ; then
    echo "Problem copying file: $SRC_FILE"
 fi
 
+# copy overlay files to boot_dir/overlays
 SRC_FILE="$SRC_BOOTDIR/dts/overlays/*.dtb*"
 rsync -au --exclude=".*" $SRC_FILE $BOOT_DIR/overlays/
 if [ $? -ne 0 ] ; then
