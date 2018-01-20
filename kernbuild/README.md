@@ -4,11 +4,12 @@
 * build.sh - build a Linux kernel starting from default config
 * flashit.sh - copies an RPi root file system to a flash part
 * kern_cpy_flash.sh - copy kernel components to a flash part
-* kern_cpy_local.sh - copy kernel components to a local directory (repo)
+* kern_cpy_local.sh - copy kernel components to a local directory
+(_tmp_ or _repo_)
 * kern_cpy_remote.sh - copy kernel components to a remote machine
 * kern_upd_udrc.sh - Used to find the differences between a compass
-reference kernel source tree and a raspian kernel.
-* kern directory contains kernel components suitable for coping to
+reference kernel source tree and a Raspbian kernel.
+* _kern_ directory contains kernel components suitable for coping to
 flash part
 
 #### build.sh
@@ -31,8 +32,11 @@ scripts described below.
 #### kern_cpy_flash.sh
 
 * Copies kernel components to a flash card.
-* Requires an SD card with a boot partition & root file system partitiion.
-* Needs to be run below directory containing kernel components created
+* Requires:
+  *  SD card with a boot partition & root file system partitiion.
+  * run kern_cpy_local.sh first to get kernel components
+  * Needs to be run below directory containing kernel components
+  (_kern_) created
 by kern_cpy_local.sh
 * Copies from the following directory structure to appropriate RPi file system
 
@@ -46,21 +50,68 @@ $BASE_DIR/boot/dts/overlays/*.dtb*
 
 * Copies kernel components from a linux tree to some other location like a github repo
 * Used to refresh the _kern_ directory in the repo or other directory
-* Needs to run from a location to conventiently store kernel
-components like tmp or a repo directory.
-* Need to edit script with directory location of kernel source tree
+* Requires:
+  * run from a directory to conventiently store kernel
+components like _tmp_ or a _repo_ directory.
+  * edit script variarbles:
+    * SRC_DIR with directory location of kernel source tree
+    * kernver with kernel version to use
+  * kernel source directory needs to be here: $SRC_DIR/raspi_$kernver
+* Define DRY_RUN variable to only display what would be copied.
 
 #### kern_cpy_remote.sh
 
-* Requires a network connection to a remote machine
-* Reference only, haven't used it in a while so probably doesn't work.
+* Requires:
+  * network connection to a remote machine
+  * root login with ssh enabled on remote machine
+  * run kern_cpy_local.sh first to get kernel components
+  * Needs to run below directory containing kernel components (_kern_) created by kern_cpy_local.sh
+* Edit script variables DSTADDR & IPADDR to remote machine IP address
+$DSTADDR:$IPADDR
+* Command line argument is last octet of remote IP address.
+* Define DRY_RUN variable to only display what would be copied to
+remote machine.
+* Should backup kernel image, _/boot/kernel7.img_ before running this
+script.
 
 #### kern_upd_udrc.sh
 
 * Contains a list of files that are needed for udrc/udrx support
 * Need to edit the following in this script:
-  * directory & version of target raspian source tree
+  * directory & version of target Raspbian source tree
   * directory of reference compass kernel tree.
 * Can be run from any directory as user.
 * Does a diff & counts line differences of required files to
-facilitate modifying existing kernel files.
+facilitate modifying newer Raspbian kernel source tree.
+* Command line options
+```
+-c Changes target source files to support udrc/udrx
+-d Shows diff of all source files required by udrc/udrx
+```
+* Uncomment _SHOW_DIFF=1_ to see differences otherwise just counts
+number of lines that are different.
+* Example output
+```
+Update a kernel source tree for UDRC/UDRX
+Reference kernel: /home/gunn/dev/github/linux
+Target kernel /home/kernel/raspi_linux/raspi_4.15.rc8
+=== diff udr_defconfig , 54 lines ===
+=== diff bcm2835-i2s.c, 0 lines ===
+=== diff Kconfig, 3 lines ===
+=== diff Makefile, 0 lines ===
+=== diff udrc.c, 0 lines ===
+=== diff tlv320aic32x4.c, 0 lines ===
+=== diff tlv320aic32x4.h, 2 lines ===
+=== diff tlv320aic32x4-i2c.c, 2 lines ===
+=== diff tlv320aic32x4-spi.c, 2 lines ===
+=== diff udrc.h, 0 lines ===
+=== diff tlv320aic32x4.h, 2 lines ===
+=== diff udrc-boost-output-overlay.dts, 0 lines ===
+=== diff udrc-overlay.dts, 0 lines ===
+=== diff udrx-overlay.dts, 0 lines ===
+=== diff Makefile, 7 lines ===
+
+Total files checked: 15
+
+kern_upd_udrc.sh: FINISHED
+```
