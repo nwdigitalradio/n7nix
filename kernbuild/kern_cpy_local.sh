@@ -14,18 +14,17 @@
 
 BASE_DIR="$(pwd)/kern"
 KERNEL=kernel7
-user="$(whoami)"
 
 # destination directory
 BOOT_DIR="$BASE_DIR/boot"
 FS_DIR="$BASE_DIR"
 
 # kernel source tree for compass kernel
-#SRC_DIR="/home/$user/dev/github/"
+#SRC_DIR="/home/$(whoami)/dev/github/"
 #SRC_LINUXDIR="$SRC_DIR/linux"
 
 # kernel source tree for experimental raspian kernel
-kernver="4.9.77"
+kernver="4.15.rc8"
 # specify the modules directory
 SRC_DIR="/home/kernel/raspi_linux"
 # specify the kernel source tree
@@ -133,9 +132,9 @@ if [ "$DRY_RUN" != "true" ] ; then
    echo "==== directory of $BOOT_DIR/dts"
    ls -salt $BOOT_DIR/dts
    echo
-#   echo "==== directory of $BOOT_DIR/dts/overlays"
-#   ls -salt $BOOT_DIR/dts/overlays
-#   echo
+   echo "==== directory of $BOOT_DIR/dts/overlays/udr*"
+   ls -salt $BOOT_DIR/dts/overlays/udr*
+   echo
    echo "==== directory of $FS_DIR"
    ls -salt $FS_DIR
 fi
