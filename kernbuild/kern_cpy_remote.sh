@@ -2,12 +2,31 @@
 #
 # kern_cpy_remote.sh
 #
+# Copy kernel components to remote machine
+# Need to be able to login as root on remote machine ie. need a root
+# password.
+#
+# If command line arg is used it specifies the last octet of the remote
+# machine IP address.
+# The root IP address is specified in variable DSTADDR.
+# Full IP address is $DSTADDR.$IPADDR
+#
+# If $DEBUG is defined it will not copy to remote machine.  Verify what
+# would have been copied to remote machine in directory: $TMP_BOOTDIR
+#
+# Debug flag to show what would be copied without doing the copy
+DRY_RUN="true"
 
-FULL_UPDATE=false
-IPADDR="118"
-#DEST_DIR=/var/lib/tftpboot
-user="$(whoami)"
-DEST_DIR=/home/$user/var/lib
+IPADDR="117"
+DSTADDR=
+
+FULL_UPDATE=true
+KERNEL=kernel7
+
+SRC_DIR="$(pwd)/kern"
+SRC_BOOTDIR="$SRC_DIR/boot"
+
+TMP_BOOTDIR="$(pwd)/tmpboot"
 
 # Don't run as root
 if [[ $EUID -eq 0 ]]; then
@@ -20,54 +39,69 @@ if (( $# != 0 )) ; then
    IPADDR="$1"
 fi
 
-echo "======================"
-if [ ! -d $DEST_DIR/lib/modules ] ; then
-   mkdir -p $DEST_DIR/lib/modules
-fi
-if [ ! -d $DEST_DIR/boot/overlays ] ; then
-   mkdir -p $DEST_DIR/boot/overlays
-fi
-echo "Copy files to tftpboot"
-rsync  -av ../lib/modules/4.4.33* $DEST_DIR/lib/modules/
-if [ $? -ne 0 ] ; then
-   echo "Problem coping modules to tftpboot"
-   exit 1
-fi
+DSTADDR="10.0.42.$IPADDR"
 
-cp arch/arm/boot/dts/*.dtb $DEST_DIR/boot/
-if [ $? -ne 0 ] ; then
-   echo "Problem copying device tree to tftpboot"
-   exit 1
-fi
+echo "Copy files to target machine: $DSTADDR"
 
-cp arch/arm/boot/dts/overlays/*.dtb* $DEST_DIR/boot/overlays/
-if [ $? -ne 0 ] ; then
-   echo "Problem copying device tree overlays to tftpboot"
-   exit 1
-fi
-
-scripts/mkknlimg arch/arm/boot/zImage $DEST_DIR/boot/kernel7.img
-if [ $? -ne 0 ] ; then
-   echo "Problem making kernel image"
-   exit 1
-fi
-
-echo "============================"
-echo "Copy files to target machine: $IPADDR"
-
-if [ "$FULL_UPDATE" == "true" ] ; then
-   rsync -azuv -e ssh $DEST_DIR/lib/modules/* root@10.0.42.$IPADDR:/lib/modules/
-   if [ $? -ne 0 ] ; then
-      echo "Problem rsyncing modules dir"
-      exit 1
+SRC_FILE="$SRC_DIR/lib/modules/*"
+DST_FILE="/lib/modules/"
+if [ "$DRY_RUN" = "true" ] ; then
+   echo "Dry run only, no module files copied to remote machine, check dir: $SRC_FILE"
+else
+   echo "Copy /lib/modules to remote ext4 partition..."
+   if [ "$FULL_UPDATE" == "true" ] ; then
+      rsync -azu --exclude=".*" -e ssh $SRC_FILE root@10.0.42.$DSTADDR:$DST_FILE
+      if [ $? -ne 0 ] ; then
+         echo "Problem copying to remote modules dir: $DST_FILE"
+         exit 1
+      fi
    fi
 fi
 
-rsync -azuv -e ssh $DEST_DIR/boot/* root@10.0.42.$IPADDR:/boot/
+# Make a tmp dir & aggregate all /boot partition files to it
+if [ ! -d $TMP_BOOTDIR ] ; then
+   mkdir -p $TMP_BOOTDIR/overlays
+   echo "Made directory $TMP_BOOTDIR/overlays"
+fi
+
+echo "Copy a new kernel image to tmp boot"
+SRC_FILE="$SRC_BOOTDIR/zImage"
+DST_FILE="$TMP_BOOTDIR/$KERNEL.img"
+rsync -azu $SRC_FILE $DST_FILE
 if [ $? -ne 0 ] ; then
-   echo "Problem rsyncing boot dir"
+   echo "Problem copying files: $SRC_FILE to $DST_FILE"
    exit 1
 fi
 
+echo "Copy dtb files to tmp boot"
+SRC_FILE="$SRC_BOOTDIR/dts/*.dtb"
+DST_FILE="$TMP_BOOTDIR"
+rsync -azu $SRC_FILE $DST_FILE
+if [ $? -ne 0 ] ; then
+   echo "Problem copying file: $SRC_FILE to $DST_FILE"
+   exit 1
+fi
+
+echo "copy overlay files to tmp boot"
+SRC_FILE="$SRC_BOOTDIR/dts/overlays/*.dtb*"
+DST_FILE="$TMP_BOOTDIR/overlays"
+rsync -azu $SRC_FILE $DST_FILE
+if [ $? -ne 0 ] ; then
+   echo "Problem copying files: $SRC_FILE to $DST_FILE"
+   exit 1
+fi
+
+SRC_FILE="$TMP_BOOTDIR/*"
+DST_FILE="/boot"
+if [ "$DRY_RUN" = "true" ] ; then
+   echo "Dry run only, no boot files copied to remote machine, check dir: $SRC_FILE"
+else
+   echo "Copy files to remote /boot partition"
+   rsync -azuv --exclude=".*" -e ssh $SRC_FILE root@10.0.42.$DSTADDR:$DST_FILE
+   if [ $? -ne 0 ] ; then
+      echo "Problem copying to remote boot dir: $SRC_FILE"
+      exit 1
+   fi
+fi
 
 exit 0
