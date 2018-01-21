@@ -1,6 +1,7 @@
 ## Notes on building a custom kernel for RPi and copying to proper directory
 
 ##### Brief description of repo contents
+
 * build.sh - build a Linux kernel starting from default config
 * flashit.sh - copies an RPi root file system to a flash part
 * kern_cpy_flash.sh - copy kernel components to a flash part
@@ -11,6 +12,8 @@
 reference kernel source tree and a Raspbian kernel.
 * _kern_ directory contains kernel components suitable for coping to
 flash part
+  * Built with _kern_cpy_local.sh_
+  * Used by _kern_cpy_flash.sh_ & _kern_cpy_remote.sh_
 
 #### build.sh
 * must be run from base of kernel tree
@@ -24,10 +27,23 @@ flash part
 * Assumes cross compile build tools are already installed.
   * Used this [Kernel Building link](https://www.raspberrypi.org/documentation/linux/kernel/building.md) as reference.
 
-After building a kernel you need to copy the kernel image & device
+After building a kernel you need to copy the kernel image, device
 tree & overlay files to the boot partition and the modules to the root
 file system partition. That is facilitated by the kern_cpy_*.sh
 scripts described below.
+
+#### flashit.sh
+
+* Copies a Compass image to a flash part
+* File names with "compass-lite" have no support for window manager
+* Untested current file system images can be found
+[here](http://archive.compasslinux.org/images/wilderness/)
+* Defaults to copying a full image that support window manager
+* Requires:
+  * modify script **flash device name** or you could hose your workstation
+  * modify script img_date
+  * run as root
+  * run in same directory as Compass image
 
 #### kern_cpy_flash.sh
 
