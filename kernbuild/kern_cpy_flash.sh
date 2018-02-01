@@ -5,12 +5,12 @@
 # This script copies the components of a kernel to appropriate
 # directories on a mounted SD card.
 #
-# *** When you MUST make sure that the variable flash_dev is set
+# *** You MUST make sure that the variable flash_dev is set
 # properly or you could hose your workstation.
 #
 # This script should be run from the base directory where kernel
 # components were copied. If running from a git clone you can run it in
-# the same directory it was cloned to. The only requirement is that
+# the same directory it was cloned to. The requirement is that
 # there should be a `kern` directory with all the kernel components in
 # it.
 
@@ -36,6 +36,14 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
+# Check for required source directory
+if [ ! -d $SRC_DIR ] ; then
+   echo "Directory: $SRC_DIR does not exist."
+   echo "Need to run kern_cpy_local.sh first."
+   exit 1
+fi
+
+# Verify mount points exist
 if [ ! -d $BOOT_DIR ] ; then
    mkdir -p $BOOT_DIR
 fi
@@ -44,6 +52,7 @@ if [ ! -d $FS_DIR ] ; then
    mkdir -p $FS_DIR
 fi
 
+# Verify flash target devices exist
 if [ ! -e "/dev/${flash_dev}1" ] ; then
    echo "Flash device: ${flash_dev}1 does not exist, exiting"
    exit 1
