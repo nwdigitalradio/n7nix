@@ -41,8 +41,16 @@ fi
 
 DSTADDR="10.0.42.$IPADDR"
 
+# Check for required source directory
+if [ ! -d $SRC_DIR ] ; then
+   echo "Directory: $SRC_DIR does not exist."
+   echo "Need to run kern_cpy_local.sh first."
+   exit 1
+fi
+
 echo "Copy files to target machine: $DSTADDR"
 
+# Copy file system partition files to remote machine
 SRC_FILE="$SRC_DIR/lib/modules/*"
 DST_FILE="/lib/modules/"
 if [ "$DRY_RUN" = "true" ] ; then
@@ -91,6 +99,7 @@ if [ $? -ne 0 ] ; then
    exit 1
 fi
 
+# Copy boot partition files to remote machine
 SRC_FILE="$TMP_BOOTDIR/*"
 DST_FILE="/boot"
 if [ "$DRY_RUN" = "true" ] ; then
