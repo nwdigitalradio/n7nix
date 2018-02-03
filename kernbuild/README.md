@@ -34,16 +34,18 @@ scripts described below.
 
 #### flashit.sh
 
-* Copies a Compass image to a flash part
+* Automatically downloads & uncompresses the latest full image from wilderness (untested).
+* Copies downloaded compass image to a flash part
 * File names with "compass-lite" have no support for window manager
 * Untested current file system images can be found
 [here](http://archive.compasslinux.org/images/wilderness/)
-* Defaults to copying a full image that support window manager
+* Defaults to downloading & copying a full image that supports a window manager created on todays date.
 * Requires:
-  * modify script **flash device name** or you could hose your workstation
-  * modify script img_date
-  * run as root
-  * run in same directory as Compass image
+  * modify script **flash device name** _flash_dev_ or you could hose your workstation
+  * variable _img_date_ defaults to todays date unless specified
+  * variable _kernlite_ defaults to _false_
+    * Set _kernlite="true"_ to get image without a window manager ie. headless
+  * run script as root in directory containing compass image
 
 #### kern_cpy_flash.sh
 
