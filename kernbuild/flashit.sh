@@ -10,11 +10,11 @@
 # - kernlite  true or false for including window manager
 #
 # If DEBUG is defined no flash writing will occur
-DEBUG=1
+#DEBUG=1
 
 img_date=
 flash_dev="/dev/sde"
-kernlite="true"
+kernlite="false"
 
 # must run as root
 if [ -z $DEBUG ] && [[ $EUID -ne 0 ]]; then
