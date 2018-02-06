@@ -2,42 +2,82 @@
 * Preferred apt-get install xastir
 * [Build from latest source](http://xastir.org/index.php/HowTo:Raspbian_Jessie)
 
-#### Config Xastir
-* interface -> interface Control ->Device 1 Up Networked AGWPE localhost:8000
-  * For a UDRC II make sure 'Transmit Radio Port' is 2
-  * Direwolf uses port 0,1 but Xastir uses port 1,2
+#### Install Xastir
 
-* After apt-get install xastir
-  * run xastir from console (where's icon on window manager ?)
-###### Configure Station
+```
+apt-get install xastir
+```
+* run xastir from console (where's icon on window manager ?)
+
+#### Config Xastir
+##### Configure Station
   * "Configure Station" pops up
     * Enter Callsign, Lat & Long, symbol, comment
+
   * Select maps to use: Map -> Map Chooser -> Online/OSM_tiled_mapnik.geo
     * Apply, OK, should see "Loading Weather Alert Maps"
     * Zoom map to location, are Lat/Long correct
   * Plug in USB GPS
-###### Conigure interfaces
-  * Configure interfaces: Interface -> Interface Control
-    * Add: Networked AGWPE
-      * Transmit RadioPort: 1
-      * Igate -> RF path: Wide2-1
-   * Select Device 0 -> Start
-     * Status should change from Down to Up
-   * Add: Serial GPS
-     * Stand alone GPS port: /dev/ttyUSB0
-   * Select Device 1 -> Start
-     * Status should change from Down to Up
 
-###### Configure Audio
-* **Note:** plughw:0,1 is for a Sunfounder with HDMI audio
-* File -> Configure -> Audio Alarms
-  * Audio Play Command: aplay -D "plughw:0,1" Noise.wav
-  * Select: New Station, New Message, Proximity, Weather Alert
+##### Configure interfaces
+  * Configure interfaces: Interface -> Interface Control
+
+###### Add a TNC interface
+* For a UDRC II make sure _Transmit Radio Port_ is 1
+  * Direwolf uses port 0,1 but Xastir uses port 1,2
+
+* Add: _Networked AGWPE_
+  * Transmit RadioPort: 1
+  * Igate -> RF path: Wide2-1
+* Select Device 0 -> Start
+ * Status should change from Down to Up
+
+###### Add a GPS interface
+
+* Add: _Serial GPS_
+  * Stand alone GPS port: /dev/ttyUSB0
+* Select Device 1 -> Start
+  * Status should change from Down to Up
+
+##### Configure Audio
+* The _Audio Play Command_ is different for analog & HDMI audio
+
 * Download xastir sound files
 ```
-https://github.com/Xastir/xastir-sounds
+git clone https://github.com/Xastir/xastir-sounds
 cd xastir-sounds/sounds
 cp *.wav /usr/share/xastir/sounds
+```
+* File -> Configure -> Audio Alarms
+  * _Audio Play Command_ for analog audio: aplay -D "plughw:0,0"
+  * Select alerts: New Station, New Message, Proximity, Weather Alert
+
+###### Only needed for HDMI audio
+* **Note:** audio device plughw:0,1 is for a Sunfounder with HDMI audio
+
+* HDMI audio starts about 2 seconds delayed
+  * Make a wave file that is 2 seconds of silence
+  * Put silence.wav in Xastir sounds directory /usr/share/xastir/sounds
+  * _Audio Play Command_ for HDMI: aplay -D "plughw:0,1" /usr/share/xastir/sounds/silence.wav
+
+* To make a two second silent wave file execute the following on a computer with audio input
+  * Make sure the microphone is not attached.
+```
+rec silence.wav trim 0 02
+```
+
+* Make sure audio is routed to HDMI
+```
+amixer cget numid=3
+```
+* If value is not equal to 2 then:
+```
+amixer cset numid=3 2
+```
+* Make sure audio for bcm 2835 chip is enabled in /boot/config.txt file
+```
+# Enable audio (loads snd_bcm2835)
+dtparam=audio=on
 ```
 
 ###### Verify Audio
