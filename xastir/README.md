@@ -16,7 +16,7 @@ apt-get install xastir
 
   * Select maps to use: Map -> Map Chooser -> Online/OSM_tiled_mapnik.geo
     * Apply, OK, should see "Loading Weather Alert Maps"
-    * Zoom map to location, are Lat/Long correct
+    * Zoom map to location, are Lat/Long correct?
   * Plug in USB GPS
 
 ##### Configure interfaces
@@ -30,7 +30,7 @@ apt-get install xastir
   * Transmit RadioPort: 1
   * Igate -> RF path: Wide2-1
 * Select Device 0 -> Start
- * Status should change from Down to Up
+  * Status should change from Down to Up
 
 ###### Add a GPS interface
 
@@ -48,12 +48,14 @@ git clone https://github.com/Xastir/xastir-sounds
 cd xastir-sounds/sounds
 cp *.wav /usr/share/xastir/sounds
 ```
+* **Note:** audio device plughw:0,0 is for normal analog audio out
 * File -> Configure -> Audio Alarms
   * _Audio Play Command_ for analog audio: aplay -D "plughw:0,0"
   * Select alerts: New Station, New Message, Proximity, Weather Alert
 
 ###### Only needed for HDMI audio
-* **Note:** audio device plughw:0,1 is for a Sunfounder with HDMI audio
+
+* **Note:** audio device plughw:0,1 is for a Sunfounder LCD display with HDMI audio
 
 * HDMI audio starts about 2 seconds delayed
   * Make a wave file that is 2 seconds of silence
@@ -84,11 +86,17 @@ dtparam=audio=on
 * Play a wave file
 ```
 cd /usr/share/xastir/sounds
-aplay -D "plughw:0,1" bandopen.wav
+
+# For Analog audio
+aplay -D "plughw:0,0" bandopen.wav
+
+# For HDMI audio
+aplay -D "plughw:0,1" silence.wav bandopen.wav
 ```
 * Run speaker test & listen for white noise
 ```
-speaker-test -D plughw:0,1 -c 2
+# x = 0 for analog or x = 1 for HDMI
+speaker-test -D plughw:0,x -c 2
 ```
 * List sound devices
 ```
