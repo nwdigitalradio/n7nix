@@ -11,7 +11,8 @@ BINDIR=/usr/local/bin
 UDRCII=false
 
 # portname set in /etc/ax25/axports
-PORTNAME="udr0"
+PORTNAME_1="udr0"
+PORTNAME_2="udr1"
 SERIALPORT_DIREWOLF="/tmp/kisstnc"
 
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
@@ -89,13 +90,13 @@ return $udrc_prod_id
 
 # ===== main =====
 
-echo "ax25-upd: Start Port ${PORTNAME} with device ${SERIALPORT_DIREWOLF}"
+echo "ax25-upd: Start Port ${PORTNAME_1} with device ${SERIALPORT_DIREWOLF}"
 
 if [ -L $SERIALPORT_DIREWOLF ] ; then
     echo "Direwolf serial port ready"
 else
     echo "Direwolf serial port NOT FOUND"
-    exit 1
+d    exit 1
 fi
 
 # Check which UDRC product is found
@@ -115,34 +116,43 @@ case $id_check_ret in
 # use port 1 with mkiss
    pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx none | tail -1)
    echo "using mkiss with UDRC and pseudo term=$pseudoterm on port 1"
-   $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME} 44.24.197.66 >/tmp/ax25-config.tmp
+   $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME_1} 44.24.197.66 >/tmp/ax25-config.tmp
    kissattach_ret=$?
+   dbgecho "kissattach return: $?"
+   /etc/ax25/ax25dev-parms ax0
 ;;
 3)
    echo "UDRC II installed"
 # use port 2 with mkiss
-   pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF none /dev/ptmx | tail -1)
-   echo "using mkiss with UDRC II and pseudo term=$pseudoterm on port 2"
-   $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME} 44.24.197.66 >/tmp/ax25-config.tmp
+   pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx /dev/ptmx | tail -1)
+   echo "$pseudoterm" > /tmp/ax25-config.tmp
+   pseudoterm_1=$(echo $pseudoterm | cut -d ' ' -f1)
+   pseudoterm_2=$(echo $pseudoterm | cut -d ' ' -f2)
+   echo "using mkiss with UDRC II and pseudo term_1: $pseudoterm_1 pseudo term_2: $pseudoterm_2"
+   $SBINDIR/kissattach  ${pseudoterm_1} ${PORTNAME_1} 44.24.197.66 >/tmp/ax25-config_1.tmp
+   $SBINDIR/kissattach  ${pseudoterm_2} ${PORTNAME_2} 44.24.197.67 >/tmp/ax25-config_2.tmp
    kissattach_ret=$?
+   dbgecho "kissattach return: $?"
+   /etc/ax25/ax25dev-parms ax0
+   /etc/ax25/ax25dev-parms ax1
+   echo " Port ${PORTNAME_1} attached to ax0"
+   echo " Port ${PORTNAME_2} attached to ax1"
 ;;
 4)
    echo "One Watt Spot installed"
 # use port 1 with mkiss
    pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx none | tail -1)
    echo "using mkiss with UDRC and pseudo term=$pseudoterm on port 1"
-   $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME} 44.24.197.66 >/tmp/ax25-config.tmp
+   $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME_1} 44.24.197.66 >/tmp/ax25-config.tmp
    kissattach_ret=$?
+   dbgecho "kissattach return: $?"
+   /etc/ax25/ax25dev-parms ax0
 ;;
 *)
    echo "Invalid udrc id ... exiting"
    exit 1
 ;;
 esac
-
-dbgecho "kissattach return: $?"
-
-/etc/ax25/ax25dev-parms
 
 # configure netrom
 # Needs a callsign

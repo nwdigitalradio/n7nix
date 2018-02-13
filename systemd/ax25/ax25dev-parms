@@ -33,7 +33,6 @@ echo 32      > $PARMDIR/extended_window_size
 echo 0       > $PARMDIR/protocol
 
         ifconfig $Device netmask 255.255.255.255
-        echo " Port ${PORTNAME} attached to ${Device} "
 else
         echo "** Error setting Device: $Device parms**"
 fi
