@@ -26,6 +26,7 @@
 CALLSIGN="NOONE"
 AX25PORT="NOPORT"
 SID="11"
+verbose="false"
 
 scriptname="`basename $0`"
 BEACON="/usr/local/sbin/beacon"
@@ -105,9 +106,12 @@ function callsign_verify() {
 
 # ===== function usage
 function usage() {
-   echo "Usage: $scriptname [-p][-m][-h]" >&2
+   echo "Usage: $scriptname [-P <port>][-s <num>][-p][-m][-v][-h]" >&2
+   echo "   -P <portname> | --portname <portname>  eg. udr0"
+   echo "   -s <num>      | --sid <num>  set sid in callsign, number 0-15"
    echo "   -p | --position  send a position beacon"
    echo "   -m | --message   send a message beacon (default)"
+   echo "   -v | --verbose   display verbose messages"
    echo "   -h | --help      display this message"
    echo
 }
@@ -154,6 +158,10 @@ while [[ $# -gt 0 ]] ; do
          echo "Send a message beacon"
 	 BEACON_TYPE="mesg_beacon"
 	 ;;
+      -P |--portname)
+          AX25PORT="$2"
+          shift  # past argument
+         ;;
       -p|--position)
          echo "Send a position beacon"
 	 BEACON_TYPE="posit_beacon"
@@ -162,6 +170,13 @@ while [[ $# -gt 0 ]] ; do
          usage
 	 exit 0
 	 ;;
+      -s|--sid)
+         SID="$2"
+         shift
+         ;;
+      -v|--verbose)
+         verbose="true"
+         ;;
       *)
 	echo "Unknown option: $key"
 	usage
@@ -200,6 +215,9 @@ else
    beacon_msg="!4829.06N/12254.12W-$timestamp, from $(hostname) Seq: $seqnum"
 fi
 
+if [ "$verbose" = "true" ] ; then
+   echo "Callsign: $CALLSIGN-$SID, Port: $AX25PORT"
+fi
 echo " Sent \
  BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}""
 $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}"
