@@ -1,7 +1,16 @@
 #!/bin/bash
+#
+# set-udrc-din6.sh
+#
+# - Assumes using Kenwood TM-V71a attached to mDin6 connector
+#
+# HD15  is on right channel, direwolf chan 0
+# mDin6 is on left channel,  direwolf chan 1
+#
+# This just sets levels for Kenwood radio
 
 amixer -c udrc -s << EOF
-#  Set input and output levels to 0dB
+#  Set input and output levels for Kenwood radio
 sset 'ADC Level' -2.0dB
 sset 'LO Driver Gain' 0dB
 sset 'PCM' 0.0dB

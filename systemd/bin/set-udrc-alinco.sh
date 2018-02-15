@@ -1,4 +1,12 @@
 #!/bin/bash
+#
+# set-udrc-alinco.sh
+#
+# - Assumes using Alinco radio attached to mDin6 connector
+#
+# HD15  is on right channel, direwolf chan 0
+# mDin6 is on left channel,  direwolf chan 1
+#
 # This just sets levels for Alinco radio
 
 amixer -c udrc -s << EOF
@@ -10,7 +18,7 @@ sset 'PCM' -8.0dB
 #  Turn on the LO DAC
 sset 'LO DAC' on
 
-#  Turn on AFIN
+#  Turn on AFIN, Line out left
 sset 'LOL Output Mixer L_DAC' on
 
 #  Turn on TONEIN
