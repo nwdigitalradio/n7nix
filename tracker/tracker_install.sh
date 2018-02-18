@@ -291,8 +291,14 @@ if [ -f $TRACKER_CFG_FILE ] ; then
    echo "** tracker already config'ed in $TRACKER_CFG_DIR"
    echo "** please edit manually."
 else
-   sudo cp $TRACKER_N7NIX_FILE $TRACKER_CFG_DIR
+   sudo cp $TRACKER_CFG_FILE $TRACKER_CFG_DIR
 fi
+
+# Need to set a CALLSIGN in config file
+echo "Set callsign TBD"
+
+# Need to set a lat/long
+echo "Set static lat/lon TBD"
 
 # Need to set a user in config file
 CFG_USER=$(grep -i "user" $TRACKER_CFG_FILE | cut -d"=" -f2 | tr -d ' ')
