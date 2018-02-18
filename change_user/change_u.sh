@@ -1,7 +1,9 @@
 #!/bin/bash
 #
 # First as root `adduser <username>`
-# Then as root run this script to set up groups for the new user
+# Then as root run this script to set up groups and copy files from
+# user pi
+#
 # Then edit /etc/lightdm/lightdm.conf
 #  Change autologin-user=pi to new user
 #
@@ -68,7 +70,6 @@ fi
 dbgecho "using USER: $USER"
 }
 
-
 # ===== main
 
 # must be root
@@ -88,6 +89,7 @@ for GROUP in $GROUP_LIST ; do
    fi
 done
 
+# Get new user name
 get_user
 
 # check if user is in group
@@ -100,5 +102,9 @@ for GROUP in $GROUP_LIST ; do
       usermod -a -G $GROUP $USER
    fi
 done
+
+rsync -av --ignore-existing /home/pi/* /home/$USER
+
+chown -R $USER:$USER /home/$USER
 
 echo "$scriptname done, may need to reboot $(hostname)"
