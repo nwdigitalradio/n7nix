@@ -11,7 +11,7 @@ CARD="udrc"
 CONTROL_LIST="'ADC Level''LO Drive Gain' 'PCM'"
 
 # parse any command line options
-# if there are no args default to out put a message beacon
+# arg1 allows setting the CARD, default is "udrc"
 if [[ $# -ne 0 ]] ; then
    CARD="$1"
    echo "Setting sound card to: $CARD"
