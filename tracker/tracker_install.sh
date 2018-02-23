@@ -304,7 +304,7 @@ echo "Set static lat/lon TBD"
 CFG_USER=$(grep -i "user" $TRACKER_CFG_FILE | cut -d"=" -f2 | tr -d ' ')
 if [ -z $CFG_USER ] ; then
 {
-echo "user = $user"
+sudo echo "user = $user"
 } >> $TRACKER_CFG_FILE
 fi
 
@@ -332,7 +332,7 @@ else
    echo "System service $SERVICE_NAME already installed."
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: ${tracker_type}tracker install script FINISHED" >> $UDR_INSTALL_LOGFILE
+sudo echo "$(date "+%Y %m %d %T %Z"): $scriptname: ${tracker_type}tracker install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
 echo "${tracker_type}tracker build & install FINISHED"
 echo
