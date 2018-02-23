@@ -47,3 +47,20 @@ tracker.service
 ```
 systemctl enable tracker.service
 ```
+
+### Test & Verify
+
+##### screen consoles
+* screen config file is installed to /home/<user>/bin/.screenrc.trk
+
+
+```
+su
+screen -ls
+screen -x <pid_of_screen>
+```
+
+###### web page
+```
+localhost:8081
+```
