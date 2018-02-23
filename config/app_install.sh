@@ -73,7 +73,7 @@ case $APP_SELECT in
       popd > /dev/null
    ;;
    tracker)
-      echo "$scriptname: Install dantracker"
+      echo "$scriptname: Install tracker (nix or dan)"
       pushd ../tracker
       source ./tracker_install.sh
       popd > /dev/null
