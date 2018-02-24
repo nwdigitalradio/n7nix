@@ -214,7 +214,7 @@ echo "setup iptables"
 #echo "add iptables-restore to rc.local"
 # or use iptables-persistent
 CREATE_IPTABLES=false
-IPTABLES_FILES="/etc/iptables.ipv4.nat /lib/dhcpcd/dhcpcd-hooks/70-ipv4.nat"
+IPTABLES_FILES="/etc/iptables/rules.ipv4.nat /lib/dhcpcd/dhcpcd-hooks/70-ipv4.nat"
 for ipt_file in `echo ${IPTABLES_FILES}` ; do
 
    if [ -f $ipt_file ] ; then
@@ -229,12 +229,12 @@ if [ "$CREATE_IPTABLES" = "true" ] ; then
    iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
    iptables -A FORWARD -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
    iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT
-   sh -c "iptables-save > /etc/iptables.ipv4.nat"
+   sh -c "iptables-save > /etc/iptables/rules.ipv4.nat"
 
    iptables -t nat -S
    iptables -S
    cat  > /lib/dhcpcd/dhcpcd-hooks/70-ipv4.nat <<EOF
-iptables-restore < /etc/iptables.ipv4.nat
+iptables-restore < /etc/iptables/rules.ipv4.nat
 EOF
 
 fi

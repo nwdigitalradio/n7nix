@@ -37,7 +37,7 @@ done
 # echo "add iptables-restore to rc.local"
 # or use iptables-persistent
 CREATE_IPTABLES=false
-IPTABLES_FILES="/etc/iptables.ipv4.ax25 /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
+IPTABLES_FILES="/etc/iptables/rules.ipv4.ax25 /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
 for ipt_file in `echo ${IPTABLES_FILES}` ; do
 
    if [ -f $ipt_file ] ; then
@@ -53,10 +53,10 @@ if [ "$CREATE_IPTABLES" = "true" ] ; then
    iptables -A OUTPUT -o ax0 -d 224.0.0.251 -p udp -m udp --dport 5353 -j DROP
    iptables -A OUTPUT -o ax1 -d 224.0.0.22 -p igmp -j DROP
    iptables -A OUTPUT -o ax1 -d 224.0.0.251 -p udp -m udp --dport 5353 -j DROP
-   sh -c "iptables-save > /etc/iptables.ipv4.ax25"
+   sh -c "iptables-save > /etc/iptables/rules.ipv4.ax25"
 
    cat  > /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 <<EOF
-iptables-restore < /etc/iptables.ipv4.ax25
+iptables-restore < /etc/iptables/rules.ipv4.ax25
 EOF
 
 fi
