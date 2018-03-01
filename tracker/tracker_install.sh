@@ -287,11 +287,18 @@ if [ ! -d $TRACKER_CFG_DIR ] ; then
    sudo mkdir -p $TRACKER_CFG_DIR
 fi
 
+# If config file does not exist copy template to /etc/tracker
 if [ -f $TRACKER_CFG_FILE ] ; then
    echo "** tracker already config'ed in $TRACKER_CFG_DIR"
    echo "** please edit manually."
 else
-   sudo cp $TRACKER_CFG_FILE $TRACKER_CFG_DIR
+   sudo cp $TRACKER_N7NIX_DIR/aprs_tracker.ini $TRACKER_CFG_FILE
+fi
+
+# Need to set a user in config file
+CFG_USER=$(grep -i "user" $TRACKER_CFG_FILE | cut -d"=" -f2 | tr -d ' ')
+if [ -z $CFG_USER ] ; then
+   echo "user = $user" | sudo tee -a $TRACKER_CFG_FILE
 fi
 
 # Need to set a CALLSIGN in config file
@@ -299,14 +306,6 @@ echo "Set callsign TBD"
 
 # Need to set a lat/long
 echo "Set static lat/lon TBD"
-
-# Need to set a user in config file
-CFG_USER=$(grep -i "user" $TRACKER_CFG_FILE | cut -d"=" -f2 | tr -d ' ')
-if [ -z $CFG_USER ] ; then
-{
-sudo echo "user = $user"
-} >> $TRACKER_CFG_FILE
-fi
 
 echo
 echo "== setup systemd service"
@@ -332,7 +331,6 @@ else
    echo "System service $SERVICE_NAME already installed."
 fi
 
-sudo echo "$(date "+%Y %m %d %T %Z"): $scriptname: ${tracker_type}tracker install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
-echo "${tracker_type}tracker build & install FINISHED"
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: ${tracker_type}tracker build & install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo
