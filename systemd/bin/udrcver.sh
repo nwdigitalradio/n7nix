@@ -29,11 +29,11 @@ udrc_prod_id=0
 # Does firmware file exist
 if [ -f $firmware_prodfile ] ; then
    # Read product file
-   UDRC_PROD="$(cat $firmware_prodfile)"
+   UDRC_PROD="$(tr -d '\0' <$firmware_prodfile)"
    # Read product file
-   FIRM_VENDOR="$(cat $firmware_vendorfile)"
+   FIRM_VENDOR="$(tr -d '\0' <$firmware_vendorfile)"
    # Read product id file
-   UDRC_ID="$(cat $firmware_prod_idfile)"
+   UDRC_ID="$(tr -d '\0' <$firmware_prod_idfile)"
    #get last character in product id file
    UDRC_ID=${UDRC_ID: -1}
 
@@ -83,12 +83,12 @@ return $udrc_prod_id
 
 function display_id_eeprom() {
    echo "     HAT ID EEPROM"
-   echo "Name:        $(cat /sys/firmware/devicetree/base/hat/name)"
-   echo "Product:     $(cat /sys/firmware/devicetree/base/hat/product)"
-   echo "Product ID:  $(cat /sys/firmware/devicetree/base/hat/product_id)"
-   echo "Product ver: $(cat /sys/firmware/devicetree/base/hat/product_ver)"
-   echo "UUID:        $(cat /sys/firmware/devicetree/base/hat/uuid)"
-   echo "Vendor:      $(cat /sys/firmware/devicetree/base/hat/vendor)"
+   echo "Name:        $(tr -d '\0' </sys/firmware/devicetree/base/hat/name)"
+   echo "Product:     $(tr -d '\0' </sys/firmware/devicetree/base/hat/product)"
+   echo "Product ID:  $(tr -d '\0' </sys/firmware/devicetree/base/hat/product_id)"
+   echo "Product ver: $(tr -d '\0' </sys/firmware/devicetree/base/hat/product_ver)"
+   echo "UUID:        $(tr -d '\0' </sys/firmware/devicetree/base/hat/uuid)"
+   echo "Vendor:      $(tr -d '\0' </sys/firmware/devicetree/base/hat/vendor)"
 }
 
 # ===== main =====
