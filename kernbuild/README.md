@@ -3,7 +3,7 @@
 ##### Brief description of repo contents
 
 * build.sh - build a Linux kernel starting from default config
-* flashit.sh - copies an RPi root file system to a flash part
+* flashit.sh - copies an RPi Compass root file system to a flash part
 * kern_cpy_flash.sh - copy kernel components to a flash part
 * kern_cpy_local.sh - copy kernel components to a local directory
 (_tmp_ or _repo_)
