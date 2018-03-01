@@ -1,0 +1,4 @@
+# To connect to bluetooth keyboard after reboot
+# crontab entry:
+
+@reboot sleep 5 && { /bin/echo -e 'connect <device_mac_address> \n quit \n' | bluetoothctl; } > /dev/null 2>&1
