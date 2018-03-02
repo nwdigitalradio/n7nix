@@ -15,7 +15,7 @@
 # would have been copied to remote machine in directory: $TMP_BOOTDIR
 #
 # Debug flag to show what would be copied without doing the copy
-DRY_RUN="true"
+DRY_RUN="false"
 
 IPADDR="117"
 DSTADDR=
@@ -58,7 +58,7 @@ if [ "$DRY_RUN" = "true" ] ; then
 else
    echo "Copy /lib/modules to remote ext4 partition..."
    if [ "$FULL_UPDATE" == "true" ] ; then
-      rsync -azu --exclude=".*" -e ssh $SRC_FILE root@10.0.42.$DSTADDR:$DST_FILE
+      rsync -azu --exclude=".*" -e ssh $SRC_FILE root@$DSTADDR:$DST_FILE
       if [ $? -ne 0 ] ; then
          echo "Problem copying to remote modules dir: $DST_FILE"
          exit 1
@@ -106,7 +106,7 @@ if [ "$DRY_RUN" = "true" ] ; then
    echo "Dry run only, no boot files copied to remote machine, check dir: $SRC_FILE"
 else
    echo "Copy files to remote /boot partition"
-   rsync -azuv --exclude=".*" -e ssh $SRC_FILE root@10.0.42.$DSTADDR:$DST_FILE
+   rsync -azuv --exclude=".*" -e ssh $SRC_FILE root@$DSTADDR:$DST_FILE
    if [ $? -ne 0 ] ; then
       echo "Problem copying to remote boot dir: $SRC_FILE"
       exit 1
