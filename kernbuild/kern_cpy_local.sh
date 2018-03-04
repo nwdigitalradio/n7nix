@@ -68,11 +68,12 @@ else
    fi
 fi
 
-SRC_FILE="$SRC_LINUXDIR/$KERNEL.img"
+# backup existing kernel file
+SRC_FILE="$BOOT_DIR/$KERNEL.img"
 DEST_FILE="$BOOT_DIR/$KERNEL-backup.img"
 if [ -f "$SRC_FILE" ] ; then
    if [ "$DRY_RUN" = "true" ] ; then
-      echo "Copying($ls -1 $SRC_FILE | wc -l) backup kernel: $DEST_FILE"
+      echo "Copying $(ls -1 $SRC_FILE | wc -l) backup kernel: $DEST_FILE"
    else
       cp  $SRC_FILE $DEST_FILE
       if [ $? -ne 0 ] ; then
