@@ -84,9 +84,10 @@ if [ ! -d $SRC_DIR ] ; then
 fi
 
 cd $SRC_DIR
-
-# Determine if any rmsgw tgz files have been downloaded
-ls rmsgw-*.tgz 2>/dev/null
+# EXTEN="tgz"
+EXTEN="bz2"
+# Determine if any rmsgw compressed files have been downloaded
+ls rmsgw-*.$EXTEN 2>/dev/null
 if [ $? -ne 0 ] ; then
    echo -e "${BluW}\t Downloading RMS Gateway Source file \t${Reset}"
 
@@ -96,7 +97,7 @@ if [ $? -ne 0 ] ; then
    #       Problematic to download a file from yahoo groups,
    # wget --no-check-certificate -t 3 https://groups.yahoo.com/neo/groups/LinuxRMS/files/Software/*.tgz
 
-   wget -r -l1 -H -t1 -nd -N -np -qt 3 -A ".tgz" http://k4gbb.no-ip.info/docs/scripts/
+   wget -r -l1 -H -t1 -nd -N -np -qt 3 -A ".$EXTEN" http://k4gbb.no-ip.info/docs/scripts/
    if [ $? -ne 0 ] ; then
       echo "Problems downloading file,"
       echo "  go to https://groups.yahoo.com/neo/groups/LinuxRMS/files/Software"
@@ -104,16 +105,16 @@ if [ $? -ne 0 ] ; then
       exit 1
    fi
 else
-   # Get here if some tgz files were found
-   TGZ_FILELIST="$(ls rmsgw-*.tgz |tr '\n' ' ')"
+   # Get here if some $EXTEN files were found
+   TGZ_FILELIST="$(ls rmsgw-*.$EXTEN |tr '\n' ' ')"
 
    echo "Already have rmsgw install file(s): $TGZ_FILELIST"
-   echo "To check for a new version move .tgz file(s) out of this directory"
+   echo "To check for a new version move .$EXTEN file(s) out of this directory"
 fi
 
-# Lists all .tgz files in directory
+# Lists all .$EXTEN files in directory
 # Last file listed should have lastest version number
-for filename in *.tgz ; do
+for filename in *.$EXTEN ; do
    rms_ver="$(echo ${filename#r*-} | cut -d '.' -f1,2,3)"
 #   echo "$filename version: $rms_ver"
 done
