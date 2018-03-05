@@ -112,7 +112,7 @@ case $APP_SELECT in
    messanger)
       echo "$scriptname: Config messanger appliance"
       pushd ../plu
-      source ./pluimap_config.sh
+      source ./pluimap_config.sh -
       popd > /dev/null
    ;;
    *)

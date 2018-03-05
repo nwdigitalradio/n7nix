@@ -11,12 +11,22 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 echo "$scriptname: paclink-unix with imap install"
 echo "$scriptname: Install paclink-unix, hostapd, dovecot, node.js & systemd files"
 
+# Define conditional for installing messanger
+messanger="false"
+
 # ===== Main
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root."
    exit 1
+fi
+
+# Check for command line arguments
+if (( $# > 0 )) ; then
+   echo "$scriptname: detected command line arguments"
+   echo "Not installing hostapd & pluweb.service file"
+   messanger="true"
 fi
 
 # First install basic paclink-unix
@@ -27,10 +37,12 @@ pushd ../mailserv
 source ./imapserv_install.sh
 popd
 
-# Install a host access point for remote operation
-pushd ../hostap
-source ./hostap_install.sh
-popd
+if [ "$messanger" == "false" ] ; then
+   # Install a host access point for remote operation
+   pushd ../hostap
+   source ./hostap_install.sh
+   popd
+fi
 
 # Setup node.js & modules required to run the plu web page.
 echo "$scriptname: Install nodejs, npm & jquery"
@@ -47,7 +59,7 @@ cp node_modules/jquery/dist/jquery.min.js jquery.js
 # If there are any command line args do not install this service file
 # A different service file is used to install paclink-unix with a
 # tracker.
-if (( $# == 0 )) ; then
+if [ "$messanger" == "false" ] ; then
    echo "$scriptname: Install systemd files for paclink-unix web service."
    service_name="pluweb.service"
    # Setup systemd files for paclink-unix web server auto start

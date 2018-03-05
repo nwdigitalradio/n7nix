@@ -8,6 +8,9 @@ DEBUG=1
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
+# Define conditional for installing messanger
+messanger="false"
+
 # ===== function systemservice_start
 
 function systemservice_start() {
@@ -27,6 +30,13 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
+# Check for command line arguments
+if (( $# > 0 )) ; then
+   echo "$scriptname: detected command line arguments"
+   echo "Not configuring hostapd & pluweb.service file"
+   messanger="true"
+fi
+
 # First configure basic paclink-unix
 ./plu_config.sh
 
@@ -35,11 +45,13 @@ pushd ../mailserv
 source ./imapserv_config.sh
 popd
 
-# Set up a host access point for remote operation
-echo "=== Config hostap"
-pushd ../hostap
-source ./hostap_config.sh
-popd
+if [ "$messanger" == "false" ] ; then
+   # Set up a host access point for remote operation
+   echo "=== Config hostap"
+   pushd ../hostap
+   source ./hostap_config.sh
+   popd
+fi
 
 echo "$scriptname: Start systemd service for paclink-unix web service."
 service_name=
