@@ -280,7 +280,7 @@ if [ $? -ne 0 ] ; then
 else
    # Since iptables-peristent is already installed have to update
    # rules to /etc/iptables/rules.v4 manually
-   sudo iptables-save > /etc/iptables/rules.v4
+   sudo iptables-save | sudo tee /etc/iptables/rules.v4
 fi
 
 if [ ! -d $TRACKER_CFG_DIR ] ; then
