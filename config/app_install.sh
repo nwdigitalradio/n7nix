@@ -87,7 +87,7 @@ case $APP_SELECT in
       popd > /dev/null
       pushd ../tracker
       echo "Change to normal login user & cd to ~/n7nix/tracker"
-      echo "Now run tracker_install.sh"
+      echo " then run tracker_install.sh"
 
 ##      source ./tracker_install.sh
       popd > /dev/null
