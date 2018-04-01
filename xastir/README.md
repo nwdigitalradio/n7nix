@@ -128,7 +128,12 @@ PTT GPIO 23
 ```
 
 #### Make a Desktop icon entry for Xastir
-* Filename /home/<user>/Desktop/xastir.desktop
+* Make a symbolic link to the xastir share directory desktop
+```
+ln -s /usr/share/applications/xastir.desktop /home/<user>/Desktop
+```
+
+* Or create this file here: /home/<user>/Desktop/xastir.desktop
 ```
 [Desktop Entry]
 Name=xastir
