@@ -113,4 +113,4 @@ if [ "$DRY_RUN" != "true" ] ; then
 fi
 
 echo
-echo "*** Finished backing up kernel components to $BASE_DIR"
+echo "*** Finished restoring kernel components from $BASE_DIR"
