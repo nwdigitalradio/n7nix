@@ -114,12 +114,14 @@ fi
 
 # Lists all .$EXTEN files in directory
 # Last file listed should have lastest version number
-for filename in *.$EXTEN ; do
-   rms_ver="$(echo ${filename#r*-} | cut -d '.' -f1,2,3)"
+for fullname in *.$EXTEN ; do
+   filename=$(basename "$fullname")
+   rms_ver="$(echo ${filename#r*-} | cut -d '.' -f1,2,3,4)"
 #   echo "$filename version: $rms_ver"
 done
 
-dbgecho "Untarring this installation file: $filename, version: $rms_ver"
+dirname=$(echo ${fullname%$filename})
+dbgecho "Untarring this version: $rms_ver of this file: $filename in this dir: $dirname"
 
 tar xf $filename
 if [ $? -ne 0 ] ; then
