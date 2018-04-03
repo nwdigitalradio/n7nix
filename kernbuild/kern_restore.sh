@@ -75,13 +75,16 @@ else
    fi
 fi
 
-# back-up dtb files
+# restore dtb files
 echo "Copying dtb files"
 SRC_FILE="$BASE_DIR/boot/*.dtb"
 DEST_DIR="/boot"
 if [ "$DRY_RUN" = "true" ] ; then
    echo "Copying $(ls -1 $SRC_FILE | wc -l) dtb files: $DEST_DIR"
 else
+   # get rid of existing dtb files
+   rm "$DEST_DIR/*.dtb"
+
    cp  $SRC_FILE $DEST_DIR
    if [ $? -ne 0 ] ; then
       echo "Problem backing up file: $SRC_FILE"
@@ -89,7 +92,7 @@ else
    fi
 fi
 
-# back-up overlays
+# restore overlays
 echo "Copying overlay files"
 SRC_DIR="$BASE_DIR/boot/overlays"
 DEST_DIR="/boot/overlays"
