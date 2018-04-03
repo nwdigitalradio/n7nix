@@ -62,6 +62,35 @@ else
    fi
 fi
 
+# backup bin files
+echo "Copying kernel"
+SRC_FILE="/boot/*.bin"
+DEST_FILE="$BASE_DIR/boot"
+if [ "$DRY_RUN" = "true" ] ; then
+   echo "Copying $(ls -1 $SRC_FILE | wc -l) backup bin files: $DEST_FILE"
+else
+   cp  $SRC_FILE $DEST_FILE
+   if [ $? -ne 0 ] ; then
+      echo "Problem backing up file: $SRC_FILE"
+      exit 1
+   fi
+fi
+
+
+# backup config files
+echo "Copying config files"
+SRC_FILE="/boot/*.txt"
+DEST_FILE="$BASE_DIR/boot"
+if [ "$DRY_RUN" = "true" ] ; then
+   echo "Copying $(ls -1 $SRC_FILE | wc -l) backup config files: $DEST_FILE"
+else
+   cp  $SRC_FILE $DEST_FILE
+   if [ $? -ne 0 ] ; then
+      echo "Problem backing up file: $SRC_FILE"
+      exit 1
+   fi
+fi
+
 # back-up dtb files
 echo "Copying dtb files"
 SRC_FILE="/boot/*.dtb"
