@@ -11,6 +11,7 @@
 # But also need to replace 'pi' with new user name in these files:
 #  - /usr/bin/raspi-config
 #  - /etc/lightdm/lightdm.conf
+#    - autologin-user=
 # now run sudo raspi-config
 # Select the third option:
 #   3 Enable Boot to Desktop/Scratch
