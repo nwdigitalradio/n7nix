@@ -81,6 +81,8 @@ if [ ! -d $SRC_DIR ] ; then
       echo "Problems creating source directory: $SRC_DIR"
       exit 1
    fi
+else
+   echo "Source directory: $SRC_DIR already exists"
 fi
 
 cd $SRC_DIR
@@ -97,7 +99,7 @@ if [ $? -ne 0 ] ; then
    #       Problematic to download a file from yahoo groups,
    # wget --no-check-certificate -t 3 https://groups.yahoo.com/neo/groups/LinuxRMS/files/Software/*.tgz
 
-   wget -r -l1 -H -t1 -nd -N -np -qt 3 -A ".$EXTEN" http://k4gbb.no-ip.info/docs/scripts/
+   wget -r -l1 -H -t1 -nd -N -np -qt 3 -A "rmsgw*.$EXTEN" http://k4gbb.no-ip.info/docs/scripts/
    if [ $? -ne 0 ] ; then
       echo "Problems downloading file,"
       echo "  go to https://groups.yahoo.com/neo/groups/LinuxRMS/files/Software"
@@ -109,7 +111,7 @@ else
    TGZ_FILELIST="$(ls rmsgw-*.$EXTEN |tr '\n' ' ')"
 
    echo "Already have rmsgw install file(s): $TGZ_FILELIST"
-   echo "To check for a new version move .$EXTEN file(s) out of this directory"
+   echo "To check for a new version move .$EXTEN file(s) out of this directory: $SRC_DIR"
 fi
 
 # Lists all .$EXTEN files in directory
