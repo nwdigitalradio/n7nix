@@ -82,8 +82,9 @@ DEST_DIR="/boot"
 if [ "$DRY_RUN" = "true" ] ; then
    echo "Copying $(ls -1 $SRC_FILE | wc -l) dtb files: $DEST_DIR"
 else
+   # NEVER do this
    # get rid of existing dtb files
-   rm "$DEST_DIR/*.dtb"
+   # rm "$DEST_DIR/*.dtb"
 
    cp  $SRC_FILE $DEST_DIR
    if [ $? -ne 0 ] ; then
@@ -108,11 +109,11 @@ fi
 if [ "$DRY_RUN" != "true" ] ; then
    sync
    echo
-   echo "==== directory of $BASE_DIR/lib/modules"
-   ls -salt $BASE_DIR/lib/modules
+   echo "==== directory of /lib/modules"
+   ls -salt /lib/modules
    echo
-   echo "==== directory of $BASE_DIR/boot"
-   ls -salt $BASE_DIR/boot
+   echo "==== directory of /boot"
+   ls -salt /boot
 fi
 
 echo
