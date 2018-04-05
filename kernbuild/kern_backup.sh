@@ -63,7 +63,7 @@ else
 fi
 
 # backup bin files
-echo "Copying kernel"
+echo "Copying bin files"
 SRC_FILE="/boot/*.bin"
 DEST_FILE="$BASE_DIR/boot"
 if [ "$DRY_RUN" = "true" ] ; then
