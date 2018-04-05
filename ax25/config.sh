@@ -9,7 +9,7 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 CALLSIGN="N0ONE"
-AX25PORT="udr0"
+AX25PORT="udr"
 SSID="15"
 AX25DSSID="0"
 AX25_CFGDIR="/usr/local/etc/ax25"
@@ -78,6 +78,22 @@ while get_ssid ; do
 done
 }
 
+# ===== function cfg_axports
+function cfg_axports() {
+
+   prompt_read
+   # udrc II has 2 ports
+{
+echo "# $AX25_CFGDIR/axports"
+echo "#"
+echo "# The format of this file is:"
+echo "#portname	callsign	speed	paclen	window	description"
+echo "${AX25PORT}0        $CALLSIGN-$SSID         9600    255     2       Direwolf port"
+echo "${AX25PORT}1        $CALLSIGN-10            9600    255     2       Winlink port"
+} > $AX25_CFGDIR/axports
+
+}
+
 # ===== main
 
 echo
@@ -115,22 +131,20 @@ fi
 # Check for a valid callsign
 get_callsign
 
-grep -i "$AX25PORT" $AX25_CFGDIR/axports
-if [ $? -eq 1 ] ; then
-   echo "No ax25 ports defined"
-   mv $AX25_CFGDIR/axports $AX25_CFGDIR/axports-dist
-   echo "Original ax25 axports saved as axports-dist"
-
-   prompt_read
-{
-echo "# $AX25_CFGDIR/axports"
-echo "#"
-echo "# The format of this file is:"
-echo "#portname	callsign	speed	paclen	window	description"
-echo "$AX25PORT            $CALLSIGN-$SSID         9600    255     2       Direwolf port"
-} >> $AX25_CFGDIR/axports
+# Setup ax.25 axports file
+numports=$(grep -c "$AX25PORT" $AX25_CFGDIR/axports)
+if [ $? -ne 2 ] ; then
+   if (( $numports == 0 )) ; then
+      echo "No ax25 ports defined"
+      mv $AX25_CFGDIR/axports $AX25_CFGDIR/axports-dist
+      echo "Original ax25 axports saved as axports-dist"
+      cfg_axports
+   else
+      echo "AX.25 $AX25PORT already configured with $numports"
+   fi
 else
-   echo "AX.25 port $AX25PORT already configured"
+   echo "AX.25 ports file $AX25_CFGDIR/axports doesn't exist ... creating."
+   cfg_axports
 fi
 
 # Set up a listening socket, for testing
@@ -147,12 +161,16 @@ if [ $? -eq 0 ] ; then
    mv $AX25_CFGDIR/ax25d.conf $AX25_CFGDIR/ax25d.conf-dist
    echo "Original ax25d.conf saved as ax25d.conf-dist"
    # copy first 16 lines of file
-   sed -n '1,16p' $AX25_CFGDIR/ax25d.conf-dist >> $AX25_CFGDIR/ax25d.conf
+   sed -n '1,16p' $AX25_CFGDIR/ax25d.conf-dist > $AX25_CFGDIR/ax25d.conf
 
 {
-echo "[$CALLSIGN-$AX25DSSID VIA $AX25PORT]"
+echo "[$CALLSIGN-$AX25DSSID VIA ${AX25PORT}0]"
 echo "NOCALL   * * * * * *  L"
 echo "default  * * * * * *  - root /usr/sbin/ttylinkd ttylinkd"
+echo "#"
+echo "[$CALLSIGN-10 VIA ${AX25PORT}1]"
+echo "NOCALL   * * * * * *  L"
+echo "default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -P %d %U"
 } >> $AX25_CFGDIR/ax25d.conf
 
 else
