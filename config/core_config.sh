@@ -55,7 +55,7 @@ cp /home/$USER/n7nix/systemd/bin/* $userbindir
 chown -R $USER:$USER $userbindir
 
 echo
-echo "FINISHED copying files"
+echo "FINISHED copying bin files"
 }
 
 
@@ -170,8 +170,11 @@ check_user
 userbindir=/home/$USER/bin
 CopyBinFiles
 
+# Set alsa levels with script
 cd $userbindir
-./set-udrc-din6.sh  > /dev/null 2>&1
+#./set-udrc-din6.sh  > /dev/null 2>&1
+# Sets left channel levels for Kenwood & right channel for Alinco
+./set-udrc-both.sh  > /dev/null 2>&1
 retcode="$?"
 dbgecho "Set sound card levels return: $retcode"
 cd $START_DIR

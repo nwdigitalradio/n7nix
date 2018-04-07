@@ -344,13 +344,15 @@ else
    dbgecho "Source dir: $SRC_DIR already exists"
 fi
 
-cd $SRC_DIR
-wget -O set-udrc-din6.sh -qt 3 https://goo.gl/7rXUFJ
-if [ $? -ne 0 ] ; then
-   echo "FAILED to download alsa level setup file."
-   exit 1
-fi
-chmod +x set-udrc-din6.sh
+# Use set-udrc alsa script from repo
+#
+#cd $SRC_DIR
+#wget -O set-udrc-din6.sh -qt 3 https://goo.gl/7rXUFJ
+#if [ $? -ne 0 ] ; then
+#   echo "FAILED to download alsa level setup file."
+#   exit 1
+#fi
+#chmod +x set-udrc-din6.sh
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: core install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo

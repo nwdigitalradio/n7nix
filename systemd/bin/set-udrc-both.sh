@@ -16,7 +16,7 @@
 asoundstate_file="/var/lib/alsa/asound.state"
 stateowner=$(stat -c %U $asoundstate_file)
 if [ $? -ne 0 ] ; then
-   "Command 'alsactl store' will not work file: $asoundstate_file does not exist"
+   "Command 'alsactl store' will not work, file: $asoundstate_file does not exist"
    exit
 fi
 

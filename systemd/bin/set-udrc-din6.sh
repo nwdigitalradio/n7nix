@@ -9,6 +9,18 @@
 #
 # This just sets levels for Kenwood radio
 
+asoundstate_file="/var/lib/alsa/asound.state"
+stateowner=$(stat -c %U $asoundstate_file)
+if [ $? -ne 0 ] ; then
+   "Command 'alsactl store' will not work, file: $asoundstate_file does not exist"
+   exit
+fi
+
+# Be sure we're running as root
+ if [[ $EUID != 0 ]] ; then
+   echo "Command 'alsactl store' will not work unless you are root"
+fi
+
 amixer -c udrc -s << EOF
 #  Set input and output levels for Kenwood radio
 sset 'ADC Level' -2.0dB
