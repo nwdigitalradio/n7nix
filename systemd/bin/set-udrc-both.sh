@@ -23,7 +23,6 @@ fi
 # Be sure we're running as root
  if [[ $EUID != 0 ]] ; then
    echo "Command 'alsactl store' will not work unless you are root"
-
 fi
 
 amixer -c udrc -s << EOF
