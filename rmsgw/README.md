@@ -105,7 +105,7 @@ status for interface ax0: unavailable
 ```
 /etc/rmsgw
 ```
-* Some versions of this file have the following for the first 2 lines:
+* Some versions of the _/etc/rmsgw/channels.xml_ file have the following for the first 2 lines:
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <rmschannels xmlns="http://www.w3sg.org/rmschannels"
