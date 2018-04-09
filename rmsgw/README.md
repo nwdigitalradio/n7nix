@@ -110,7 +110,13 @@ status for interface ax0: unavailable
 <?xml version="1.0" encoding="UTF-8"?>
 <rmschannels xmlns="http://www.w3sg.org/rmschannels"
 ```
-* __This will not work__, use this instead:
+* __This will not work__, it will prevent your station callsign from appearing on the Winlink:
+  *  packet station map
+  *  packet RMS List
+* use the following instead:
+  * Second line changes:
+    * from: _http://www.w3sg.org/rmschannels_
+    * to _http://www.namespace.org_
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <rmschannels xmlns="http://www.namespace.org"
