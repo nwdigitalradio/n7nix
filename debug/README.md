@@ -3,20 +3,29 @@
 
 #### Contents
 
-1. Cronjob & scripts to e-mail daily reports using Winlink
-2. Enable the serial console on an RPi 3
-3. Push-to-Talk GPIOs used by an UDRC & UDRC II
-4. Direwolf/UDRC - test output channels & push to talk
-5. How to capture everything you typed on a console
-6. Some scripts to display useful information for debug
+1. Cronjob & scripts to email daily System reports using Winlink
+2. Cronjob & scripts to email daily RMS Gateway reports using Winlink or SMTP
+3. Enable the serial console on an RPi 3
+4. Push-to-Talk GPIOs used by an UDRC & UDRC II
+5. Direwolf/UDRC - test output channels & push to talk
+6. How to capture everything you typed on a console
+7. Some scripts to display useful information for debug
 
-## [1. Mail daily reports using Winlink](https://github.com/nwdigitalradio/n7nix/blob/master/debug/MAILSYSREPORT.md)
+## [1. EMail daily reports using Winlink](https://github.com/nwdigitalradio/n7nix/blob/master/debug/MAILSYSREPORT.md)
+
 * Use 3 scripts to:
   * Generate a report
   * Email report
   * Check outbox for files to send
 
-## 2. Enable serial console
+## [2. EMail daily RMS Gateway reports using Winlink or SMTP](https://github.com/nwdigitalradio/n7nix/blob/master/debug/MAILGATEWAYLOGIN.md)
+
+* Use 3 scripts to:
+  * Generate a report
+  * Email report
+  * Check outbox for files to send
+
+## 3. Enable serial console
 * Enabling the serial port on a Raspberry Pi 3 will **disable** bluetooth
 * In file /boot/config.txt add
 ```
@@ -32,7 +41,7 @@ console=ttyAMA0,115200
 ```
 
 
-## 3. PTT Push to Talk & RPi GPIOs
+## 4. PTT Push to Talk & RPi GPIOs
 * These are the GPIO numbers to use in direwolf.conf
   * ie. for Channel 1 Properties
 ```
@@ -47,7 +56,7 @@ MODEM 1200
 | UDRC    |  12 both |   12 both |
 | UDRC II |  12 HD15 |   23 DIN6 |
 
-## 4. Direwolf/UDRC testing
+## 5. Direwolf/UDRC testing
 
 ### Test output & Push to Talk
 
@@ -95,12 +104,12 @@ speaker-test -Dplughw:udrc -c2 -f1200 -tsine -l0
 ```
 * This gives a looping on/off 1200 HZ tone
 
-## 5. Capture everything typed on the console
+## 6. Capture everything typed on the console
 
 * This program will capture everyting you type on a console
   * When you are done, type exit
 
-```
+```bash
 script logfilename.txt
 ```
 then at the end of a session run:
@@ -111,7 +120,7 @@ exit
 
 * Now there will be a history of everything typed in the whatever file name you gave to logfilename.
 
-## 6. Scripts to display useful information
+## 7. Scripts to display useful information
 
 #### sysver.sh
 
