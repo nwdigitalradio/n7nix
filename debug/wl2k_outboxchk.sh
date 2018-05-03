@@ -19,17 +19,15 @@ WL2KXPORT=$(echo "${WL2KXPORT#\"}")
 # ===== function wl2ksend()
 # Send messages in Winlink outbox via telnet
 
-function wl2ksend ()
-{
+function wl2ksend () {
 
-echo "$scriptname: $(date): starting winlink cmd" >> $errorlogfile
-$WL2KXPORT -s >> $errorlogfile 2>&1
+   echo "$scriptname: $(date): starting winlink cmd" >> $errorlogfile
+   $WL2KXPORT -s >> $errorlogfile 2>&1
 
-lastline=$(tail -1 $errorlogfile)
+   lastline=$(tail -1 $errorlogfile)
 
-echo "Outbox sending $filecountb4 msgs"
-echo "Last line: $lastline"
-
+   echo "Outbox sending $filecountb4 msgs"
+   echo "Last line: $lastline"
 }
 
 # ===== Main
