@@ -12,9 +12,16 @@
 # If DEBUG is defined no flash writing will occur
 #DEBUG=1
 
-img_date=
 flash_dev="/dev/sde"
-kernlite="false"
+
+# Build image name from these variables
+# Need this for raspbian
+img_date="2018-03-13"
+kernlite="true"
+
+# Choose one for compass or raspbian
+#fs_source="compass"
+fs_source="raspbian-stretch"
 
 # must run as root
 if [ -z $DEBUG ] && [[ $EUID -ne 0 ]]; then
@@ -22,35 +29,57 @@ if [ -z $DEBUG ] && [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
+# Used by Compass, since it has daily builds
 # Create flash file name
 if [ -z "$img_date" ] ; then
    img_date="$(date "+%Y-%m-%d")"
 fi
 
-flashfile_name="${img_date}-compass"
-
 # Is lite or full image required
+   flashfile_name="${img_date}-${fs_source}"
 if [ "$kernlite" == "true" ] ; then
-   flashfile_name="${img_date}-compass-lite"
+   flashfile_name="${img_date}-${fs_source}-lite"
 fi
 
+zipfile_name="${flashfile_name}.zip"
+if [ "${fs_source:0:7}" == "compass" ] ; then
+   zipfile_name="image_${flashfile_name}.zip"
+fi
+
+echo "Using base filename: $flashfile_name, zip filename: $zipfile_name"
+
 # Does the image file already exist?
-if [ ! -f ${flashfile_name}.img ] ; then
+if [ ! -f "${flashfile_name}.img" ] ; then
    # Does the zipped image file already exist?
-   if [ -f "image_${flashfile_name}.zip" ] ; then
-      echo "Unzipping file: image_${flashfile_name}.zip ... please wait"
-      unzip image_${flashfile_name}.zip
+    if [ -f "${zipfile_name}" ] ; then
+	
+      echo "Unzipping file: ${zipfile_name} ... please wait"
+      unzip ${zipfile_name}
    else
-      # Download the request compass image file
-      echo "Downloading compass image file: image_${flashfile_name}.zip ... please wait"
-      wget -qt 3 https://nwdr-compass-images.s3.amazonaws.com/image_${flashfile_name}.zip
+      # Download the requested image file
+      if [ "${fs_source:0:7}" == "compass" ] ; then
+         # Download a compass image
+         echo "Downloading compass image file: ${zipfile_name} ... please wait"
+         wget -qt 3 https://nwdr-compass-images.s3.amazonaws.com/${zipfile_name}
+      else
+         #Download a raspbian image
+         echo "Downloading raspbian image file: ${zipfile_name} ... please wait"\
+         raspbianfile_name="raspbian_latest"
+         if [ "$kernlite" == "true" ] ; then
+            raspbianfile_name="raspbian_lite_latest"
+         fi
+         wget -qt 3 https://downloads.raspberrypi.org/${raspbianfile_name}
+      fi
+      # Check status of download
       if [ $? -ne 0 ] ; then
-         echo "Problem encountered downloading compass image file: image_${flashfile_name}.zip"
+         echo "Problem encountered downloading image file: ${zipfile_name}"
          exit 1
       fi
-      echo "Unzipping file: image_${flashfile_name}.zip"
-      unzip image_${flashfile_name}.zip
+      echo "Unzipping file: ${zipfile_name}"
+      unzip ${zipfile_name}
    fi
+else
+   echo "Flash image file: ${flashfile_name}.img exists, using it"
 fi
 
 if mount | grep -q $flash_dev; then
