@@ -1,4 +1,4 @@
-# Send RMS Gateway Login report via SMTP or Winlink usin CRON
+# RMS Gateway Login report via SMTP or Winlink using CRON
 
  The following scripts are used:
 
