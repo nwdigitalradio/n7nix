@@ -40,6 +40,6 @@ else
 	subject=$(echo "//wl2k ##* no logins on $station for $now")
 fi
 
-mutt  -s "$subject" -c $SENDTO  < $outfile
+mutt  -s "$subject" $SENDTO  < $outfile
 
 exit 0
