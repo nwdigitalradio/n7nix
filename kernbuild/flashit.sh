@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 #
 # flashit.sh
 # - Unzips & writes to flash a compass image file
@@ -16,7 +16,7 @@ flash_dev="/dev/sde"
 
 # Build image name from these variables
 # Need this for raspbian
-img_date="2018-03-13"
+img_date="2018-04-18"
 kernlite="true"
 
 # Choose one for compass or raspbian
@@ -52,7 +52,6 @@ echo "Using base filename: $flashfile_name, zip filename: $zipfile_name"
 if [ ! -f "${flashfile_name}.img" ] ; then
    # Does the zipped image file already exist?
     if [ -f "${zipfile_name}" ] ; then
-	
       echo "Unzipping file: ${zipfile_name} ... please wait"
       unzip ${zipfile_name}
    else
@@ -82,10 +81,18 @@ else
    echo "Flash image file: ${flashfile_name}.img exists, using it"
 fi
 
-if mount | grep -q $flash_dev; then
-   echo "$flash_dev is mounted ... unmounting"
-   umount ${flash_dev}1
-   umount ${flash_dev}2
+flash_device=${flash_dev}1
+mntpnt=$(findmnt -n $flash_device | cut -d ' ' -f1)
+if [ ! -z "$mntpnt" ] ; then
+   echo "$flash_device is mounted at $mntpnt ... unmounting"
+   umount $mntpnt
+fi
+
+flash_device=${flash_dev}2
+mntpnt=$(findmnt -n $flash_device | cut -d ' ' -f1)
+if [ ! -z "$mntpnt" ] ; then
+   echo "$flash_device is mounted at $mntpnt ... unmounting"
+   umount $mntpnt
 fi
 
 echo "Copying image file: ${flashfile_name}.img, size: $(du -h ${flashfile_name}.img | cut -f1)"
@@ -96,6 +103,7 @@ if [ ! -z $DEBUG ] ; then
 fi
 
 time dd if=${flashfile_name}.img of=$flash_dev bs=1M status=progress
+sync
 
 mount ${flash_dev}1 /mnt/fat32
 touch /mnt/fat32/ssh
