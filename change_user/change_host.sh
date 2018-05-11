@@ -7,22 +7,22 @@
 
 scriptname="`basename $0`"
 
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root"
+   exit 1
+fi
+
 # Check hostname
 echo " === Verify hostname"
 HOSTNAME=$(cat /etc/hostname | tail -1)
 echo "$scriptname: Current hostname: $HOSTNAME"
 
-
    # Change hostname
-   echo "Using host name: $HOSTNAME, change it"
    echo "Enter new host name followed by [enter]:"
    read -t 1 -n 10000 discard
    read -e HOSTNAME
    echo "$HOSTNAME" > /etc/hostname
-
-
-# Get hostname again to replicate it in the othe files
-HOSTNAME=$(cat /etc/hostname | tail -1)
 
 echo "=== Set mail hostname"
 echo "$HOSTNAME.localhost" > /etc/mailname
@@ -47,5 +47,8 @@ else
       echo "Failed to modify /etc/hosts file"
    fi
 fi
+
+# Get hostname to verify
+#HOSTNAME=$(cat /etc/hostname | tail -1)
 
 echo "FINISHED changing host names"
