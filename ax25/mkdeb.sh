@@ -4,9 +4,9 @@
 
 SRC_DIR="/usr/local/src/ax25/linuxax25-master"
 PKGDIR="/home/pi/n7nix/ax25/debpkg/"
-SUFFIX="1.0.5-1_armhf.deb"
 
 pkgname="libax25"
+SUFFIX="1.1.0-1_armhf.deb"
 PKGLONGNAME="$pkgname"_"$SUFFIX"
 echo
 echo " ===== Make $pkgname Debian package"
@@ -33,6 +33,7 @@ fi
 # Summary: AX.25 ham radio applications
 
 pkgname="ax25apps"
+SUFFIX="1.0.5-1_armhf.deb"
 PKGLONGNAME="$pkgname"_"$SUFFIX"
 
 echo
