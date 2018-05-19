@@ -20,6 +20,7 @@ img_date="2018-04-18"
 kernlite="true"
 
 # Choose one for compass or raspbian
+#fs_source="compass-4GB"
 #fs_source="compass"
 fs_source="raspbian-stretch"
 
