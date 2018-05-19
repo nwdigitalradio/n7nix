@@ -290,7 +290,7 @@ cd $START_DIR
 cd ..
 echo "Installing from this directory $(pwd)"
 
-dpkg -i ./ax25/debpkg/libax25_1.0.5-1_armhf.deb
+dpkg -i ./ax25/debpkg/libax25_1.1.0-1_armhf.deb
 dpkg -i ./ax25/debpkg/ax25apps_1.0.5-1_armhf.deb
 dpkg -i ./ax25/debpkg/ax25tools_1.0.3-1_armhf.deb
 
