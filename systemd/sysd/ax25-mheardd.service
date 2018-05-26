@@ -5,7 +5,7 @@ After=sys-subsystem-net-devices-ax0.device
 BindsTo=sys-subsystem-net-devices-ax0.device
 
 [Service]
-ExecStart=/usr/local/sbin/mheardd -f -n 30
+ExecStart=/usr/local/sbin/mheardd -f -n 150
 #RestartSec=1min
 #Restart=on-failure
 
