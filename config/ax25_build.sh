@@ -126,24 +126,6 @@ ldconfig
 
 install_build_tools
 
-echo " === enable modules"
-grep ax25 /etc/modules > /dev/null 2>&1
-if [ $? -ne 0 ] ; then
-
-# Add to bottom of file
-cat << EOT >> /etc/modules
-
-i2c-dev
-ax25
-EOT
-fi
-
-lsmod | grep -i ax25 > /dev/null 2>&1
-if [ $? -ne 0 ] ; then
-   echo "enable ax25 module"
-   insmod /lib/modules/$(uname -r)/kernel/net/ax25/ax25.ko
-fi
-
 echo " === Install libax25, ax25apps & ax25tools"
 # libax25, ax25apps & ax25tools are about to be installed from source
 
@@ -227,6 +209,24 @@ make installconf
 
 ax25_config_dirs
 ax25_lib
+
+echo " === enable modules"
+grep ax25 /etc/modules > /dev/null 2>&1
+if [ $? -ne 0 ] ; then
+
+# Add to bottom of file
+cat << EOT >> /etc/modules
+
+i2c-dev
+ax25
+EOT
+fi
+
+lsmod | grep -i ax25 > /dev/null 2>&1
+if [ $? -ne 0 ] ; then
+   echo "enable ax25 module"
+   insmod /lib/modules/$(uname -r)/kernel/net/ax25/ax25.ko
+fi
 
 echo " === libax25, ax25apps & ax25tools install FINISHED"
 
