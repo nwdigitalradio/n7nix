@@ -166,7 +166,7 @@ dbgecho "Return val: $return_val"
 case $return_val in
 0)
    echo "HAT firmware not initialized or HAT not installed."
-   echo "No id eeprom found, exiting"
+   echo "  No id eeprom found"
 ;;
 1)
    echo "Found a HAT but not a UDRC, product not identified"
@@ -215,9 +215,15 @@ fi
 echo "---- kernel"
 dpkg -l "*kernel" | tail -n 3
 
-verstr="$(direwolf -v 2>/dev/null |  grep -m 1 -i version)"
-# Get rid of escape characters
-echo "----- D${verstr#*D}"
+# Check version of direwolf installed
+type -P direwolf &>/dev/null
+if [ $? -ne 0 ] ; then
+   echo "----- No direwolf program found in path"
+else
+   verstr="$(direwolf -v 2>/dev/null |  grep -m 1 -i version)"
+   # Get rid of escape characters
+   echo "----- D${verstr#*D}"
+fi
 echo
 echo "==== boot config ===="
 tail -n 15 /boot/config.txt
