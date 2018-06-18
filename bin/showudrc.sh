@@ -156,9 +156,6 @@ firmware_vendorfile="/sys/firmware/devicetree/base/hat/vendor"
 PROD_ID_NAMES=("INVALID" "INVALID" "UDRC" "UDRC II" "1WSpot")
 NWDIG_VENDOR_NAME="NW Digital Radio"
 
-
-# ===== main =====
-
 id_check
 return_val=$?
 dbgecho "Return val: $return_val"
@@ -215,6 +212,24 @@ fi
 echo "---- kernel"
 dpkg -l "*kernel" | tail -n 3
 
+echo "---- compass"
+preference_file="/etc/apt/preferences.d/compass"
+if [ -f "$preference_file" ] ; then
+   echo "---- compass preference file"
+   cat "$preference_file"
+else
+   echo "Compass preference file not found: $preference_file"
+fi
+sources_list_file="/etc/apt/sources.list.d/compass.list"
+if [ -f "$sources_list_file" ] ; then
+   echo "---- compass apt sources list file"
+   cat "$sources_list_file"
+else
+   echo "Compass apt sources list file not found: $sources_list_file"
+fi
+echo "---- compass package files"
+ls -o /var/lib/apt/lists/archive.compasslinux.org_*
+echo
 # Check version of direwolf installed
 type -P direwolf &>/dev/null
 if [ $? -ne 0 ] ; then
