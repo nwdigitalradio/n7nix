@@ -7,7 +7,7 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 pkgname="direwolf"
 
-VER="1.5-beta2"
+VER="1.5-beta3"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
