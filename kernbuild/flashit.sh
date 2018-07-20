@@ -12,11 +12,11 @@
 # If DEBUG is defined no flash writing will occur
 #DEBUG=1
 
-flash_dev="/dev/sde"
+flash_dev="/dev/sdf"
 
 # Build image name from these variables
 # Need this for raspbian
-img_date="2018-04-18"
+img_date="2018-07-13"
 kernlite="true"
 
 # Choose one for compass or raspbian
@@ -103,7 +103,7 @@ if [ ! -z $DEBUG ] ; then
   exit
 fi
 
-time dd if=${flashfile_name}.img of=$flash_dev bs=1M status=progress
+time dcfldd if=${flashfile_name}.img of=$flash_dev bs=4M status=progress
 sync
 
 mount ${flash_dev}1 /mnt/fat32
