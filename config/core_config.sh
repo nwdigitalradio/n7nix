@@ -52,6 +52,7 @@ if [ ! -d "$userbindir" ] ; then
 fi
 
 cp /home/$USER/n7nix/systemd/bin/* $userbindir
+cp /home/$USER/n7nix/bin/* $userbindir
 chown -R $USER:$USER $userbindir
 
 echo
