@@ -4,6 +4,7 @@
 #
 scriptname="`basename $0`"
 USER=$(whoami)
+wl2ktransport="/usr/local/bin/wl2ktelnet -s"
 
 #CALLSIGN="N7NIX"
 #REALNAME="Basil Gunn"
@@ -18,13 +19,16 @@ SPOOL_FILE="/var/mail/$USER"
 GROUP="mail"
 TMPDIR=/home/$USER/tmp
 
+WAIT_TIME=12
 PLU_VAR_DIR="/usr/local/var/wl2k"
+outboxdir="$PLU_VAR_DIR/outbox"
 INDEX_FILENAME="$TMPDIR/indexfile.txt"
 MSG_FILENAME="$TMPDIR/testmsg.txt"
 
 MUTT="/usr/bin/mutt"
 # Set boolean for this script generated email body
 bgenbody="false"
+outboxfile_cnt=0
 
 # ===== function chk_perm
 # Check permissions of the winlink outbox directory
@@ -33,6 +37,7 @@ function chk_perm() {
 # set permissions for /usr/local/var/wl2k directory
 # Check user & group of outbox directory
 #
+{
 echo "=== test owner & group id of outbox directory"
 if [ $(stat -c "%U" $PLU_VAR_DIR) != "$USER" ]  || [ $(stat -c "%G" $PLU_VAR_DIR) != "$GROUP" ] ; then
    echo "Outbox dir has wrong permissions: $(stat -c "%U" $PLU_VAR_DIR):$(stat -c "%G" $PLU_VAR_DIR)"
@@ -46,18 +51,19 @@ filecount=$(ls -1 ${PLU_VAR_DIR}/outbox | wc -l)
 if [ -z $filecount ] ; then
   filecount=0
 fi
-
+} >> $email_logfile
 }
 
 # ===== function count_files_ob
 # count number of files in outbox
 count_files_ob() {
-
+{
 # dump any files in winlink outbox to log file
 if (( $filecount > 0 )) ; then
    echo " Files in outbox: $filecount for callsign: $CALLSIGN"
    outboxfiles=$(ls -1 ${PLU_VAR_DIR}/outbox/*_$CALLSIGN)
    if [ ! -z "$outboxfiles" ] ; then
+      outboxfile_cnt="$outboxfiles"
       for filename in `echo ${outboxfiles}` ; do
          echo "==== email: $filename"
          cat $filename
@@ -65,11 +71,14 @@ if (( $filecount > 0 )) ; then
       done
    else
       echo "No files for $CALLSIGN found"
-      ls -1 ${PLU_VAR_DIR}/outbox/*_$CALLSIGN
+      ls -1 ${PLU_VAR_DIR}/outbox/
+      outboxfile_cnt=0
    fi
 else
    echo " No files in outbox"
+   outboxfile_cnt=0
 fi
+} >> $email_logfile
 }
 
 # ===== function send_email
@@ -78,6 +87,7 @@ function send_email() {
 
 sendto="$1"
 
+{
 # if index file doesn't exist create it & set contents to a zero
 if [ ! -e "$INDEX_FILENAME" ] ; then
   echo "INFO: file $INDEX_FILENAME DOES NOT exist"
@@ -125,6 +135,7 @@ if  [ "$bgenbody" = "true" ] ; then
    rm "$MSG_FILENAME"
 fi
 echo "email generation for $sendto finished."
+} >> $email_logfile
 }
 
 # ===== function
@@ -132,13 +143,14 @@ get_last_maillog() {
    filename="/var/log/mail.log"
    last_ml=$(tail -n1 $filename)
    last_ln=$(wc -l $filename | cut -d ' ' -f1)
-   echo "last line mail log[$last_ln]: $last_ml"
+   echo "last line mail log[$last_ln]: $last_ml" >> $email_logfile
 }
 
 
 # ===== function get_mail_log
 dump_maillog() {
    filename="/var/log/mail.log"
+   {
    filesize=$(stat --printf="%s" $filename)
    if (( filesize == 0 )) ; then
       echo "No entries in $filename trying $filename.1"
@@ -158,18 +170,38 @@ dump_maillog() {
 
    echo "mail.log end"
    echo
+   } >> $email_logfile
+}
+
+# ===== function dump_files
+dump_files() {
+filelist="/etc/hostname /etc/hosts /etc/postfix/main.cf /usr/local/etc/wl2k.conf"
+{
+   for fname in `echo ${filelist}` ; do
+
+      if [ -e "$fname" ] ; then
+         echo "==== file: $fname"
+         cat $fname
+         echo
+      else
+         echo "file: $fname does not exist"
+      fi
+   done
+} >> $email_logfile
 }
 
 # ===== function chk_spool_file
 chk_spool_file() {
-if [ ! -e "$SPOOL_FILE" ] ; then
-   echo "Spool file $SPOOL_FILE" does not exist!
-   sudo touch $SPOOL_FILE
-   sudo chown $USER:mail $SPOOL_FILE
-else
-   echo "Spool file $SPOOL_FILE" does exists
-fi
-ls -al /var/mail
+{
+   if [ ! -e "$SPOOL_FILE" ] ; then
+      echo "Spool file $SPOOL_FILE" does not exist!
+      sudo touch $SPOOL_FILE
+      sudo chown $USER:mail $SPOOL_FILE
+   else
+      echo "Spool file $SPOOL_FILE  does exist"
+   fi
+   ls -al /var/mail
+} >> $email_logfile
 }
 
 # ===== function config_mutt
@@ -193,7 +225,7 @@ fi
 # Check if .muttrc file exists
 if [ ! -f "/home/$USER/.muttrc" ] ; then
    # Create a .muttrc heredoc without parameter expansion
-   echo "Creating a new .muttrc file"
+   echo "Creating a new .muttrc file" >> $email_logfile
    cat << 'EOT' > /home/$USER/.muttrc
 set editor="nano"			# light weight emacs type editor
 set hostname="winlink.org"
@@ -252,13 +284,84 @@ EOT
    echo "my_hdr Reply-To: $CALLSIGN@winlink.org"
 } >> /home/$USER/.muttrc
 else
-   echo ".muttrc file already exists"
+   echo ".muttrc file already exists" >> $email_logfile
 fi
 
 chown $USER:$USER /home/$USER/.muttrc
 }
 
+# ===== function outbox_check()
+# Send msg & check for it in outbox
+
+outbox_check() {
+
+filecount_diff=0
+
+# Postfix takes a while to deposit mail in outbox
+
+filecountaf=$(ls -1 $outboxdir | wc -l)
+
+if [ -z $filecountaf ] ; then
+  filecountaf=0
+fi
+
+# Initialize current time
+time_start=$(date +"%s")
+
+# Loop until new file appears in outbox or it times out
+while :
+do
+   filecountaf=$(ls -1 $outboxdir | wc -l)
+
+   if [ -z $filecountaf ] ; then
+      filecountaf=0
+   fi
+
+   if (( filecountaf > filecountb4 )) ; then
+      break;
+   fi
+
+   time_current=$(date +"%s")
+   timediff=$(($time_current - $time_start))
+   if (( timediff > WAIT_TIME )) ; then
+      break;
+   fi
+done
+
+echo "file count b4: $filecountb4  after: $filecountaf in $timediff seconds"
+
+filecount_diff=$((filecountaf - filecountb4))
+if ((filecount_diff == 0)) ; then
+   echo "Error: no change in filecount"
+fi
+
+return $filecount_diff
+}
+
 # ===== main
+
+# Running as root?
+if [[ $EUID == 0 ]] ; then
+   echo
+   echo "You are running this script as root ... don't do that."
+   exit 1
+fi
+
+# Setup tmp directory
+if [ ! -d "$TMPDIR" ] ; then
+  mkdir "$TMPDIR"
+fi
+
+# Remove any old message files
+if [ -e "$MSG_FILENAME" ] ; then
+   rm $MSG_FILENAME
+fi
+
+# Create log file name
+email_logfile="$TMPDIR/elog_$USER.txt"
+
+echo "$scriptname started: $(date)" | tee $email_logfile
+echo | tee -a $email_logfile
 
 # has the mutt email program been installed
 type -P $MUTT &>/dev/null
@@ -274,35 +377,53 @@ if [ $? -ne 0 ] ; then
    fi
 fi
 
-# Running as root?
-if [[ $EUID == 0 ]] ; then
-   echo
-   echo "You are running this script as root ... don't do that."
-   exit 1
-fi
-
-# Setup tmp directory
-if [ ! -d "$TMPDIR" ] ; then
-  mkdir "$TMPDIR"
-fi
-
 chk_spool_file
 config_mutt
 get_last_maillog
-echo " ==== chk_perm 1"
+echo " ==== chk_perm 1" >> $email_logfile
 chk_perm
 count_files_ob
-# purge the winlink outbox of old emails
-rm $PLU_VAR_DIR/outbox/*_$CALLSIGN
 
-echo " ==== send email to: $sendto_wl"
+# remove any old messages to be sent
+if (( outboxfile_cnt > 0 )) ; then
+   # purge the winlink outbox of old emails
+   rm $PLU_VAR_DIR/outbox/*_$CALLSIGN
+fi
+
+echo " ==== send email to: $sendto_wl" >> $email_logfile
 send_email $sendto_wl
-echo " ==== send email to: $sendto_local"
+echo " ==== send email to: $sendto_local"  >> $email_logfile
 send_email $sendto_local
-echo " ==== chk_perm 2"
+echo " ==== chk_perm 2" >> $email_logfile
 chk_perm
 count_files_ob
-echo " ==== dump_maillog"
+echo " ==== dump_maillog"  >> $email_logfile
 dump_maillog
+dump_files
+
+echo | tee -a $email_logfile
+echo "$scriptname finished: $(date)" | tee -a $email_logfile
+
+# Count number of files in outbox directory
+filecountb4=$(ls -1 $outboxdir | wc -l)
+if [ -z $filecountb4 ] ; then
+  filecountb4=0
+fi
+
+cp $email_logfile $MSG_FILENAME
+send_email $sendto_wl
+
+# Check if any mail is in outbox
+
+outbox_check
+if [ "$?" -gt 0 ] ; then
+   $wl2ktransport
+   retcode=$?
+   if [ "$retcode" -ne 0 ]; then
+      echo "$scriptname: $(date): $(basename $wl2ktransport) returned $retcode"
+   fi
+else
+   echo "$scriptname: $(date): No mail found in winlink outbox"
+fi
 
 exit 0
