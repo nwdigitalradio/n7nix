@@ -162,7 +162,12 @@ dump_maillog() {
 chk_spool_file() {
 if [ ! -e "$SPOOL_FILE" ] ; then
    echo "Spool file $SPOOL_FILE" does not exist!
+   sudo touch $SPOOL_FILE
+   sudo chown $USER:mail $SPOOL_FILE
+else
+   echo "Spool file $SPOOL_FILE" does exists
 fi
+ls -al /var/mail
 }
 
 # ===== function config_mutt
