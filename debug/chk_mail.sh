@@ -70,7 +70,6 @@ if (( $filecount > 0 )) ; then
 else
    echo " No files in outbox"
 fi
-# dump request files here
 }
 
 # ===== function send_email
@@ -127,7 +126,6 @@ if  [ "$bgenbody" = "true" ] ; then
 fi
 echo "email generation for $sendto finished."
 }
-
 
 # ===== function
 get_last_maillog() {
@@ -186,12 +184,6 @@ if [ ! -d $MAILDIR ] ; then
    mkdir -p $MAILDIR/trash/{,cur,tmp,new}
    mkdir -p $MAILDIR/attachments/{,cur,tmp,new}
    chown -R $USER:$USER $MAILDIR
-fi
-
-if [ ! -f "/home/$USER/.muttrc" ] ; then
-   echo "file: .muttrc NOT found"
-else
-   echo "file: .muttrc found existing"
 fi
 
 # Check if .muttrc file exists
@@ -262,7 +254,6 @@ fi
 chown $USER:$USER /home/$USER/.muttrc
 }
 
-
 # ===== main
 
 # has the mutt email program been installed
@@ -290,6 +281,7 @@ fi
 if [ ! -d "$TMPDIR" ] ; then
   mkdir "$TMPDIR"
 fi
+
 chk_spool_file
 config_mutt
 get_last_maillog
