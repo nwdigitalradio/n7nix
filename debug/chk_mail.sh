@@ -151,7 +151,11 @@ dump_maillog() {
    echo "debug: using from line number: $last_ln to last line: $(wc -l $filename | cut -d ' ' -f1)"
 
    echo "mail.log start"
+
+   # wait for log file to populate
+   sleep 2
    sed -n $last_ln,\$p  $filename
+
    echo "mail.log end"
    echo
 }
