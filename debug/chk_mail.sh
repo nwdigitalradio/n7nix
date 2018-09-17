@@ -175,7 +175,7 @@ dump_maillog() {
 
 # ===== function dump_files
 dump_files() {
-filelist="/etc/hostname /etc/hosts /etc/postfix/main.cf /usr/local/etc/wl2k.conf"
+filelist="/etc/hostname /etc/hosts /etc/postfix/main.cf /usr/local/etc/wl2k.conf /var/mail/kd5mkv"
 {
    for fname in `echo ${filelist}` ; do
 
