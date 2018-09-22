@@ -23,6 +23,8 @@ iptables_configfiles="rules.ipv4.ax25 rules.v4 rules.v6"
 logrotate_configfiles="rms direwolf"
 ax25_configfiles="ax25d.conf axports ax25dev-parms"
 systemd_files="ax25dev.path ax25dev.service direwolf.service pluweb.service"
+bin_files="set-udrc-both.sh"
+xastir_files="*"
 
 TMPDIR=/home/$USER/tmp
 BUPDIR="$TMPDIR/cfgbup"
@@ -33,6 +35,7 @@ function usage() {
    echo "Usage: $scriptname [-d][-h]" >&2
    echo "   -d no arg, diff cfg files."
    echo "   -c no arg, copy/backup cfg files."
+   echo "   -r no arg, restore cfg files."
    echo "   -h no arg, display this message"
    echo
 }
@@ -137,6 +140,19 @@ if [ ! -d "$TMPDIR" ] ; then
   mkdir "$TMPDIR"
 fi
 
+# Get all installed packages
+install_curfname=$BUPDIR/installed_cur.txt
+install_lastfname=$BUPDIR/installed_last.txt
+if [ -e "$install_curfname" ] ; then
+   mv $install_curfname $install_lastfname
+   dpkg -l|awk '/^ii/{ print $2 }'|grep -v -e ^lib -e -dev -e $(uname -r) > $install_curfname
+   echo "New packages installed: "
+   diff -b $install_curfname $install_lastfname
+else
+   dpkg -l|awk '/^ii/{ print $2 }'|grep -v -e ^lib -e -dev -e $(uname -r) > $install_curfname
+fi
+
+
 # Default to copying files
 bupcmd="copy_files"
 bupfunction="Copy"
@@ -154,6 +170,12 @@ case $key in
    -d)
       bupcmd="diff_files"
       bupfunction="Diff"
+   ;;
+   -r)
+      bupcmd="restore_files"
+      bupfunction="Restore"
+      echo "debug: Would have done a restore"
+      exit
    ;;
    -h|--help|?)
       usage
@@ -179,6 +201,19 @@ $bupcmd "$iptables_configfiles" "/etc/iptables/"
 $bupcmd "$logrotate_configfiles" "/etc/logrotate.d/"
 $bupcmd "$ax25_configfiles" "/etc/ax25/"
 $bupcmd "$systemd_files" "/etc/systemd/system/"
+$bupcmd "$bin_files" "/home/$USER/bin/"
+# treat xastir config directory differently
+if [ "$bupfunction" = "Copy" ] ; then
+   echo "debug: using rsync on xastir directory for backup"
+   rsync -av /home/$USER/.xastir $BUPDIR
+elif [ "$bupfunction" = "Restore" ] ; then
+   echo "debug: using rsync on xastir directory for restore"
+   rsync -av "$BUPDIR/xastir/*" /home/$USER/.xastir/
+else
+# recursive diff
+   echo "debug: using recursive diff on xastir directory"
+   diff -bwBr --brief $BUPDIR/xastir/ /home/$USER/.xastir/
+fi
 
 echo "$bupfunction finished for $filecount files."
 if (( notexistcount > 0 )) ; then
