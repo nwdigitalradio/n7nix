@@ -76,6 +76,15 @@ dirname=$(echo ${fullname%$filename})
 dbgecho "Untarring this version: $rms_ver of this file: $filename in this dir: $dirname"
 
 
+#tar xf $filename
+#if [ $? -ne 0 ] ; then
+#   echo -e "${BluW}${Red}\t $filename File not available \t${Reset}"
+#    exit 1
+#fi
+
+num_cores=$(nproc --all)
+echo -e "${BluW}\tCompiling RMS Source file using $num_cores cores\t${Reset}"
+
 
 
 
