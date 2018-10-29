@@ -23,7 +23,7 @@ echo 300000  > $PARMDIR/t3_timeout 		# (Check) /6000 = ? Min
 echo 900000  > $PARMDIR/idle_timeout		# Idle Timer /6000 = ? min
 echo 2       > $PARMDIR/standard_window_size	# Outstanding Frames
 echo 6       > $PARMDIR/maximum_retry_count	# Max Retrys
-echo 256     > $PARMDIR/maximum_packet_length	# Paclen
+echo 255     > $PARMDIR/maximum_packet_length	# Paclen
 echo 0       > $PARMDIR/ax25_default_mode
 echo 0       > $PARMDIR/ip_default_mode
 echo 0       > $PARMDIR/backoff_type
