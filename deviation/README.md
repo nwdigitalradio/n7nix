@@ -80,3 +80,18 @@ enabled.
   * 'PCM' is the digital control & will set how many bits the DAC will use.
 
 * **NOTE:** If you can't get close enough with the 'Lo Drive' control (doubtful) then use the 'PCM' control.
+
+### Notes Alinco DR-x35 Mk III
+```
+PCM	        L:[0.00dB],  R:[0.00dB]
+ADC Level	L:[-2.50dB], R:[-2.50dB]
+LO Driver Gain  L:[11.00dB], R:[11.00dB]
+```
+
+### Notes Kenwood TM-V71a
+```
+$ ./alsa-show.sh
+PCM	        L:[0.00dB],  R:[0.00dB]
+ADC Level	L:[-2.00dB], R:[-2.00dB]
+LO Driver Gain  L:[0.00dB],  R:[0.00dB]
+```
