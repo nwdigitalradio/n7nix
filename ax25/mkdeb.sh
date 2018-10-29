@@ -1,13 +1,22 @@
 #!/bin/bash
 #
 # Build debian packages for libax25, ax25apps, ax25tools
+user="gunn"
+scriptname="`basename $0`"
 
 SRC_DIR="/usr/local/src/ax25/linuxax25-master"
-PKGDIR="/home/pi/n7nix/ax25/debpkg/"
+PKGDIR="/home/$user/n7nix/ax25/debpkg/"
 
 pkgname="libax25"
 SUFFIX="1.1.0-1_armhf.deb"
 PKGLONGNAME="$pkgname"_"$SUFFIX"
+
+# Be sure we are running as root
+if (( `id -u` != 0 )); then
+   echo "$scriptname: Sorry, must be root.  Exiting...";
+   exit 1;
+fi
+
 echo
 echo " ===== Make $pkgname Debian package"
 echo
