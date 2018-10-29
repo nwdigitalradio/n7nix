@@ -16,6 +16,7 @@ configdirs="etc rmsgw wpa_supplicant iptables postfix logrotate.d ax25 systemd/s
 # List of config files
 etc_configfiles="hosts hostname mailname direwolf.conf aliases"
 postfix_configfiles="main.cf master.cf transport"
+dovecot_configfiles="dovecot.conf conf.d/10-mail.conf conf.d/10-master.conf conf.d/10-auth.conf conf.d/10-ssl.conf"
 rmsgw_configfiles="channels.xml gateway.conf sysop.xml banner"
 wpa_configfiles="wpa_supplicant.conf"
 localetc_configfiles="wl2k.conf"
@@ -140,6 +141,13 @@ if [ ! -d "$TMPDIR" ] ; then
   mkdir "$TMPDIR"
 fi
 
+# if backup directory exists rename it
+if [ -d "$BUPDIR" ] ; then
+   echo "A backup dir already exists, renaming to $BUPDIR.$(date "+%Y%m%d_%H%M")"
+   mv $BUPDIR $BUPDIR.$(date "+%Y%m%d_%H%M")
+   mkdir -p $BUPDIR/etc/dovecot/conf.d
+fi
+
 # Get all installed packages
 install_curfname=$BUPDIR/installed_cur.txt
 install_lastfname=$BUPDIR/installed_last.txt
@@ -194,6 +202,7 @@ done
 
 $bupcmd "$etc_configfiles" "/etc/"
 $bupcmd "$postfix_configfiles" "/etc/postfix/"
+$bupcmd "$dovecot_configfiles" "/etc/dovecot/"
 $bupcmd "$rmsgw_configfiles" "/etc/rmsgw/"
 $bupcmd "$wpa_configfiles" "/etc/wpa_supplicant/"
 $bupcmd "$localetc_configfiles" "/usr/local/etc/"
