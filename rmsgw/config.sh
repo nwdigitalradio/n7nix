@@ -43,7 +43,7 @@ fi
 dbgecho "Using CALL SIGN: $CALLSIGN"
 }
 
-# ===== function get_gridsquaree
+# ===== function get_gridsquare
 function get_gridsquare() {
 
 # Check if gridsquare var has already been set
