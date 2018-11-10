@@ -14,7 +14,6 @@
 scriptname="`basename $0`"
 
 TMPDIR="$HOME/tmp/rmsgw"
-VERSION_TIME_REF_FILE="$TMPDIR/stat_ref_rmsgwver"
 RMS_VERSION_FILE_RAW="$TMPDIR/rmsgwver.json"
 RMS_VERSION_FILE_OUT="$TMPDIR/rmsgwver.txt"
 PKG_REQUIRE="jq curl"
@@ -189,18 +188,6 @@ else
    dbgecho "Directory: $TMPDIR already exists"
 fi
 
-# Do not need this as there is a longer check for output file
-# Maximum request frequency is 10 minutes
-#let max_req_freq=10*60
-#
-#check_file_age "$VERSION_TIME_REF_FILE" "$max_req_freq"
-#if [ "$?" -ne 0 ] ; then
-#    echo "Max refresh time has not expired."
-#    exit 1
-#else
-#    dbgecho "Refresh time OK"
-#fi
-
 #  Test if temporary version file already exists and is not empty
 if [ -s "$RMS_VERSION_FILE_RAW" ] ; then
     # Version file exists & is not empty
@@ -232,9 +219,8 @@ if [ "$do_it_flag" -ne 0 ]; then
     # Get the version information from the winlink server
     echo
     # V5 Winlink Web Services
-    touch $VERSION_TIME_REF_FILE
-    svc_url="https://api.winlink.org/version/list?Program=$WL_PROGNAME&HistoryHours=48&Key=$WL_KEY&format=json"
-    svc_url="https://api.winlink.org/version/list?&Program=$WL_PROGNAME&Key=$WL_KEY&format=json"
+#    svc_url="https://api.winlink.org/version/list?Program=$WL_PROGNAME&HistoryHours=48&Key=$WL_KEY&format=json"
+#    svc_url="https://api.winlink.org/version/list?&Program=$WL_PROGNAME&Key=$WL_KEY&format=json"
     svc_url="https://api.winlink.org/version/list?&Key=$WL_KEY&format=json"
     echo "Using URL: $svc_url"
 
@@ -306,8 +292,12 @@ value=$(jq -r ".VersionList[$k]" $RMS_VERSION_FILE_RAW);
 done > $RMS_VERSION_FILE_OUT
 
 if [ "$COUNT_ONLY" = "false" ] ; then
-# Print the table header
-    echo "  Callsign     Version  Timestamp"
+    # Print the table header
+    if [ "$DATE_ON" = "true" ] ; then
+        echo "  Callsign     Version       Timestamp"
+    else
+        echo "  Callsign     Version"
+    fi
     sort -k 2 --numeric-sort $RMS_VERSION_FILE_OUT
     #sort -k 3 --numeric-sort $RMS_VERSION_FILE_OUT
     echo
