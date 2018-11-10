@@ -9,14 +9,16 @@
 scriptname="`basename $0`"
 user=$(whoami)
 
+TMPDIR="$HOME/tmp/rmsgw"
 # grid square location for Lopez Island, WA
 GRIDSQUARE="cn88nl"
 # grid square location for 414 N Prom, Seaside, OR 97138
 # GRIDSQUARE="cn85ax"
 MAXDIST="30"
 # Create a temporary file for cURL output
-WINLINK_TMP_FILE="/tmp/rmsgwprox.json"
-
+WINLINK_TMP_FILE="$TMPDIR/rmsgwprox.json"
+DEBUG=
+BUILDLISTFLAG="false"
 
 # ===== function usage
 function usage() {
@@ -62,6 +64,10 @@ while [[ $# -gt 0 ]] ; do
       -c|--count)
 	 COUNTRMSFLAG="true"
 	 ;;
+      -d)
+          echo "Turning on debug"
+          DEBUG=1
+        ;;
       -m|--maxdist)
 	 BUILDLISTFLAG="true"
          MAXDIST=$2
@@ -87,15 +93,49 @@ while [[ $# -gt 0 ]] ; do
 shift # past argument or value
 done
 
+WL_KEY="43137F63FDBA4F3FBEEBA007EB1ED348"
+curles=0
+
+# Test if temporary directory exists
+if [ ! -d "$TMPDIR" ] ; then
+   echo "Directory: $TMPDIR does not exist, making ..."
+   mkdir -p "$TMPDIR"
+else
+   dbgecho "Directory: $TMPDIR already exists"
+fi
 
 # Test that there is an output file to work on
 if [ ! -e "$WINLINK_TMP_FILE" ] || [ "$BUILDLISTFLAG" = "true" ] ; then
    echo "Building file: $WINLINK_TMP_FILE ..."
-   curl -s http://server.winlink.org:8085"/json/reply/GatewayProximity?GridSquare=$GRIDSQUARE&MaxDistance=$MAXDIST" > $WINLINK_TMP_FILE
+   # V3 Winlink Web services
+#   curl -s http://server.winlink.org:8085"/json/reply/GatewayProximity?GridSquare=$GRIDSQUARE&MaxDistance=$MAXDIST" > $WINLINK_TMP_FILE
+   # V5 Winlink Web Services
+    svc_url="https://api.winlink.org/gateway/proximity?GridSquare=$GRIDSQUARE&MaxDistance=$MAXDIST&Key=$WL_KEY&format=json"
+    dbgecho "Using URL: $svc_url"
+    curl -s -d '{"Program":"RMS Gateway", "HistoryHours":48}' -H "Content-Type: application/json" -X POST "$svc_url" > $WINLINK_TMP_FILE  2>&1
+    curlres="$?"
+fi
+
+if [[ "$curlres" -ne 0 ]] ; then
+    echo "Error in cURL return code: $curlres"
+    exit 1
+fi
+
+js_errorcode=$(cat $WINLINK_TMP_FILE | jq '.ResponseStatus.ErrorCode')
+
+if [ "$js_errorcode" != "null" ] ; then
+#    cat $$WINLINK_TMP_FILE | jq '.ResponseStatus | {ErrorCode, Message}'
+    js_errormsg=$(cat $WINLINK_TMP_FILE | jq '.ResponseStatus.Message')
+    echo
+    echo "Debug: Error code: $js_errorcode, Error message: $js_errormsg"
+    exit 1
 fi
 
 if [ "$SHOWRMSFLAG" = "true" ] ; then
-    cat $WINLINK_TMP_FILE | jq '.GatewayList[] | {Callsign, Frequency, Baud, Distance}'
+    dbgecho "Showing gateway list in file: $WINLINK_TMP_FILE"
+#    cat "$WINLINK_TMP_FILE"
+
+    cat "$WINLINK_TMP_FILE" | jq '.GatewayList[] | {Callsign, Frequency, Baud, Distance}'
 fi
 if [ "$COUNTRMSFLAG" = "true" ] ; then
     RMSCNT=$(cat $WINLINK_TMP_FILE | jq '.GatewayList[] | {Callsign, Frequency, Baud, Distance}' | grep -i callsign | wc -l)
