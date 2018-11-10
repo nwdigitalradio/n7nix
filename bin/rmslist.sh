@@ -128,7 +128,7 @@ if [ ! -e "$RMS_PROXIMITY_FILE_RAW" ] ; then
 
 else # Do this, proximity file exists
 
-# Determine how old the tmp file is
+  # Determine how old the tmp file is
 
   current_epoch=$(date "+%s")
   file_epoch=$(stat -c %Y $RMS_PROXIMITY_FILE_RAW)
@@ -174,7 +174,7 @@ else
 fi
 
 if [ "$curlret" -ne 0 ] ; then
-    dbgecho "Curl return code: $curlret"
+    dbgecho "cURL return code: $curlret"
     if [ ! -z $DEBUG ] ; then
         echo "Dump raw proxmity json file"
         cat $RMS_PROXIMITY_FILE_RAW
