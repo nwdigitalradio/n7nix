@@ -16,7 +16,7 @@ firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
 firmware_vendorfile="/sys/firmware/devicetree/base/hat/vendor"
 
-PROD_ID_NAMES=("INVALID" "INVALID" "UDRC" "UDRC II" "1WSpot")
+PROD_ID_NAMES=("INVALID" "INVALID" "UDRC" "UDRC II" "DRAWS" "1WSpot")
 NWDIG_VENDOR_NAME="NW Digital Radio"
 
 # Default to udrc II for gpio assignment
@@ -48,17 +48,19 @@ dbgecho "Using CALL SIGN: $CALLSIGN"
 }
 
 # ===== function EEPROM id_check
+
 # Return code:
 # 0 = no EEPROM or no device tree found
 # 1 = HAT found but not a UDRC
 # 2 = UDRC
 # 3 = UDRC II
-# 4 = 1WSpot
+# 4 = DRAWS
+# 5 = 1WSpot
 
 function id_check() {
+dbgecho "Starting udrc id check"
 # Initialize to EEPROM not found
 udrc_prod_id=0
-dbgecho "Starting udrc id check"
 
 # Does firmware file exist
 if [ -f $firmware_prodfile ] ; then
@@ -81,8 +83,11 @@ if [ -f $firmware_prodfile ] ; then
          "Universal Digital Radio Controller II")
             udrc_prod_id=3
          ;;
-         "1WSpot")
+         "Digital Radio Amateur Work Station")
             udrc_prod_id=4
+         ;;
+         "1WSpot")
+            udrc_prod_id=5
          ;;
          *)
             echo "Found something but not a UDRC: $UDRC_PROD"

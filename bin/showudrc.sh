@@ -5,9 +5,18 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function EEPROM id_check =====
 
+# Return code:
+# 0 = no EEPROM or no device tree found
+# 1 = HAT found but not a UDRC
+# 2 = UDRC
+# 3 = UDRC II
+# 4 = DRAWS
+# 5 = 1WSpot
+
 function id_check() {
 # Initialize to EEPROM not found
 udrc_prod_id=0
+
 # Does firmware file exist
 if [ -f $firmware_prodfile ] ; then
    # Read product file
@@ -29,8 +38,11 @@ if [ -f $firmware_prodfile ] ; then
          "Universal Digital Radio Controller II")
             udrc_prod_id=3
          ;;
-         "1WSpot")
+         "Digital Radio Amateur Work Station")
             udrc_prod_id=4
+         ;;
+         "1WSpot")
+            udrc_prod_id=5
          ;;
          *)
             echo "Found something but not a UDRC: $UDRC_PROD"
