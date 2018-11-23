@@ -31,7 +31,7 @@ trap ctrl_c INT
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function is_pkg_installed
-
+  
 function is_pkg_installed() {
 
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
