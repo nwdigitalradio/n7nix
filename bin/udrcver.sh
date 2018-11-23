@@ -39,11 +39,11 @@ udrc_prod_id=0
 # Does firmware file exist
 if [ -f $firmware_prodfile ] ; then
    # Read product file
-   UDRC_PROD="$(tr -d '\0' <$firmware_prodfile)"
-   # Read product file
-   FIRM_VENDOR="$(tr -d '\0' <$firmware_vendorfile)"
+   UDRC_PROD="$(tr -d '\0' < $firmware_prodfile)"
+   # Read vendor file
+   FIRM_VENDOR="$(tr -d '\0' < $firmware_vendorfile)"
    # Read product id file
-   UDRC_ID="$(tr -d '\0' <$firmware_prod_idfile)"
+   UDRC_ID="$(tr -d '\0' < $firmware_prod_idfile)"
    #get last character in product id file
    UDRC_ID=${UDRC_ID: -1}
 
