@@ -192,6 +192,11 @@ case $return_val in
    display_id_eeprom
 ;;
 4)
+   echo "Found a DRAWS"
+   echo
+   display_id_eeprom
+;;
+5)
    echo "Found a One Watt Spot"
    echo
    display_id_eeprom
