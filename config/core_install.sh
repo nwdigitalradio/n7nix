@@ -9,7 +9,7 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 #DIREWOLF SOURCE VERSION to build
-DW_VER="1.4"
+DW_VER="1.5"
 
 # do upgrade, update outside of script since it can take some time
 UPDATE_NOW=false
@@ -31,7 +31,7 @@ trap ctrl_c INT
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function is_pkg_installed
-  
+
 function is_pkg_installed() {
 
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
