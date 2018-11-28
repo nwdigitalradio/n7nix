@@ -25,6 +25,26 @@ function get_user() {
    fi
 }
 
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
+
 # ===== function get_callsign
 
 function get_callsign() {
@@ -74,21 +94,7 @@ else
    echo "USER=$USER not null"
 fi
 
-# verify user name is legit
-userok=false
-
-for username in $USERLIST ; do
-   if [ "$USER" = "$username" ] ; then
-      userok=true;
-   fi
-done
-
-if [ "$userok" = "false" ] ; then
-   echo "User name does not exist,  must be one of: $USERLIST"
-   exit 1
-fi
-
-dbgecho "using USER: $USER"
+check_user
 
 # Check for a valid callsign
 get_callsign
