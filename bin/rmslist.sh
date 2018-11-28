@@ -153,7 +153,7 @@ if [ $do_it_flag -ne 0 ]; then
     # Get the proximity information from the winlink server
     echo "Using distance of $max_distance miles & grid square $grid_square"
     echo
-    generate_post_data
+#    generate_post_data
 #    echo "early exit"
 #    exit 1
 
@@ -163,7 +163,7 @@ if [ $do_it_flag -ne 0 ]; then
 #    svc_url="https://api.winlink.org/gateway/proximity?GridSquare=$grid_square&MaxDistance=$max_distance&Key=$WL_KEY&format=json"
     svc_url="https://api.winlink.org/gateway/proximity?GridSquare=$grid_square&MaxDistance=$max_distance&Key=$WL_KEY&format=json"
 
-    echo "Using URL: $svc_url"
+    dbgecho "Using URL: $svc_url"
 
     curl -s -d "$(generate_post_data)" "$svc_url" > $RMS_PROXIMITY_FILE_RAW
     curlret="$?"
