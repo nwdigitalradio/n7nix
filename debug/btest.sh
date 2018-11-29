@@ -123,6 +123,12 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 fi
 
+# does the AXPORTS file exist ie. is ax.25 installed?
+if [ ! -e $AXPORTS_FILE ] ; then
+    echo "$scriptname: Couldn't locate ax25/axports file, is AX.25 installed?"
+    exit 1
+fi
+
 # has the beacon program been installed
 type -P $BEACON &>/dev/null
 if [ $? -ne 0 ] ; then
