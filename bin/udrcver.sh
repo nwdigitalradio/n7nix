@@ -2,6 +2,7 @@
 #
 # UDRC ID EEPROM check
 # - return the product ID found in EEPROM
+# - if any args are found just return product ID, no display
 #
 # 0 = no EEPROM or no device tree found
 # 1 = HAT found but not a UDRC
@@ -49,7 +50,7 @@ if [ -f $firmware_prodfile ] ; then
 
    dbgecho "UDRC_PROD: $UDRC_PROD, ID: $UDRC_ID"
 
-   if [[ "$FIRM_VENDOR" == "$NWDIG_VENDOR_NAME" ]] ; then
+a   if [[ "$FIRM_VENDOR" == "$NWDIG_VENDOR_NAME" ]] ; then
       case $UDRC_PROD in
          "Universal Digital Radio Controller")
             udrc_prod_id=2
@@ -109,6 +110,10 @@ function display_id_eeprom() {
 id_check
 return_val=$?
 dbgecho "Return val: $return_val"
+# check for any arguments indicating being called from another script.
+if [[ $# -gt 0 ]] ; then
+    exit $return_val
+fi
 
 case $return_val in
 0)
@@ -144,4 +149,4 @@ case $return_val in
 ;;
 esac
 
-exit 0
+exit $return_val

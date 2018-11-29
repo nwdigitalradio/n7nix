@@ -3,7 +3,7 @@
 # Run this after copying a fresh compass file system image
 #
 # Uncomment this statement for debug echos
-DEBUG=1
+#DEBUG=1
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
@@ -184,9 +184,72 @@ function install_direwolf_pkg() {
    fi
 }
 
+# ===== function get product id of HAT
+
+function get_prod_id() {
+# Initialize product ID
+PROD_ID=
+prgram="udrcver.sh"
+which $prgram
+if [ "$?" -eq 0 ] ; then
+   dbgecho "Found $prgram in path"
+   $prgram
+   PROD_ID=$?
+else
+   currentdir=$(pwd)
+   # Get path one level down
+   pathdn1=$( echo ${currentdir%/*})
+   dbgecho "Test pwd: $currentdir, path: $pathdn1"
+   if [ -e "$pathdn1/bin/$prgram" ] ; then
+       dbgecho "Found $prgram here: $pathdn1/bin"
+       $pathdn1/bin/$prgram -
+       PROD_ID=$?
+   else
+       echo "Could not locate $prgram default product ID to draws"
+       PROD_ID=4
+   fi
+fi
+}
+
+# ===== function modify /boot/config.txt
+
+function mod_config_txt() {
+echo " === Modify /boot/config.txt"
+
+grep "force_turbo" /boot/config.txt > /dev/null 2>&1
+if [ $? -ne 0 ] ; then
+    if [[ "$PROD_ID" -eq 4 ]] ; then
+        set_dtoverlay="dtoverlay=draws"
+    else
+        set_dtoverlay="# dtoverlay=udrc"
+    fi
+    # Add to bottom of file
+    cat << EOT >> /boot/config.txt
+
+# enable udrc/draws if no eeprom
+$set_dtoverlay
+force_turbo=1
+EOT
+fi
+
+# To enable serial console disable bluetooth
+#  and change console to ttyAMA0
+if [ "$SERIAL_CONSOLE" = "true" ] ; then
+   echo "=== Disabling Bluetooth & enabling serial console"
+   cat << EOT >> /boot/config.txt
+# Enable serial console
+dtoverlay=pi3-disable-bt
+EOT
+   sed -i -e "/console/ s/console=serial0/console=ttyAMA0,115200/" /boot/cmdline.txt
+fi
+}
+
 # ===== main
 
 echo "Initial core install script"
+
+get_prod_id
+echo "HAT product id: $PROD_ID"
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
@@ -260,29 +323,8 @@ if [ $? -ne 0 ] ; then
    insmod /lib/modules/$(uname -r)/kernel/net/ax25/ax25.ko
 fi
 
-echo " === Modify /boot/config.txt"
-
-grep "force_turbo" /boot/config.txt > /dev/null 2>&1
-if [ $? -ne 0 ] ; then
-  # Add to bottom of file
-  cat << EOT >> /boot/config.txt
-
-# enable udrc if no eeprom
-# dtoverlay=udrc
-force_turbo=1
-EOT
-fi
-
-# To enable serial console disable bluetooth
-#  and change console to ttyAMA0
-if [ "$SERIAL_CONSOLE" = "true" ] ; then
-   echo "=== Disabling Bluetooth & enabling serial console"
-   cat << EOT >> /boot/config.txt
-# Enable serial console
-dtoverlay=pi3-disable-bt
-EOT
-   sed -i -e "/console/ s/console=serial0/console=ttyAMA0,115200/" /boot/cmdline.txt
-fi
+# Edit /boot/config.txt
+mod_config_txt
 
 # Add ax25 packages here
 echo " === Install libax25, ax25apps & ax25tools"

@@ -47,9 +47,10 @@ fi
 dbgecho "Using CALL SIGN: $CALLSIGN"
 }
 
-# ===== function EEPROM id_check
 
-# Return code:
+# ===== function get product id of HAT
+
+# Set PROD_ID:
 # 0 = no EEPROM or no device tree found
 # 1 = HAT found but not a UDRC
 # 2 = UDRC
@@ -57,66 +58,29 @@ dbgecho "Using CALL SIGN: $CALLSIGN"
 # 4 = DRAWS
 # 5 = 1WSpot
 
-function id_check() {
-dbgecho "Starting udrc id check"
-# Initialize to EEPROM not found
-udrc_prod_id=0
-
-# Does firmware file exist
-if [ -f $firmware_prodfile ] ; then
-   # Read product file
-   UDRC_PROD="$(tr -d '\0' <$firmware_prodfile)"
-   # Read product file
-   FIRM_VENDOR="$(tr -d '\0' <$firmware_vendorfile)"
-   # Read product id file
-   UDRC_ID="$(tr -d '\0' <$firmware_prod_idfile)"
-   #get last character in product id file
-   UDRC_ID=${UDRC_ID: -1}
-
-   dbgecho "UDRC_PROD: $UDRC_PROD, ID: $UDRC_ID"
-
-   if [[ "$FIRM_VENDOR" == "$NWDIG_VENDOR_NAME" ]] ; then
-      case $UDRC_PROD in
-         "Universal Digital Radio Controller")
-            udrc_prod_id=2
-         ;;
-         "Universal Digital Radio Controller II")
-            udrc_prod_id=3
-         ;;
-         "Digital Radio Amateur Work Station")
-            udrc_prod_id=4
-         ;;
-         "1WSpot")
-            udrc_prod_id=5
-         ;;
-         *)
-            echo "Found something but not a UDRC: $UDRC_PROD"
-            udrc_prod_id=1
-         ;;
-      esac
-   else
-
-      dbgecho "Probably not a NW Digital Radio product: $FIRM_VENDOR"
-      udrc_prod_id=1
-   fi
-
-   if [ udrc_prod_id != 0 ] && [ udrc_prod_id != 1 ] ; then
-      if (( UDRC_ID == udrc_prod_id )) ; then
-         dbgecho "Product ID match: $udrc_prod_id"
-      else
-         echo "Product ID MISMATCH $UDRC_ID : $udrc_prod_id"
-         udrc_prod_id=1
-      fi
-   fi
-   dbgecho "Found HAT for ${PROD_ID_NAMES[$UDRC_ID]} with product ID: $UDRC_ID"
+function get_prod_id() {
+# Initialize product ID
+PROD_ID=
+prgram="udrcver.sh"
+which $prgram
+if [ "$?" -eq 0 ] ; then
+   dbgecho "Found $prgram in path"
+   $prgram
+   PROD_ID=$?
 else
-   # RPi HAT ID EEPROM may not have been programmed in engineering samples
-   # or there is no RPi HAT installed.
-   udrc_prod_id=0
+   currentdir=$(pwd)
+   # Get path one level down
+   pathdn1=$( echo ${currentdir%/*})
+   dbgecho "Test pwd: $currentdir, path: $pathdn1"
+   if [ -e "$pathdn1/bin/$prgram" ] ; then
+       dbgecho "Found $prgram here: $pathdn1/bin"
+       $pathdn1/bin/$prgram -
+       PROD_ID=$?
+   else
+       echo "Could not locate $prgram default product ID to draws"
+       PROD_ID=4
+   fi
 fi
-
-dbgecho "Finished udrc id check: $udrc_prod_id"
-return $udrc_prod_id
 }
 
 # ===== main
@@ -198,10 +162,9 @@ else
 fi
 
 # Check which UDRC product is found
-id_check
-id_check_ret="$?"
+get_prod_id
 
-case $id_check_ret in
+case $PROD_ID in
 0|1)
    echo "No UDRC found, exiting"
    exit 1
