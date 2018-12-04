@@ -5,6 +5,10 @@
 BBS_VER="7.0.8-beta7"
 num_cores=$(nproc --all)
 
+SRC_DIR="/usr/local/src/"
+scriptname="`basename $0`"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+
 PKG_REQUIRE=""
 PKG_REQUIRE_X11="libx11-dev ligxt-dev libxext-dev libxpm-dev lesstif2-dev"
 
@@ -22,7 +26,7 @@ fi
 dbgecho "Check packages: $PKG_REQUIRE"
 
 echo "=== Install fbb version $BBS_VER from source using $num_cores cores"
-SRC_DIR="/usr/local/src/"
+
 cd "$SRC_DIR"
 wget https://sourceforge.net/projects/linfbb/files/latest/download/fbb-$BBS_VER.tar.bz2
 echo "wget ret: $?"
@@ -49,3 +53,7 @@ echo "make installconf ret: $?"
 
 # Stop bbs
 # kill $(pidof xfbbd)
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: fbb BBS install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
+echo -e "${BluW}fbb BBS install FINISHED\t${Reset}"
+
+# (End of Script)
