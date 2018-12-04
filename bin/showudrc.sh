@@ -156,7 +156,8 @@ echo "==== udrc Ver ===="
 # 1 = HAT found but not a UDRC
 # 2 = UDRC
 # 3 = UDRC II
-# 4 = 1WSpot
+# 4 = DRAWS
+# 5 = 1WSpot
 #
 # Uncomment this statement for debug echos
 #DEBUG=1
