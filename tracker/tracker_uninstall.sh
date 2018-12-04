@@ -23,9 +23,7 @@ LIBINIPARSER_VER="3.1"
 NODEJS_VER="8.4.0"
 
 SERVICE_NAME="tracker.service"
-BIN_FILES="iptable-up.sh iptable-flush.sh iptable-check.sh tracker-up tracker-down tracker-restart .screenrc.trk"
-#PKGLIST="hostapd dnsmasq iptables iptables-persistent"
-PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool libgps-dev iptables screen"
+BIN_FILES="tracker-up tracker-down tracker-restart .screenrc.trk"
 
 # ===== function dbgecho
 
@@ -115,12 +113,10 @@ fi
 echo
 echo "== remove ${tracker_type}tracker"
 
-   rm $TRACKER_DEST_DIR/aprs
-   sudo rm aprs  $TRACKER_DEST_DIR_1/aprs
+rm $TRACKER_DEST_DIR/aprs
+sudo rm aprs  $TRACKER_DEST_DIR_1/aprs
 
-   rm -R $TRACKER_DEST_DIR/webapp
-
-   $BIN_DIR/iptable-flush.sh
+rm -R $TRACKER_DEST_DIR/webapp
 
 echo
 echo "== remove files from bin dir"

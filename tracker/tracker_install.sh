@@ -41,9 +41,8 @@ LIBFAP_VER="1.5"
 LIBINIPARSER_VER="3.1"
 NODEJS_VER="8.4.0"
 
-BIN_FILES="iptable-up.sh iptable-flush.sh iptable-check.sh tracker-up tracker-down tracker-restart .screenrc.trk"
-#PKGLIST="hostapd dnsmasq iptables iptables-persistent"
-PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool libgps-dev iptables screen"
+BIN_FILES="tracker-up tracker-down tracker-restart .screenrc.trk"
+PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool libgps-dev screen"
 
 # ===== function dbgecho
 
@@ -255,33 +254,6 @@ done
 
 sed -i -e "s/\$user/$user/" $BIN_DIR/tracker-up
 sed -i -e "s/\$user/$user/" $BIN_DIR/tracker-restart
-
-# Note: This should be in core_install.sh
-#
-# These rules block Bonjour/Multicast DNS (mDNS) addresses from iTunes
-# or Avahi daemon.  Avahi is ZeroConf/Bonjour compatible and installed
-# by default.
-#
-# Setup iptables then install iptables-persistent or manually update
-# rules.v4
-
-# Setup some iptable rules
-echo
-echo "== setup iptables"
-sudo $BIN_DIR/iptable-up.sh
-
-pkg_name="iptables-persistent"
-is_pkg_installed $pkg_name
-if [ $? -ne 0 ] ; then
-   # installing iptables-persistent automatically saves current iptable
-   # rules to /etc/iptables/rules.v4
-   echo "$scriptname: Will Install $pkg_name program"
-   sudo apt-get -y install iptables-persistent
-else
-   # Since iptables-peristent is already installed have to update
-   # rules to /etc/iptables/rules.v4 manually
-   sudo iptables-save | sudo tee /etc/iptables/rules.v4
-fi
 
 if [ ! -d $TRACKER_CFG_DIR ] ; then
    sudo mkdir -p $TRACKER_CFG_DIR
