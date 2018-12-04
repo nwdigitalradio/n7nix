@@ -62,8 +62,6 @@ fi
 echo "$scriptname: Install direwolf & ax25 files"
 ./core_install.sh
 
-
-echo "$scriptname: Install RMS Gateway"
 # Get list of users with home directories
 USERLIST="$(ls /home)"
 USERLIST="$(echo $USERLIST | tr '\n' ' ')"
@@ -79,11 +77,13 @@ check_user
 
 # run RMSGW install script as user other than root
 pushd ../rmsgw
+echo "$scriptname: Install RMS Gateway"
 sudo -u "$USER" ./install.sh $USER
 popd > /dev/null
 
 # run IPTABLES install script as user other than root
 pushd ../iptables
+echo "$scriptname: Install iptables"
 sudo -u "$USER" ./install.sh $USER
 popd > /dev/null
 
