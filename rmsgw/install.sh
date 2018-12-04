@@ -39,6 +39,39 @@ function is_pkg_installed() {
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
 }
 
+
+# ===== function get_user
+
+function get_user() {
+   # Check if there is only a single user on this system
+   if (( `ls /home | wc -l` == 1 )) ; then
+      USER=$(ls /home)
+   else
+      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+      read -e USER
+   fi
+}
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
+
 #
 # ===== main
 #
@@ -51,6 +84,27 @@ if [[ $EUID == 0 ]] ; then
    echo "Not required to run this script as root ...."
    exit 1
 fi
+
+# Get list of users with home directories
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+# if there are any args on command line assume it's
+# user name & callsign
+if (( $# != 0 )) ; then
+   USER="$1"
+else
+   get_user
+fi
+
+if [ -z "$USER" ] ; then
+   echo "USER string is null, get_user"
+   get_user
+else
+   echo "USER=$USER not null"
+fi
+
+check_user
 
 # check if required packages are installed
 dbgecho "Check packages: $PKG_REQUIRE"
