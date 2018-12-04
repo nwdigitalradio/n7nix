@@ -79,7 +79,12 @@ check_user
 
 # run RMSGW install script as user other than root
 pushd ../rmsgw
-sudo -u "$USER" ./install.sh
+sudo -u "$USER" ./install.sh $USER
+popd > /dev/null
+
+# run IPTABLES install script as user other than root
+pushd ../iptables
+sudo -u "$USER" ./install.sh $USER
 popd > /dev/null
 
 pushd ../plu
@@ -90,6 +95,16 @@ else
     echo "$scriptname: Install basic paclink-unix"
     source ./plu_install.sh
 fi
+popd > /dev/null
+
+pushd ../bbs
+echo "$scriptname: Install fbb BBS"
+sudo -u "$USER" ./install.sh $USER
+popd > /dev/null
+
+pushd ../yaac
+echo "$scriptname: Install YAAC"
+sudo -u "$USER" ./install.sh $USER
 popd > /dev/null
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: image install script FINISHED" >> $UDR_INSTALL_LOGFILE
