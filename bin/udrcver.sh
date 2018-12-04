@@ -50,7 +50,7 @@ if [ -f $firmware_prodfile ] ; then
 
    dbgecho "UDRC_PROD: $UDRC_PROD, ID: $UDRC_ID"
 
-a   if [[ "$FIRM_VENDOR" == "$NWDIG_VENDOR_NAME" ]] ; then
+   if [[ "$FIRM_VENDOR" == "$NWDIG_VENDOR_NAME" ]] ; then
       case $UDRC_PROD in
          "Universal Digital Radio Controller")
             udrc_prod_id=2
