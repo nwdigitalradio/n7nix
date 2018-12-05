@@ -133,7 +133,7 @@ PTT GPIO 23
 ln -s /usr/share/applications/xastir.desktop /home/<user>/Desktop
 ```
 
-* Or create this file here: /home/<user>/Desktop/xastir.desktop
+* Or create this file here: `/home/<user>/Desktop/xastir.desktop`
 ```
 [Desktop Entry]
 Name=xastir
