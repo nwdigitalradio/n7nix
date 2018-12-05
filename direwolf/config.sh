@@ -178,6 +178,10 @@ case $PROD_ID in
    chan2ptt_gpio=23
 ;;
 4)
+   echo "Draws installed"
+   chan2ptt_gpio=23
+;;
+5)
    echo "One Watt Spot installed"
    chan1ptt_gpio=-23
 ;;
