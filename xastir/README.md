@@ -11,13 +11,13 @@ apt-get install xastir
 
 #### Config Xastir
 ##### Configure Station
-  * "Configure Station" pops up
-    * Enter Callsign, Lat & Long, symbol, comment
+* "Configure Station" pops up
+  * Enter Callsign, Lat & Long, symbol, comment
 
-  * Select maps to use: Map -> Map Chooser -> Online/OSM_tiled_mapnik.geo
-    * Apply, OK, should see "Loading Weather Alert Maps"
-    * Zoom map to location, are Lat/Long correct?
-  * Plug in USB GPS
+* Select maps to use: Map -> Map Chooser -> Online/OSM_tiled_mapnik.geo
+  * Apply, OK, should see "Loading Weather Alert Maps"
+  * Zoom map to location, are Lat/Long correct?
+* If not using a DRAWS Hat then plug in USB GPS now
 
 ##### Configure interfaces
   * Configure interfaces: Interface -> Interface Control
