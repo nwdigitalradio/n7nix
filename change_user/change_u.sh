@@ -39,37 +39,52 @@ GROUP=
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function get_user
-function get_user() {
+function new_user() {
 
-# prompt for user name
-# Check if there is only a single user on this system
+echo "Enter user name followed by [enter]:"
+read -e USER
+
+# Check if user name already exists
 
 USERLIST="$(ls /home)"
+USERCNT=$(ls -1 /home | wc -l)
 USERLIST="$(echo $USERLIST | tr '\n' ' ')"
-
-if (( `ls /home | wc -l` == 1 )) ; then
-   USER=$(ls /home)
-else
-  echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-  read -e USER
-fi
-
-# verify user name is legit
-userok=false
+user_exists=false
 
 for username in $USERLIST ; do
-  if [ "$USER" = "$username" ] ; then
-     userok=true;
-  fi
+    if [ "$USER" = "$username" ] ; then
+        user_exists=true
+    fi
 done
 
-if [ "$userok" = "false" ] ; then
-   echo "User name does not exist,  must be one of: $USERLIST"
-   exit 1
+if [ "$user_exists" = "false" ] ; then
+    adduser $USER
+else
+    echo "User $USER already exists"
+    exit 1
 fi
-
-dbgecho "using USER: $USER"
 }
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
+
 
 # ===== main
 
@@ -78,6 +93,23 @@ if [[ $EUID != 0 ]] ; then
    echo "Login as root"
    exit 1
 fi
+
+# Check for any arguments
+if (( $# != 0 )) ; then
+   USER="$1"
+fi
+
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+# Check if user name was supplied on command line
+if [ -z "$USER" ] ; then
+    # prompt for call sign & user name
+    # Check if there is only a single user on this system
+    new_user
+fi
+# Verify user name
+check_user
 
 # check if group exists
 echo "Checking if groups exist"
@@ -89,9 +121,6 @@ for GROUP in $GROUP_LIST ; do
      /usr/sbin/groupadd $GROUP
    fi
 done
-
-# Get new user name
-get_user
 
 # check if user is in group
 echo "Checking if user is in groups"
@@ -107,5 +136,10 @@ done
 rsync -av --ignore-existing /home/pi/* /home/$USER
 
 chown -R $USER:$USER /home/$USER
+
+# In file /etc/lightdm/lightdm.conf set autologin-user
+#  ie. change autologin user to something other than pi
+#  Search for line beginning autologin-user=
+sed -i -e "/autologin-user=/ s/^autologin-user=.*/autologin-user=$USER/" /etc/lightdm/lightdm.conf
 
 echo "$scriptname done, may need to reboot $(hostname)"
