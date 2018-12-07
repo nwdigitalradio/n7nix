@@ -9,7 +9,8 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 #DIREWOLF SOURCE VERSION to build
-DW_VER="1.5"
+#DW_VER="1.5"
+DW_VER="dev"
 
 # do upgrade, update outside of script since it can take some time
 UPDATE_NOW=false
@@ -373,6 +374,7 @@ fi
 
 echo " === direwolf install FINISHED"
 
+## Fix this: This does not appear to be used ##
 SRC_DIR="/usr/local/src/udrc"
 
 # Does source directory for udrc alsa level setup script exist?
