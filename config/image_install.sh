@@ -59,9 +59,6 @@ if (( $# != 0 )) ; then
    USER="$1"
 fi
 
-echo "$scriptname: Install direwolf & ax25 files"
-./core_install.sh
-
 # Get list of users with home directories
 USERLIST="$(ls /home)"
 USERLIST="$(echo $USERLIST | tr '\n' ' ')"
@@ -74,6 +71,9 @@ if [ -z "$USER" ] ; then
 fi
 # Verify user name
 check_user
+
+echo "$scriptname: Install direwolf & ax25 files"
+./core_install.sh
 
 # run RMSGW install script as user other than root
 pushd ../rmsgw
