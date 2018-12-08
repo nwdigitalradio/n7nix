@@ -102,12 +102,31 @@ echo "$scriptname: Install fbb BBS"
 sudo -u "$USER" ./install.sh $USER
 popd > /dev/null
 
+pushd ../xastir
+echo "$scriptname: Install Xastir"
+sudo -u "$USER" ./install.sh $USER
+popd > /dev/null
+
 pushd ../yaac
 echo "$scriptname: Install YAAC"
 sudo -u "$USER" ./install.sh $USER
 popd > /dev/null
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: image install script FINISHED" >> $UDR_INSTALL_LOGFILE
+pushd ../hfprogs
+echo "$scriptname: Install HF programs"
+sudo -u "$USER" ./install.sh $USER
+popd > /dev/null
+
+pushd ../dstar
+echo "$scriptname: Install DStar programs"
+sudo -u "$USER" ./install.sh $USER
+popd > /dev/null
+
+pushd ../gps
+echo "$scriptname: Install DRAWS gps programs"
+./install.sh
+popd > /dev/null
+
 echo
-echo "image install script FINISHED"
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: image install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo

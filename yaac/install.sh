@@ -141,3 +141,7 @@ if [ $? -ne 0 ] ; then
 fi
 
 unzip YAAC.zip
+cp yaac.desktop /home/$USER/Desktop
+
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: YAAC install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
+echo
