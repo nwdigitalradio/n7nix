@@ -135,7 +135,6 @@ EOF
 
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: iptables install/config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
-echo "iptables install/config FINISHED"
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: iptables install/config script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo
