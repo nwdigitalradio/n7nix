@@ -11,7 +11,7 @@ sudo apt-get install gpsd gpsd-clients python-gps pps-tools libgps-dev chrony
 
 echo "Setup default gpsd file"
 
-sudo  cat << EOT > /etc/default/gpsd
+sudo  tee /etc/default/gpsd > /dev/null << EOT
 # Configure gpsd
 START_DAEMON="true"
 USBAUTO="true"
@@ -21,7 +21,7 @@ EOT
 
 echo "Setup default chrony.conf file"
 
-sudo cat << EOT > /etc/chrony/chrony.conf
+sudo tee /etc/chrony/chrony.conf > /dev/null << EOT
 # Welcome to the chrony configuration file. See chrony.conf(5) for more
 # information about usuable directives.
 pool 2.debian.pool.ntp.org iburst

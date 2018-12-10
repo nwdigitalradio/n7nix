@@ -9,7 +9,7 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 USER=
 
-PKG_REQUIRE="openjdk-8-jre librxtx-java unzip"
+PKG_REQUIRE="openjdk-8-jre-headless openjdk-8-jre librxtx-java unzip"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -104,11 +104,11 @@ for pkg_name in `echo ${PKG_REQUIRE}` ; do
 done
 
 if [ "$needs_pkg" = "true" ] ; then
-   echo -e "${BluW}\t Installing Support libraries \t${Reset}"
+   echo -e "\t Installing Support libraries \t"
 
    sudo apt-get install -y -q $PKG_REQUIRE
    if [ "$?" -ne 0 ] ; then
-      echo "$(tput setaf 1)Support library install failed. Please try this command manually:$(tput setaf 7)"
+      echo "$(tput setaf 1)apt-get install failed! Please try this command manually:$(tput setaf 7)"
       echo "apt-get install -y $PKG_REQUIRE"
       exit 1
    fi
@@ -133,15 +133,15 @@ sudo chown -R $USER:$USER $YAAC_SRC_DIR
 cd "$YAAC_SRC_DIR"
 
 # Download zip file:
-
-wget http://www.ka2ddo.org/ka2ddo/YAAC.zip
+download_filename="YAAC.zip"
+wget http://www.ka2ddo.org/ka2ddo/$download_filename
 if [ $? -ne 0 ] ; then
-   echo "FAILED to download YAAC zip file."
-   exit 1
+    echo "$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)"
+else
+    unzip YAAC.zip
+    cp yaac.desktop /home/$USER/Desktop
 fi
 
-unzip YAAC.zip
-cp yaac.desktop /home/$USER/Desktop
-
+echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: YAAC install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo

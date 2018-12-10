@@ -107,7 +107,9 @@ echo "make installconf ret: $?"
 
 # Stop bbs
 # kill $(pidof xfbbd)
+
+echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: fbb BBS install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
-echo -e "${BluW}fbb BBS install FINISHED\t${Reset}"
+echo
 
 # (End of Script)

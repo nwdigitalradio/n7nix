@@ -374,20 +374,6 @@ fi
 
 echo " === direwolf install FINISHED"
 
-## Fix this: This does not appear to be used ##
-SRC_DIR="/usr/local/src/udrc"
-
-# Does source directory for udrc alsa level setup script exist?
-if [ ! -d $SRC_DIR ] ; then
-   mkdir -p $SRC_DIR
-   if [ $? -ne 0 ] ; then
-      echo "Problems creating source directory: $SRC_DIR"
-      exit 1
-   fi
-else
-   dbgecho "Source dir: $SRC_DIR already exists"
-fi
-
 # Use set-udrc alsa script from repo
 #
 #cd $SRC_DIR

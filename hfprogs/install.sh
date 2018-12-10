@@ -46,7 +46,7 @@ function check_user() {
 
 # ===== main
 
-echo -e "\n\tInstall HF programs\n"
+echo -e "\n\t$(tput setaf 4) Install HF programs$(tput setaf 7)\n"
 
 # Check for any arguments
 if (( $# != 0 )) ; then
@@ -67,70 +67,125 @@ fi
 check_user
 
 
-# Install js8call
 js8call_rootver="0.10.1"
 js8call_ver="$js8call_rootver"-devel
-wget https://s3.amazonawsCD.com/js8call/${js8call_rootver}/js8call_${js8call_ver}_armhf.deb
+PKG_REQUIRE_JS8CALL="libqgsttools-p1 libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediaquick-p5 libqt5multimediawidgets5 libqt5qml5 libqt5quick5 libqt5serialport5"
+echo "Install js8call ver: $js8call_ver"
+download_filename="js8call_${js8call_ver}_armhf.deb"
 
+if [ ! -e "$SRC_DIR/$download_filename" ] ; then
+    cd "$SRC_DIR"
+    sudo wget https://s3.amazonaws.com/js8call/${js8call_rootver}/$download_filename
+    if [ $? -ne 0 ] ; then
+        echo "$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)"
+    else
+        sudo apt-get install -y "$PKG_REQUIRE_JS8CALL"
+        sudo dpkg -i $download_filename
+    fi
+fi
 wsjtx_ver="1.9.1"
 
 echo "install wsjt-x ver: $wsjtx_ver"
+download_filename="wsjtx_${wsjtx_ver}_armhf.deb"
+cd "$SRC_DIR"
 # wsjt-x home page:
 #  - https://physics.princeton.edu/pulsar/k1jt/wsjtx.html
-wget http://physics.princeton.edu/pulsar/K1JT/wsjtx_1.9.1_armhf.deb
+sudo wget http://physics.princeton.edu/pulsar/K1JT/$download_filename
+if [ $? -ne 0 ] ; then
+    echo "$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)"
+else
+    sudo dpkg -i $download_filename
+fi
 
 hamlib_ver="3.3"
-
 echo "install hamlib ver: $hamlib_ver"
 sudo apt-get remove libhamlib2
 
-cd "$SRC_DIR"
 HAMLIB_SRC_DIR=$SRC_DIR/hamlib-$hamlib_ver
 
-wget https://sourceforge.net/projects/hamlib/files/hamlib/$hamlib_ver/hamlib-$hamlib_ver.tar.gz
-tar -zxvf hamlib-$hamlib_ver.tar.gz
-sudo chown -R $USER:$USER $HAMLIB_SRC_DIR
-cd hamlib-$hamlib_ver
-./configure --prefix=/usr/local --enable-static
-make
-sudo make install
-sudo ldconfig
+# hamlib takes a long time to build,
+#  check if there is a previous installation
+
+if [ ! -d "$HAMLIB_SRC_DIR/tests" ] ; then
+    cd "$SRC_DIR"
+
+    sudo wget https://sourceforge.net/projects/hamlib/files/hamlib/$hamlib_ver/hamlib-$hamlib_ver.tar.gz
+    if [ $? -ne 0 ] ; then
+        echo "$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)"
+    else
+        sudo tar -zxvf hamlib-$hamlib_ver.tar.gz
+        if [ $? -ne 0 ] ; then
+            echo "$(tput setaf 1)FAILED to untar file: hamlib-$hamlib_ver.tar.gz$(tput setaf 7)"
+        else
+            sudo chown -R $USER:$USER $HAMLIB_SRC_DIR
+            cd hamlib-$hamlib_ver
+            ./configure --prefix=/usr/local --enable-static
+            echo -e "\n$(tput setaf 4)Starting hamlib build(tput setaf 7)\n"
+            make
+            echo -e "\n$(tput setaf 4)Starting hamlib install(tput setaf 7)\n"
+            sudo make install
+            sudo ldconfig
+        fi
+    fi
+else
+    echo -e "\n\t$(tput setaf 4)Using previously built hamlib-$hamlib_ver$(tput setaf 7)\n"
+    echo
+fi
 
 fldigi_ver="4.0.18"
 
 echo "Install fldigi ver: $fldigi_ver"
 
-cd "$SRC_DIR"
 FLDIGI_SRC_DIR=$SRC_DIR/fldigi-$fldigi_ver
+download_filename="fldigi-$fldigi_ver.tar.gz"
 
-# instructions from here: http://www.kk5jy.net/fldigi-build/
-sudo apt-get install libfltk1.3-dev libjpeg9-dev libxft-dev libxinerama-dev libxcursor-dev libsndfile1-dev libsamplerate0-dev portaudio19-dev libusb-1.0-0-dev libpulse-dev
-wget http://www.w1hkj.com/files/fldigi/fldigi-$fldigi_ver.tar.gz
-#wget -N https://sourceforge.net/projects/fldigi/files/fldigi/fldigi-$FLDIGICUR.tar.gz
+# fldigi takes a long time to build,
+#  check if there is a previous installation
 
-tar -zxvsf fldigi-$fldigi_ver.tar.gz
-sudo chown -R $USER:$USER $FLDIGI_SRC_DIR
-cd fldigi-$fldigi_ver
-./configure
-make
-sudo make install
-sudo ldconfig
-cd ..
+if [ ! -d "$FLDIGI_SRC_DIR" ] ; then
+    # instructions from here: http://www.kk5jy.net/fldigi-build/
+    PKG_REQUIRE_FLDIGI="libfltk1.3-dev libjpeg9-dev libxft-dev libxinerama-dev libxcursor-dev libsndfile1-dev libsamplerate0-dev portaudio19-dev libusb-1.0-0-dev libpulse-dev"
+    sudo apt-get install -y $PKG_REQUIRE_FLDIGI
+    # wget -N  https://sourceforge.net/projects/fldigi/files/fldigi/fldigi-$FLDIGICUR.tar.gz
+
+    cd "$SRC_DIR"
+    sudo wget http://www.w1hkj.com/files/fldigi/$download_filename
+    if [ $? -ne 0 ] ; then
+        echo "$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)"
+    else
+        sudo tar -zxvsf $download_filename
+        sudo chown -R $USER:$USER $FLDIGI_SRC_DIR
+        cd fldigi-$fldigi_ver
+        ./configure
+        echo -e "\n$(tput setaf 4)Starting fldigi build(tput setaf 7)\n"
+        make
+        echo -e "\n$(tput setaf 4)Starting fldigi install(tput setaf 7)\n"
+        sudo make install
+        sudo ldconfig
+    fi
+fi
 
 flrig_ver="1.3.41"
 
 echo "install flrig ver: $flrig_ver"
 
-cd "$SRC_DIR"
 FLRIG_SRC_DIR=$SRC_DIR/flrig-$flrig_ver
+download_filename="flrig-$flrig_ver.tar.gz"
 
-wget http://www.w1hkj.com/files/flrig/flrig-$flrig_ver.tar.gz
-tar -zxvf flrig-$flrig_ver.tar.gz
-sudo chown -R $USER:$USER $FLRIG_SRC_DIR
-cd flrig-$flrig_ver
-./configure --prefix=/usr/local --enable-static
-make
-sudo make install
+if [ ! -d "$FLRIG_SRC_DIR" ] ; then
+    cd "$SRC_DIR"
+    sudo wget http://www.w1hkj.com/files/flrig/$download_filename
+    if [ $? -ne 0 ] ; then
+        echo "$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)"
+    else
+        sudo tar -zxvf $download_filename
+        sudo chown -R $USER:$USER $FLRIG_SRC_DIR
+        cd flrig-$flrig_ver
+        ./configure --prefix=/usr/local --enable-static
+        make
+        sudo make install
+    fi
+fi
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: HF programs install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
