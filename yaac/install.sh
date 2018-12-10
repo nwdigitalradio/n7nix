@@ -4,7 +4,7 @@
 #
 
 SRC_DIR="/usr/local/src/"
-YAAC_SRC_DIR=$SRC_DIR/yaac
+YAAC_SRC_DIR=$HOME/yaac
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 USER=
@@ -52,6 +52,16 @@ function check_user() {
    dbgecho "using USER: $USER"
 }
 
+# ==== function install_zip
+# Unzip yaac & create a desktop icon
+
+function install_zip() {
+    unzip YAAC.zip
+    echo "$(tput setaf 4)Finished yaac install, installing desktop icon$(tput setaf 7)"
+    cd $START_DIR
+    cp yaac.desktop /home/$USER/Desktop
+}
+
 #
 # ===== main
 #
@@ -70,6 +80,9 @@ else
     echo "$scriptname: Must supply user name as command line argument"
     exit 1
 fi
+
+START_DIR=$(pwd)
+
 # Check for any arguments
 if (( $# != 0 )) ; then
    USER="$1"
@@ -108,7 +121,7 @@ if [ "$needs_pkg" = "true" ] ; then
 
    sudo apt-get install -y -q $PKG_REQUIRE
    if [ "$?" -ne 0 ] ; then
-      echo "$(tput setaf 1)apt-get install failed! Please try this command manually:$(tput setaf 7)"
+      echo "$(tput setaf 1)apt-get install failed! Please try the following command manually:$(tput setaf 7)"
       echo "apt-get install -y $PKG_REQUIRE"
       exit 1
    fi
@@ -118,7 +131,7 @@ echo "All required packages installed."
 
 # Does source directory exist?
 
-if [ if [ ! -d $YAAC_SRC_DIR ] ; then
+if [ ! -d $YAAC_SRC_DIR ] ; then
    sudo mkdir -p $YAAC_SRC_DIR
    if [ "$?" -ne 0 ] ; then
       echo "Problems creating source directory: $YAAC_SRC_DIR"
@@ -134,12 +147,15 @@ cd "$YAAC_SRC_DIR"
 
 # Download zip file:
 download_filename="YAAC.zip"
-wget http://www.ka2ddo.org/ka2ddo/$download_filename
-if [ $? -ne 0 ] ; then
-    echo "$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)"
+if [ ! -e "$YAAC_SRC_DIR/$download_filename" ] ; then
+    wget http://www.ka2ddo.org/ka2ddo/$download_filename
+    if [ $? -ne 0 ] ; then
+        echo "$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)"
+    else
+        install_zip
+    fi
 else
-    unzip YAAC.zip
-    cp yaac.desktop /home/$USER/Desktop
+    install_zip
 fi
 
 echo

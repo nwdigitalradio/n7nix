@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=YAAC
-Exec=/usr/bin/java -jar /home/pi/YAAC/YAAC.jar
+Exec=/usr/bin/java -jar /home/pi/yaac/YAAC.jar
 Comment=Yet Another APRS Client
 Icon=/home/pi/YAAC/images/yaaclogo64.ico
 Path=/home/pi/YAAC

@@ -2,10 +2,14 @@
 #
 # Install APRS app xastir
 #
+# Uncomment this statement for debug echos
+# DEBUG=1
 USER=
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function get_user
 

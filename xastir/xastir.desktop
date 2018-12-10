@@ -1,8 +1,9 @@
 [Desktop Entry]
+Encoding=UTF-8
 Name=xastir
-Exec=xastir
+Exec=/usr/bin/xastir
 Icon=/usr/share/xastir/symbols/icon.png
-Terminal=false
+Terminal=False
 Type=Application
 Categories=Network;Ham Radio;
 Comment=X Amateur Station Tracking and Information Reporting
