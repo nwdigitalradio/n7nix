@@ -83,7 +83,9 @@ if [ ! -e "$SRC_DIR/$download_filename" ] ; then
         sudo dpkg -i $download_filename
     fi
 fi
-wsjtx_ver="1.9.1"
+
+#wsjtx_ver="1.9.1"
+wsjtx_ver="2.0.0"
 
 echo "install wsjt-x ver: $wsjtx_ver"
 download_filename="wsjtx_${wsjtx_ver}_armhf.deb"
