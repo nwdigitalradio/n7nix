@@ -127,6 +127,16 @@ echo "$scriptname: Install DRAWS gps programs"
 ./install.sh
 popd > /dev/null
 
+pushd ../ardop
+echo "$scriptname: Install ardop programs"
+./install.sh
+popd > /dev/null
+
+sudo apt-get -y install lm-sensors
+apt-get -y purge libreoffice* minecraft-pi scratch scratch2 fluid geany smartsim python3-thonny sense-hat sense-emu-tools python-sense-emu python3-sense-emu idle-python*
+apt-get clean
+apt-get -y autoremove
+
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: image install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo
