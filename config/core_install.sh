@@ -217,6 +217,9 @@ fi
 function mod_config_txt() {
 echo " === Modify /boot/config.txt"
 
+# default to draws HAT
+set_dtoverly="dtoverlay=draws"
+
 grep "force_turbo" /boot/config.txt > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
     if [[ "$PROD_ID" -eq 4 ]] ; then
@@ -231,6 +234,8 @@ if [ $? -ne 0 ] ; then
 $set_dtoverlay
 force_turbo=1
 EOT
+else
+    echo -e "\n\t$(tput setaf 4)File: /boot/config.txt NOT modified: prod_id=$PROD_ID $(tput setaf 7)\n"
 fi
 
 # To enable serial console disable bluetooth
