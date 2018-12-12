@@ -74,6 +74,7 @@ check_user
 
 sudo apt-get install xastir
 cp xastir.desktop /home/$USER/Desktop
+sudo cp *.wav /usr/share/xastir/sounds
 
 cd
 git clone https://github.com/Xastir/xastir-sounds
