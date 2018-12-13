@@ -1,0 +1,11 @@
+#!/bin/bash
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root"
+   exit 1
+fi
+systemctl disable ax25dev.service
+systemctl disable ax25dev.path
+systemctl disable direwolf.service
+systemctl disable ax25-mheardd.service
+systemctl disable ax25d.service
