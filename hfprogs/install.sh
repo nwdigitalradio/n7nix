@@ -103,6 +103,7 @@ hamlib_ver="3.3"
 echo "install hamlib ver: $hamlib_ver"
 sudo apt-get remove libhamlib2
 
+download_filename="hamlib-${hamlib_ver}.tar.gz"
 HAMLIB_SRC_DIR=$SRC_DIR/hamlib-$hamlib_ver
 
 # hamlib takes a long time to build,
@@ -111,13 +112,13 @@ HAMLIB_SRC_DIR=$SRC_DIR/hamlib-$hamlib_ver
 if [ ! -d "$HAMLIB_SRC_DIR/tests" ] ; then
     cd "$SRC_DIR"
 
-    sudo wget https://sourceforge.net/projects/hamlib/files/hamlib/$hamlib_ver/hamlib-$hamlib_ver.tar.gz
+    sudo wget https://sourceforge.net/projects/hamlib/files/hamlib/$hamlib_ver/$download_filename
     if [ $? -ne 0 ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)"
     else
-        sudo tar -zxvf hamlib-$hamlib_ver.tar.gz
+        sudo tar -zxvf $download_filename
         if [ $? -ne 0 ] ; then
-            echo "$(tput setaf 1)FAILED to untar file: hamlib-$hamlib_ver.tar.gz$(tput setaf 7)"
+            echo "$(tput setaf 1)FAILED to untar file: $download_filename $(tput setaf 7)"
         else
             sudo chown -R $USER:$USER $HAMLIB_SRC_DIR
             cd hamlib-$hamlib_ver
