@@ -91,9 +91,10 @@ pushd ../plu
 if [ "$imapinstall" = "true" ] ; then
     echo "$scriptname: Install paclink-unix with imap"
     source ./pluimap_install.sh
-    pushd ../email/claws/
-    source ./claws_install.sh
-    popd > /dev/null
+# This is both an install & configuration script
+#    pushd ../email/claws/
+#    source ./claws_install.sh
+#    popd > /dev/null
 else
     echo "$scriptname: Install basic paclink-unix"
     source ./plu_install.sh
