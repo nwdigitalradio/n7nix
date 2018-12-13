@@ -262,4 +262,4 @@ dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/mmcblk0p2 roo
 ```
 
 ## Verifying CORE Install/Config
-* [Testing your install & config]((https://github.com/nwdigitalradio/n7nix/blob/master/direwolf/README.md)
+* [Testing your install & config](https://github.com/nwdigitalradio/n7nix/blob/master/VERIFY_CONFIG.md)
