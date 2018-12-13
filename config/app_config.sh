@@ -11,6 +11,7 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 CALLSIGN="N0ONE"
+USER=
 APP_CHOICES="core, rmsgw, plu, pluimap, uronode"
 APP_SELECT="rmsgw"
 
@@ -39,6 +40,37 @@ fi
 dbgecho "Using CALL SIGN: $CALLSIGN"
 return 1
 }
+# ===== function get_user
+
+function get_user() {
+   # Check if there is only a single user on this system
+   if (( `ls /home | wc -l` == 1 )) ; then
+      USER=$(ls /home)
+   else
+      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+      read -e USER
+   fi
+}
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
 
 # ===== main
 
@@ -57,22 +89,31 @@ else
    echo "No app chosen from command arg, so installing RMS Gateway"
 fi
 
-   # check argument passed to this script
+# check argument(s) passed to this script
+
+# Get list of users with home directories
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+get_user
+check_user
+
+# prompt for a callsign
+while get_callsign ; do
+    echo "Input error, try again"
+done
+
 
 case $APP_SELECT in
    core)
       echo "$scriptname: Config core"
-      # prompt for a valid callsign
-      while get_callsign ; do
-         echo "Input error, try again"
-      done
       # configure core
       source ./core_config.sh
 
       # configure ax25
       # Needs a callsign
       pushd ../ax25
-      source ./config.sh $CALLSIGN
+      source ./config.sh $USER $CALLSIGN
       popd > /dev/null
 
       # configure direwolf
