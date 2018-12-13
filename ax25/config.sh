@@ -9,9 +9,9 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 CALLSIGN="N0ONE"
+USER=
 AX25PORT="udr"
 SSID="15"
-AX25DSSID="0"
 AX25_CFGDIR="/usr/local/etc/ax25"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -123,13 +123,30 @@ else
    echo " Found ax.25 link or directory"
 fi
 
-# if there are any args on command line assume it's a callsign
-if (( $# != 0 )) ; then
-   CALLSIGN="$1"
-fi
+# Expecting command line arguments: ./config.sh USER_NAME CALLSIGN
+
+case $# in
+    0)
+        get_callsign
+        get_user
+    ;;
+    1)
+        USER="$1"
+        get_callsign
+    ;;
+    2)
+        USER="$1"
+        CALLSIGN="$1"
+    *)
+       echo -e "\n$(tput setaf 4) Expecting only 2 arguments on command line(tput setaf 7)\n"
+    ;;
+esac
 
 # Check for a valid callsign
 get_callsign
+
+# Check for a valid user name
+check_user
 
 # Setup ax.25 axports file
 numports=$(grep -c "$AX25PORT" $AX25_CFGDIR/axports)
@@ -147,14 +164,6 @@ else
    cfg_axports
 fi
 
-# Set up a listening socket, for testing
-# Make it different than previous SSID
-if ((SSID < 15)) ; then
-   AX25DSSID=$((SSID+1))
-else
-   AX25DSSID=$((SSID-1))
-fi
-
 grep  "N0ONE" /etc/ax25/ax25d.conf >/dev/null
 if [ $? -eq 0 ] ; then
    echo "ax25d not configured"
@@ -164,13 +173,13 @@ if [ $? -eq 0 ] ; then
    sed -n '1,16p' $AX25_CFGDIR/ax25d.conf-dist > $AX25_CFGDIR/ax25d.conf
 
 {
-echo "[$CALLSIGN-$AX25DSSID VIA ${AX25PORT}0]"
-echo "NOCALL   * * * * * *  L"
-echo "default  * * * * * *  - root /usr/sbin/ttylinkd ttylinkd"
-echo "#"
 echo "[$CALLSIGN-10 VIA ${AX25PORT}1]"
 echo "NOCALL   * * * * * *  L"
 echo "default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -P %d %U"
+echo "#"
+echo "[$CALLSIGN VIA ${AX25PORT}1]"
+echo "NOCALL   * * * * * *  L"
+echo "default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d
 } >> $AX25_CFGDIR/ax25d.conf
 
 else
