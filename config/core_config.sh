@@ -111,7 +111,8 @@ echo " === Verify hostname"
 HOSTNAME=$(cat /etc/hostname | tail -1)
 dbgecho "$scriptname: Current hostname: $HOSTNAME"
 
-if [ "$HOSTNAME" = "raspberrypi" ] || [ "$HOSTNAME" = "compass" ] ; then
+# Check for any of the default hostnames
+if [ "$HOSTNAME" = "raspberrypi" ] || [ "$HOSTNAME" = "compass" ] || [ "$HOSTNAME" = "draws" ] ; then
    # Change hostname
    echo "Using default host name: $HOSTNAME, change it"
    echo "Enter new host name followed by [enter]:"
@@ -150,7 +151,7 @@ fi
 DATETZ=$(date +%Z)
 dbgecho "Time zone: $DATETZ"
 
-if [ "$DATETZ" == "UTC" ] ; then
+if [ "$DATETZ" == "UTC" ] || [ "$DATETZ" == "GMT" ] ; then
    echo " === Set time zone"
    echo " ie. select America, then scroll down to 'Los Angeles'"
    echo " then hit tab & return ... wait for it"
