@@ -148,6 +148,8 @@ else
    fi
 fi
 
+echo "=== Set time zone & current time"
+
 DATETZ=$(date +%Z)
 dbgecho "Time zone: $DATETZ"
 
@@ -159,6 +161,24 @@ if [ "$DATETZ" == "UTC" ] || [ "$DATETZ" == "GMT" ] ; then
    sleep 4
    dpkg-reconfigure tzdata
 fi
+
+# Check if ntp or chrony has been installed
+program_name="ntp"
+type -P $program_name  &>/dev/null
+if [ $? -ne 0 ] ; then
+    program_name="chronyd"
+    type -P $program_name  &>/dev/null
+    if [ $? -ne 0 ] ; then
+        echo -e "\n\t$(tput setaf 1)Neither ntp or chrony installed $(tput setaf 7)\n"
+    fi
+else
+    dbgecho "Program: $program_name  found"
+fi
+
+# Set current time is only used if GPS is not installed
+#service ntp stop
+#ntpd -gq
+#service ntp start
 
 echo "=== Set alsa levels for UDRC"
 
