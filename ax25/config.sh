@@ -197,7 +197,7 @@ if [ $? -ne 2 ] ; then
       echo "Original ax25 axports saved as axports-dist"
       cfg_axports
    else
-      echo "AX.25 $AX25PORT already configured with $numports"
+      echo "AX.25 $AX25PORT already configured with $numports ports"
    fi
 else
    echo "AX.25 ports file $AX25_CFGDIR/axports doesn't exist ... creating."
@@ -226,8 +226,6 @@ else
    echo "ax25d.conf already configured"
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: ax.25 install script FINISHED" >> $UDR_INSTALL_LOGFILE
-echo
-echo "ax.25 config script FINISHED"
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: gps install script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
 echo
 
