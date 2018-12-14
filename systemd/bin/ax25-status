@@ -5,7 +5,9 @@ systemctl --failed --all
 echo
 echo "== direwolf =="
 echo "  pid: $(pidof direwolf)"
-echo "  ver: $(direwolf -v 2>/dev/null | grep -m 1 -i version)"
+verstr="$(direwolf -v 2>/dev/null | grep -m 1 -i version)"
+# Get rid of escape characters
+echo "  ver: D${verstr#*D}"
 echo "== /proc/sys =="
 ls /proc/sys/net/
 ls /proc/sys/net/ax25
