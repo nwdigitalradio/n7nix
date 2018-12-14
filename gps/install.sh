@@ -65,5 +65,10 @@ refclock SHM 2 refid PPS precision 1e-9 poll 3 trust
 #allow 44.0.0.0/8
 EOT
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: gps install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
+systemctl enable gpsd
+systemctl start gpsd
+systemctl enable chrony
+systemctl start chrony
+
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: gps install script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
 echo
