@@ -135,13 +135,6 @@ Dest       Source     Device  State        Vr/Vs    Send-Q  Recv-Q
 *          N7NIX-10   ax0     LISTENING    000/000  0       0
 *          N7NIX-2    ax0     LISTENING    000/000  0       0
 ```
-* In another console as root type:
-
-```bash
-sudo su
-listen -at
-```
-* Over time you should see packets scrolling up the screen
 
 * In a console type:
 ```bash

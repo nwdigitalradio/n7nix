@@ -37,7 +37,7 @@ sudo su
 
 ###### More program options
 
-* After confirming that the core functionality works you can configure rmsgw, paclink-unix or someother packet
+* After confirming that the core functionality works you can configure rmsgw, paclink-unix or some other packet
 program that requires direwolf ie.:
 
 ```bash
