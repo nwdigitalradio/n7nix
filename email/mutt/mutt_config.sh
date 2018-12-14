@@ -100,9 +100,10 @@ check_user
 get_callsign
 
 # Check if mutt has been installed
+program_name="mutt"
 type -P $program_name  &>/dev/null
 if [ $? -ne 0 ] ; then
-   echo "$scriptname: No $program_name program found in path ... exiting"
+   echo "$scriptname: Program: $program_name not found in path ... exiting"
    exit 1
 else
    dbgecho "Program: $program_name  found"
