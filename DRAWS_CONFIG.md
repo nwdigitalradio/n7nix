@@ -35,38 +35,6 @@ sudo su
 * Now reboot your RPi & [verify your installation is working properly](https://github.com/nwdigitalradio/n7nix/blob/master/VERIFY_CONFIG.md)
 
 
-###### Test Receive
-
-* Tune your radio to the 1200 baud APRS frequency: 144.39 because there should be lots of traffic there.
-
-```bash
-tail -f /var/log/direwolf/direwolf.log
-```
-
-* or open another console window
-
-```bash
-sudo su
-listen -at
-```
-###### Test Transmit
-
-* Tune your radio to the 1200 baud APRS frequency: 144.39
-```bash
-cd
-cd n7nix/debug
-sudo su
-./btest.sh -P [udr0|udr1]
-```
-
-* This will send either a position beacon or a message beacon
-with the -p or -m options.
-
-* Using a browser go to: [aprs.fi](https://aprs.fi/)
-  * Under Other Views, click on raw packets
-  * Put your call sign followed by an asterisk in "Originating callsign"
-  * Click search, you should see the beacon you just transmitted.
-
 ###### More program options
 
 * After confirming that the core functionality works you can configure rmsgw, paclink-unix or someother packet

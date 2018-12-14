@@ -1,16 +1,46 @@
 ## Verifying CORE Install/Config on UDRC/DRAWS
 ### Testing direwolf & the UDRC
-#### Monitor Receive packets from direwolf
+
+#### Test Receive
+
 * Connect a cable from your UDRC to your radio.
-* Tune to an active digital frequency such as 2M APRS, 144.390 MHz
-* Open a console to the pi and type:
-```bash
-tail -f /var/log/direwolf/direwolf.log
-```
 * Tune your radio to the 2M 1200 baud APRS frequency 144.390 or some frequency known to have packet traffic
   * You should now be able to see the packets decoded by direwolf
 
+* Open a console on your pi and type:
+```bash
+tail -f /var/log/direwolf/direwolf.log
+```
+
+* or open another console window & start up a packet spy
+
+```bash
+sudo su
+listen -at
+```
+
+#### Test Transmit
+
+* Tune your radio to the 1200 baud APRS frequency: 144.39
+```bash
+cd
+cd n7nix/debug
+sudo su
+./btest.sh -P [udr0|udr1]
+# To see all the options available
+./btest.sh -h
+```
+
+* This will send either a position beacon or a message beacon
+with the -p or -m options.
+
+* Using a browser go to: [aprs.fi](https://aprs.fi/)
+  * Under Other Views, click on raw packets
+  * Put your call sign followed by an asterisk in "Originating callsign"
+  * Click search, you should see the beacon you just transmitted.
+
 #### Check status of all AX.25 & direwolf processes started with systemd
+
 * Open another console window to the pi and as user pi type:
 ```bash
 cd ~/bin
@@ -23,24 +53,73 @@ stack including direwolf with these commands:
 
 ```bash
 sudo su
+cd ~/bin
 ./ax25-stop
 ./ax25-start
 ```
-#### Verify version of Raspberry Pi, UDRC,
 
-* There are some other progams in the bin directory that confirm that the installation went well.
-  * While in local bin directory as user pi
+* Other progams that confirm that the installation was successful
+
+#### check hardware version of Raspberry Pi & DRAWS Hat
+
 ```bash
-cd ~/bin
+cd ~/n7nix/bin
 ./piver.sh
 ./udrcver.sh
 ```
 
 #### check ALSA soundcard enumeration
-  * While in local bin directory as user pi
+
 ```bash
 cd ~/bin
 ./sndcard.sh
+```
+
+#### check ALSA settings for deviation
+
+```bash
+cd ~/n7nix/debug
+./alsa-show.sh
+PCM	        L:[0.00dB], R:[0.00dB]
+ADC Level	L:[-2.00dB], R:[0.00dB]
+LO Driver Gain  L:[0.00dB], R:[11.00dB]
+```
+
+#### check A2D converter
+
+```
+sensors
+```
+```
+ads1015-i2c-1-48
+Adapter: bcm2835 I2C adapter
+User ADC Differential:  +0.00 V
++12V:                  +12.27 V
+User ADC 1:             +0.00 V
+User ADC 2:             +0.00 V
+```
+
+#### Check GPS
+
+```
+gpsmon
+```
+
+#### Check NTP clock
+
+```
+chronyc sources
+```
+```
+210 Number of sources = 6
+MS Name/IP address         Stratum Poll Reach LastRx Last sample
+===============================================================================
+#x GPS                           0   3   377    12    +83ms[  +83ms] +/-  102ms
+#- PPS                           0   3   377    11   +239ms[ +239ms] +/-  242ns
+^- 45.32.199.189.vultr.com       2   6   377   293   +237ms[ +237ms] +/-   69ms
+^- t2.time.gq1.yahoo.com         2   8   377    43   +239ms[ +239ms] +/-   34ms
+^- linode1.ernest-doss.org       3   7   377    43   +242ms[ +242ms] +/-  124ms
+^- t1.time.bf1.yahoo.com         2   6   377    35   +240ms[ +240ms] +/-   47ms
 ```
 
 ### Testing AX.25
