@@ -156,6 +156,10 @@ else
    echo " Found ax.25 link or directory"
 fi
 
+# Get list of users with home directories
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
 # Expecting command line arguments: ./config.sh USER_NAME CALLSIGN
 
 case $# in
@@ -215,7 +219,7 @@ echo "default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -P %d %U"
 echo "#"
 echo "[$CALLSIGN VIA ${AX25PORT}1]"
 echo "NOCALL   * * * * * *  L"
-echo "default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d
+echo "default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d"
 } >> $AX25_CFGDIR/ax25d.conf
 
 else
