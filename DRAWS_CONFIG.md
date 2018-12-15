@@ -16,6 +16,7 @@ unzip <draws_image_download_file_name>
 * At least an 8GB microSD card is recommend
 ```
 time dcfldd if=<draws_image_download_file_name> of=/dev/sdf bs=4M
+sync
 ```
 
 * Boot the new microSD card
