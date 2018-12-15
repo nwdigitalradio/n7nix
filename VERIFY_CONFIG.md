@@ -3,6 +3,8 @@
 
 * Before verifying CORE functionality you must have run the [app config script](https://github.com/nwdigitalradio/n7nix/blob/master/DRAWS_CONFIG.md)
 * The first few commands assume a direwolf/ax.25 installation
+* The _showudrc.sh_ script in the local bin directory executes many of the commands listed below.
+  * The copious output of this script will usually show you any installation & configuration anomalies
 
 
 #### Test Receive
