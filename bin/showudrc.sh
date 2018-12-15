@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# Uncomment this statement for debug echos
+#DEBUG=1
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -140,7 +142,7 @@ a020d3)
    HAS_WIFI=true
 ;;
 *)
-   echo "Unknown pi version: $piver"
+   echo -e "\n\t$(tput setaf 1)Unknown pi version: $piver $(tput setaf 7)\n"
 ;;
 esac
 
@@ -158,9 +160,6 @@ echo "==== udrc Ver ===="
 # 3 = UDRC II
 # 4 = DRAWS
 # 5 = 1WSpot
-#
-# Uncomment this statement for debug echos
-#DEBUG=1
 
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
@@ -176,7 +175,7 @@ dbgecho "Return val: $return_val"
 case $return_val in
 0)
    echo "HAT firmware not initialized or HAT not installed."
-   echo "  No id eeprom found"
+   echo -e "\n\t$(tput setaf 1)No id eeprom found $(tput setaf 7)\n"
 ;;
 1)
    echo "Found a HAT but not a UDRC, product not identified"
@@ -207,17 +206,23 @@ case $return_val in
 ;;
 esac
 
+echo
 echo "==== sys Ver ===="
 
 echo "----- /proc/version"
 cat /proc/version
+echo
 echo "----- /etc/*version: $(cat /etc/*version)"
+echo
 echo "----- /etc/*release"
 cat /etc/*release
+echo
 echo "----- lsb_release"
 lsb_release -a
+echo
 echo "---- systemd"
 hostnamectl
+echo
 echo "---- modules"
 lsmod | egrep -e '(udrc|tlv320)'
 dkmsdir="/lib/modules/$(uname -r)/updates/dkms"
@@ -227,9 +232,12 @@ if [ -d "$dkmsdir" ] ; then
 else
    echo "Command 'apt-get install udrc-dkms' failed or was not run."
 fi
-echo "---- kernel"
-dpkg -l "*kernel" | tail -n 3
 
+echo
+echo "---- kernel"
+dpkg -l "*kernel" "udrc-dkms" | tail -n 4
+
+echo
 echo "---- compass"
 preference_file="/etc/apt/preferences.d/compass"
 if [ -f "$preference_file" ] ; then
@@ -238,6 +246,7 @@ if [ -f "$preference_file" ] ; then
 else
    echo "Compass preference file not found: $preference_file"
 fi
+
 sources_list_file="/etc/apt/sources.list.d/compass.list"
 if [ -f "$sources_list_file" ] ; then
    echo "---- compass apt sources list file"
@@ -260,3 +269,20 @@ fi
 echo
 echo "==== boot config ===="
 tail -n 15 /boot/config.txt
+echo
+echo "---- gpsd"
+systemctl status gpsd
+echo
+echo "---- chrony"
+systemctl status gpsd
+echo "-- chrony sources"
+chronyc sources
+echo "-- chrony tracking"
+chronyc tracking
+echo "-- chrony sourcestats"
+chronyc sourcestats
+echo
+echo "---- sensors"
+ls -alt /etc/sensors.d/*
+sensors
+
