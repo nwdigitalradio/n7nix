@@ -176,7 +176,7 @@ CopyBinFiles
 cd $userbindir
 
 # Adjust clock
-source ./set-time.sh
+# source ./set-time.sh
 
 # Set alsa levels with script
 #./set-udrc-din6.sh  > /dev/null 2>&1
