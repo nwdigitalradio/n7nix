@@ -162,24 +162,6 @@ if [ "$DATETZ" == "UTC" ] || [ "$DATETZ" == "GMT" ] ; then
    dpkg-reconfigure tzdata
 fi
 
-# Check if ntp or chrony has been installed
-program_name="ntp"
-type -P $program_name  &>/dev/null
-if [ $? -ne 0 ] ; then
-    program_name="chronyd"
-    type -P $program_name  &>/dev/null
-    if [ $? -ne 0 ] ; then
-        echo -e "\n\t$(tput setaf 1)Neither ntp or chrony installed $(tput setaf 7)\n"
-    fi
-else
-    dbgecho "Program: $program_name  found"
-fi
-
-# Set current time is only used if GPS is not installed
-#service ntp stop
-#ntpd -gq
-#service ntp start
-
 echo "=== Set alsa levels for UDRC"
 
 # Get list of users with home directories
@@ -191,14 +173,18 @@ check_user
 
 userbindir=/home/$USER/bin
 CopyBinFiles
+cd $userbindir
+
+# Adjust clock
+source ./set-time.sh
 
 # Set alsa levels with script
-cd $userbindir
 #./set-udrc-din6.sh  > /dev/null 2>&1
 # Sets left channel levels for Kenwood & right channel for Alinco
 ./set-udrc-both.sh  > /dev/null 2>&1
 retcode="$?"
 dbgecho "Set sound card levels return: $retcode"
+
 cd $START_DIR
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: core config script FINISHED" >> $UDR_INSTALL_LOGFILE
