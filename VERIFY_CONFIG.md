@@ -87,6 +87,8 @@ cd ~/bin
 
 #### check ALSA settings for deviation
 
+* Show the left & right audio channel settings
+
 ```bash
 cd ~/n7nix/debug
 ./alsa-show.sh
@@ -95,6 +97,15 @@ PCM	        L:[0.00dB], R:[0.00dB]
 ADC Level	L:[-2.00dB], R:[0.00dB]
 LO Driver Gain  L:[0.00dB], R:[11.00dB]
 ```
+###### Set output ie. deviation with these controls
+* Each of these outputs has its own amplifier
+* PCM : digital control
+  * output samples are multiplied by a value determined by this control before being sent to the DAC
+* LO Driver Gain : Analog control
+  * determines the gain of the *ANALOG* output amplifier.
+
+###### Set input with this control
+* ADC Level : digital control
 
 #### check A2D converter
 
