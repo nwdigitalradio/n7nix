@@ -1,6 +1,10 @@
 ## Verifying CORE Install/Config on UDRC/DRAWS
 ### Testing direwolf & the UDRC
 
+* Before verifying CORE functionality you must have run the [app config script](https://github.com/nwdigitalradio/n7nix/blob/master/DRAWS_CONFIG.md)
+* The first few commands assume a direwolf/ax.25 installation
+
+
 #### Test Receive
 
 * Connect a cable from your UDRC to your radio.
@@ -46,8 +50,12 @@ with the -p or -m options.
 cd ~/bin
 ./ax25-status
 ```
+* After _== failed & loaded but inactive units==_ you should see
+```
+0 loaded units listed.
+```
 
-* In the same directory you can stop and start the entire ax.25/tnc
+* In your local bin directory(_~/bin_) you can stop and start the entire ax.25/tnc
 stack including direwolf with these commands:
   * Note you need to do this as root
 
@@ -68,7 +76,7 @@ cd ~/n7nix/bin
 ./udrcver.sh
 ```
 
-#### check ALSA soundcard enumeration
+#### check ALSA soundcard enumeration & levels
 
 ```bash
 cd ~/bin
@@ -80,6 +88,7 @@ cd ~/bin
 ```bash
 cd ~/n7nix/debug
 ./alsa-show.sh
+
 PCM	        L:[0.00dB], R:[0.00dB]
 ADC Level	L:[-2.00dB], R:[0.00dB]
 LO Driver Gain  L:[0.00dB], R:[11.00dB]
@@ -106,7 +115,7 @@ gpsmon
 ```
 
 #### Check NTP clock
-
+* Display information about the current time sources that chronyd is accessing.
 ```
 chronyc sources
 ```
@@ -121,6 +130,25 @@ MS Name/IP address         Stratum Poll Reach LastRx Last sample
 ^- linode1.ernest-doss.org       3   7   377    43   +242ms[ +242ms] +/-  124ms
 ^- t1.time.bf1.yahoo.com         2   6   377    35   +240ms[ +240ms] +/-   47ms
 ```
+* Check chrony tracking
+```
+chonyc tracking
+```
+```
+Reference ID    : 50505300 (PPS)
+Stratum         : 1
+Ref time (UTC)  : Sat Dec 15 18:10:07 2018
+System time     : 0.000000008 seconds fast of NTP time
+Last offset     : -0.000406383 seconds
+RMS offset      : 0.000406383 seconds
+Frequency       : 1.149 ppm fast
+Residual freq   : +0.259 ppm
+Skew            : 0.123 ppm
+Root delay      : 0.000000 seconds
+Root dispersion : 0.002010 seconds
+Update interval : 0.0 seconds
+Leap status     : Normal
+```
 
 ### Testing AX.25
 
@@ -132,11 +160,13 @@ netstat --ax25
 ```
 Active AX.25 sockets
 Dest       Source     Device  State        Vr/Vs    Send-Q  Recv-Q
-*          N7NIX-10   ax0     LISTENING    000/000  0       0
-*          N7NIX-2    ax0     LISTENING    000/000  0       0
+*          N7NIX-0    ax1     LISTENING    000/000  0       0
+*          N7NIX-10   ax1     LISTENING    000/000  0       0
 ```
 
-* In a console type:
+* Display AX.25 calls recently heard.
+  * Must have connection to radio
+
 ```bash
 mheard
 ```
