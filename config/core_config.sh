@@ -2,6 +2,7 @@
 #
 # Run this script after core_install.sh
 #
+
 # Uncomment this statement for debug echos
 DEBUG=1
 
@@ -79,23 +80,30 @@ if [ $? -eq 0 ] ; then
    echo "User pi found"
    echo "Determine if default password is being used"
 
+   if [ ! -r /etc/shadow ] ; then
+       echo -e "\n\t$(tput setaf 1)Do NOT have permission to read passwd file, exiting $(tput setaf 7)\n"
+       exit
+   fi
+
    # get salt
    SALT=$(grep -i pi /etc/shadow | awk -F\$ '{print $3}')
 
-   PASSGEN=$(mkpasswd --method=sha-512 --salt=$SALT raspberry)
+   PASSGEN_RASPBERRY=$(mkpasswd --method=sha-512 --salt=$SALT raspberry)
+   PASSGEN_NWCOMPASS=$(mkpasswd --method=sha-512 --salt=$SALT nwcompass)
    PASSFILE=$(grep -i pi /etc/shadow | cut -d ':' -f2)
 
 #   dbgecho "SALT: $SALT"
 #   dbgecho "pass file: $PASSFILE"
-#   dbgecho "pass  gen: $PASSGEN"
+#   dbgecho "pass  gen raspberry: $PASSGEN_RASPBERRY"
+#   dbgecho "pass  gen nwcompass: $PASSGEN_NWCOMPASS"
 
-   if [ "$PASSFILE" = "$PASSGEN" ] ; then
+   if [ "$PASSFILE" = "$PASSGEN_RASPBERRY" ] || [ "$PASSFILE" = "$PASSGEN_NWCOMPASS" ] ; then
       echo "User pi is using default password"
       echo "Need to change your password for user pi NOW"
       read -t 1 -n 10000 discard
       passwd pi
       if [ $? -ne 0 ] ; then
-         echo "Failed to set password, exiting"
+         echo -e "\n\t$(tput setaf 1)Failed to set password, exiting $(tput setaf 7)\n"
 	 exit 1
       fi
    else
