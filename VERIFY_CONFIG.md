@@ -6,6 +6,14 @@
 * The _showudrc.sh_ script in the local bin directory executes many of the commands listed below.
   * The copious output of this script will usually show you any installation & configuration anomalies
 
+* The image you are running will have direwolf running from boot.
+  * You can verify that direwolf is already running by typing:
+```
+pidof direwolf
+```
+  * If this command returns with a number, it will be the process id of direwolf.
+    * if no number is returned direwolf is not running.
+
 
 #### Test Receive
 
