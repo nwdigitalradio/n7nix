@@ -216,9 +216,9 @@ timestamp=$(date "+%d %T %Z")
 # eg: 0A<0x0f> [Invalid message packet]
 
 if [ "$BEACON_TYPE" = "mesg_beacon" ] ; then
-   beacon_msg=":$CALLPAD:$timestamp $CALLSIGN beacon test from host $(hostname) Seq: $seqnum"
+   beacon_msg=":$CALLPAD:$timestamp $CALLSIGN beacon test from host $(hostname) on port $AX25PORT Seq: $seqnum"
 else
-   beacon_msg="!4829.06N/12254.12W-$timestamp, from $(hostname) Seq: $seqnum"
+   beacon_msg="!4829.06N/12254.12W-$timestamp, from $(hostname) on port $AX25PORT Seq: $seqnum"
 fi
 
 if [ "$verbose" = "true" ] ; then
