@@ -6,7 +6,7 @@
 1. Cronjob & scripts to email daily System reports using Winlink
 2. Cronjob & scripts to email daily RMS Gateway reports using Winlink or SMTP
 3. Enable the serial console on an RPi 3
-4. Push-to-Talk GPIOs used by an UDRC & UDRC II
+4. Push-to-Talk GPIOs used by an UDRC, UDRC II & DRAWS
 5. Direwolf/UDRC - test output channels & push to talk
 6. How to capture everything you typed on a console
 7. Some scripts to display useful information for debug
@@ -51,10 +51,11 @@ MODEM 1200
 ```
 
 
-| device  |  chan 0  |  chan 1   |
-|---------|----------|-----------|
-| UDRC    |  12 both |   12 both |
-| UDRC II |  12 HD15 |   23 DIN6 |
+| device  |  chan 0    |   chan 1    |
+|---------|------------|-------------|
+| UDRC    |  12 both   |   12 both   |
+| UDRC II |  12 HD15   |   23 mDIN6  |
+| DRAWS   |  12 mDIN6  |   23 mDIN6  |
 
 ## 5. Direwolf/UDRC testing
 
