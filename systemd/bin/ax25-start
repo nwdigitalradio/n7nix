@@ -1,9 +1,18 @@
 #!/bin/bash
+
+# Check if direwolf is already running.
+pid=$(pidof direwolf)
+if [ $? -eq 0 ] ; then
+    echo "Direwolf already running with a pid of $pid ... exiting."
+    exit 1
+fi
+
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root"
    exit 1
 fi
+
 systemctl start direwolf.service
 systemctl start ax25dev.path
 systemctl start ax25-mheardd.service
