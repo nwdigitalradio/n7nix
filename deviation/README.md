@@ -1,11 +1,11 @@
 # How to use measure_deviate.sh
 
-#### Usage: measure_deviate.sh [-f _tone_frequency_][-c _connector_type_][-l _tone_duration_][-d][-h]
+#### Usage: measure_deviate.sh [-f _tone_frequency_ ][-c _connector_location_ ][-l _tone_duration_ ][-d][-h]
 ```
  -f, --frequency
         tone frequency in Hz (10 - 20000), default: 2200
  -c, --connector
-        connector type either din6 or hd15, default: hd15
+        connector location either left (mDin6) or right (hd15/mDin6), default: right
  -l, --length
         length of tone in seconds, default 30
  -d, --debug

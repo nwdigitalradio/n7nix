@@ -1,16 +1,16 @@
 #!/bin/bash
 #
 # Usage:
-#   measure_deviate.sh [-f _tone_frequency_][-c _connector_type_][-l _tone_duration_][-h]
+#   measure_deviate.sh [-f _tone_frequency_][-c _connector_location_][-l _tone_duration_][-h]
 #
 # Examples:
 # On a UDRC II, send 2200 Hz sine wave out mini din-6 connector
 #   for 30 seconds
-# ./measure_deviate.sh -f 2200 -c din6 -l 30
+# ./measure_deviate.sh -f 2200 -c left -l 30
 #
 # On a UDRC II, send 1200 Hz sine wave out HD-15 connector
 #   for 30 seconds
-# ./measure_deviate.sh -f 1200 -c hd15
+# ./measure_deviate.sh -f 1200 -c right
 #
 
 scriptname="`basename $0`"
@@ -26,7 +26,7 @@ NWDIG_VENDOR_NAME="NW Digital Radio"
 freq=2200
 tone_length=30
 default_tone_length=30
-connector="hd15"
+connector="right"
 wavefile_basename="hzsin.wav"
 wavefile="$freq$wavefile_basename"
 #default to UDRC II, channel 0
@@ -38,7 +38,7 @@ trap ctrl_c INT
 function usage() {
    echo "Usage: $scriptname [-f <tone_frequency][-c <connector>[-l <tone_duration>][-h]" >&2
    echo "   -f tone frequency in Hz (10 - 20000), default: 2200"
-   echo "   -c connector type either din6 or hd15, default: hd15"
+   echo "   -c connector location, either left (mDin6) or right (hd15/mDin6), default: right"
    echo "   -l length of tone in seconds, default 30"
    echo "   -d set debug flag"
    echo "   -h no arg, display this message"
@@ -99,7 +99,7 @@ if [ -f $firmware_prodfile ] ; then
             udrc_prod_id=5
          ;;
          *)
-            echo "Found something but not a UDRC: $UDRC_PROD"
+            echo "Found something but not a UDRC or DRAWS: $UDRC_PROD"
             udrc_prod_id=1
          ;;
       esac
@@ -124,7 +124,7 @@ else
    udrc_prod_id=0
 fi
 
-dbgecho "Finished udrc id check: $udrc_prod_id"
+dbgecho "Finished udrc/draws id check: $udrc_prod_id"
 return $udrc_prod_id
 }
 
@@ -145,7 +145,7 @@ done
 if [ "$NEEDPKG_FLAG" = "true" ] ; then
    echo "Installing required packages"
    dbgecho "Debian packages: for aplay install alsa-utils, for sox install sox, for gpio install wiringpi"
-   apt-get -y -q install alsa-utils sox wiringpi
+   sudo apt-get -y -q install alsa-utils sox wiringpi
 fi
 
 dbgecho "Parse command line args"
@@ -192,7 +192,7 @@ done
 id_check
 id_check_ret=$?
 if [ $id_check_ret -eq 0 ] || [ $id_check_ret -eq 1 ] ; then
-   echo "No UDRC found, id_check=$id_check_ret exiting ..."
+   echo "No UDRC or DRAWS found, id_check=$id_check_ret exiting ..."
    exit 1
 fi
 
@@ -205,24 +205,31 @@ else
   exit 1
 fi
 
-# Validate connector type
+# Validate channel location
+# Set correct PTT gpio for channel 0 or 1
+# DRAWS Hat has channel 0 on left & channel 1 on right connector
 case $connector in
-   din6)
-      # use channel 0 or 1 PTT gpio
-      if [ $udrc_prod_id == 3 ] || [ $udrc_prod_id == 4 ] ; then
-      # uses audio channel 1 PTT gpio
+   left)
+      # Check for UDRC II
+      if [ $udrc_prod_id == 3 ]  ; then
+         # uses audio channel 1 PTT gpio
          gpio_pin=23
       else
-         # uses audio channel 0 PTT gpio
+         # Original UDRC & DRAWS HAT use chan 0 PTT gpio
          gpio_pin=12
       fi
    ;;
-   hd15)
-      # uses audio channel 0 PTT gpio
-      gpio_pin=12
+   right)
+      if [ $udrc_prod_id == 4 ] ; then
+          # use channel 1 PTT gpio
+          gpio_pin=23
+      else
+          # Original UDRC & UDRC II use chan 0 PTT gpio
+          gpio_pin=12
+      fi
    ;;
    *)
-      echo "Wrong connector type specified: $connector"
+      echo "Wrong connector location specified: $connector"
       usage
       exit 1
    ;;
@@ -245,7 +252,7 @@ if [ "$mode_gpio7" != "ALT0" ] ; then
 fi
 
 wavefile="$freq$wavefile_basename"
-echo "Using tone: $freq (wave file name: $wavefile) for duration $tone_length & connector: $connector using gpio: $gpio_pin"
+echo "Using tone: $freq (wave file name: $wavefile) for duration $tone_length & $connector connector using gpio: $gpio_pin"
 
 if [ ! -f "$wavefile" ] ; then       # Check if file exists.
    echo "Generating wavefile: $wavefile with duration of $tone_length seconds.";
