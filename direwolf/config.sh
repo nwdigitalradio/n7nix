@@ -179,6 +179,9 @@ case $PROD_ID in
 ;;
 4)
    echo "Draws installed"
+   # left channel
+   chan1ptt_gpio=12
+   # right channel
    chan2ptt_gpio=23
 ;;
 5)
