@@ -6,7 +6,6 @@ PKGLIST="iptables iptables-persistent"
 
 USER=
 BIN_FILES="iptable-check.sh iptable-flush.sh iptable-up.sh"
-BIN_DIR="/home/$USER/bin"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -75,6 +74,7 @@ else
 fi
 
 check_user
+BIN_DIR="/home/$USER/bin"
 
 for filename in `echo ${BIN_FILES}` ; do
    cp $filename $BIN_DIR
