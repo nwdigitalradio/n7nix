@@ -128,6 +128,11 @@ case $APP_SELECT in
       /bin/bash ./config.sh
       popd > /dev/null
 
+      # configure iptables
+      pushd ../iptables
+      /bin/bash ./iptables_install.sh
+      popd > /dev/null
+
       echo "core configuration FINISHED"
    ;;
    rmsgw)
