@@ -130,7 +130,7 @@ case $APP_SELECT in
 
       # configure iptables
       pushd ../iptables
-      /bin/bash ./iptables_install.sh
+      /bin/bash ./iptable_install.sh $USER
       popd > /dev/null
 
       echo "core configuration FINISHED"

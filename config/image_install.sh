@@ -84,7 +84,7 @@ popd > /dev/null
 # run IPTABLES install script as user other than root
 pushd ../iptables
 echo "$scriptname: Install iptables"
-sudo -u "$USER" ./install.sh $USER
+sudo -u "$USER" ./iptable_install.sh $USER
 popd > /dev/null
 
 pushd ../plu
