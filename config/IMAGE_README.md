@@ -5,9 +5,12 @@
 
 * The initial file system image is found at http://archive.compasslinux.org/images/
   * image_2018-11-18-compass.zip
+* The DRAWS RPi image which starts with the Compass image is currently residing here:
+  * http://nwdig.net/downloads/
+
 * The programs in the following table are added to the compass image.
 
-### Table of installed programs
+### Table of Installed Programs
 
 * PKG = Debian package for RPi available
 * DW = requires Direwolf
