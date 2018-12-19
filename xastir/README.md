@@ -40,6 +40,11 @@ apt-get install xastir
   * Status should change from Down to Up
 
 ##### Configure Audio
+* Need to enable the RPi audio device
+  * uncomment the following line in _/boot/config.txt_
+```
+# dtparam=audio=on
+```
 * The _Audio Play Command_ is different for analog & HDMI audio
 
 * Download xastir sound files
