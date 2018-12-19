@@ -130,12 +130,20 @@ User ADC 2:             +0.00 V
 ```
 
 #### Check GPS
+* Check status of chronyd daemon
+```
+systemctl status chronyd
+```
 
+* Check how many gps channels (satellites) are active
 ```
 gpsmon
 ```
 
-#### Check NTP clock
+#### Check chrony synchronization
+* **NOTE:** with just GPS and no Internet time servers it often takes 10 minutes for the chrony server to enter online mode.
+* To check if chrony is synchronized, make use of the _tracking_, _sources_, and _sourcestats_ commands.
+
 * Display information about the current time sources that chronyd is accessing.
 ```
 chronyc sources
@@ -151,7 +159,25 @@ MS Name/IP address         Stratum Poll Reach LastRx Last sample
 ^- linode1.ernest-doss.org       3   7   377    43   +242ms[ +242ms] +/-  124ms
 ^- t1.time.bf1.yahoo.com         2   6   377    35   +240ms[ +240ms] +/-   47ms
 ```
-* Check chrony tracking
+* Check source stats
+```
+chronyc sourcestats
+```
+```
+210 Number of sources = 6
+Name/IP Address            NP  NR  Span  Frequency  Freq Skew  Offset  Std Dev
+==============================================================================
+GPS                         8   6    55   -569.805   1137.333   -199ms  9188us
+PPS                         7   5    48     -0.328      0.026  +1761us   134ns
+clockb.ntpjs.org           28  13  107m     -0.347      0.030   -177us    55us
+h184-60-28-49.mdtnwi.dsl>  35  19  139m     -0.059      0.082  +2990us   285us
+clock.trit.net             29  13  141m     -0.256      0.013  -8385us    35us
+mia1.m-d.net               18   9   73m     -0.280      0.190   -588us   235us
+```
+
+* Check chrony tracking - Check to confirm that NEMA is being used as the reference.
+  * shows how good current time is and what the offset of the system clock is.
+* Link for [field definitons](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system_administrators_guide/sect-using_chrony)
 ```
 chonyc tracking
 ```
