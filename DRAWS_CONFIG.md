@@ -62,3 +62,11 @@ cd bin
 sudo su
 ./ax25-disable
 ```
+
+###### enable RPi audio device
+
+* uncomment the following line in _/boot/config.txt_
+  * ie. remove the hash character from the beginning of the line.
+```
+dtparam=audio=on
+```
