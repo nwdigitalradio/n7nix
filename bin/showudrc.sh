@@ -87,6 +87,43 @@ function display_id_eeprom() {
    echo "Vendor:      $(tr -d '\0' </sys/firmware/devicetree/base/hat/vendor)"
 }
 
+# ===== function display_ctrl
+
+function display_ctrl() {
+   alsa_ctrl="$1"
+   PCM_STR="$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i "Simple mixer control")"
+   dbgecho "$alsa_ctrl: $PCM_STR"
+   PCM_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 1 "db")
+   CTRL_VAL_L=${PCM_VAL##* }
+   dbgecho "$alsa_ctrl: Left $PCM_VAL"
+   PCM_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 2 "db" | tail -n 1 | cut -d ' ' -f5-)
+   CTRL_VAL_R=${PCM_VAL##* }
+   dbgecho "$alsa_ctrl: Right $PCM_VAL"
+}
+
+
+# ===== function display alsa settings
+
+function display_alsa() {
+# Default card name
+CARD="udrc"
+CONTROL_LIST="'ADC Level''LO Drive Gain' 'PCM'"
+
+control="PCM"
+display_ctrl "$control"
+printf "%s\t        L:%s, R:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
+
+control="ADC Level"
+display_ctrl "$control"
+printf "%s\tL:%s, R:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
+
+control="LO Driver Gain"
+display_ctrl "$control"
+printf "%s  L:%s, R:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
+}
+
+# ===== Main
+
 # Verify that aplay enumerates udrc sound card
 
 CARDNO=$(aplay -l | grep -i udrc)
@@ -96,6 +133,7 @@ if [ ! -z "$CARDNO" ] ; then
    echo "udrc card number line: $CARDNO"
    CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
    echo "udrc is sound card #$CARDNO"
+   display_alsa
 else
    echo "No udrc sound card found."
 fi
