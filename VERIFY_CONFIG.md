@@ -130,6 +130,7 @@ User ADC 2:             +0.00 V
 ```
 
 #### Check GPS
+* Battery: CR 1220 3V lithium non-rechargeable
 * Check status of chronyd daemon
 ```
 systemctl status chronyd
@@ -245,4 +246,41 @@ LDYSMH     udr0      1   Sat Apr  1 08:46:00
 DOGMTN     udr0      1   Sat Apr  1 08:45:44
 VE7RVT-12  udr0      1   Sat Apr  1 08:44:36
 VA7MP      udr0      1   Sat Apr  1 08:43:04
+```
+
+### Test RPi sound
+* Be sure the volume is turned up for this audio device.
+* enable RPi audio device in _/boot/config.txt_ by uncommenting the following line
+```
+dtparam=audio=on
+```
+
+#### Test analog audio
+* Play a short xastir wave file
+```
+cd /usr/share/xastir/sounds
+aplay -D "plughw:0,0" bandopen.wav
+```
+* Output pink noise
+```
+speaker-test --channels 2 --rate 48000 --device plughw:0,0
+```
+
+#### Test HDMI audio
+* Add the following to _/boot/config.txt_
+```
+# forces HDMI mode
+hdmi_drive=2
+```
+
+* Test using a xastir wave file
+
+```
+cd /usr/share/xastir/sounds
+aplay -D "plughw:0,1" silence.wav bandopen.wav
+
+```
+* Output pink noise
+```
+speaker-test --channels 2 --rate 48000 --device plughw:0,1
 ```
