@@ -73,7 +73,11 @@ fi
 check_user
 
 sudo apt-get install xastir
+
+# Enable desktop icon for xastir
 cp xastir.desktop /home/$USER/Desktop
+
+# Copy silence.wav to xastir sound dir
 sudo cp *.wav /usr/share/xastir/sounds
 
 cd
