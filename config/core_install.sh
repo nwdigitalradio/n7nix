@@ -379,15 +379,16 @@ fi
 
 echo " === direwolf install FINISHED"
 
-# Use set-udrc alsa script from repo
-#
-#cd $SRC_DIR
-#wget -O set-udrc-din6.sh -qt 3 https://goo.gl/7rXUFJ
-#if [ $? -ne 0 ] ; then
-#   echo "FAILED to download alsa level setup file."
-#   exit 1
-#fi
-#chmod +x set-udrc-din6.sh
+echo " === time sync before: $(date)"
+program_name="chronyd"
+type -P "$program_name"  &>/dev/null
+if [ $? -eq 0 ] ; then
+    echo "Daemon: ${program_name} found"
+    sudo chronyc makestep
+else
+    echo -e "\n\t$(tput setaf 1)Chrony NOT installed $(tput setaf 7)\n"
+fi
+echo " === time sync after: $(date)"
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: core install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
