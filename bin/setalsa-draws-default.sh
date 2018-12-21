@@ -33,21 +33,40 @@ sset 'LO Driver Gain' 0dB,11.0dB
 
 # Everything after this is common to both radios
 
-#  Turn on AFOUT
 sset 'CM_L to Left Mixer Negative Resistor' '10 kOhm'
-sset 'IN1_L to Left Mixer Positive Resistor' '10 kOhm'
-
-#  Turn on DISCOUT
 sset 'CM_R to Right Mixer Negative Resistor' '10 kOhm'
-sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
+
+# IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
+# IN2 Receive audio (all radios, 1200 baud packet)
+
+if [ $MODE_9600_ENABLE = "true" ] ; then
+
+    # For 9600 baud packet only
+    # Turn AFOUT off & DISCOUT on
+    # ie. Receive audio off & discriminator output on
+
+    sset 'IN1_L to Left Mixer Positive Resistor' '10 kOhm'
+    sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
+    sset 'IN2_L to Left Mixer Positive Resistor' 'Off'
+    sset 'IN2_R to Right Mixer Positive Resistor' 'Off'
+
+else
+    # Default mode, for HF & 1200 baud packet
+    # Turn AFOUT on & DISCOUT off
+    # ie. Receive audio on & discriminator off
+
+    sset 'IN1_L to Left Mixer Positive Resistor' 'Off'
+    sset 'IN1_R to Right Mixer Positive Resistor' 'Off'
+    sset 'IN2_L to Left Mixer Positive Resistor' '10 kOhm'
+    sset 'IN2_R to Right Mixer Positive Resistor' '10 kOhm'
+fi
 
 #  Turn off unnecessary pins
 sset 'IN1_L to Right Mixer Negative Resistor' 'Off'
 sset 'IN1_R to Left Mixer Positive Resistor' 'Off'
-sset 'IN2_L to Left Mixer Positive Resistor' 'Off'
+
 sset 'IN2_L to Right Mixer Positive Resistor' 'Off'
 sset 'IN2_R to Left Mixer Negative Resistor' 'Off'
-sset 'IN2_R to Right Mixer Positive Resistor' 'Off'
 sset 'IN3_L to Left Mixer Positive Resistor' 'Off'
 sset 'IN3_L to Right Mixer Negative Resistor' 'Off'
 sset 'IN3_R to Left Mixer Negative Resistor' 'Off'
