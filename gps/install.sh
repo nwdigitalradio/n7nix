@@ -35,7 +35,7 @@ keyfile /etc/chrony/chrony.keys
 driftfile /var/lib/chrony/chrony.drift
 
 # Uncomment the following line to turn logging on.
-#log tracking measurements statistics
+log  measurements statistics tracking
 
 # Log files location.
 logdir /var/log/chrony
