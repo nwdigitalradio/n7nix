@@ -15,6 +15,7 @@
 # sset 'ADC Level'   -2.0dB,-2.0.0dB
 # sset 'LO Driver Gain' 0dB,11.0dB
 
+MODE_9600_ENABLE=false
 
 asoundstate_file="/var/lib/alsa/asound.state"
 stateowner=$(stat -c %U $asoundstate_file)
@@ -42,7 +43,7 @@ sset 'CM_R to Right Mixer Negative Resistor' '10 kOhm'
 # IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
 # IN2 Receive audio (all radios, 1200 baud packet)
 
-if [ $MODE_9600_ENABLE = "true" ] ; then
+if [ "$MODE_9600_ENABLE" = "true" ] ; then
 
     # For 9600 baud packet only
     # Turn AFOUT off & DISCOUT on
