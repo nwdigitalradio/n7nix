@@ -11,7 +11,10 @@
 #
 #      sset left chan, right chan
 #  ie, sset Kenwood,   Alinco
-#
+# sset 'PCM'          0.0dB,0.0dB
+# sset 'ADC Level'   -2.0dB,-2.0.0dB
+# sset 'LO Driver Gain' 0dB,11.0dB
+
 
 asoundstate_file="/var/lib/alsa/asound.state"
 stateowner=$(stat -c %U $asoundstate_file)
@@ -29,7 +32,7 @@ amixer -c udrc -s << EOF
 #  Set input and output levels for both Kenwood & Alinco radios
 sset 'PCM' 0.0dB,0.0dB
 sset 'ADC Level' -2.0dB,-2.0.0dB
-sset 'LO Driver Gain' 0dB,11.0dB
+sset 'LO Driver Gain' 0.0dB,0.0dB
 
 # Everything after this is common to both radios
 
