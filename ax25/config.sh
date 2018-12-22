@@ -226,6 +226,6 @@ else
    echo "ax25d.conf already configured"
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: gps install script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: AX.25 install script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
 echo
 
