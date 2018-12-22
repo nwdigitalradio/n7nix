@@ -14,6 +14,8 @@ UDRCII=false
 PORTNAME_1="udr0"
 PORTNAME_2="udr1"
 SERIALPORT_DIREWOLF="/tmp/kisstnc"
+IPADDR_AX0="192.168.255.2"
+IPADDR_AX1="192.168.255.3"
 
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
@@ -122,7 +124,7 @@ case $id_check_ret in
 # use port 1 with mkiss
    pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx none | tail -1)
    echo "using mkiss with UDRC and pseudo term=$pseudoterm on port 1"
-   $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME_1} 44.24.197.66 >/tmp/ax25-config.tmp
+   $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME_1} ${IPADDR_AX0} >/tmp/ax25-config.tmp
    kissattach_ret=$?
    dbgecho "kissattach return: $?"
    /etc/ax25/ax25dev-parms ax0
@@ -135,8 +137,8 @@ case $id_check_ret in
    pseudoterm_1=$(echo $pseudoterm | cut -d ' ' -f1)
    pseudoterm_2=$(echo $pseudoterm | cut -d ' ' -f2)
    echo "using mkiss with UDRC II and pseudo term_1: $pseudoterm_1 pseudo term_2: $pseudoterm_2"
-   $SBINDIR/kissattach  ${pseudoterm_1} ${PORTNAME_1} 44.24.197.66 >/tmp/ax25-config_1.tmp
-   $SBINDIR/kissattach  ${pseudoterm_2} ${PORTNAME_2} 44.24.197.67 >/tmp/ax25-config_2.tmp
+   $SBINDIR/kissattach  ${pseudoterm_1} ${PORTNAME_1} ${IPADDR_AX0} >/tmp/ax25-config_1.tmp
+   $SBINDIR/kissattach  ${pseudoterm_2} ${PORTNAME_2} ${IPADDR_AX1} >/tmp/ax25-config_2.tmp
    kissattach_ret=$?
    dbgecho "kissattach return: $?"
    /etc/ax25/ax25dev-parms ax0
@@ -149,7 +151,7 @@ case $id_check_ret in
 # use port 1 with mkiss
    pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx none | tail -1)
    echo "using mkiss with UDRC and pseudo term=$pseudoterm on port 1"
-   $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME_1} 44.24.197.66 >/tmp/ax25-config.tmp
+   $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME_1} ${IPADDR_AX0} >/tmp/ax25-config.tmp
    kissattach_ret=$?
    dbgecho "kissattach return: $?"
    /etc/ax25/ax25dev-parms ax0
