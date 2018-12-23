@@ -21,6 +21,11 @@ sync
 
 * Boot the new microSD card
 
+```
+login: pi
+passwd: nwcompass
+```
+
 ###### Configure core functionality
 
 * If you want direwolf functionality with the draws hat do this:
