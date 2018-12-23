@@ -40,7 +40,10 @@ listen -at
 cd
 cd n7nix/debug
 sudo su
-./btest.sh -P [udr0|udr1]
+# Test left channel
+./btest.sh -P udr0
+# Test right channel
+./btest.sh -P udr1
 # To see all the options available
 ./btest.sh -h
 ```
