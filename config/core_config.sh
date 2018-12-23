@@ -192,18 +192,26 @@ else
    echo "User pi NOT found"
 fi
 
+hostname_default="draws"
+
 # Check hostname
-echo " === Verify hostname"
 HOSTNAME=$(cat /etc/hostname | tail -1)
-dbgecho "$scriptname: Current hostname: $HOSTNAME"
+echo " === Verify current hostname: $HOSTNAME"
 
 # Check for any of the default hostnames
-if [ "$HOSTNAME" = "raspberrypi" ] || [ "$HOSTNAME" = "compass" ] || [ "$HOSTNAME" = "draws" ] ; then
+if [ "$HOSTNAME" = "raspberrypi" ] || [ "$HOSTNAME" = "compass" ] || [ "$HOSTNAME" = "draws" ] || [ -z "$HOSTNAME" ] ; then
    # Change hostname
-   echo "Using default host name: $HOSTNAME, change it"
+   echo "Current host name: $HOSTNAME, change it"
    echo "Enter new host name followed by [enter]:"
    read -t 1 -n 10000 discard
    read -e HOSTNAME
+
+   if [ ! -z "$HOSTNAME" ] ; then
+       echo "Setting new hostname: $HOSTNAME"
+   else
+       echo "Setting hostname to default: $hostname_default"
+       HOSTNAME="$hostname_default"
+   fi
    echo "$HOSTNAME" > /etc/hostname
 fi
 
@@ -309,7 +317,7 @@ echo "AX.25 ip addresses: ax0: $ipaddr_ax0, ax1: $ipaddr_ax1"
 ax25upd_filename="/etc/ax25/ax25-upd"
 
 echo -e "\n\t$(tput setaf 4)before: $(tput setaf 7)\n"
-grep -i "IPADDR_AX.=" $ax25upd_filename
+grep -i "IPADDR_AX.=" "$ax25upd_filename"
 
 # Replace everything after strings IPADDR_AX0 & IPADDR_AX1
 sed -i -e "/IPADDR_AX0/ s/^IPADDR_AX0=.*/IPADDR_AX0=\"$ipaddr_ax0\"/"  $ax25upd_filename
