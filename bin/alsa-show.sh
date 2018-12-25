@@ -115,7 +115,6 @@ control="IN2_R to Right Mixer Positive Resistor"
 input_display_ctrl "$control"
 CTRL_IN2_R="$CTRL_VAL"
 
-
 control="IN1"
 strlen=${#CTRL_IN1_L}
 if ((strlen < 4)) ; then
