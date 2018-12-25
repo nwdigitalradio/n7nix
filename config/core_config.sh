@@ -151,7 +151,6 @@ function is_hostname() {
 
     # Check for any of the default hostnames
     if [ "$HOSTNAME" = "raspberrypi" ] || [ "$HOSTNAME" = "compass" ] || [ "$HOSTNAME" = "draws" ] || [ -z "$HOSTNAME" ] ; then
-        echo "Using default hostname: $HOSTNAME"
         retcode=1
     fi
     dbgecho "is_hostname ret: $retcode"
