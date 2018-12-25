@@ -2,15 +2,15 @@
 
 ###### Download the image file
 
-* [Go to the download site](http://nwdig.net/downloads/) to find the current filename of the image
+* [Go to the download site](http:images.nwdigitalradio.com) to find the current filename of the image
   * You can get the image using the following or just click on the filename using your browser.
 ```bash
-wget http://nwdig.net/downloads/<draws_download_file_name>
+wget http://nwdig.net/downloads/current_beta.zip
 ```
 
 ###### Unzip the image file
 ```bash
-unzip <draws_image_download_file_name>
+unzip current_beta.zip
 ```
 ###### Provision an SD card
 * At least an 8GB microSD card is recommend
@@ -23,7 +23,7 @@ and scroll down to **"Writing an image to the SD card"**
 (DCFL) version of dd.
 
 ```
-time dcfldd if=<UNZIPPED_draws_image_download_file_name> of=/dev/sdf bs=4M
+time dcfldd if=current_beta.img of=/dev/sdf bs=4M
 sync
 ```
 
