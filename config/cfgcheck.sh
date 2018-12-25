@@ -22,8 +22,10 @@ function is_hostname() {
 
     # Check for any of the default hostnames
     if [ "$HOSTNAME" = "raspberrypi" ] || [ "$HOSTNAME" = "compass" ] || [ "$HOSTNAME" = "draws" ] || [ -z "$HOSTNAME" ] ; then
-        echo "Using default hostname: $HOSTNAME"
+        dbgecho "IS using default hostname $HOSTNAME"
         retcode=1
+    else
+        dbgecho "NOT using default hostname $HOSTNAME"
     fi
     dbgecho "is_hostname ret: $retcode"
     return $retcode
@@ -39,9 +41,7 @@ function is_password() {
 
     dbgecho " === Verify current password"
     if [ ! -r /etc/shadow ] ; then
-        if [ ! -z "$DEBUG" ] ; then
-            echo -e "\n\t$(tput setaf 1)Do NOT have permission to read passwd file $(tput setaf 7)\n"
-        fi
+        # Need to elevate permissions
         GREPCMD="sudo grep -i"
     fi
 
@@ -58,8 +58,10 @@ function is_password() {
 #   dbgecho "pass  gen nwcompass: $PASSGEN_NWCOMPASS"
 
     if [ "$PASSFILE" = "$PASSGEN_RASPBERRY" ] || [ "$PASSFILE" = "$PASSGEN_NWCOMPASS" ] ; then
-        echo "User pi is using default password"
+        dbgecho "User pi IS using default password"
         retcode=1
+    else
+        dbgecho "User pi NOT using default password"
     fi
     dbgecho "is_password ret: $retcode"
     return $retcode
@@ -73,9 +75,13 @@ function is_logappcfg() {
 
     dbgecho " === Verify log file entry for app_config.sh core"
     if [ -e "$UDR_INSTALL_LOGFILE" ] ; then
-        dbgecho "is_logappcfg: $CFG_FINISHED_MSG $UDR_INSTALL_LOGFILE"
         grep -i "$CFG_FINISHED_MSG" "$UDR_INSTALL_LOGFILE" > /dev/null 2>&1
         retcode="$?"
+        if [ "$retcode" ] ; then
+            dbgecho "NO log file entery for $CFG_FINISHED_MSG"
+        else
+            dbgecho "Found log file entery for $CFG_FINISHED_MSG"
+        fi
     else
         echo "File: $UDR_INSTALL_LOGFILE does not exist"
     fi
@@ -85,8 +91,14 @@ function is_logappcfg() {
 
 # ===== main
 
+if [ ! -z "$DEBUG" ] ; then
+    is_hostname
+    is_password
+    is_logappcfg
+fi
+
 if is_hostname && is_password && is_logappcfg ; then
-    echo "$cfg_script_name has ALREADY been run"
+    echo "$cfg_script_name script has ALREADY been run"
 else
-    echo "$cfg_script_name has NOT been run"
+    echo "$cfg_script_name script has NOT been run"
 fi
