@@ -14,8 +14,16 @@ unzip <draws_image_download_file_name>
 ```
 ###### Provision an SD card
 * At least an 8GB microSD card is recommend
+
+* If you need options for writing the image to the SD card ie. you are
+not running Linux go to the [Raspberry Pi documentation
+page](https://www.raspberrypi.org/documentation/installation/installing-images/)
+and scroll down to **"Writing an image to the SD card"**
+* For linux use the Department of Defense Computer Forensics Lab
+(DCFL) version of dd.
+
 ```
-time dcfldd if=<draws_image_download_file_name> of=/dev/sdf bs=4M
+time dcfldd if=<UNZIPPED_draws_image_download_file_name> of=/dev/sdf bs=4M
 sync
 ```
 
