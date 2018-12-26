@@ -270,7 +270,7 @@ speaker-test --channels 2 --rate 48000 --device plughw:0,0
 ```
 
 #### Test HDMI audio
-* Add the following to _/boot/config.txt_
+* Add the following to _/boot/config.txt_ , then reboot
 ```
 # forces HDMI mode
 hdmi_drive=2
