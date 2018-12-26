@@ -97,5 +97,8 @@ function is_logappcfg() {
 if is_hostname && is_password && is_logappcfg ; then
     echo "-- $cfg_script_name script has ALREADY been run"
 else
+    # This sets the return code for the other checks in case conditional failed on is_hostname
+    is_password
+    is_logappcfg
     echo "$ -- cfg_script_name script has NOT been run: hostname: $ret_hostname, passwd: $ret_password, logfile: $ret_logappcfg"
 fi
