@@ -401,6 +401,9 @@ echo "=== FINISHED Setting up ip addresses for AX.25 interfaces"
 
 cd $START_DIR
 
+# Set time to something close to reasonable.
+chronyc makestep
+
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: $CFG_FINISHED_MSG" | tee -a $UDR_INSTALL_LOGFILE
 echo
 
