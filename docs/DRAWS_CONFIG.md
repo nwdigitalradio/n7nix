@@ -67,7 +67,7 @@ appropriate way to unload direwolf & ax.25.
 
 * After confirming that the core functionality works you can configure
 other packet programs that will use direwolf such as rmsgw,
-paclink-unix, etc:XS
+paclink-unix, etc:
 
 ```bash
 ./app_config.sh rmsgw
