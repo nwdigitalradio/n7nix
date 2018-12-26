@@ -25,9 +25,10 @@ function is_hostname() {
         dbgecho "IS using default hostname $HOSTNAME"
         retcode=1
     else
-        dbgecho "NOT using default hostname $HOSTNAME"
+        dbgecho "NOT using default hostname, using: $HOSTNAME"
     fi
     dbgecho "is_hostname ret: $retcode"
+    ret_hostname=$retcode
     return $retcode
 }
 
@@ -64,6 +65,7 @@ function is_password() {
         dbgecho "User pi NOT using default password"
     fi
     dbgecho "is_password ret: $retcode"
+    ret_password=$retcode
     return $retcode
 }
 
@@ -78,27 +80,22 @@ function is_logappcfg() {
         grep -i "$CFG_FINISHED_MSG" "$UDR_INSTALL_LOGFILE" > /dev/null 2>&1
         retcode="$?"
         if [ "$retcode" ] ; then
-            dbgecho "NO log file entery for $CFG_FINISHED_MSG"
-        else
             dbgecho "Found log file entery for $CFG_FINISHED_MSG"
+        else
+            dbgecho "NO log file entery for $CFG_FINISHED_MSG"
         fi
     else
         echo "File: $UDR_INSTALL_LOGFILE does not exist"
     fi
     dbgecho "is_logappcfg ret: $retcode"
+    ret_logappcfg=$retcode
     return $retcode
 }
 
 # ===== main
 
-if [ ! -z "$DEBUG" ] ; then
-    is_hostname
-    is_password
-    is_logappcfg
-fi
-
 if is_hostname && is_password && is_logappcfg ; then
-    echo "$cfg_script_name script has ALREADY been run"
+    echo "-- $cfg_script_name script has ALREADY been run"
 else
-    echo "$cfg_script_name script has NOT been run"
+    echo "$ -- cfg_script_name script has NOT been run: hostname: $ret_hostname, passwd: $ret_password, logfile: $ret_logappcfg"
 fi
