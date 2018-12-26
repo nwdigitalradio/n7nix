@@ -58,7 +58,7 @@ sudo su
   * systemd
 
 * **Now reboot your RPi** & [verify your installation is working
-properly](https://github.com/nwdigitalradio/n7nix/blob/master/VERIFY_CONFIG.md)
+properly](https://github.com/nwdigitalradio/n7nix/blob/master/docs/VERIFY_CONFIG.md)
 * For those that do not care about packet please keep reading for an
 appropriate way to unload direwolf & ax.25.
 

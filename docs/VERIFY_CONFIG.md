@@ -1,7 +1,24 @@
 ## Verifying CORE Install/Config on UDRC/DRAWS
+
+### Verify image write to micro SD card
+* The fact that the micro SD card boots is a good indication that things might be OK
+* If you are using a single micro SD card for your RPi and you previously ran *app_config.sh core* on the old image, the following script will verify that your current image has not been configured after writing the image to the micro SD card.
+* This script is just an indication that the app_config.sh core script has successfully run or not so obviously you should run cfgcheck.sh before running app_config.sh core
+```
+n7nix/config/cfgcheck.sh
+```
+* If you see the following as the output then your image did not get copied properly.
+```
+-- app_config.sh core script has ALREADY been run
+```
+* This is the output from *cfgcheck.sh* you would expect on a new image that has not been configured **yet** with *app_config.sh core*
+```
+-- app_config.sh core script has NOT been run: hostname: 1, passwd: 1, logfile: 1
+```
+
 ### Testing direwolf & the UDRC
 
-* Before verifying CORE functionality you must have run the [app config script](https://github.com/nwdigitalradio/n7nix/blob/master/DRAWS_CONFIG.md)
+* Before verifying CORE functionality you must have run the [app config script](https://github.com/nwdigitalradio/n7nix/blob/master/docs/DRAWS_CONFIG.md)
 * The first few commands assume a direwolf/ax.25 installation
 * The _showudrc.sh_ script in the local bin directory executes many of the commands listed below.
   * The copious output of this script will usually show you any installation & configuration anomalies
