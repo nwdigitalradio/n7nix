@@ -153,7 +153,8 @@ function is_hostname() {
     if [ "$HOSTNAME" = "raspberrypi" ] || [ "$HOSTNAME" = "compass" ] || [ "$HOSTNAME" = "draws" ] || [ -z "$HOSTNAME" ] ; then
         retcode=1
     fi
-    dbgecho "is_hostname ret: $retcode"
+#    dbgecho "is_hostname ret: $retcode"
+    ret_hostname=$retcode
     return $retcode
 }
 
@@ -188,7 +189,8 @@ function is_password() {
         echo "User pi is using default password"
         retcode=1
     fi
-    dbgecho "is_password ret: $retcode"
+#    dbgecho "is_password ret: $retcode"
+    ret_password=$retcode
     return $retcode
 }
 
@@ -198,15 +200,14 @@ function is_password() {
 function is_logappcfg() {
     retcode=1
 
-    dbgecho " === Verify log file entry for app_config.sh core"
     if [ -e "$UDR_INSTALL_LOGFILE" ] ; then
-        dbgecho "is_logappcfg: $CFG_FINISHED_MSG $UDR_INSTALL_LOGFILE"
-        grep -i "$CFG_FINISHED_MSG" "$UDR_INSTALL_LOGFILE" > /dev/null 2>&1
+         grep -i "$CFG_FINISHED_MSG" "$UDR_INSTALL_LOGFILE" > /dev/null 2>&1
         retcode="$?"
     else
         echo "File: $UDR_INSTALL_LOGFILE does not exist"
     fi
-    dbgecho "is_logappcfg ret: $retcode"
+#    dbgecho "is_logappcfg ret: $retcode"
+    ret_logappcfg=$retcode
     return $retcode
 }
 
@@ -224,8 +225,11 @@ fi
 cfg_script_name="app_config.sh core"
 if is_hostname && is_password && is_logappcfg ; then
     echo "$cfg_script_name has already been run, exiting"
+    echo "-- cfg_script_name  hostname: $ret_hostname, passwd: $ret_password, logfile: $ret_logappcfg"
     exit 1
 fi
+
+# echo "-- cfg_script_name  hostname: $ret_hostname, passwd: $ret_password, logfile: $ret_logappcfg"
 
 START_DIR=$(pwd)
 
@@ -236,7 +240,7 @@ if [ $? -eq 0 ] ; then
    echo "User pi found"
    echo "Determine if default password is being used"
 
-    if [ ! is_password ] ; then
+    if ! is_password ; then
       echo "Need to change your password for user pi NOW"
       read -t 1 -n 10000 discard
       passwd pi
@@ -256,10 +260,10 @@ hostname_default="draws"
 
 # Check hostname
 
-echo " === Verify current hostname: $HOSTNAME"
+echo "=== Verify current hostname: $HOSTNAME"
 
 # Check for any of the default hostnames
-if [ ! is_hostname ] ; then
+if ! is_hostname  ; then
    # Change hostname
    echo "Current host name: $HOSTNAME, change it"
    echo "Enter new host name followed by [enter]:"
