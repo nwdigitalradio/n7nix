@@ -27,6 +27,10 @@ time dcfldd if=current_beta.img of=/dev/sdf bs=4M
 sync
 ```
 
+* The reason I time the write is that every so often the write completes in
+around 2 minutes and I know a *good* write should take around 11
+minutes on my machine.
+
 * Boot the new microSD card
 
 ```
@@ -74,6 +78,7 @@ paclink-unix, etc:
 ./app_config.sh plu
 ```
 
+#### For HAM apps that do **NOT** use direwolf
 * If you want to run some other program that does NOT use direwolf like: jscall, wsjtx, fldigi, then do this:
 ```bash
 cd
