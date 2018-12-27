@@ -3,7 +3,8 @@
 ### Verify image write to micro SD card
 * The fact that the micro SD card boots is a good indication that things might be OK
 * If you are using a single micro SD card for your RPi and you previously ran *app_config.sh core* on the old image, the following script will verify that your current image has not been configured after writing the image to the micro SD card.
-* This script is just an indication that the app_config.sh core script has successfully run or not so obviously you should run cfgcheck.sh before running app_config.sh core
+* This script is just an indication that the app_config.sh core script has successfully run or not.
+  * Check with cfgcheck.sh before running app_config.sh core
 ```
 n7nix/config/cfgcheck.sh
 ```
