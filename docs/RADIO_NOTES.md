@@ -30,10 +30,6 @@ set mode (see p. 54 item 29 9600 MODE).
 
 * [IC-7300 Basic Manual](https://www.icomamerica.com/en/downloads/DownloadDocument.aspx?Document=784)
 
-### Yaesu FT-818nd
-
-* [FT-818nd Operating Manual](http://www.yaesu.com/downloadFile.cfm?FileID=8032&FileCatID=158&FileName=FT-817ND_OM_ENG_E13771011.pdf&FileContentType=application.pdf)
-
 ### Yaesu FT-891
 * [FT-891 Operating Manual](https://www.yaesu.com/airband/downloadFile.cfm?FileID=11695&FileCatID=158&FileName=FT%2D891%5FOM%5FENG%5FEH065H201%5F1611A%2DBO%2D2.pdf&FileContentType=application%2Fpdf)
 * [FT-891 Advance Manual](https://www.yaesu.com/airband/downloadFile.cfm?FileID=14759&FileCatID=158&FileName=FT%2D891%5FAdvance%5FManual%5FENG%5F1806%2DF.pdf&FileContentType=application%2Fpdf)
@@ -50,10 +46,36 @@ set mode (see p. 54 item 29 9600 MODE).
 |  5    | Data out 1200  | LIN2  | AFOUT Max output level 200mVpp, Impedance 10k ohms |
 |  6    | SQL            |       | SQL open: 5v, SQL Closed: 0V  |
 
+* From Page 41: _FT-817ND_OM_ENG_E13771011.pdf_
+* If you are having trouble connecting due to insufficient or excessive drive from the TNC to the FT-817
+  * use Menu #39 (PKT MIC) to set the drive. for 1200/9600 BPS FM packet, Page 41
+  * Depends on DIG MODE setting: RTTY, PSK31-L or -U, USER-L or -U
+    * use Menu #25 (Dig MIC) to adjust DATA input level for PSK, Page 22
+    * use Menu #25 (Dig MIC) to adjust DATA input level for AFSK, Page 39
+* Use your terminal's "test" protocol to send out test tones and adjust the deviation by rotating the DIAL knob, which will vary the data input level to the FT-817's  modulator. Remember to press and hold in the F key for one second when adjustments are completed, so as to save the new setting for Menu #39
+
+----
+
+  * See page 41 _FT-817ND_OM_ENG_E13771011.pdf_
+  * Different connections are used for 1200 & 9600 (AFOUT & DISCOUT)
+
+##### ALSA settings
+* Use IN1_L IN1_R for 9600 baud (DISCOUT)
+* Use IN2_L IN2_R for 1200 baud or less (AFOUT)
+
+##### Radio settings
+* Use Menu #40 (PKT RATE) to select DISCOUT or AFOUT
+* Also Menu #39 (PKT MIC) allows adjusting drive level.
+
+### Yaesu FT-818nd
+
+* [FT-818nd Operating Manual](http://www.yaesu.com/downloadFile.cfm?FileID=8032&FileCatID=158&FileName=FT-817ND_OM_ENG_E13771011.pdf&FileContentType=application.pdf)
+
 
 ### Kenwood TM-V71A
 
 * [Kenwood TM-V71A](http://manual.kenwood.com/files/494077600f426.pdf)
+  * See page 83
 
 |  PIN  | Name   |  I/O   | Note |
 | :---: | :---:  | :---:  | :--- |
@@ -65,4 +87,6 @@ set mode (see p. 54 item 29 9600 MODE).
 |  6    |  SQC   | Output | Squelch control signal; Closed: 'L', Open: 'H' |
 
 * Default settings for squelch can be changed in Menu 520
-
+* Data terminal speed Menu 518 (DAT.SPD)
+  * 1200 bps: Transmit data input (PKD) sensitivity is 40mVp-p, input impedance is 10K ohms
+  * 9600 bps: Transmit data input (PKD) sensitivity is 2Vp-p, input impedance is 10K ohms
