@@ -1,23 +1,12 @@
 #!/bin/bash
 #
-# set-udrc-both.sh
+# setalsa-default.sh
 #
-# - Assumes:
-#   - Alinco radio attached to HD15 connector
-#   - Kenwood radio attached to mDin6 connector
-#
-# HD15  is on right channel, Direwolf chan 0
-# mDin6 is on left channel,  Direwolf chan 1
-#
-#      sset left chan, right chan
-#  ie, sset Kenwood,   Alinco
-# sset 'PCM'          0.0dB,0.0dB
-# sset 'ADC Level'   -2.0dB,-2.0.0dB
-# sset 'LO Driver Gain' 0dB,11.0dB
 
 MODE_9600_ENABLE=false
 
 asoundstate_file="/var/lib/alsa/asound.state"
+
 stateowner=$(stat -c %U $asoundstate_file)
 if [ $? -ne 0 ] ; then
    "Command 'alsactl store' will not work, file: $asoundstate_file does not exist"
@@ -27,6 +16,34 @@ fi
 # Be sure we're running as root
  if [[ $EUID != 0 ]] ; then
    echo "Command 'alsactl store' will not work unless you are root"
+fi
+
+if [ "$MODE_9600_ENABLE" = "true" ] ; then
+
+    echo "debug: 9600 baud enable ie. DISCOUT"
+    # For 9600 baud packet only
+    # Turn AFOUT off & DISCOUT on
+    # ie. Receive audio off & discriminator output on
+
+    amixer -c udrc -s << EOF
+sset 'IN1_L to Left Mixer Positive Resistor' '10 kOhm'
+sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
+sset 'IN2_L to Left Mixer Positive Resistor' 'Off'
+sset 'IN2_R to Right Mixer Positive Resistor' 'Off'
+EOF
+
+else
+    echo "debug: 1200 baud enable ie. AFOUT"
+    # Default mode, for HF & 1200 baud packet
+    # Turn AFOUT on & DISCOUT off
+    # ie. Receive audio on & discriminator off
+
+    amixer -c udrc -s << EOF
+sset 'IN1_L to Left Mixer Positive Resistor' 'Off'
+sset 'IN1_R to Right Mixer Positive Resistor' 'Off'
+sset 'IN2_L to Left Mixer Positive Resistor' '10 kOhm'
+sset 'IN2_R to Right Mixer Positive Resistor' '10 kOhm'
+EOF
 fi
 
 amixer -c udrc -s << EOF
@@ -42,28 +59,6 @@ sset 'CM_R to Right Mixer Negative Resistor' '10 kOhm'
 
 # IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
 # IN2 Receive audio (all radios, 1200 baud packet)
-
-if [ "$MODE_9600_ENABLE" = "true" ] ; then
-
-    # For 9600 baud packet only
-    # Turn AFOUT off & DISCOUT on
-    # ie. Receive audio off & discriminator output on
-
-    sset 'IN1_L to Left Mixer Positive Resistor' '10 kOhm'
-    sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
-    sset 'IN2_L to Left Mixer Positive Resistor' 'Off'
-    sset 'IN2_R to Right Mixer Positive Resistor' 'Off'
-
-else
-    # Default mode, for HF & 1200 baud packet
-    # Turn AFOUT on & DISCOUT off
-    # ie. Receive audio on & discriminator off
-
-    sset 'IN1_L to Left Mixer Positive Resistor' 'Off'
-    sset 'IN1_R to Right Mixer Positive Resistor' 'Off'
-    sset 'IN2_L to Left Mixer Positive Resistor' '10 kOhm'
-    sset 'IN2_R to Right Mixer Positive Resistor' '10 kOhm'
-fi
 
 #  Turn off unnecessary pins
 sset 'IN1_L to Right Mixer Negative Resistor' 'Off'
