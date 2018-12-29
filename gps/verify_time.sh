@@ -12,5 +12,7 @@ echo -e "\n\t$(tput setaf 4)chronyc tracking$(tput setaf 7)\n"
 chronyc tracking
 echo -e "\n\t$(tput setaf 4)chronyc activity$(tput setaf 7)\n"
 chronyc activity
-echo -e "\n\t$(tput setaf 4)systemctl status$(tput setaf 7)\n"
+echo -e "\n\t$(tput setaf 4)chronyd systemctl status$(tput setaf 7)\n"
 systemctl status chronyd
+echo -e "\n\t$(tput setaf 4)aprsd systemctl status$(tput setaf 7)\n"
+systemctl status aprsd
