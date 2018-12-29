@@ -34,7 +34,7 @@ set mode (see p. 54 item 29 9600 MODE).
 * [FT-891 Operating Manual](https://www.yaesu.com/airband/downloadFile.cfm?FileID=11695&FileCatID=158&FileName=FT%2D891%5FOM%5FENG%5FEH065H201%5F1611A%2DBO%2D2.pdf&FileContentType=application%2Fpdf)
 * [FT-891 Advance Manual](https://www.yaesu.com/airband/downloadFile.cfm?FileID=14759&FileCatID=158&FileName=FT%2D891%5FAdvance%5FManual%5FENG%5F1806%2DF.pdf&FileContentType=application%2Fpdf)
 
-### Yaesu FT-817nd
+### Yaesu FT817 & FT-817nd
 * [FT-817nd Operating Manual](https://www.yaesu.com/downloadFile.cfm?FileID=8032&FileCatID=158&FileName=FT%2D817ND%5FOM%5FENG%5FE13771011.pdf&FileContentType=application%2Fpdf)
 
 |  PIN  |    Pin Label   | ALSA  | Note |
@@ -46,22 +46,46 @@ set mode (see p. 54 item 29 9600 MODE).
 |  5    | Data out 1200  | LIN2  | AFOUT Max output level 200mVpp, Impedance 10k ohms |
 |  6    | SQL            |       | SQL open: 5v, SQL Closed: 0V  |
 
+##### Packet 1200/9600 bps FM
 * From Page 41: _FT-817ND_OM_ENG_E13771011.pdf_
+* Different connections are used for 1200 & 9600 (AFOUT & DISCOUT)
 * If you are having trouble connecting due to insufficient or excessive drive from the TNC to the FT-817
   * use Menu #39 (PKT MIC) to set the drive. for 1200/9600 BPS FM packet, Page 41
   * Depends on DIG MODE setting: RTTY, PSK31-L or -U, USER-L or -U
     * use Menu #25 (Dig MIC) to adjust DATA input level for PSK, Page 22
     * use Menu #25 (Dig MIC) to adjust DATA input level for AFSK, Page 39
 * Use your terminal's "test" protocol to send out test tones and adjust the deviation by rotating the DIAL knob, which will vary the data input level to the FT-817's  modulator. Remember to press and hold in the F key for one second when adjustments are completed, so as to save the new setting for Menu #39
-
-----
-
-  * See page 41 _FT-817ND_OM_ENG_E13771011.pdf_
-  * Different connections are used for 1200 & 9600 (AFOUT & DISCOUT)
-
-##### ALSA settings
+###### ALSA settings
 * Use IN1_L IN1_R for 9600 baud (DISCOUT)
 * Use IN2_L IN2_R for 1200 baud or less (AFOUT)
+
+
+
+##### Running FLdigi with the Yaesu FT-817
+
+###### Radio
+* Use a mDin6 cable without pin 6 Squelch connected (I wiggled the pin until it broke)
+* Setup "USER" defined digital modes
+
+```
+Menu #26 USER-U: User defined digital mode
+Menu #27 DIG SHIFT: transceiver passband response
+Menu #24 DIG DISP: display shift
+Menu #25 DIG MIC: AFSK drive level
+```
+
+###### RPi
+
+* Run setalsa-ft817.sh which sets alas config to the following:
+```
+PCM	        L:[-16.50dB]	R:[-16.50dB]
+ADC Level	L:[-2.00dB]	R:[-2.00dB]
+LO Driver Gain  L:[-6.00dB]	R:[-6.00dB]
+IN1		L:[Off]		R:[Off]
+IN2		L:[10 kOhm]	R:[10 kOhm]
+```
+
+* FLdigi Olivia 8-250
 
 ##### Radio settings
 * Use Menu #40 (PKT RATE) to select DISCOUT or AFOUT
