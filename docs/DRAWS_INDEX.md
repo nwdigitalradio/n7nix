@@ -6,8 +6,7 @@
 
 #### [Test & Verification](https://nw-digital-radio.groups.io/g/udrc/wiki/DRAWS%3A-Test-%26-Verification)
 
-#### [Image
-#### Contents](https://github.com/nwdigitalradio/n7nix/blob/master/docs/IMAGE_README.md)
+#### [Image Contents](https://github.com/nwdigitalradio/n7nix/blob/master/docs/IMAGE_README.md)
 
 #### GPS & NTP
 * The installation & configuration notes in the following links are already done in the DRAWS image.
