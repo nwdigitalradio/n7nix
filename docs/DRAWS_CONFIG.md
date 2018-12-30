@@ -21,6 +21,11 @@ page](https://www.raspberrypi.org/documentation/installation/installing-images/)
 and scroll down to **"Writing an image to the SD card"**
 * For linux use the Department of Defense Computer Forensics Lab
 (DCFL) version of dd.
+  * You can ruin the drive on the machine you are using if you do not
+  get the output device (of=) correct. ie. below _/dev/sdf_ is just an
+  example.
+  * There are good notes [here for Discovering the SD card mount
+  point](https://www.raspberrypi.org/documentation/installation/installing-images/linux.md)
 
 ```
 time dcfldd if=current_beta.img of=/dev/sdf bs=4M
