@@ -5,7 +5,7 @@
 * [Go to the download site](http:nwdig.net/downloads) to find the current filename of the image
   * You can get the image using the following or just click on the filename using your browser.
 ```bash
-wget http://nwdig.net/downloads/current_beta.zip
+wget http://images.nwdigitalradio.com/downloads/current_beta.zip
 ```
 
 ##### Unzip the image file
@@ -13,7 +13,7 @@ wget http://nwdig.net/downloads/current_beta.zip
 unzip current_beta.zip
 ```
 ##### Provision an SD card
-* At least an 8GB microSD card is recommend
+* At least an 8GB microSD card is recommended
 
 * If you need options for writing the image to the SD card ie. you are
 not running Linux go to the [Raspberry Pi documentation
@@ -21,7 +21,7 @@ page](https://www.raspberrypi.org/documentation/installation/installing-images/)
 and scroll down to **"Writing an image to the SD card"**
 * For linux use the Department of Defense Computer Forensics Lab
 (DCFL) version of dd.
-  * You can ruin the drive on the machine you are using if you do not
+  * **You can ruin** the drive on the machine you are using if you do not
   get the output device (of=) correct. ie. below _/dev/sdf_ is just an
   example.
   * There are good notes [here for Discovering the SD card mount
