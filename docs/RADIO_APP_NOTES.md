@@ -90,3 +90,11 @@ new setting for Menu #39
 * ALSA settings
   * Use IN1_L IN1_R for 9600 baud (DISCOUT)
   * Use IN2_L IN2_R for 1200 baud or less (AFOUT)
+
+## ALSA settings for IC-7000
+
+##### From the IC-7000 manual page 116
+*  adjust the TX audio level (data in level) from the TNC as follows.
+  * 0.4 Vp-p (0.2 Vrms): recommended level
+  * 0.2-0.5 Vp-p (0.1-0.25 Vrms): acceptable level
+
