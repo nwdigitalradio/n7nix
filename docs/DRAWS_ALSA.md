@@ -10,7 +10,7 @@
 | LO Driver Gain (L & R)       | 29 dB to -6dB in 1 dB steps | gain of the LO amplifier (analog) |
 | LO Playback Common Mode      | Full Chip CM, 1.65V | Set power supply of LO amplifier |
 | PCM (L & R)                  | 24 dB to -63.50 dB in half dB steps | Output level from DAC (digital |
-| DAC Right Playback PowerTune | PTM_P1, PTM_P2, PTM_P3 | Set power mode PTM_P3 is highest |
+| DAC Right Playback PowerTune | PTM_P1, PTM_P2, PTM_P3 | Set power mode, PTM_P3 is highest |
 | DAC Left  Playback PowerTune | PTM_P1, PTM_P2, PTM_P3 |
 
 
