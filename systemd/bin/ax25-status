@@ -105,11 +105,6 @@ while [[ $# -gt 0 ]] ; do
 
     key="$1"
     case $key in
-        -c)
-            dbgecho "Turn on displaying call sign list"
-            COUNT_ONLY="false"
-        ;;
-
         -d)
             echo "AX25 Debug Status"
             ax25_debugstatus
