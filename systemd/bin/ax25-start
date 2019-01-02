@@ -1,4 +1,29 @@
 #!/bin/bash
+#
+# Script to start up direwolf & AX.25 services
+# The script enables & starts the services
+
+SERVICE_LIST="direwolf.service ax25dev.path ax25dev.service ax25-mheardd.service ax25d.service"
+
+# ===== function start_service
+
+function start_service() {
+    service="$1"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        echo "ENABLING $service"
+        systemctl enable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem ENABLING $service"
+        fi
+    fi
+    systemctl start "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem starting $service"
+    fi
+}
+
+# ===== main
 
 # Check if direwolf is already running.
 pid=$(pidof direwolf)
@@ -13,7 +38,7 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
-systemctl start direwolf.service
-systemctl start ax25dev.path
-systemctl start ax25-mheardd.service
-systemctl start ax25d.service
+for service in `echo ${SERVICE_LIST}` ; do
+    echo "Starting: $service"
+    start_service $service
+done
