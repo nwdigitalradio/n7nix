@@ -320,7 +320,7 @@ if [ "$DATETZ" == "UTC" ] || [ "$DATETZ" == "GMT" ] ; then
    dpkg-reconfigure tzdata
 fi
 
-echo "=== Set alsa levels for UDRC"
+echo "=== Put some scripts in local bin dir"
 
 # Get list of users with home directories
 USERLIST="$(ls /home)"
@@ -335,6 +335,8 @@ cd $userbindir
 
 # Adjust clock
 # source ./set-time.sh
+
+echo "=== Set alsa levels for UDRC"
 
 # Set alsa levels with script
 # Sets left channel levels for Kenwood & right channel for Alinco
