@@ -1,45 +1,128 @@
 #!/bin/bash
 #
-echo "== failed & loaded but inactive units=="
-systemctl --failed --all
-echo
-echo "== direwolf =="
-echo "  pid: $(pidof direwolf)"
-verstr="$(direwolf -v 2>/dev/null | grep -m 1 -i version)"
-# Get rid of escape characters
-echo "  ver: D${verstr#*D}"
-echo "== /proc/sys =="
-ls /proc/sys/net/
-ls /proc/sys/net/ax25
-echo
-echo "== ifconfig ax0 =="
-ifconfig ax0
-echo
-echo "== status networkd services =="
-systemctl is-enabled systemd-networkd-wait-online.service
-systemctl status systemd-networkd-wait-online.service
-systemctl is-enabled systemd-networkd.service
-systemctl status systemd-networkd.service
-echo
-echo "== status direwolf service =="
-systemctl is-enabled direwolf.service
-systemctl status direwolf.service
-echo
-echo "== status ax25 service =="
-systemctl is-enabled ax25dev.service
-systemctl status ax25dev.service
-echo
-echo "== status ax25 path =="
-systemctl is-enabled ax25dev.path
-systemctl status ax25dev.path
-echo
-echo "== status ax25-mheardd =="
-systemctl is-enabled ax25-mheardd.service
-systemctl status ax25-mheardd.service
-echo
-echo "== status ax25d =="
-systemctl is-enabled ax25d.service
-systemctl status ax25d.service
-echo
-echo "== netstat ax25 =="
-netstat --ax25
+
+# ===== function start_service
+
+function status_service() {
+    service="$1"
+    IS_ENABLED="ENABLED"
+    IS_RUNNING="RUNNING"
+    # echo "Checking service: $service"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        IS_ENABLED="NOT ENABLED"
+    fi
+    systemctl is-active "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        IS_RUNNING="NOT RUNNING"
+    fi
+}
+
+# ===== function ax25_status
+
+function ax25_status() {
+
+AX25_SERVICE_LIST="direwolf.service ax25dev.service ax25dev.path ax25-mheardd.service ax25d.service"
+
+for service in `echo ${AX25_SERVICE_LIST}` ; do
+    status_service $service
+    echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
+done
+
+}
+
+# ===== function usage
+# Display program help info
+
+function usage () {
+	(
+	echo "Usage: $scriptname [-d][-h]"
+        echo "    -d switch to turn on verbose debug display"
+        echo "    -h display this message."
+	echo " exiting ..."
+	) 1>&2
+	exit 1
+}
+
+# ===== function ax25_debugstatus
+
+function ax25_debugstatus() {
+
+    echo "== failed & loaded but inactive units=="
+    systemctl --failed --all
+    echo
+    echo "== direwolf =="
+    echo "  pid: $(pidof direwolf)"
+    verstr="$(direwolf -v 2>/dev/null | grep -m 1 -i version)"
+    # Get rid of escape characters
+    echo "  ver: D${verstr#*D}"
+    echo "== /proc/sys =="
+    ls /proc/sys/net/
+    ls /proc/sys/net/ax25
+    echo
+    echo "== ifconfig ax0 =="
+    ifconfig ax0
+    echo
+    echo "== status networkd services =="
+    systemctl is-enabled systemd-networkd-wait-online.service
+    systemctl status systemd-networkd-wait-online.service
+    systemctl is-enabled systemd-networkd.service
+    systemctl status systemd-networkd.service
+    echo
+    echo "== status direwolf service =="
+    systemctl is-enabled direwolf.service
+    systemctl status direwolf.service
+    echo
+    echo "== status ax25 service =="
+    systemctl is-enabled ax25dev.service
+    systemctl status ax25dev.service
+    echo
+    echo "== status ax25 path =="
+    systemctl is-enabled ax25dev.path
+    systemctl status ax25dev.path
+    echo
+    echo "== status ax25-mheardd =="
+    systemctl is-enabled ax25-mheardd.service
+    systemctl status ax25-mheardd.service
+    echo
+    echo "== status ax25d =="
+    systemctl is-enabled ax25d.service
+    systemctl status ax25d.service
+    echo
+    echo "== netstat ax25 =="
+    netstat --ax25
+}
+
+# ===== main
+
+# Be sure we're running as root
+#if [[ $EUID != 0 ]] ; then
+#   echo "Must be root"
+#   exit 1
+#fi
+
+while [[ $# -gt 0 ]] ; do
+
+    key="$1"
+    case $key in
+        -c)
+            dbgecho "Turn on displaying call sign list"
+            COUNT_ONLY="false"
+        ;;
+
+        -d)
+            echo "AX25 Debug Status"
+            ax25_debugstatus
+            exit 0
+        ;;
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+    shift # past argument or value
+done
+
+
+ax25_status
