@@ -97,4 +97,8 @@ new setting for Menu #39
 *  adjust the TX audio level (data in level) from the TNC as follows.
   * 0.4 Vp-p (0.2 Vrms): recommended level
   * 0.2-0.5 Vp-p (0.1-0.25 Vrms): acceptable level
+* When in packet mode route RX Audio to pin 4 DATA OUT (discriminator)
+  * Select IN1 (L & R) 10 kOhm (or 20 & 40 kOmn) in alsamixer
+* When in HF digital mode route RX Audio to pin 5 AF OUT (audio out)
+  * Select IN2 (L & R)
 
