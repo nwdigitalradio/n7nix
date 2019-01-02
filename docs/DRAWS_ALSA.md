@@ -19,10 +19,10 @@
 | ALSA Control Name |  Values  | Function |
 |     :---         |  :---   | :--- |
 | ADC Level (L & R) |   20dB to -12dB in half dB steps | input level of both ADCs |
-| IN1_L to Left Mixer positive Resistor     | Off, 10 kOhm, 20 kOhm or 40 kOhm | resistor ctrl on path from IN1_L to Left Mixer |
-| IN1_R to Right Mixer positive Resistor    | Off, 10 kOhm, 20 kOhm or 40 kOhm | resistor ctrl on path from IN1_L to Right Mixer |
-| IN2_L to Left Mixer positive Resistor     | Off, 10 kOhm, 20 kOhm or 40 kOhm | resistor ctrl on path from IN2_L to Left Mixer |
-| IN2_R to Right Mixer positive Resistor    | Off, 10 kOhm, 20 kOhm or 40 kOhm | resistor ctrl on path from IN2_L to Right Mixer |
+| IN1_L to Left Mixer positive Resistor     | Off, 10, 20 or 40 kOhm | resistor ctrl on path from IN1_L to Left Mixer |
+| IN1_R to Right Mixer positive Resistor    | Off, 10, 20 or 40 kOhm | resistor ctrl on path from IN1_L to Right Mixer |
+| IN2_L to Left Mixer positive Resistor     | Off, 10, 20 or 40 kOhm | resistor ctrl on path from IN2_L to Left Mixer |
+| IN2_R to Right Mixer positive Resistor    | Off, 10, 20 or 40 kOhm | resistor ctrl on path from IN2_L to Right Mixer |
 
 ### Programs to View & Set ALSA controls
 
