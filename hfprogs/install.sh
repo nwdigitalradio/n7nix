@@ -67,7 +67,7 @@ fi
 check_user
 
 
-js8call_rootver="0.11.0"
+js8call_rootver="0.12.0"
 js8call_ver="$js8call_rootver"-devel
 PKG_REQUIRE_JS8CALL="libqgsttools-p1 libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediaquick-p5 libqt5multimediawidgets5 libqt5qml5 libqt5quick5 libqt5serialport5"
 echo "Install js8call ver: $js8call_ver"
