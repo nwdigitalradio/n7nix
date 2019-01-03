@@ -93,27 +93,32 @@ control="LO Driver Gain"
 audio_display_ctrl "$control"
 printf "%s  L:%s\tR:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
 
-control="LO Playback Common Mode"
-display_ctrl "$control"
-# echo "DEBUG: CTRL_VAL: $CTRL_VAL"
-# Shorten control string for display
-control="LO Playback CM"
-printf "%s\t[%s]\n" "$control" "$CTRL_VAL"
-
 control="PCM"
 audio_display_ctrl "$control"
 printf "%s\t        L:%s\tR:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
 
-control="DAC Left Playback PowerTune"
-display_ctrl "$control"
-CTRL_PTM_L="$CTRL_VAL"
+# Running udrc-dkms version 1.0.5 or later
+alsactrl_count=$(amixer scontrols | wc -l)
 
-control="DAC Right Playback PowerTune"
-display_ctrl "$control"
-CTRL_PTM_R="$CTRL_VAL"
-# Shorten control string for display
-control="DAC Playback PT"
-printf "%s\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_PTM_L" "$CTRL_PTM_R"
+if (( alsactrl_count >= 44 )) ; then
+    control="DAC Left Playback PowerTune"
+    display_ctrl "$control"
+    CTRL_PTM_L="$CTRL_VAL"
+
+    control="DAC Right Playback PowerTune"
+    display_ctrl "$control"
+    CTRL_PTM_R="$CTRL_VAL"
+    # Shorten control string for display
+    control="DAC Playback PT"
+    printf "%s\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_PTM_L" "$CTRL_PTM_R"
+
+    control="LO Playback Common Mode"
+    display_ctrl "$control"
+    # echo "DEBUG: CTRL_VAL: $CTRL_VAL"
+    # Shorten control string for display
+    control="LO Playback CM"
+    printf "%s\t[%s]\n" "$control" "$CTRL_VAL"
+fi
 
 echo
 echo " ===== ALSA Controls for Radio Receive ====="

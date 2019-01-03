@@ -101,9 +101,23 @@ function audio_display_ctrl() {
    dbgecho "$alsa_ctrl: Right $PCM_VAL"
 }
 
-# ===== function input_display_ctrl
+# ===== function audio_display_ctrl
 
-function input_display_ctrl() {
+function audio_display_ctrl() {
+   alsa_ctrl="$1"
+   PCM_STR="$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i "Simple mixer control")"
+   dbgecho "$alsa_ctrl: $PCM_STR"
+   PCM_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 1 "db")
+   CTRL_VAL_L=${PCM_VAL##* }
+   dbgecho "$alsa_ctrl: Left $PCM_VAL"
+   PCM_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 2 "db" | tail -n 1 | cut -d ' ' -f5-)
+   CTRL_VAL_R=${PCM_VAL##* }
+   dbgecho "$alsa_ctrl: Right $PCM_VAL"
+}
+
+# ===== function display_ctrl
+
+function display_ctrl() {
     alsa_ctrl="$1"
     CTRL_STR="$(amixer -c $CARD get \""$alsa_ctrl"\")"
 #    dbgecho "$alsa_ctrl: $CTRL_STR"
@@ -115,40 +129,64 @@ function input_display_ctrl() {
     CTRL_VAL=${CTRL_VAL#\'}
 }
 
-
 # ===== function display alsa settings
 
 function display_alsa() {
 # Default card name
 CARD="udrc"
-CONTROL_LIST="'ADC Level''LO Drive Gain' 'PCM'"
-
-control="PCM"
-audio_display_ctrl "$control"
-printf "%s\t        L:%s\tR:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
-
-control="ADC Level"
-audio_display_ctrl "$control"
-printf "%s\tL:%s\tR:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
+echo "==== ALSA Controls for Radio Tansmit ===="
 
 control="LO Driver Gain"
 audio_display_ctrl "$control"
 printf "%s  L:%s\tR:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
 
+control="PCM"
+audio_display_ctrl "$control"
+printf "%s\t        L:%s\tR:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
+
+# Running udrc-dkms version 1.0.5 or later
+alsactrl_count=$(amixer scontrols | wc -l)
+
+if (( alsactrl_count >= 44 )) ; then
+    control="DAC Left Playback PowerTune"
+    display_ctrl "$control"
+    CTRL_PTM_L="$CTRL_VAL"
+
+    control="DAC Right Playback PowerTune"
+    display_ctrl "$control"
+    CTRL_PTM_R="$CTRL_VAL"
+    # Shorten control string for display
+    control="DAC Playback PT"
+    printf "%s\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_PTM_L" "$CTRL_PTM_R"
+
+    control="LO Playback Common Mode"
+    display_ctrl "$control"
+    # echo "DEBUG: CTRL_VAL: $CTRL_VAL"
+    # Shorten control string for display
+    control="LO Playback CM"
+    printf "%s\t[%s]\n" "$control" "$CTRL_VAL"
+fi
+
+echo "==== ALSA Controls for Radio Receive ===="
+
+control="ADC Level"
+audio_display_ctrl "$control"
+printf "%s\tL:%s\tR:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
+
 control="IN1_L to Left Mixer Positive Resistor"
-input_display_ctrl "$control"
+display_ctrl "$control"
 CTRL_IN1_L="$CTRL_VAL"
 
 control="IN1_R to Right Mixer Positive Resistor"
-input_display_ctrl "$control"
+display_ctrl "$control"
 CTRL_IN1_R="$CTRL_VAL"
 
 control="IN2_L to Left Mixer Positive Resistor"
-input_display_ctrl "$control"
+display_ctrl "$control"
 CTRL_IN2_L="$CTRL_VAL"
 
 control="IN2_R to Right Mixer Positive Resistor"
-input_display_ctrl "$control"
+display_ctrl "$control"
 CTRL_IN2_R="$CTRL_VAL"
 
 control="IN1"
@@ -165,29 +203,6 @@ if ((strlen < 4)) ; then
     printf "%s\t\tL:[%s]\t\tR:[%s]\n" "$control" "$CTRL_IN2_L" "$CTRL_IN2_R"
 else
     printf "%s\t\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_IN2_L" "$CTRL_IN2_R"
-fi
-
-
-if [ ! -z "$DEBUG" ] ; then
-control="IN1_L to Left Mixer Positive Resistor"
-input_display_ctrl "$control"
-CTRL_IN1_L="$CTRL_VAL"
-printf "%s\t%s\n" "$control" "$CTRL_VAL"
-
-control="IN1_R to Right Mixer Positive Resistor"
-input_display_ctrl "$control"
-CTRL_IN1_R="$CTRL_VAL"
-printf "%s\t%s\n" "$control" "$CTRL_VAL"
-
-control="IN2_L to Left Mixer Positive Resistor"
-input_display_ctrl "$control"
-CTRL_IN2_L="$CTRL_VAL"
-printf "%s\t%s\n" "$control" $CTRL_VAL
-
-control="IN2_R to Right Mixer Positive Resistor"
-input_display_ctrl "$control"
-CTRL_IN2_R="$CTRL_VAL"
-printf "%s\t%s\n" "$control" $CTRL_VAL
 fi
 
 }
