@@ -22,15 +22,23 @@
 ### RPi - ALSA Configuration
 
 * Run _setalsa-ft817.sh_ which sets alsa config to the following:
-  * Note that this sets AFOUT
+  * Note that this selects the received signal on mDin6 pin 5, AFOUT
 
 ```
-PCM	        L:[-16.50dB]	R:[-16.50dB]
-ADC Level	L:[-2.00dB]	R:[-2.00dB]
+===== ALSA Controls for Radio Tansmit =====
 LO Driver Gain  L:[-6.00dB]	R:[-6.00dB]
+PCM	        L:[-16.50dB]	R:[-16.50dB]
+DAC Playback PT	L:[PTM_P3]	R:[PTM_P3]
+LO Playback CM	[Full Chip CM]
+
+ ===== ALSA Controls for Radio Receive =====
+ADC Level	L:[-2.00dB]	R:[-2.00dB]
 IN1		L:[Off]		R:[Off]
 IN2		L:[10 kOhm]	R:[10 kOhm]
 ```
+* PT = PowerTune
+* CM = Common Mode
+
 * Run _alsa-show.sh_ to verify
 
 ### FLdigi Configuration
@@ -93,12 +101,41 @@ new setting for Menu #39
 
 ## ALSA settings for IC-7000
 
-##### From the IC-7000 manual page 116
+#### From the IC-7000 manual page 116
 *  adjust the TX audio level (data in level) from the TNC as follows.
   * 0.4 Vp-p (0.2 Vrms): recommended level
   * 0.2-0.5 Vp-p (0.1-0.25 Vrms): acceptable level
 * When in packet mode route RX Audio to pin 4 DATA OUT (discriminator)
   * Select IN1 (L & R) 10 kOhm (or 20 & 40 kOmn) in alsamixer
-* When in HF digital mode route RX Audio to pin 5 AF OUT (audio out)
-  * Select IN2 (L & R)
+* While testing with FLdigi it was noticed that the tones where cleaner when routing through the discriminator.
+* The IC-7000 presents the received signal on both pin 4 DISCOUT & pin 5 AFOUT
+
+### RPi - ALSA Configuration
+* Run _setalsa-ic7000.sh_ which sets alsa config to the following:
+
+
+###### Transmit
+* ALSA control _DAC Playback Power Tune_ set to PTM_P1
+* Same LO Drive Gain & PCM settings ast Yaesu FT-817
+
+###### Receive
+* Make sure the preamp is turned off.
+  * _P.AMP/ATT_ button to left of screen
+* Select received signal on mDin6 pin 4, DISCOUT
+
+
+###### Summary
+
+```
+===== ALSA Controls for Radio Tansmit =====
+LO Driver Gain  L:[-6.00dB]	R:[-6.00dB]
+PCM	        L:[-16.50dB]	R:[-16.50dB]
+DAC Playback PT	L:[PTM_P1]	R:[PTM_P1]
+LO Playback CM	[Full Chip CM]
+
+ ===== ALSA Controls for Radio Receive =====
+ADC Level	L:[-2.00dB]	R:[-2.00dB]
+IN1		L:[10 kOhm]	R:[10 kOhm]
+IN2		L:[Off]		R:[Off]
+```
 
