@@ -145,7 +145,7 @@ audio_display_ctrl "$control"
 printf "%s\t        L:%s\tR:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
 
 # Running udrc-dkms version 1.0.5 or later
-alsactrl_count=$(amixer scontrols | wc -l)
+alsactrl_count=$(amixer -c $CARD scontrols | wc -l)
 
 if (( alsactrl_count >= 44 )) ; then
     control="DAC Left Playback PowerTune"
