@@ -1,7 +1,12 @@
 #!/bin/bash
 #
+# Add: WantedBy=multi-user.target
+# To [Install] in: /lib/systemd/system/gpsd.service
+# Also have to a systemctl enable gpsd.service
+#
 # Uncomment this statement for debug echos
 # DEBUG=1
+
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
@@ -26,6 +31,8 @@ sudo tee /etc/chrony/chrony.conf > /dev/null << EOT
 # information about usuable directives.
 pool 2.debian.pool.ntp.org iburst
 
+# initstepslew 30 2.debian.pool.ntp.org
+
 # This directive specify the location of the file containing ID/key pairs for
 # NTP authentication.
 keyfile /etc/chrony/chrony.keys
@@ -49,13 +56,16 @@ maxupdateskew 100.0
 
 # This directive enables kernel synchronisation (every 11 minutes) of the
 # real-time clock. Note that it can't be used along with the 'rtcfile' directive.
-#rtcsync
+rtcsync
 
 # Step the system clock instead of slewing it if the adjustment is larger than
 # one second, but only in the first three clock updates.
 makestep 1 3
 
-refclock SHM 0 refid GPS precision 1e-3 offset 0.5 delay 0.2 poll 3 trust require
+refclock SHM 0 refid GPS precision 1e-3 offset 0.5 delay 0.2 poll 3 trust
+# SHM1 from gpsd (if present) is from the kernel PPS_LDISC module.
+# It includes PPS and will be accurate to a few ns
+# refclock SHM 1 offset 0.0 delay 0.1 refid PPS
 refclock SHM 2 refid PPS precision 1e-9 poll 3 trust
 # refclock PPS /dev/pps0 lock GPS trust prefer
 
