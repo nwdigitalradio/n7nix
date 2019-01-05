@@ -1,4 +1,5 @@
 #!/bin/bash
+#
 echo "----- image version"
 head -n 1 /var/log/udr_install.log
 echo "----- /proc/version"
