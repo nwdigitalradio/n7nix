@@ -2,7 +2,7 @@ Thu Jan  3 08:19:18 PST 2019  Basil Gunn <basil@pacabunga.com>
 
   * Image BETA7 release
     * configure chrony to use Network if GPS not found
-    * gpsd built from source 3.18.1
+    * gpsd built from source for version 3.18.1
     * udrc-dkms driver bumped to 1.0.5
       * driver has 3 new ALSA controls:
         * DAC Right Playback PowerTune
