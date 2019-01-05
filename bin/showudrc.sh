@@ -331,7 +331,8 @@ esac
 
 echo
 echo "==== sys Ver ===="
-
+echo "----- image version"
+head -n 1 /var/log/udr_install.log
 echo "----- /proc/version"
 cat /proc/version
 echo
