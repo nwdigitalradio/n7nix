@@ -1,5 +1,6 @@
 #!/bin/bash
 #
+ENABLE_AX25="false"
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
@@ -15,14 +16,17 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
-systemctl enable ax25dev.path
-systemctl enable direwolf.service
-# For conditioning network services
+# Condition network services
 systemctl enable systemd-networkd.service
 systemctl enable systemd-networkd-wait-online.service
-# enable remaining ax25 services
-systemctl enable ax25d.service
-systemctl enable ax25-mheardd.service
+
+if [ "$ENABLE_AX25" = "true" ] ; then
+    systemctl enable ax25dev.path
+    systemctl enable direwolf.service
+    # enable remaining ax25 services
+    systemctl enable ax25d.service
+    systemctl enable ax25-mheardd.service
+fi
 
 systemctl daemon-reload
 
