@@ -1,11 +1,27 @@
+Thu Jan  3 08:19:18 PST 2019  Basil Gunn <basil@pacabunga.com>
+
+  * Image BETA7 release
+    * configure chrony to use Network if GPS not found
+    * gpsd built from source 3.18.1
+    * udrc-dkms driver bumped to 1.0.5
+      * driver has 3 new ALSA controls:
+        * DAC Right Playback PowerTune
+        * DAC Left Playback PowerTune
+        * LO Playback Common Mode
+    * boots with direwolf/ax.25 not running/enabled
+    * Put image version in /var/log/udr_install.log
+
+Sun Dec 23  2017  Basil Gunn <basil@pacabunga.com>
+
+  * BETA6 release
 
 Sun Mar 26 15:48:30 PDT 2017  Basil Gunn <basil@pacabunga.com>
 
-    * Put check in for installation of these pacakges:
-      * jed rsync build-essential autoconf automake libtool git libasound2-dev whois libncurses5-dev
-    * Commented out: dtoverlay=udrc in /boot/config.txt
-    * Detect if a symbolic link of: /etc/ax25 already exists
-      * /usr/local/etc/ax25 /etc/ax25
-    * Use the direwolf package from compass repo
+  * Put check in for installation of these pacakges:
+    * jed rsync build-essential autoconf automake libtool git libasound2-dev whois libncurses5-dev
+  * Commented out: dtoverlay=udrc in /boot/config.txt
+  * Detect if a symbolic link of: /etc/ax25 already exists
+    * /usr/local/etc/ax25 /etc/ax25
+  * Use the direwolf package from compass repo
 
       File modified: config/core_install.sh
