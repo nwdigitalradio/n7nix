@@ -68,14 +68,27 @@ sudo su
 
 * **Now reboot your RPi** & [verify your installation is working
 properly](https://github.com/nwdigitalradio/n7nix/blob/master/docs/VERIFY_CONFIG.md)
-* For those that do not care about packet please keep reading for an
-appropriate way to unload direwolf & ax.25.
-
+* **NOTE:** the default core config leaves AX.25 & _direwolf_ **NOT
+running** & **NOT enabled**
+  * The default config is to run HF applications like js8call, wsjtx
+  and FLdigi
+  * If you want to run a packet application or run some tests on the
+  DRAWS board that requires _direwolf_ then enable AX.25/direwolf like this:
+```
+cd ~/bin
+# As root
+./ax25-start
+```
+* Now reboot and verify with
+```
+ax25-status
+ax25-status -d
+```
 
 ##### More program options
 
 * After confirming that the core functionality works you can configure
-other packet programs that will use direwolf such as rmsgw,
+other packet programs that will use _direwolf_ such as rmsgw,
 paclink-unix, etc:
 
 ```bash
@@ -83,25 +96,21 @@ paclink-unix, etc:
 ./app_config.sh plu
 ```
 
-#### For HAM apps that do **NOT** use direwolf
-* If you want to run some other program that does NOT use direwolf like: jscall, wsjtx, fldigi, then do this:
+#### For HAM apps that do **NOT** use _direwolf_
+
+* If you previously ran a packet app and now want to run some other
+program that does **NOT** use _direwolf_ like: js8call, wsjtx, FLdigi,
+then do this:
+
 ```bash
 cd
 cd bin
 sudo su
 ./ax25-stop
 ```
-* This will bring down direwolf & all the ax.25 services allowing another program to use the DRAWS sound card.
-* To stop direwolf & the AX.25 stack from running after a boot do this:
+* This will bring down _direwolf_ & all the AX.25 services allowing another program to use the DRAWS sound card.
 
-```bash
-cd
-cd bin
-sudo su
-./ax25-disable
-```
-
-##### enable RPi audio device
+#### To Enable the RPi on board audio device
 
 * uncomment the following line in _/boot/config.txt_
   * ie. remove the hash character from the beginning of the line.
