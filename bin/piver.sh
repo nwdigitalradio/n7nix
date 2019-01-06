@@ -36,8 +36,16 @@ a32082)
    echo " Pi 3 Model B Mfg by Sony Japan"
    HAS_WIFI=true
 ;;
+a52082)
+   echo " Pi 3 Model B Mfg by Stadium"
+   HAS_WIFI=true
+;;
 a020d3)
    echo " Pi 3 Model B+ Mfg by Sony UK"
+   HAS_WIFI=true
+;;
+9020e0)
+   echo " Pi 3 Model A+ Mfg by Sony UK"
    HAS_WIFI=true
 ;;
 *)
