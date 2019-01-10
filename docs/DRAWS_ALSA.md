@@ -1,6 +1,12 @@
 ## ALSA Controls
 
-* For a more detailed description of what these controls do please read [ Audio CODEC Analog Routing, Digital Interfacing and Controls](https://nw-digital-radio.groups.io/g/udrc/wiki/DRAWS%E2%84%A2-Audio-CODEC-Analog-Routing%2C-Digital-Interfacing-and-Controls)
+* For a more detailed description of what these controls do please
+read [ Audio CODEC Analog Routing, Digital Interfacing and
+Controls](https://nw-digital-radio.groups.io/g/udrc/wiki/DRAWS%E2%84%A2-Audio-CODEC-Analog-Routing%2C-Digital-Interfacing-and-Controls)
+
+* For a [YouTube video on setting values using TX Calc spreadsheet](https://youtu.be/RxWiDYMcRn4)
+  * Download [TX Calc spreadsheet](https://nw-digital-radio.groups.io/g/udrc/files/TX%20Calc.xlsx) for setting ALSA controls
+
 
 ### Transmit Controls that affect input to radio
 
