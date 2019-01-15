@@ -8,7 +8,7 @@ Thu Jan  3 08:19:18 PST 2019  Basil Gunn <basil@pacabunga.com>
         * DAC Right Playback PowerTune
         * DAC Left Playback PowerTune
         * LO Playback Common Mode
-    * boots with direwolf/ax.25 not running/enabled
+    * Boot with direwolf/ax.25 NOT running/enabled
     * Put image version in /var/log/udr_install.log
 
 Sun Dec 23  2017  Basil Gunn <basil@pacabunga.com>
