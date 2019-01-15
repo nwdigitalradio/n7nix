@@ -113,6 +113,9 @@ if [[ $EUID == 0 ]] ; then
    exit 1
 fi
 
+# Save current directory
+CUR_DIR=$(pwd)
+
 echo "$scriptname: Installing claws-mail with UID: $EUID, user: $user"
 
 # Get list of users with home directories
@@ -162,7 +165,7 @@ fi
 # if 'pgrep' returns 0, the process is running
 if pgrep claws-mail > /dev/null 2>&1 ; then
 
-  echo "claws-mail program is running, exit elaws-mail then re-run script."
+  echo "claws-mail program is running, exit claws-mail then re-run script."
   exit 1
 fi
 
@@ -173,7 +176,7 @@ get_callsign
 
 # Edit the claws-mail config file
 claws_mail_cfg_dir="/home/$USER/.claws-mail"
-claws_mail_cfg_file="/$claws_mail_cfg_dir/accountrc"
+claws_mail_cfg_file="$claws_mail_cfg_dir/accountrc"
 
 # Test if config file already exists
 
@@ -204,7 +207,11 @@ sed -i -e "/signature_path=/ s/signature_path=.*/signature_path=\/home\/$USER\/\
 echo "Change smtp_user_id=$USER"
 sed -i -e "/smtp_user_id=/ s/smtp_user_id=.*/smtp_user_id=$USER/" $claws_mail_cfg_file
 
-sudo sh -c "echo $(date "+%Y %m %d %T %Z"): $scriptname: claws-mail install script FINISHED >> $UDR_INSTALL_LOGFILE"
+# Enable the claws-mail desktop icon
+cp /usr/share/raspi-ui-overrides/applications/claws-mail.desktop /home/$USER/Desktop
+
 echo
-echo "claws-mail install FINISHED"
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: claws-mail install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo
+# configure dovecot
+sudo $CUR_DIR/dovecot_config.sh $USER
