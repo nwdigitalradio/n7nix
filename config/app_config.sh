@@ -143,9 +143,15 @@ case $APP_SELECT in
    ;;
    plu)
       # install paclink-unix basic
+      # This installs mutt & postfix
       echo "$scriptname: Config paclink-unix"
       pushd ../plu
-      source ./plu_config.sh
+      source ./plu_config.sh $CALLSIGN
+      popd > /dev/null
+
+      # This installs claws-mail & dovecot
+      pushd ../email/claws
+      sudo -u "$USER" ./claws_install.sh $USER $CALLSIGN
       popd > /dev/null
 
    ;;
@@ -168,7 +174,6 @@ case $APP_SELECT in
    ;;
 esac
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: app config ($APP_SELECT) script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
-echo "app config ($APP_SELECT) script FINISHED"
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: app config ($APP_SELECT) script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
 echo
