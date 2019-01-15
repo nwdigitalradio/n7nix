@@ -24,23 +24,23 @@ REQUIRED_PRGMS="rmschanstat python rmsgw rmsgw_aci"
 
 function get_callsign() {
 
-# Check if call sign var has already been set
-if [ "$CALLSIGN" == "N0ONE" ] ; then
-   echo "Enter call sign, followed by [enter]:"
-   read -e CALLSIGN
+    # Check if call sign var has already been set
+    if [ "$CALLSIGN" == "N0ONE" ] ; then
+        echo "Enter call sign, followed by [enter]:"
+        read -e CALLSIGN
+    fi
+    # Validate callsign
+    sizecallstr=${#CALLSIGN}
 
-   sizecallstr=${#CALLSIGN}
+    if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
+        echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
+        exit 1
+    fi
 
-   if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
-      echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
-      exit 1
-   fi
+    # Convert callsign to upper case
+    CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
 
-   # Convert callsign to upper case
-   CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
-fi
-
-dbgecho "Using CALL SIGN: $CALLSIGN"
+    dbgecho "Using CALL SIGN: $CALLSIGN"
 }
 
 # ===== function get_gridsquare
