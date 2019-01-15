@@ -44,6 +44,24 @@ function check_user() {
    dbgecho "using USER: $USER"
 }
 
+# ===== function start_service
+
+function start_service() {
+    service="$1"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        echo "ENABLING $service"
+        systemctl enable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem ENABLING $service"
+        fi
+    fi
+    systemctl start "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem starting $service"
+    fi
+}
+
 # ===== main
 
 echo
@@ -93,10 +111,15 @@ fi
 grep "transport_maps" /etc/postfix/main.cf
 if [ $? -ne 0 ] ; then
   cat << EOT >> /etc/postfix/main.cf
+
+inet_protocols = ipv4
 transport_maps = hash:/etc/postfix/transport
 smtp_host_lookup = dns, native
 EOT
 fi
+
+POSTFIX_DESTINATION='$myhostname.localhost, $myhostname, localhost.localdomain, localhost'
+sed -i -e "/mydestination=/ s/mydestination=.*/mydestination=$POSTFIX_DESTINATION/" $claws_mail_cfg_file
 
 # Specify a pathname ending in "/" for qmail-style delivery.
 # This needs to match mail client configuration.
@@ -105,8 +128,9 @@ postconf -e "home_mailbox = Mail/"
 # Make a transport file
 {
 echo "localhost     :"
-echo "$(hostname)     local:"
-echo "$(hostname).localnet     local:"
+echo "$(hostname)             local:"
+echo "$(hostname).localnet    local:"
+echo "$(hostname).localhost   local:"
 echo "#"
 echo "*         wl2k:localhost"
 } > /etc/postfix/transport
@@ -127,7 +151,10 @@ echo "nobody:  $USER"
 
 newaliases
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: postfix config script FINISHED" >> $UDR_INSTALL_LOGFILE
+# Confirm postfix is running
+start_service "postfix.service"
+
+
 echo
-echo "postfix config FINISHED"
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: postfix config script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
 echo
