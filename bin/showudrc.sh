@@ -399,6 +399,7 @@ systemctl status gpsd
 echo
 echo "---- chrony"
 systemctl status gpsd
+ls -al /dev/pps* /dev/ttySC*
 echo "-- chrony sources"
 chronyc sources
 echo "-- chrony tracking"
