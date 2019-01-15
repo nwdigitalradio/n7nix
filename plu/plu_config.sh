@@ -9,12 +9,36 @@ DEBUG=1
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
+CALLSIGN="N0ONE"
 SRC_DIR="/usr/local/src"
 PLU_CFG_FILE="/usr/local/etc/wl2k.conf"
 POSTFIX_CFG_FILE="/etc/postfix/transport"
 PLU_VAR_DIR="/usr/local/var/wl2k"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function get_callsign
+
+function get_callsign() {
+
+    # Check if call sign var has already been set
+    if [ "$CALLSIGN" == "N0ONE" ] ; then
+        echo "Enter call sign, followed by [enter]:"
+        read -e CALLSIGN
+    fi
+    # Validate callsign
+    sizecallstr=${#CALLSIGN}
+
+    if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
+        echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
+        exit 1
+    fi
+
+    # Convert callsign to upper case
+    CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
+
+    dbgecho "Using CALL SIGN: $CALLSIGN"
+}
 
 # ===== function get_user
 function get_user() {
@@ -73,6 +97,7 @@ if [[ $EUID != 0 ]] ; then
    echo "Must be root"
    exit 1
 fi
+
 # Save current directory
 CUR_DIR=$(pwd)
 
@@ -102,22 +127,15 @@ else
     usermod -a -G mail $USER
 fi
 
-# Get callsign
-echo "Enter call sign, followed by [enter]:"
-read -e CALLSIGN
-
-sizecallstr=${#CALLSIGN}
-
-if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
-   echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
-   exit 1
+# if there are any args on command line assume it's a callsign
+if (( $# != 0 )) ; then
+   CALLSIGN="$1"
 fi
 
-# Convert callsign to upper case
-CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
+# Check for a valid callsign
+get_callsign
 
 # Determine if paclink-unix has already been configured
-
 grep $CALLSIGN $PLU_CFG_FILE
 if [ $? -ne 0 ] ; then
 
@@ -146,9 +164,8 @@ else
    echo "$scriptname: paclink-unix has already been configured."
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: paclink-unix basic config FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
-echo "paclink-unix basic config FINISHED"
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: paclink-unix basic config FINISHED" | tee -a $UDR_INSTALL_LOGFILE
 echo
 # configure postfix
 source $CUR_DIR/postfix_config.sh $USER
