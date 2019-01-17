@@ -56,16 +56,26 @@ function start_service() {
             echo "Problem ENABLING $service"
         fi
     fi
-    systemctl start "$service"
-    if [ "$?" -ne 0 ] ; then
-        echo "Problem starting $service"
+    # Is service alread running?
+    systemctl is-active "$service"
+    if [ "$?" -eq 0 ] ; then
+        # service is already running, restart it to update config changes
+        systemctl restart "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem re-starting $service"
+        fi
+    else
+        # service is not yet running so start it up
+        systemctl start "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem starting $service"
+        fi
     fi
 }
 
 # ===== main
 
-echo
-echo "Postfix config START"
+echo -e "\n\tConfigure postfix\n"
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
@@ -153,7 +163,6 @@ newaliases
 
 # Confirm postfix is running
 start_service "postfix.service"
-
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: postfix config script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
