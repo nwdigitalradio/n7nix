@@ -146,7 +146,7 @@ case $APP_SELECT in
       # This installs mutt & postfix
       echo "$scriptname: Config paclink-unix"
       pushd ../plu
-      source ./plu_config.sh $CALLSIGN
+      source ./plu_config.sh $USER $CALLSIGN
       popd > /dev/null
 
       # This installs claws-mail & dovecot

@@ -41,8 +41,8 @@ function get_callsign() {
 }
 
 # ===== function get_user
-function get_user() {
 
+function get_user() {
 # prompt for user name
 # Check if there is only a single user on this system
 
@@ -101,7 +101,37 @@ fi
 # Save current directory
 CUR_DIR=$(pwd)
 
-get_user
+# if there are any args on command line assume it's a callsign
+if (( $# != 0 )) ; then
+   CALLSIGN="$1"
+fi
+
+# if there are any args on command line assume it's
+# user name & callsign
+if (( $# != 0 )) ; then
+   USER="$1"
+   if (( $# == 2 )) ; then
+      CALLSIGN="$2"
+   fi
+else
+   get_user
+fi
+
+if [ -z "$USER" ] ; then
+   echo "USER string is null, get_user"
+   get_user
+else
+   echo "USER=$USER, OK"
+fi
+
+# verify user name is legit
+check_user
+
+if [ $user != $USER ] ; then
+   echo "Please login as $USER"
+   exit 1
+fi
+
 MUTT_CFG_FILE="/home/$USER/.muttrc"
 CFG_FILES="$PLU_CFG_FILE $MUTT_CFG_FILE $POSTFIX_CFG_FILE"
 
@@ -125,11 +155,6 @@ if id -nG "$USER" | grep -qw mail; then
 else
     echo "Adding $USER to group mail"
     usermod -a -G mail $USER
-fi
-
-# if there are any args on command line assume it's a callsign
-if (( $# != 0 )) ; then
-   CALLSIGN="$1"
 fi
 
 # Check for a valid callsign
