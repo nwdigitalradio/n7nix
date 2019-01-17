@@ -13,6 +13,15 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function install_mutt
+
+function install_mutt() {
+    # Include gpgsm to mitigate: GPGME: CMS protocol not available
+    PKG_REQUIRE_MUTT="mutt gpgsm"
+    echo "$scriptname: Will Install $pkg_name package"
+    sudo apt-get install -y -q $PKG_REQUIRE_MUTT
+    sudo apt-mark auto gpgsm
+}
 # ===== function get_user
 
 function get_user() {
@@ -103,8 +112,8 @@ get_callsign
 program_name="mutt"
 type -P $program_name  &>/dev/null
 if [ $? -ne 0 ] ; then
-   echo "$scriptname: Program: $program_name not found in path ... exiting"
-   exit 1
+   echo "$scriptname: Program: $program_name not found in path ... installing"
+   install_mutt
 else
    dbgecho "Program: $program_name  found"
 fi
