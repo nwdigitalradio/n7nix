@@ -30,8 +30,11 @@ fi
 # Test if mutt package has already been installed.
 is_pkg_installed $pkg_name
 if [ $? -ne 0 ] ; then
+   # Include gpgsm to mitigate: GPGME: CMS protocol not available
+   PKG_REQUIRE_MUTT="mutt gpgsm"
    echo "$scriptname: Will Install $pkg_name package"
-   apt-get install -y -q $pkg_name
+   apt-get install -y -q $PKG_REQUIRE_MUTT
+   apt-mark auto gpgsm
 fi
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: mutt install script FINISHED" >> $UDR_INSTALL_LOGFILE
