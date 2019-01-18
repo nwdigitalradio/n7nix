@@ -15,13 +15,21 @@
 
 * Your name: your_real_name (Joe Blow)
 
-###### regular email
-
-* Your email address: <your_user_name>@nixt.localnet
-
 ###### winlink email
 
-* Your email address: <your_callsign>@winlink.org
+* For a dedicated winlink email client set your _email address_ like this:
+
+```
+<your_callsign>@winlink.org
+```
+
+###### regular email
+* If you are configuring claws-mail just as a local email client then set your _email address_ like this:
+
+```
+<your_user_name>@<your_host_name>.localnet
+```
+
 
 ##### Second screen: Receiving mail
 
@@ -38,4 +46,4 @@
 ##### Fourth screen: Configuration Finished
 
 * Click save to start
-* If imap mail directory already exists click **getmail** to see previous email
+* If imap mail directory already exists click **getmail** (left most icon in claws-mail) to see previous email.
