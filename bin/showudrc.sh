@@ -375,7 +375,9 @@ else
         echo -e "\n\t$(tput setaf 1)Directory: $dirname does NOT exist $(tput setaf 7)\n"
     fi
 fi
-
+echo
+echo "---- syslog"
+grep -i udrc /var/log/syslog
 echo
 echo "---- compass"
 preference_file="/etc/apt/preferences.d/compass"
