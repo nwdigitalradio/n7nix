@@ -54,6 +54,7 @@ fi
 cp /home/$USER/n7nix/systemd/bin/* $userbindir
 cp /home/$USER/n7nix/bin/* $userbindir
 cp /home/$USER/n7nix/iptables/iptable-*.sh $userbindir
+cp /usr/local/src/paclink-unix/test_scripts/chk_perm.sh $userbindir
 sudo chown -R $USER:$USER $userbindir
 
 echo
