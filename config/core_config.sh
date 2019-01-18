@@ -65,6 +65,7 @@ fi
 
 cp /home/$USER/n7nix/systemd/bin/* $userbindir
 cp /home/$USER/n7nix/bin/* $userbindir
+cp /home/$USER/n7nix/iptables/iptable-*.sh $userbindir
 chown -R $USER:$USER $userbindir
 
 echo
