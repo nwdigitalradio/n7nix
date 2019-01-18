@@ -360,6 +360,21 @@ fi
 echo
 echo "---- kernel"
 dpkg -l "*kernel" "udrc-dkms" | tail -n 4
+echo
+
+# Verify that the tlv320aic32 driver is loaded
+dirname="/proc/device-tree/soc/i2c@7e804000/tlv320aic32x4@18"
+if [ -d  "$dirname" ] ; then
+    echo "Directory: $dirname exists and status is $(tr -d '\0' < $dirname/status)"
+else
+    echo -e "\n\t$(tput setaf 1)Directory: $dirname does NOT exist $(tput setaf 7)\n"
+    dirname="/proc/device-tree/soc/i2c@7e804000"
+    if [ -d  "$dirname" ] ; then
+        echo "Directory: $dirname exists and status is $(tr -d '\0' < $dirname/status)"
+    else
+        echo -e "\n\t$(tput setaf 1)Directory: $dirname does NOT exist $(tput setaf 7)\n"
+    fi
+fi
 
 echo
 echo "---- compass"
@@ -390,6 +405,9 @@ else
    # Get rid of escape characters
    echo "----- D${verstr#*D}"
 fi
+echo
+echo "==== Filesystem ===="
+df -h | grep -i "/dev/root"
 echo
 echo "==== boot config ===="
 tail -n 15 /boot/config.txt
