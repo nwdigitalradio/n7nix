@@ -118,9 +118,13 @@ else
 fi
 
 # Check if postfix main file has been modified
-grep "transport_maps" /etc/postfix/main.cf
+
+postfix_main_cfg_file="/etc/postfix/main.cf"
+grep "transport_maps" "$postfix_main_cfg_file"
 if [ $? -ne 0 ] ; then
-  cat << EOT >> /etc/postfix/main.cf
+    # Comment out previous 'inet_protocols =' entry
+    sed -i -e "/^inet_protocols =/ s/^/# /" $postfix_main_cfg_file
+    cat << EOT >> $postfix_main_cfg_file"
 
 inet_protocols = ipv4
 transport_maps = hash:/etc/postfix/transport
@@ -129,10 +133,10 @@ EOT
 fi
 
 POSTFIX_DESTINATION='$myhostname.localhost, $myhostname, localhost.localdomain, localhost'
-sed -i -e "/mydestination=/ s/mydestination=.*/mydestination=$POSTFIX_DESTINATION/" $claws_mail_cfg_file
+sed -i -e "/mydestination=/ s/mydestination=.*/mydestination=$POSTFIX_DESTINATION/" $postfix_main_cfg_file
 
 # Specify a pathname ending in "/" for qmail-style delivery.
-# This needs to match mail client configuration.
+# This needs to match mail client & dovecot configuration.
 postconf -e "home_mailbox = Mail/"
 
 # Make a transport file
