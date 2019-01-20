@@ -62,8 +62,25 @@ function set_static_lan()
 iface="$lanif"
 echo "$scriptname: writing files for static LAN ip address"
 fname="/etc/dhcpcd.conf"
-grep -i "interface $iface" $fname > /dev/null 2>&1
-if [ $? -ne 0 ] ; then
+
+need_manual_edit="false"
+
+# Determine if all 'interface eth0' lines are commented.
+while read -r line ; do
+    dbgecho "Processing $line"
+    # your code goes here
+    if [[ ${line:0:1} == "#" ]] ; then
+        dbgecho "Found comment char"
+    else
+        dbgecho "No comment"
+        need_manual_edit="true"
+    fi
+done < <(grep -i "interface $iface" $fname)
+
+# if an uncommented "interface eth0 line is found then have to edit
+# manually.
+
+if [[ "$need_manual_edit" != "true" ]] ; then
    cat <<EOT >> $fname
 
 interface $iface
