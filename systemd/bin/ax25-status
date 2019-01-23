@@ -77,6 +77,8 @@ function ax25_debugstatus() {
     systemctl is-enabled ax25dev.service
     systemctl status ax25dev.service
     echo
+    journalctl -u ax25dev.service
+    echo
     echo "== status ax25 path =="
     systemctl is-enabled ax25dev.path
     systemctl status ax25dev.path
