@@ -265,7 +265,7 @@ a020d3)
    HAS_WIFI=true
 ;;
 *)
-   echo -e "\n\t$(tput setaf 1)Unknown pi version: $piver $(tput setaf 7)\n"
+   echo -e "\n\tUnknown pi version: $piver\n"
 ;;
 esac
 
@@ -298,7 +298,7 @@ dbgecho "Return val: $return_val"
 case $return_val in
 0)
    echo "HAT firmware not initialized or HAT not installed."
-   echo -e "\n\t$(tput setaf 1)No id eeprom found $(tput setaf 7)\n"
+   echo -e "\n\tNo id eeprom found\n"
 ;;
 1)
    echo "Found a HAT but not a UDRC, product not identified"
@@ -367,12 +367,12 @@ dirname="/proc/device-tree/soc/i2c@7e804000/tlv320aic32x4@18"
 if [ -d  "$dirname" ] ; then
     echo "Directory: $dirname exists and status is $(tr -d '\0' < $dirname/status)"
 else
-    echo -e "\n\t$(tput setaf 1)Directory: $dirname does NOT exist $(tput setaf 7)\n"
+    echo -e "\n\tDirectory: $dirname does NOT exist\n"
     dirname="/proc/device-tree/soc/i2c@7e804000"
     if [ -d  "$dirname" ] ; then
         echo "Directory: $dirname exists and status is $(tr -d '\0' < $dirname/status)"
     else
-        echo -e "\n\t$(tput setaf 1)Directory: $dirname does NOT exist $(tput setaf 7)\n"
+        echo -e "\n\tDirectory: $dirname does NOT exist\n"
     fi
 fi
 echo
