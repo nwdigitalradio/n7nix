@@ -104,7 +104,7 @@ if [ -L $SERIALPORT_DIREWOLF ] ; then
     echo "Direwolf serial port ready"
 else
     echo "Direwolf serial port NOT FOUND"
-d    exit 1
+    exit 1
 fi
 
 # Check which UDRC product is found
