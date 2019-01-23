@@ -40,5 +40,7 @@
 | hamlib       |  3.3    |      |     |   |
 | fldigi       |  4.0.18 |      |     |   |
 | flrig        |  1.3.41 |      |     |   |
+| flmsg        |  eval   |      |     |   |
+| flamp        |  eval   |      |     |   |
 | iptables     |  1.60   |  yes |     |   |
 | lm-sensors   |  3.4.0  |  yes |     |   |
