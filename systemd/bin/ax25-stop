@@ -37,3 +37,7 @@ for service in `echo ${SERVICE_LIST}` ; do
 #    echo "DEBUG: Stopping service: $service"
     stop_service $service
 done
+
+if [ -e "/tmp/kisstnc" ] ; then
+    rm -f /tmp/kisstnc
+fi
