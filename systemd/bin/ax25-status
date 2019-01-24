@@ -29,6 +29,23 @@ for service in `echo ${AX25_SERVICE_LIST}` ; do
     echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
 done
 
+device="ax0"
+ip addr show dev $device > /dev/null 2>&1
+if [ "$?" -ne 0 ] ; then
+    echo "AX.25 device: $device not configured"
+else
+    ipaddr=$(ip addr show dev $device | grep "inet " | grep -Po '(\d+\.){3}\d+' | head -1)
+    echo "AX.25 device: $device successfully configured with ip: $ipaddr"
+fi
+
+device="ax1"
+ip addr show dev $device > /dev/null 2>&1
+if [ "$?" -ne 0 ] ; then
+    echo "AX.25 device: $device not configured"
+else
+    ipaddr=$(ip addr show dev $device | grep "inet " | grep -Po '(\d+\.){3}\d+' | head -1)
+    echo "AX.25 device: $device successfully configured with ip: $ipaddr"
+fi
 }
 
 # ===== function usage
@@ -60,8 +77,10 @@ function ax25_debugstatus() {
     ls /proc/sys/net/
     ls /proc/sys/net/ax25
     echo
-    echo "== ifconfig ax0 =="
-    ifconfig ax0
+    echo "== Network Interface ax0 & ax1 =="
+    ip addr show dev ax0
+    echo
+    ip addr show dev ax1
     echo
     echo "== status networkd services =="
     systemctl is-enabled systemd-networkd-wait-online.service
