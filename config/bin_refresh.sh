@@ -42,6 +42,24 @@ function check_user() {
    dbgecho "using USER: $USER"
 }
 
+# ===== function CopyAX25Files
+
+function CopyAX25Files() {
+
+# Check if directory exists.
+if [ ! -d "$ax25bindir" ] ; then
+   echo "ERROR: AX25 directory: $ax25bindir does NOT exist."
+   exit 1
+fi
+
+cp /home/$USER/n7nix/systemd/ax25/ax25-* $ax25bindir
+cp /home/$USER/n7nix/systemd/ax25/ax25dev-* $ax25bindir
+sudo chown -R root:staff $ax25bindir
+
+echo
+echo "FINISHED copying AX.25 files"
+}
+
 # ===== function CopyBinFiles
 
 function CopyBinFiles() {
@@ -68,6 +86,9 @@ USERLIST="$(echo $USERLIST | tr '\n' ' ')"
 get_user
 check_user
 
-userbindir=/home/$USER/bin
+userbindir="/home/$USER/bin"
 CopyBinFiles
 cd $userbindir
+
+ax25bindir="/usr/local/etc/ax25"
+CopyAX25Files
