@@ -27,17 +27,24 @@ function usage() {
 # ===== function dump_bbs_files()
 
 function dump_bbs_files() {
-    # Get current name of session file
+
+    # Get current name of sesssion file
+    session_file=$(ls -t $session_rootfile* | head -1)
+    echo "==== session file: $session_file"
+    cat "$session_file"
+
+    # Get current name of index file
     dir_file=$(ls -t $dir_rootfile* | head -1)
     msg_cnt="$(cat $dir_file | wc -l)"
     echo "==== index file($msg_cnt): $dir_file"
     echo
-    cat $dir_file
+    cat "$dir_file"
 
+    # Get current name of message file
     msg_x_file=$(ls -t $msg_rootfile* | head -1)
     echo "==== message file: $msg_x_file"
     echo
-    cat $msg_x_file
+    cat "$msg_x_file"
 }
 
 # ===== function readmsg_num()
@@ -67,7 +74,11 @@ readmsg_all() {
 
     echo "message count: $msgcnt"
     for ((mn =1; mn <= $msgcnt; mn++)) ; do
-        awk -vN=$mn 'n>=N;/ENTER COMMAND: .*/{++n}' $msg_x_file | grep -E -B 9999 -m$mn "(ENTER COMMAND: | *** Cleared)" | sed '$d'
+        msg_num=$((msgcnt - mn + 1))
+        echo
+        echo "===== message: $msg_num"
+#        awk -vN=$mn 'n>=N;/ENTER COMMAND: .*/{++n}' $msg_x_file | grep -E -B 9999 -m1 "(ENTER COMMAND: | *** Cleared)" | sed '$d'
+        awk -vN=$mn 'n>=N;/ENTER COMMAND: .*/{++n}' $msg_x_file | grep -E -B 9999 -m1 "ENTER COMMAND: " | sed '$d'
     done
 }
 
@@ -90,7 +101,7 @@ function create_msg_index() {
 # ===== function get_msg_index()
 
 function get_msg_index() {
-    echo "=== Getting index session file: ${session_rootfile}_$date_now.txt"
+    echo "=== Get new index session file: ${session_rootfile}_$date_now.txt"
 
     # Get BBS Directory Session
 {
@@ -115,12 +126,15 @@ function display_msg_index() {
 
 function get_bbs_msgs() {
 
-# Create new index file
-get_msg_index
-dir_file=$(ls -t $dir_rootfile* | head -1)
-if [ ! -e "$dir_file" ] ; then
-    create_msg_index $dir_file
+
+# Existing msg index file?
+ls  -t $dir_rootfile*  > /dev/null 2>&1
+if [ "$?" -ne 0 ] ; then
+    # Create new index file
+    get_msg_index
 fi
+
+dir_file=$(ls -t $dir_rootfile* | head -1)
 
 # Create new msg file
 msg_file=${msg_rootfile}_$date_now.txt
@@ -229,12 +243,38 @@ esac
 shift # past argument or value
 done
 
+msg_cnt=0
+last_dirfile=
 
-
-if ((elapsed_epoch >= 6000)) || ((msg_cnt == 0)) || [ "$FORCE" = 1 ] ; then
-    get_bbs_msgs
+# Existing msg index file?
+ls  -t $dir_rootfile*  > /dev/null 2>&1
+if [ "$?" -eq 0 ] ; then
+    # Get name of most recent index file
+    last_dirfile=$(ls -t $dir_rootfile* | head -1)
+    echo "Found an existing index file: $last_dirfile"
+    msgcnt="$(cat $last_dirfile | wc -l)"
 else
-    echo "Using existing message file: $msg_file"
+    echo "No message index file found"
 fi
 
+# Time to refresh the latest index file?
 
+if ((elapsed_epoch >= 6000)) || ((msg_cnt == 0)) || [ "$FORCE" = 1 ] ; then
+    # Update message index file
+    get_msg_index
+
+    # Verify that there is a previous index file
+    if [ ! -z "$last_dirfile" ] ; then
+        diff $last_dirfile $dir_file   > /dev/null 2>&1
+        if [ "$?" -eq 0 ] ; then
+            echo "No new messages found on bbs."
+        else
+            echo "Update index file & msg file."
+            get_bbs_msgs
+        fi
+    else
+        echo "No previous index file to compare"
+    fi
+else
+    echo "Using existing index file: $last_dirfile, no update at this time."
+fi
