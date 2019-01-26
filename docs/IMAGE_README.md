@@ -12,7 +12,7 @@
 
 ### Table of Installed Programs
 
-* PKG = Debian package for RPi available
+* PKG = Debian package for RPi (armhf) available
 * DW = requires Direwolf
 * AX25 = requires AX.25 stack
 
