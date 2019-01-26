@@ -67,7 +67,8 @@ fi
 check_user
 
 
-js8call_rootver="0.12.0"
+js8call_rootver="0.13.0"
+
 js8call_ver="$js8call_rootver"-devel
 PKG_REQUIRE_JS8CALL="libqgsttools-p1 libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediaquick-p5 libqt5multimediawidgets5 libqt5qml5 libqt5quick5 libqt5serialport5"
 echo "Install js8call ver: $js8call_ver"
@@ -82,9 +83,11 @@ if [ ! -e "$SRC_DIR/$download_filename" ] ; then
         sudo apt-get install -y "$PKG_REQUIRE_JS8CALL"
         sudo dpkg -i $download_filename
     fi
+else
+    sudo apt-get install -y "$PKG_REQUIRE_JS8CALL"
+    sudo dpkg -i $download_filename
 fi
 
-#wsjtx_ver="1.9.1"
 wsjtx_ver="2.0.0"
 
 echo "install wsjt-x ver: $wsjtx_ver"
