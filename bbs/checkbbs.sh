@@ -30,17 +30,21 @@ function dump_bbs_files() {
 
     # Get current name of sesssion file
     session_file=$(ls -t $session_rootfile* | head -1)
+    echo
     echo "==== session file: $session_file"
+    echo
     cat "$session_file"
 
     # Get current name of index file
     dir_file=$(ls -t $dir_rootfile* | head -1)
     msg_cnt="$(cat $dir_file | wc -l)"
+    echo
     echo "==== index file($msg_cnt): $dir_file"
     echo
     cat "$dir_file"
 
     # Get current name of message file
+    echo
     msg_x_file=$(ls -t $msg_rootfile* | head -1)
     echo "==== message file: $msg_x_file"
     echo
@@ -50,19 +54,32 @@ function dump_bbs_files() {
 # ===== function readmsg_num()
 
 readmsg_num() {
-    mn="$1"
+    readnum="$1"
     dir_file=$(ls -t $dir_rootfile* | head -1)
     msg_cnt="$(cat $dir_file | wc -l)"
-    if (( mn > msg_cnt )) ; then
+    if (( readnum > msg_cnt )) ; then
         echo "Only $msg_cnt messages on BBS."
         exit 1
     fi
     msg_x_file=$(ls -t $msg_rootfile* | head -1)
+    msg_numbers=
+    dbgecho "Reading msg # $readnum, total msgs: $msg_cnt, from file: $msg_x_file"
+    for ((mn=1; mn <= $msg_cnt; mn++)) ; do
+        msg_num=$((msg_cnt - mn + 1))
 
-    dbgecho "Reading msg # $mn, total msgs: $msg_cnt, from file: $msg_x_file"
+        msgtext=$(awk -vN=$mn 'n>=N;/ENTER COMMAND: .*/{++n}' $msg_x_file | grep -E -B 9999 -m1 "ENTER COMMAND: " | sed '$d')
+        msgnum=$(echo $msgtext | cut -d '#' -f2 | cut -d ' ' -f1)
+        msg_numbers="$msg_numbers $msgnum"
+        if (( msgnum == readnum )) ; then
+           echo "$msgtext"
+           break;
+        fi
+    done
+
 #    awk -vN=$mn 'n>=N;/ENTER COMMAND: .*/{++n}' $msg_x_file | grep -E -B 9999 -m$mn "(ENTER COMMAND: | *** Cleared)" | sed '$d'
-    awk -vN=$mn 'n>=N;/ENTER COMMAND: .*/{++n}' $msg_x_file | grep -E -B 9999 -m$mn "ENTER COMMAND: " | sed '$d'
-    dbgecho "awk finished."
+#    msgtext=$(awk -vN=$mn 'n>=N;/ENTER COMMAND: .*/{++n}' $msg_x_file | grep -E -B 9999 -m1 "ENTER COMMAND: " | sed '$d')
+
+    dbgecho "message numbers: $msg_numbers"
 }
 
 # ===== function readmsg_all()
@@ -167,6 +184,29 @@ printf "b\n"
 
 }
 
+# ===== function clean_up()
+# arg filename root
+function clean_up() {
+
+filename_root="$1"
+if [ -z "$filename_root" ] ; then
+    echo "Clean_up called with no filename root"
+    return;
+fi
+filename_count=$(ls -1 $filename_root* | wc -l)
+
+echo "Clean_up filename: $filename_root, count: $filename_count"
+
+while (( filename_count > 2 )) ; do
+
+    filename=$(ls -t ${filename_root}* | tail -n1)
+    echo "Removing file: $filename"
+    rm $filename
+    filename_count=$(ls -1 $filename_root* | wc -l)
+done
+
+}
+
 # ===== main
 
 date_now=$(date "+%Y%m%d_%H%M")
@@ -211,11 +251,10 @@ case $key in
        exit 0
    ;;
 
-   -m|--msg)
+   -r|--read)
        msg_num="$2"
        shift # past argument
 
-       echo "Displaying message number: $msg_num"
        readmsg_num $msg_num
        exit 0
    ;;
@@ -225,7 +264,7 @@ case $key in
        get_bbs_msgs
        exit 0
    ;;
-   -i|-index)
+   -l|-list)
        display_msg_index
        exit 0
    ;;
@@ -252,12 +291,14 @@ if [ "$?" -eq 0 ] ; then
     # Get name of most recent index file
     last_dirfile=$(ls -t $dir_rootfile* | head -1)
     echo "Found an existing index file: $last_dirfile"
-    msgcnt="$(cat $last_dirfile | wc -l)"
+    msg_cnt="$(cat $last_dirfile | wc -l)"
 else
     echo "No message index file found"
 fi
 
 # Time to refresh the latest index file?
+
+echo "Refresh decision: elpased time: $elapsed_epoch, Message count: $msg_cnt, Force: $FORCE"
 
 if ((elapsed_epoch >= 6000)) || ((msg_cnt == 0)) || [ "$FORCE" = 1 ] ; then
     # Update message index file
@@ -278,3 +319,7 @@ if ((elapsed_epoch >= 6000)) || ((msg_cnt == 0)) || [ "$FORCE" = 1 ] ; then
 else
     echo "Using existing index file: $last_dirfile, no update at this time."
 fi
+
+clean_up "$msg_rootfile"
+clean_up "$dir_rootfile"
+clean_up "$session_rootfile"
