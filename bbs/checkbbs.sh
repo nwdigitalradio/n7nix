@@ -7,21 +7,34 @@
 #
 DEBUG=1
 FORCE=0
+SENDTO="gunn@beeble.localnet"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function usage
 
 function usage() {
-   echo "Usage: $scriptname [-m <msg_num>][-a][-f][-h]" >&2
-   echo "   -m <msg_num> Read message number"
+   echo "Usage: $scriptname [-r <msg_num>][-a][-d][-f][-l][-h]" >&2
+   echo "   -r <msg_num> Read message number"
    echo "   -a Read all messages"
-   echo "   -i Show message indexes"
-   echo "   -f Force refreshing local BBS files"
    echo "   -d set debug flag"
    echo "   -D dump bbs files"
+   echo "   -f Force refreshing local BBS files"
+   echo "   -l Display message indexes"
    echo "   -h no arg, display this message"
    echo
+}
+
+# ===== function notify_new_msg()
+
+function notify_new_msg() {
+    if [ -e "$1" ] ; then
+        subject="bbs message notify: $date_now"
+        mutt  -s "$subject" $SENDTO  < $1
+        echo "Notification sent to: $SENDTO"
+    else
+        echo "notify: message file: $1 does not exist"
+    fi
 }
 
 # ===== function dump_bbs_files()
@@ -90,12 +103,19 @@ readmsg_all() {
     msg_x_file=$(ls -t $msg_rootfile* | head -1)
 
     echo "message count: $msgcnt"
-    for ((mn =1; mn <= $msgcnt; mn++)) ; do
-        msg_num=$((msgcnt - mn + 1))
+    # Create a list of message numbers from message index file
+    msg_num_list=
+    while read -r line ; do
+        msg_num_list="$msg_num_list $(echo $line |cut -d " " -f1)"
+    done < $dir_file
+    echo "DEBUG: msg_num_list $msg_num_list"
+
+    for mn in `echo $msg_num_list` ; do
         echo
-        echo "===== message: $msg_num"
+        echo "===== message: $mn"
 #        awk -vN=$mn 'n>=N;/ENTER COMMAND: .*/{++n}' $msg_x_file | grep -E -B 9999 -m1 "(ENTER COMMAND: | *** Cleared)" | sed '$d'
-        awk -vN=$mn 'n>=N;/ENTER COMMAND: .*/{++n}' $msg_x_file | grep -E -B 9999 -m1 "ENTER COMMAND: " | sed '$d'
+#        awk -vN=$mn 'n>=N;/ENTER COMMAND: .*/{++n}' $msg_x_file | grep -E -B 9999 -m1 "ENTER COMMAND: " | sed '$d'
+        grep -A 9999 MSG#$mn $msg_x_file | grep -E -B 9999 -m1 "ENTER COMMAND: " | sed '$d'
     done
 }
 
@@ -130,6 +150,30 @@ printf "b\n"
 
     dir_file=${dir_rootfile}_$date_now.txt
     create_msg_index $dir_file
+}
+
+# ===== function cmp_msg_index()
+
+function cmp_msg_index() {
+    indexfile_cnt=$(ls -1 $dir_rootfile* | wc -l)
+
+    # Verify that there are 2 previous index files for comparison
+    if (( indexfile_cnt >= 2 )) ; then
+        last_dirfile=$(ls -t $dir_rootfile* | head -1)
+        set -- $(ls -t $dir_rootfile*)
+        prev_dirfile=$2
+        echo "cmp_msg_index: last file: $last_dirfile, prev file: $prev_dirfile"
+        diff $last_dirfile $prev_dir_file   > /dev/null 2>&1
+        if [ "$?" -eq 0 ] ; then
+            echo "cmp_msg_index: No changes found on bbs."
+        else
+            echo "cmp_msg_index: message index has changed"
+        #    get_bbs_msgs
+            notify_new_msg $(ls -t $msg_rootfile* | head -1)
+        fi
+    else
+        echo "cmp_msg_index: No previous index file to compare"
+    fi
 }
 
 # ===== function display_msg_index()
@@ -261,8 +305,8 @@ case $key in
 
    -f|--force)
        FORCE=1
-       get_bbs_msgs
-       exit 0
+#       get_bbs_msgs
+#       exit 0
    ;;
    -l|-list)
        display_msg_index
@@ -303,20 +347,11 @@ echo "Refresh decision: elpased time: $elapsed_epoch, Message count: $msg_cnt, F
 if ((elapsed_epoch >= 6000)) || ((msg_cnt == 0)) || [ "$FORCE" = 1 ] ; then
     # Update message index file
     get_msg_index
+    cmp_msg_index
 
-    # Verify that there is a previous index file
-    if [ ! -z "$last_dirfile" ] ; then
-        diff $last_dirfile $dir_file   > /dev/null 2>&1
-        if [ "$?" -eq 0 ] ; then
-            echo "No new messages found on bbs."
-        else
-            echo "Update index file & msg file."
-            get_bbs_msgs
-        fi
-    else
-        echo "No previous index file to compare"
-    fi
 else
+    # Test only
+    cmp_msg_index
     echo "Using existing index file: $last_dirfile, no update at this time."
 fi
 
