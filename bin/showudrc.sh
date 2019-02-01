@@ -101,20 +101,6 @@ function audio_display_ctrl() {
    dbgecho "$alsa_ctrl: Right $PCM_VAL"
 }
 
-# ===== function audio_display_ctrl
-
-function audio_display_ctrl() {
-   alsa_ctrl="$1"
-   PCM_STR="$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i "Simple mixer control")"
-   dbgecho "$alsa_ctrl: $PCM_STR"
-   PCM_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 1 "db")
-   CTRL_VAL_L=${PCM_VAL##* }
-   dbgecho "$alsa_ctrl: Left $PCM_VAL"
-   PCM_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 2 "db" | tail -n 1 | cut -d ' ' -f5-)
-   CTRL_VAL_R=${PCM_VAL##* }
-   dbgecho "$alsa_ctrl: Right $PCM_VAL"
-}
-
 # ===== function display_ctrl
 
 function display_ctrl() {
@@ -207,6 +193,36 @@ fi
 
 }
 
+# ===== function check locale settings
+# Compare X11 layout settings with WPA settings
+
+function check_locale() {
+    wificonf_file="/etc/wpa_supplicant/wpa_supplicant.conf"
+    x11_country=$(localectl status | grep "X11 Layout" | cut -d ':' -f2)
+    # Remove preceeding white space
+    x11_country="$(sed -e 's/^[[:space:]]*//' <<<"$x11_country")"
+    # Convert to upper case
+    x11_country=$(echo "$x11_country" | tr '[a-z]' '[A-Z]')
+
+
+    if [ -e "$wificonf_file" ] ; then
+        # Compare country code in WiFi config file with X11 layout config
+
+        wifi_country=$(grep -i "country=" "$wificonf_file" | cut -d '=' -f2)
+        # Remove preceeding white space
+        wifi_country="$(sed -e 's/^[[:space:]]*//' <<<"$wifi_country")"
+        # Convert to upper case
+        x11_country=$(echo "$x11_country" | tr '[a-z]' '[A-Z]')
+
+        if [ "$x11_country" == "$wifi_country" ] ; then
+            echo "Locale country codes consistent between WiFi & X11, $wifi_country"
+        else
+            echo "Locale country codes do not match: WiFi: $wifi_country & X11: $x11_country"
+        fi
+    else
+        echo "Local country code check: WiFi config file: $wificonf_file, does not exist, locale: $x11_country"
+    fi
+}
 # ===== Main
 
 # Verify that aplay enumerates udrc sound card
@@ -429,5 +445,13 @@ chronyc sourcestats
 echo
 echo "---- sensors"
 ls -alt /etc/sensors.d/*
-sensors
-
+# Check if sensors command has been installed.
+type -P sensors >/dev/null 2>&1
+if [ "$?" -ne 0 ] ; then
+    echo "sensors program not installed"
+    echo
+else
+    sensors
+fi
+echo "---- locale"
+sudo bash -c "$(declare -f check_locale) ; check_locale"
