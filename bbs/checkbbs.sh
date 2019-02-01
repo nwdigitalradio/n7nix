@@ -14,13 +14,14 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # ===== function usage
 
 function usage() {
-   echo "Usage: $scriptname [-r <msg_num>][-a][-d][-f][-l][-h]" >&2
+   echo "Usage: $scriptname [-r <msg_num>][-a][-d][-f][-l][-sb][-sp][-h]" >&2
    echo "   -r <msg_num> Read message number"
    echo "   -a Read all messages"
    echo "   -d set debug flag"
    echo "   -D dump bbs files"
    echo "   -f Force refreshing local BBS files"
    echo "   -l Display message indexes"
+   echo "   -s Send to BBS"
    echo "   -h no arg, display this message"
    echo
 }
@@ -168,7 +169,7 @@ function cmp_msg_index() {
             echo "cmp_msg_index: No changes found on bbs."
         else
             echo "cmp_msg_index: message index has changed"
-        #    get_bbs_msgs
+            get_bbs_msgs
             notify_new_msg $(ls -t $msg_rootfile* | head -1)
         fi
     else
@@ -225,6 +226,41 @@ printf "b\n"
 
 } | (call -r -s N7NIX -T 30 -W udr0 nixbbs) > $msg_file 2>&1
 
+
+}
+
+# ===== function send_to_bbs()
+# arg b= bulletin, p=priviate
+function send_to_bbs() {
+outbox_dir="outbox"
+
+if [ ! -d "./$outbox_dir" ] ; then
+    echo "Outbox directory does not exist."
+    exit 1
+fi
+msgcnt=0
+
+for file in $(ls ./$outbox_dir/*) ; do
+    type_line=$(grep -i "type:" $file | cut -d ':' -f2)
+    # Remove preceeding white space
+    type_line="$(sed -e 's/^[[:space:]]*//' <<<"$type_line")"
+
+    callsign_line=$(grep -i "callsign:" $file | cut -d ':' -f2)
+    # Remove preceeding white space
+    callsign_line="$(sed -e 's/^[[:space:]]*//' <<<"$callsign_line")"
+
+    subject_line=$(grep -i "subject:" $file | cut -d ':' -f2)
+    # Remove preceeding white space
+    subject_line="$(sed -e 's/^[[:space:]]*//' <<<"$subject_line")"
+
+    echo "type: $type_line"
+    echo "call sign: $callsign_line"
+    echo "subject: $subject_line"
+    echo "eval subject: $(eval $subject_line)"
+    filecnt=$((filecnt + 1))
+done
+
+echo "Number of messages in outbox: $filecnt"
 
 }
 
@@ -294,7 +330,6 @@ case $key in
        readmsg_all
        exit 0
    ;;
-
    -r|--read)
        msg_num="$2"
        shift # past argument
@@ -302,14 +337,17 @@ case $key in
        readmsg_num $msg_num
        exit 0
    ;;
-
    -f|--force)
        FORCE=1
 #       get_bbs_msgs
 #       exit 0
    ;;
-   -l|-list)
+   -l|--list)
        display_msg_index
+       exit 0
+   ;;
+   -s|--send)
+       send_to_bbs b
        exit 0
    ;;
    -h|--help|?)
@@ -348,7 +386,6 @@ if ((elapsed_epoch >= 6000)) || ((msg_cnt == 0)) || [ "$FORCE" = 1 ] ; then
     # Update message index file
     get_msg_index
     cmp_msg_index
-
 else
     # Test only
     cmp_msg_index
