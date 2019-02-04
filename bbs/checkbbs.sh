@@ -8,6 +8,7 @@
 DEBUG=1
 FORCE=0
 SENDTO="gunn@beeble.localnet"
+BBS_CALL="nixbbs"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -71,10 +72,7 @@ readmsg_num() {
     readnum="$1"
     dir_file=$(ls -t $dir_rootfile* | head -1)
     msg_cnt="$(cat $dir_file | wc -l)"
-    if (( readnum > msg_cnt )) ; then
-        echo "Only $msg_cnt messages on BBS."
-        exit 1
-    fi
+
     msg_x_file=$(ls -t $msg_rootfile* | head -1)
     msg_numbers=
     dbgecho "Reading msg # $readnum, total msgs: $msg_cnt, from file: $msg_x_file"
@@ -145,43 +143,15 @@ function get_msg_index() {
 {
 sleep  2
 printf "l\n"
+sleep 8
 sleep 4
+printf "\n"
 printf "b\n"
-} | (call -r -s N7NIX -T 30 -W udr0 nixbbs) > ${session_rootfile}_$date_now.txt
+sleep 2
+} | (call -r -s N7NIX -T 30 -W udr0 $BBS_CALL) > ${session_rootfile}_$date_now.txt
 
     dir_file=${dir_rootfile}_$date_now.txt
     create_msg_index $dir_file
-}
-
-# ===== function cmp_msg_index()
-
-function cmp_msg_index() {
-    indexfile_cnt=$(ls -1 $dir_rootfile* | wc -l)
-
-    # Verify that there are 2 previous index files for comparison
-    if (( indexfile_cnt >= 2 )) ; then
-        last_dirfile=$(ls -t $dir_rootfile* | head -1)
-        set -- $(ls -t $dir_rootfile*)
-        prev_dirfile=$2
-        echo "cmp_msg_index: last file: $last_dirfile, prev file: $prev_dirfile"
-        diff $last_dirfile $prev_dir_file   > /dev/null 2>&1
-        if [ "$?" -eq 0 ] ; then
-            echo "cmp_msg_index: No changes found on bbs."
-        else
-            echo "cmp_msg_index: message index has changed"
-            get_bbs_msgs
-            notify_new_msg $(ls -t $msg_rootfile* | head -1)
-        fi
-    else
-        echo "cmp_msg_index: No previous index file to compare"
-    fi
-}
-
-# ===== function display_msg_index()
-
-function display_msg_index() {
-    dir_file=$(ls -t $dir_rootfile* | head -1)
-    cat "$dir_file"
 }
 
 # ===== function get_bbs_msgs()
@@ -222,16 +192,51 @@ sleep $sleepb4call
 eval $readcmd
 
 sleep 8
+sleep 4
+printf "\n"
 printf "b\n"
 
-} | (call -r -s N7NIX -T 30 -W udr0 nixbbs) > $msg_file 2>&1
+} | (call -r -s N7NIX -T 30 -W udr0 $BBS_CALL) > $msg_file 2>&1
 
 
 }
 
+# ===== function cmp_msg_index()
+
+function cmp_msg_index() {
+    indexfile_cnt=$(ls -1 $dir_rootfile* | wc -l)
+
+    # Verify that there are 2 previous index files for comparison
+    if (( indexfile_cnt >= 2 )) ; then
+        last_dirfile=$(ls -t $dir_rootfile* | head -1)
+        set -- $(ls -t $dir_rootfile*)
+        prev_dirfile=$2
+        echo "cmp_msg_index: last file: $last_dirfile, prev file: $prev_dirfile"
+        diff $last_dirfile $prev_dir_file   > /dev/null 2>&1
+        if [ "$?" -eq 0 ] ; then
+            echo "cmp_msg_index: No changes found on bbs."
+        else
+            echo "cmp_msg_index: message index has changed"
+            get_bbs_msgs
+            notify_new_msg $(ls -t $msg_rootfile* | head -1)
+        fi
+    else
+        echo "cmp_msg_index: No previous index file to compare"
+    fi
+}
+
+# ===== function display_msg_index()
+
+function display_msg_index() {
+    dir_file=$(ls -t $dir_rootfile* | head -1)
+    cat "$dir_file"
+}
+
 # ===== function send_to_bbs()
 # arg b= bulletin, p=priviate
+
 function send_to_bbs() {
+bulletin_call="SJCACS"
 outbox_dir="outbox"
 
 if [ ! -d "./$outbox_dir" ] ; then
@@ -239,26 +244,41 @@ if [ ! -d "./$outbox_dir" ] ; then
     exit 1
 fi
 msgcnt=0
-
+sendcmd=""
 for file in $(ls ./$outbox_dir/*) ; do
+    filecnt=$((filecnt + 1))
+
     type_line=$(grep -i "type:" $file | cut -d ':' -f2)
     # Remove preceeding white space
     type_line="$(sed -e 's/^[[:space:]]*//' <<<"$type_line")"
 
     callsign_line=$(grep -i "callsign:" $file | cut -d ':' -f2)
     # Remove preceeding white space
-    callsign_line="$(sed -e 's/^[[:space:]]*//' <<<"$callsign_line")"
+    callsign="$(sed -e 's/^[[:space:]]*//' <<<"$callsign_line")"
 
     subject_line=$(grep -i "subject:" $file | cut -d ':' -f2)
     # Remove preceeding white space
-    subject_line="$(sed -e 's/^[[:space:]]*//' <<<"$subject_line")"
+    subject="$(sed -e 's/^[[:space:]]*//' <<<"$subject_line")"
 
-    echo "type: $type_line"
-    echo "call sign: $callsign_line"
-    echo "subject: $subject_line"
-    echo "eval subject: $(eval $subject_line)"
-    filecnt=$((filecnt + 1))
+    echo "Proposal $filecnt: type: $type_line, call sign: $callsign, subject: $subject"
+
+    sendcmd="$sendcmd printf \"sb $callsign\n\"; sleep '2s'; printf \"$subject\n\"; sleep '2s' ; tail -n +5 $file ; sleep '4s' ;"
+
 done
+
+echo "senddcmd: $sendcmd"
+testcode="true"
+
+if [ "$testcode" == "true" ] ; then
+{
+eval $sendcmd
+
+sleep 4
+printf "b\n"
+
+} | (call -r -s N7NIX -T 30 -W udr0 $BBS_CALL)
+
+fi
 
 echo "Number of messages in outbox: $filecnt"
 
@@ -290,9 +310,9 @@ done
 # ===== main
 
 date_now=$(date "+%Y%m%d_%H%M")
-session_rootfile="nixbbs2m_session"
-dir_rootfile="nixbbs2m_dir"
-msg_rootfile="nixbbs2m_msg"
+session_rootfile="${BBS_CALL}2m_session"
+dir_rootfile="${BBS_CALL}2m_dir"
+msg_rootfile="${BBS_CALL}2m_msg"
 
 ALL_MSGS="false"
 FORCE=0
