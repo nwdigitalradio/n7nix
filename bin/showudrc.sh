@@ -436,12 +436,19 @@ echo
 echo "---- chrony"
 systemctl status gpsd
 ls -al /dev/pps* /dev/ttySC*
-echo "-- chrony sources"
-chronyc sources
-echo "-- chrony tracking"
-chronyc tracking
-echo "-- chrony sourcestats"
-chronyc sourcestats
+
+# Check if chronyc is installed
+type -P chronyc &>/dev/null
+if [ $? -ne 0 ] ; then
+   echo "----- No chronyc program found in path"
+else
+    echo "-- chrony sources"
+    chronyc sources
+    echo "-- chrony tracking"
+    chronyc tracking
+    echo "-- chrony sourcestats"
+    chronyc sourcestats
+fi
 echo
 echo "---- sensors"
 ls -alt /etc/sensors.d/*
