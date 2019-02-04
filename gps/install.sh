@@ -2,7 +2,7 @@
 #
 # Add: WantedBy=multi-user.target
 # To [Install] in: /lib/systemd/system/gpsd.service
-# Also have to a systemctl enable gpsd.service
+# Also have to systemctl enable gpsd.service
 #
 # Uncomment this statement for debug echos
 # DEBUG=1
@@ -19,7 +19,6 @@ echo "Setup default gpsd file"
 sudo  tee /etc/default/gpsd > /dev/null << EOT
 # Configure gpsd
 START_DAEMON="true"
-USBAUTO="true"
 DEVICES="/dev/ttySC0 /dev/pps0"
 GPSD_OPTIONS="-n"
 EOT
