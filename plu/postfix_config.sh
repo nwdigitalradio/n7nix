@@ -124,7 +124,7 @@ grep "transport_maps" "$postfix_main_cfg_file"
 if [ $? -ne 0 ] ; then
     # Comment out previous 'inet_protocols =' entry
     sed -i -e "/^inet_protocols =/ s/^/# /" $postfix_main_cfg_file
-    cat << EOT >> $postfix_main_cfg_file"
+    cat << EOT >> "$postfix_main_cfg_file"
 
 inet_protocols = ipv4
 transport_maps = hash:/etc/postfix/transport
@@ -133,7 +133,9 @@ EOT
 fi
 
 POSTFIX_DESTINATION='$myhostname.localhost, $myhostname, localhost.localdomain, localhost'
-sed -i -e "/mydestination=/ s/mydestination=.*/mydestination=$POSTFIX_DESTINATION/" $postfix_main_cfg_file
+sed -i -e "/mydestination = / s/mydestination =.*/mydestination=$POSTFIX_DESTINATION/" $postfix_main_cfg_file
+sed -i -e "/myhostname = / s/myhostname = .*/myhostname = $(hostname).localnet/" $postfix_main_cfg_file
+sed -i -e "/inet_protocols = / s/inet_protocols = .*/inet_protocols = ipv4/" $postfix_main_cfg_file
 
 # Specify a pathname ending in "/" for qmail-style delivery.
 # This needs to match mail client & dovecot configuration.
