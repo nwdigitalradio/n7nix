@@ -8,8 +8,8 @@ wl2ktransport="/usr/local/bin/wl2ktelnet -s"
 
 #CALLSIGN="N7NIX"
 #REALNAME="Basil Gunn"
-CALLSIGN="KD5MKV"
-REALNAME="Steve Rogers"
+CALLSIGN="KD9FRQ"
+REALNAME="Ed Bloom"
 
 sendto_wl=n7nix@winlink.org
 sendto_local="$USER@localhost"
@@ -175,7 +175,8 @@ dump_maillog() {
 
 # ===== function dump_files
 dump_files() {
-filelist="/etc/hostname /etc/hosts /etc/postfix/main.cf /usr/local/etc/wl2k.conf /var/mail/kd5mkv"
+
+filelist="/etc/hostname /etc/hosts /etc/postfix/main.cf /usr/local/etc/wl2k.conf /var/mail/$USER"
 {
    for fname in `echo ${filelist}` ; do
 
