@@ -1,3 +1,19 @@
+
+Mon Feb  4 15:21:48 PST 2019  Basil Gunn <basil@pacabunga.com>
+
+  * Image BETA8 release
+    * Install John's Draws-Manager
+    * Fix bug with ax25-stop script leaving a daemon in limbo
+      * Extra character on line
+    * Clean-up dovecot install for using claws-mail with paclink-unix
+    * mutt install: require package gpgsm
+    * ax25-status: Add display of ax25 device ip address & network status
+    * ax25-status: Add display of ax25dev.service log entries
+    * showudrc.sh: Add check for DRAWS tlv320aic driver load
+    * showudrc.sh: Add check for gps devices pps & ttySC
+    * showudrc.sh: Add display of syslog entries for udrc
+    * Add BBS batch mode with script for call program
+
 Thu Jan  3 08:19:18 PST 2019  Basil Gunn <basil@pacabunga.com>
 
   * Image BETA7 release
