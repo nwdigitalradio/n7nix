@@ -97,35 +97,44 @@ if [ ! -f /etc/ssl/certs/dovecot.pem ] ; then
 fi
 
 # modify dovecot config files
-sed -i -e "/auth_mechanisms =/ s/auth_mechanisms =.*/auth_mechanisms = plain login/" /etc/dovecot/conf.d/10-auth.conf
-sed -i -e "/disable_plaintext_auth/ s/#disable_plaintext_auth =.*/disable_plaintext_auth = no/" /etc/dovecot/conf.d/10-auth.conf
+
+dovecot_cfg_dir="/etc/dovecot/conf.d"
+dovecot_cfg_file="$dovecot_cfg_dir/10-auth.conf"
+
+sed -i -e "/auth_mechanisms =/ s/auth_mechanisms =.*/auth_mechanisms = plain login/"  $dovecot_cfg_file
+sed -i -e "/disable_plaintext_auth/ s/#disable_plaintext_auth =.*/disable_plaintext_auth = no/"  $dovecot_cfg_file
 
 # Only edit line if it is not a comment
-sed -i -e "/^mail_location/ s|mail_location =.*|mail_location = maildir:~/Mail|" /etc/dovecot/conf.d/10-mail.conf
-sed -i -e "/mail_privileged_group =/ s/#mail_privileged_group =.*/mail_privileged_group = mail/" /etc/dovecot/conf.d/10-mail.conf
+sed -i -e "/^mail_location/ s|mail_location =.*|mail_location = maildir:~/Mail|" $dovecot_cfg_file
+sed -i -e "/mail_privileged_group =/ s/#mail_privileged_group =.*/mail_privileged_group = mail/"  $dovecot_cfg_file
 
 # For service imap-login
-sed -i -e "/port = 143/ s/#port = 143/port = 143/" /etc/dovecot/conf.d/10-master.conf
-sed -i -e "/port = 993/ s/#port = 993/port = 993/" /etc/dovecot/conf.d/10-master.conf
-sed -i -e "/inet_listener imaps {/,/}/ s/#ssl =.*/ssl = yes/" /etc/dovecot/conf.d/10-master.conf
+dovecot_cfg_file="$dovecot_cfg_dir/10-master.conf"
+
+sed -i -e "/port = 143/ s/#port = 143/port = 143/"  $dovecot_cfg_file
+sed -i -e "/port = 993/ s/#port = 993/port = 993/"  $dovecot_cfg_file
+sed -i -e "/inet_listener imaps {/,/}/ s/#ssl =.*/ssl = yes/"  $dovecot_cfg_file
 # Might have to configure a unix_listener for postfix smtp-auth
 
-grep -i "#unix_listener \/var\/spool\/postfix\/private\/auth" /etc/dovecot/conf.d/10-master.conf  > /dev/null 2>&1
+grep -i "#unix_listener \/var\/spool\/postfix\/private\/auth"  $dovecot_cfg_file
 if [ $? -eq 0 ] ; then
    sed -i -e '/  # Postfix smtp-auth/a\
   unix_listener \/var\/spool\/postfix\/private\/auth {\
-    mode = 0666\n    user = postfix\n    group = postfix\n   }\n' /etc/dovecot/conf.d/10-master.conf
+    mode = 0666\n    user = postfix\n    group = postfix\n   }\n'  $dovecot_cfg_file
 
    # delete the line with #unix_listener and the two lines following
-   sed -i -e  "/#unix_listener \/var\/spool\/postfix\/private\/auth/,+2 d" /etc/dovecot/conf.d/10-master.conf
+   sed -i -e  "/#unix_listener \/var\/spool\/postfix\/private\/auth/,+2 d" $dovecot_cfg_file
 else
-   echo "unix_listener already configured in /etc/dovecot/conf.d/10-master.conf"
+   echo "unix_listener already configured in $dovecot_cfg_file"
 fi
+
 # Turn ssl on
-sed -i -e "/ssl =/ s/ssl =.*/ssl = yes/" /etc/dovecot/conf.d/10-ssl.conf
-sed -i -e "/#ssl_cert / s|#ssl_cert =.*|ssl_cert = </etc/ssl/certs/dovecot.pem|" /etc/dovecot/conf.d/10-ssl.conf
-sed -i -e "/#ssl_key / s|#ssl_key =.*|ssl_key = </etc/ssl/private/dovecot.pem|" /etc/dovecot/conf.d/10-ssl.conf
-sed -i -e "/#ssl_protocols =/ s/#ssl_protocols =.*/ssl_protocols = !SSLv2 !SSLv3/" /etc/dovecot/conf.d/10-ssl.conf
+dovecot_cfg_file="$dovecot_cfg_dir/10-ssl.conf"
+
+sed -i -e "/ssl =/ s/ssl =.*/ssl = yes/" $dovecot_cfg_file
+sed -i -e "/#ssl_cert / s|#ssl_cert =.*|ssl_cert = </etc/ssl/certs/dovecot.pem|" $dovecot_cfg_file
+sed -i -e "/#ssl_key / s|#ssl_key =.*|ssl_key = </etc/ssl/private/dovecot.pem|" $dovecot_cfg_file
+sed -i -e "/#ssl_protocols =/ s/#ssl_protocols =.*/ssl_protocols = !SSLv2 !SSLv3/" $dovecot_cfg_file
 
 # uncomment listen config line
 sed -i -e "/#listen / s/^#//" /etc/dovecot/dovecot.conf
