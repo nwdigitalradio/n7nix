@@ -167,8 +167,8 @@ echo "nobody:  $USER"
 
 newaliases
 
-# Confirm postfix is running
-start_service "postfix.service"
+# restart postfix for new configuration to take affect
+service postfix restart
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: postfix config script FINISHED" | tee -a $UDR_INSTALL_LOGFILE

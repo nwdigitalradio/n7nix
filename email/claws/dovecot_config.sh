@@ -121,7 +121,7 @@ if [ $? -ne 0 ] ; then
     apt-get install -y -q $pkg_name
 fi
 
-# Edit these files in /etc/dovecot: dovecot.conf
+# ===== Edit this file in /etc/dovecot: dovecot.conf =====
 dovecot_cfg_dir="/etc/dovecot"
 dovecot_cfg_file="$dovecot_cfg_dir/dovecot.conf"
 
@@ -135,16 +135,18 @@ postmaster_address = $USER@$(hostname)
 auth_debug_passwords=yes
 EOT
 
-# Edit these files in /etc/dovecot/conf.d
+# ===== Edit these files in /etc/dovecot/conf.d =====
+# ==== 10-auth` ====
 dovecot_cfg_dir="/etc/dovecot/conf.d"
 dovecot_cfg_file="$dovecot_cfg_dir/10-auth.conf"
+
 ## disable_plaintext_auth = no
 ## auth_mechanisms = plain login
 sed -i -e "/^[#]disable_plaintext_auth =/ s/disable_plaintext_auth =.*/disable_plaintext_auth = no/" $dovecot_cfg_file
 sed -i -e "/auth_mechanisms =/ s/auth_mechanisms =.*/auth_mechanisms = plain login/" $dovecot_cfg_file
 
+# ==== 10-mail ====
 dovecot_cfg_file="$dovecot_cfg_dir/10-mail.conf"
-## mail_location = maildir:~/Mail
 
 # Comment out any mail_location lines
 sed -i -e "/^mail_location =/ s/^/# /" $dovecot_cfg_file
@@ -153,12 +155,13 @@ sed -i -e "/^mail_location =/ s/^/# /" $dovecot_cfg_file
 #sed -i -e 's|^[#]mail_location = |mail_location = maildir:~/Mail\n&|'  $dovecot_cfg_file
 #awk 'FNR==NR{ if (/mail_location =/) p=NR; next} 1; FNR==p{ print "mail_location = maildir:~/Mail\n" }' $dovecot_cfg_file $dovecot_cfg_file
 
-# Add line after last occurrence of 'mail_location = '
+# Set new mail_location by adding line after last occurrence of 'mail_location = '
 sed -i -e '/mail_location = [^\n]*/,$!b;//{x;//p;g};//!H;$!d;x;s//&\nmail_location = maildir:~\/Mail/' $dovecot_cfg_file
 
 ## mail_privileged_group = mail
 sed -i -e "/^[#]mail_privileged_group =/ s/^[#]mail_privileged_group =.*/mail_privileged_group = mail/" $dovecot_cfg_file
 
+# ==== 10-master ====
 dovecot_cfg_file="$dovecot_cfg_dir/10-master.conf"
 ## in service imap-login
 ##     port = 143
@@ -168,8 +171,22 @@ sed -i -e "/#port = 143/ s/#port = 143/port = 143/" $dovecot_cfg_file
 ##    ssl = yes
 sed -i -e "/#port = 993/ s/#port = 993/port = 993/" $dovecot_cfg_file
 
-# Confirm dovecot is running
-start_service "dovecot.service"
+# Search for 'ssl =' after service imap login
+imapssl_line=$(grep -A 15 -i "service imap-login" $dovecot_cfg_file | grep -i "ssl = " | sed 's/^ *//')
+
+echo "imap ssl line: $imapssl_line"
+
+if [[ "${imapssl_line:0:1}" == "#" ]] ; then
+    echo " Found comment character in first char of line: $imapssl_line"
+else
+    echo " Commenting imap ssl line."
+#    sed -i '/ssl =/ s/\(^.*ssl = .*$\)/#\ \1/' $dovecot_cfg_file
+    sed -i '0,/ssl =/ s/\(.*ssl = .*$\)/#\ \1/' $dovecot_cfg_file
+fi
+# grep -i "ssl =" $dovecot_cfg_file
+
+# restart dovecot for new configuration to take affect
+service dovecot restart
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: dovecot config FINISHED" | tee -a $UDR_INSTALL_LOGFILE
