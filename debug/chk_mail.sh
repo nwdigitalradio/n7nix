@@ -2,14 +2,16 @@
 #
 # Verify email configuration for winlink using postfix
 #
+# DEBUG=1
+
 scriptname="`basename $0`"
 USER=$(whoami)
 wl2ktransport="/usr/local/bin/wl2ktelnet -s"
 
-#CALLSIGN="N7NIX"
-#REALNAME="Basil Gunn"
-CALLSIGN="KD9FRQ"
-REALNAME="Ed Bloom"
+REALNAME="ANONYMOUS"
+
+FAUXSIGN="N0ONE"
+CALLSIGN="$FAUXSIGN"
 
 sendto_wl=n7nix@winlink.org
 sendto_local="$USER@localhost"
@@ -24,11 +26,48 @@ PLU_VAR_DIR="/usr/local/var/wl2k"
 outboxdir="$PLU_VAR_DIR/outbox"
 INDEX_FILENAME="$TMPDIR/indexfile.txt"
 MSG_FILENAME="$TMPDIR/testmsg.txt"
+AXPORTS_FILE="/etc/ax25/axports"
 
 MUTT="/usr/bin/mutt"
 # Set boolean for this script generated email body
 bgenbody="false"
 outboxfile_cnt=0
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function callsign_axports
+# Pull a call sign from the /etc/ax25/axports file
+
+function callsign_axports () {
+   echo "Pulling callsign from axports file"
+   linecnt=$(grep -vc '^#' $AXPORTS_FILE)
+   if (( linecnt > 1 )) ; then
+      dbgecho "axports: found $linecnt lines that are not comments"
+   fi
+   # Collapse all spaces on lines that do not begin with a comment
+   getline=$(grep -v '^#' $AXPORTS_FILE | tr -s '[[:space:]] ')
+   dbgecho "axports: found line: $getline"
+
+   # Only set CALLSIGN if they haven't already been set manually
+   if [ "$CALLSIGN" = "$FAUXSIGN" ] ; then
+      CALLSIGN=$(echo $getline | cut -d ' ' -f2 | cut -d '-' -f1)
+   else
+      dbgecho "callsign_axports: Call sign already set to $CALLSIGN, would have used: $(echo $getline | cut -d ' ' -f2 | cut -d '-' -f1)"
+   fi
+}
+
+# ===== function callsign_verify
+
+function callsign_verify() {
+   if [ "$CALLSIGN" = "$FAUXSIGN" ] ; then
+      echo "$scriptname: need to edit this script with your CALLSIGN"
+      exit 1
+   fi
+
+   dbgecho "Callsign verify passed: $CALLSIGN"
+}
+
+#
 
 # ===== function chk_perm
 # Check permissions of the winlink outbox directory
@@ -63,7 +102,7 @@ if (( $filecount > 0 )) ; then
    echo " Files in outbox: $filecount for callsign: $CALLSIGN"
    outboxfiles=$(ls -1 ${PLU_VAR_DIR}/outbox/*_$CALLSIGN)
    if [ ! -z "$outboxfiles" ] ; then
-      outboxfile_cnt="$outboxfiles"
+      outboxfile_cnt=$(echo $outboxfiles | wc -l)
       for filename in `echo ${outboxfiles}` ; do
          echo "==== email: $filename"
          cat $filename
@@ -205,8 +244,22 @@ chk_spool_file() {
 } >> $email_logfile
 }
 
+# ===== function get_realname
+
+function get_realname() {
+# Check if REALNAME variable has been manually set in this script
+if [ "$REALNAME" = "ANONYMOUS" ] ; then
+    echo -n "Enter your real name ie. Joe Blow, followed by [enter]"
+    # -p display PROMPT without a trailing new line
+    # -e readline is used to obtain the line
+    read -ep ": " REALNAME
+fi
+}
+
 # ===== function config_mutt
 config_mutt() {
+
+muttcfg_file="/home/$USER/.muttrc"
 
 # Set directory where mail will stored
 #  Must match folder & spoolfile directories in .muttrc file below
@@ -224,10 +277,12 @@ if [ ! -d $MAILDIR ] ; then
 fi
 
 # Check if .muttrc file exists
-if [ ! -f "/home/$USER/.muttrc" ] ; then
+if [ ! -f "$muttcfg_file" ] ; then
+   get_realname
+
    # Create a .muttrc heredoc without parameter expansion
    echo "Creating a new .muttrc file" >> $email_logfile
-   cat << 'EOT' > /home/$USER/.muttrc
+   cat << 'EOT' > $muttcfg_file
 set editor="nano"			# light weight emacs type editor
 set hostname="winlink.org"
 set alias_file=~/.mutt/aliases	# if you have an aliases file:
@@ -283,12 +338,21 @@ EOT
    echo "set from=$CALLSIGN@winlink.org	# set default 'from:' address"
    echo "set realname=\"$REALNAME\""
    echo "my_hdr Reply-To: $CALLSIGN@winlink.org"
-} >> /home/$USER/.muttrc
+} >> $muttcfg_file
 else
-   echo ".muttrc file already exists" >> $email_logfile
+    echo ".muttrc file already exists" >> $email_logfile
+    realname=$(grep -i "set realname" $muttcfg_file | cut -d '=' -f2)
+
+    if [ -z "$realname" ] ; then
+        echo "No real name found"
+        get_realname
+    else
+        REALNAME=$realname
+    fi
+    echo "Using Real Name: $REALNAME"
 fi
 
-chown $USER:$USER /home/$USER/.muttrc
+chown $USER:$USER $muttcfg_file
 }
 
 # ===== function outbox_check()
@@ -378,6 +442,20 @@ if [ $? -ne 0 ] ; then
    fi
 fi
 
+# Variables CALLSIGN & REALNAME are required by mutt
+# Check if the callsign has been manually set in this script
+dbgecho "Check callsign1 $CALLSIGN"
+
+if [ "${CALLSIGN}" = "$FAUXSIGN" ] ; then
+    callsign_axports
+else
+    echo "CALLSIGN not $FAUXSIGN, $CALLSIGN"
+fi
+
+echo "Call sign set to $CALLSIGN"
+
+callsign_verify
+
 chk_spool_file
 config_mutt
 get_last_maillog
@@ -398,6 +476,7 @@ send_email $sendto_local
 echo " ==== chk_perm 2" >> $email_logfile
 chk_perm
 count_files_ob
+
 echo " ==== dump_maillog"  >> $email_logfile
 dump_maillog
 dump_files
