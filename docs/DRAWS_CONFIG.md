@@ -92,6 +92,9 @@ other packet programs that will use _direwolf_ such as rmsgw,
 paclink-unix, etc:
 
 ```bash
+cd
+cd n7nix/config
+sudo su
 ./app_config.sh rmsgw
 ./app_config.sh plu
 ```
