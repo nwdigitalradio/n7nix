@@ -100,8 +100,9 @@ check_user
 program_name="postfix"
 type -P $program_name &>/dev/null
 if [ $? -ne 0 ] ; then
-   echo "$scriptname: No $program_name program found in path ... exiting"
-   exit 1
+   echo "$scriptname: No $program_name program found in path ... installing"
+   # Program name & package name are the same
+   apt-get install -y -q $program_name
 else
    dbgecho "Program: $program_name  found"
 fi
