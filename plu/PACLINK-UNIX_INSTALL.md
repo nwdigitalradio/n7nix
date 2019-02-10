@@ -2,7 +2,7 @@
 
 ## Install core components for Raspberry Pi with a UDRC sound card
 
-* This installation assumes you have already [installed core components](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
+* This installation assumes you have already [installed core components](https://github.com/nwdigitalradio/n7nix/blob/master/docs/CORE_INSTALL.md)
 
 ## This script installs & configures the following:
 
