@@ -490,6 +490,9 @@ if [ -z $filecountb4 ] ; then
   filecountb4=0
 fi
 
+# Do not want to see your Winlink password
+sed -i -e "/wl2k-password/ s/wl2k-password=.*/wl2k-password=notyourpassword/" $email_logfile
+
 cp $email_logfile $MSG_FILENAME
 send_email $sendto_wl
 
