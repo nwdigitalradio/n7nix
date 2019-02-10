@@ -89,8 +89,8 @@ cd /home/$USER/n7nix/email/claws
 # Verify postfix configuration
 # must not be root
 
-cd /home/$USER/n7nix/debug
-sudo -u $USER ./chk_mail.sh
+# cd /home/$USER/n7nix/debug
+# sudo -u $USER ./chk_mail.sh
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: script FINISHED"
