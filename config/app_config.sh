@@ -136,14 +136,14 @@ case $APP_SELECT in
       echo "core configuration FINISHED"
    ;;
    rmsgw)
-      # configure rmsgw
+      # Configure rmsgw
       echo "Configure RMS Gateway"
       # needs a callsign
       source ../rmsgw/config.sh $CALLSIGN
    ;;
    plu)
-      # install paclink-unix basic
-      # This installs mutt & postfix
+      # Configure paclink-unix basic
+      # This configures mutt & postfix
       echo "$scriptname: Config paclink-unix"
       pushd ../plu
       source ./plu_config.sh $USER $CALLSIGN
