@@ -186,7 +186,8 @@ fi
 # grep -i "ssl =" $dovecot_cfg_file
 
 # restart dovecot for new configuration to take affect
-service dovecot restart
+start_service dovecot
+systemctl --no-pager status postfix
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: dovecot config FINISHED" | tee -a $UDR_INSTALL_LOGFILE

@@ -60,13 +60,13 @@ function start_service() {
     systemctl is-active "$service"
     if [ "$?" -eq 0 ] ; then
         # service is already running, restart it to update config changes
-        systemctl restart "$service"
+        systemctl --no-pager restart "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem re-starting $service"
         fi
     else
         # service is not yet running so start it up
-        systemctl start "$service"
+        systemctl --no-pager start "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem starting $service"
         fi
@@ -167,7 +167,7 @@ echo "nobody:  $USER"
 newaliases
 
 # restart postfix for new configuration to take affect
-systemctl --no-pager restart postfix
+start_service postfix
 systemctl --no-pager status postfix
 
 echo
