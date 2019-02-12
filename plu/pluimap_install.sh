@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-# Install paclink-unix (with postfix & mutt) hostapd & dovecot
+# Install paclink-unix with postfix, dovecot, mutt, claws-mail, hostapd
+# & paclink-unix web app
 #
 # Uncomment this statement for debug echos
 DEBUG=1
@@ -30,12 +31,14 @@ if (( $# > 0 )) ; then
 fi
 
 # First install basic paclink-unix
+# This installs postfix dovecot mutt & claws-mail
 ./plu_install.sh
 
-# Install dovecot imap mail server
-pushd ../mailserv
-source ./imapserv_install.sh
-popd
+# Install postfix dovecot-core dovecot-imapd telnet
+# This is not needed anymore as it is done int the basic plu install
+#pushd ../mailserv
+#source ./imapserv_install.sh
+#popd
 
 if [ "$messanger" == "false" ] ; then
    # Install a host access point for remote operation
@@ -68,7 +71,6 @@ if [ "$messanger" == "false" ] ; then
    fi
 fi
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: plu with imap install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
-echo "paclink-unix with imap, install script FINISHED"
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: paclink-unix with imap install script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
 echo
