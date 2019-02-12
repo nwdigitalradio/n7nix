@@ -1,5 +1,8 @@
 # How to use measure_deviate.sh
 
+* This script creates an audio tone that can be used to help set FM deviation for your radio.
+* Please read [this excellent write up from John Ackermann N8UR](https://www.febo.com/packet/layer-one/transmit.html)
+
 #### Usage: measure_deviate.sh [-f _tone_frequency_ ][-c _connector_location_ ][-l _tone_duration_ ][-d][-h]
 ```
  -f, --frequency
@@ -19,7 +22,7 @@
 ```
 cd ~/bin
 sudo su
-ax25-stop
+./ax25-stop
 ```
 * This script uses [gpio](http://wiringpi.com/), [sox](http://sox.sourceforge.net/) & [aplay](http://linuxcommand.org/man_pages/aplay1.html)
 * To install sox, aplay & gpio
