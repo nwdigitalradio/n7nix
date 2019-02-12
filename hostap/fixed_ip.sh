@@ -279,7 +279,7 @@ if [ "$DEBUG_RESET_NETWORKING" = "true" ] ; then
       systemctl disable NetworkManager.service
    fi
    systemctl daemon-reload
-   systemctl restart dhcpcd.service
+   systemctl --no-pager restart dhcpcd.service
    service networking restart
 fi
 

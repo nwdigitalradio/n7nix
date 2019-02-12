@@ -12,5 +12,5 @@ echo "== status $service_name services =="
    else
       echo "$service_name is NOT running"
    fi
-   systemctl status $service_name
+   systemctl --no-pager status $service_name
 done

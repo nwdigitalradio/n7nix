@@ -13,7 +13,7 @@ chronyc tracking
 echo -e "\n\t$(tput setaf 4)chronyc activity$(tput setaf 7)\n"
 chronyc activity
 echo -e "\n\t$(tput setaf 4)chronyd systemctl status$(tput setaf 7)\n"
-systemctl status chronyd
+systemctl --no-pager status chronyd
 echo -e "\n\t$(tput setaf 4)gpsd systemctl status$(tput setaf 7)\n"
-systemctl status gpsd
+systemctl --no-pager status gpsd
 gpsd -V

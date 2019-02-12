@@ -431,10 +431,10 @@ echo "==== boot config ===="
 tail -n 15 /boot/config.txt
 echo
 echo "---- gpsd"
-systemctl status gpsd
+systemctl --no-pager status gpsd
 echo
 echo "---- chrony"
-systemctl status gpsd
+systemctl --no-pager status gpsd
 ls -al /dev/pps* /dev/ttySC*
 
 # Check if chronyc is installed

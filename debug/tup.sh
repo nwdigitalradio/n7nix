@@ -24,7 +24,7 @@ echo
 echo "ax25-start at $(date)"
 
 /home/pi/bin/ax25-start
-journalctl -u ax25dev.service
+journalctl --no-pager -u ax25dev.service
 } > tupax25.log
 echo "$scriptname finished"
 exit 0

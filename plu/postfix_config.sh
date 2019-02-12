@@ -154,8 +154,6 @@ echo "*         wl2k:localhost"
 
 # create transport database file
 postmap /etc/postfix/transport
-systemctl restart postfix
-systemctl status postfix
 
 # create /etc/aliases
 {
@@ -169,7 +167,8 @@ echo "nobody:  $USER"
 newaliases
 
 # restart postfix for new configuration to take affect
-service postfix restart
+systemctl --no-pager restart postfix
+systemctl --no-pager status postfix
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: postfix config script FINISHED" | tee -a $UDR_INSTALL_LOGFILE

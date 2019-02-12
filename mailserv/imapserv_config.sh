@@ -142,8 +142,8 @@ sed -i -e "/#listen / s/^#//" /etc/dovecot/dovecot.conf
 ### --- further postfix config
 ### --- NEED TO VERIFY
 #postconf -e "mailbox_command = /usr/lib/dovecot/deliver"
-systemctl restart postfix
-systemctl restart dovecot
+systemctl --no-pager restart postfix
+systemctl --no-pager restart dovecot
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: imapserv config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo

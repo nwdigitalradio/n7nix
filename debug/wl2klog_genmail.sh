@@ -39,11 +39,11 @@ logfile="/tmp/dailylog.txt"
    echo
    echo "---- AX.25 device service"
    echo
-   systemctl status ax25dev.service
+   systemctl --no-pager status ax25dev.service
    echo
    echo "---- direwolf service"
    echo
-   systemctl status direwolf.service
+   systemctl --no-pager status direwolf.service
    echo
 
    echo "$scriptname finished"

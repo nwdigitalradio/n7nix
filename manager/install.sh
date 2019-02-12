@@ -154,14 +154,14 @@ if [ "$?" -eq 0 ] ; then
     fi
 else
     # service is not yet running so start it up
-    systemctl start "$service"
+    systemctl --no-pager start "$service"
     if [ "$?" -ne 0 ] ; then
          echo "Problem starting $service"
     else
          echo "Starting service: $service"
     fi
 fi
-systemctl status $PROG
+systemctl --no-pager status $PROG
 
 cd $INITIAL_DIR
 
