@@ -51,6 +51,7 @@ apps** with the draws HAT do the following:
 ```bash
 cd
 cd n7nix/config
+# Become root
 sudo su
 ./app_config.sh core
 ```
@@ -76,7 +77,8 @@ running** & **NOT enabled**
   DRAWS board that requires _direwolf_ then enable AX.25/direwolf like this:
 ```
 cd ~/bin
-# As root
+# Become root
+sudo su
 ./ax25-start
 ```
 * Now reboot and verify with
@@ -94,6 +96,7 @@ paclink-unix, etc:
 ```bash
 cd
 cd n7nix/config
+# Become root
 sudo su
 ./app_config.sh rmsgw
 ./app_config.sh plu
@@ -108,6 +111,7 @@ then do this:
 ```bash
 cd
 cd bin
+# Become root
 sudo su
 ./ax25-stop
 ```
