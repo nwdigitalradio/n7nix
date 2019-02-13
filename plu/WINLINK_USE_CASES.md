@@ -1,4 +1,4 @@
-# Description of Use Cases for Winlink the DRAWS board
+# Use Cases for Winlink and the DRAWS board
 
 ## 1. Embedded - No local monitor
 * For sending daily reports using scripts
@@ -14,7 +14,7 @@
 * Using an RPi with WiFi capability compose Winlink messages with Android or Apple remote device.
 * Using a Web interface to control paclink-unix transport
 
-## 4. Use a Windows machine and the RPi as a TNC via TCP
+## 4. Use a Windows machine and the RPi with direwolf as a TNC via TCP
 * From Direwolf User Guide Kiss TNC emulation - network page 15
 
 #### Winlink / RMS Express
