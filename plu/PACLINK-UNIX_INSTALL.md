@@ -45,7 +45,7 @@ when running claws-mail for the first time
 ### Start the Install Script
 
 * __NOTE: If you are using a DRAWS micro SD card image the install has already been done__
-  *  Please skip to __Start the Config Script__
+  *  Please skip to [Start the Config Script](#start-the-config-script)
 
 * Execute the following script from the directory that scripts were cloned to.
   * Should be starting from your login home directory for example on a Raspberry Pi _/home/pi_
