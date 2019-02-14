@@ -1,21 +1,32 @@
 # Use Cases for Winlink and the DRAWS board
 
-## 1. Embedded - No local monitor
+
+## Local Monitor Required
+
+### 1. Local email client using the RPi and an Internet connection
+* Run claws-email client for composing & receiving Winlink messages
+* Use all paclink-unix transports
+
+### 2. Local email client using the RPi and __NO__ Internet connection
+* Run claws-email client for composing & receiving Winlink messages
+* Use paclink-unix transports wl2kax25, wl2kserial
+
+## No Local Montior Required
+
+### 3. Embedded - No local monitor required, Internet connection __IS__ required.
 * For sending daily reports using scripts
 * Minimal install using console email client for Winlink
 * Use with Linux RMS Gateway for a remote Winlink site.
-* Use paclink-unix to control transport
+* Use all paclink-unix transports
 
-## 2. Local email client using the RPi with a monitor
-* Run claws-email client for composing & receiving Winlink messages
-* Use paclink-unix to control transport
+### 4. Remote email client, __NO__ Internet required
+* Use an RPi with WiFi capability compose Winlink messages with Android or Apple mobile device.
+* Use a Web interface to control paclink-unix transports
+* If there is no Internet connection a DNS server & host AP on the RPi is required.
 
-## 3. Remote email client using an RPi as a Host Access Point
-* Using an RPi with WiFi capability compose Winlink messages with Android or Apple remote device.
-* Using a Web interface to control paclink-unix transport
-
-## 4. Use a Windows machine and the RPi with direwolf as a TNC via TCP
+### 5. Use a Windows machine and the RPi with direwolf as a TNC via TCP, __NO__ Internet required
 * From Direwolf User Guide Kiss TNC emulation - network page 15
+* If there is no Internet connection a DNS server & host AP on the RPi is required.
 
 #### Winlink / RMS Express
 * First start up Dire Wolf.
