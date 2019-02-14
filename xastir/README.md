@@ -23,7 +23,7 @@ apt-get install xastir
   * Configure interfaces: Interface -> Interface Control
 
 ###### Add a TNC interface
-* For a UDRC II make sure _Transmit Radio Port_ is 1
+* For a UDRC II make sure _Transmit Radio Port_ is 2 if using the mDin6 connector
   * Direwolf uses port 0,1 but Xastir uses port 1,2
 
 * Add: _Networked AGWPE_
