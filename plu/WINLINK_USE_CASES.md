@@ -9,6 +9,7 @@
 
 ### 2. Local email client using the RPi and __NO__ Internet connection
 * Run claws-email client for composing & receiving Winlink messages
+* Can be used in your car to connect to an RMS Gateway
 * Use paclink-unix transports wl2kax25, wl2kserial
 
 ## No Local Monitor Required
