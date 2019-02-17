@@ -154,11 +154,19 @@ case $APP_SELECT in
       sudo -u "$USER" ./claws_install.sh $USER $CALLSIGN
       popd > /dev/null
 
+      # This sets up systemd to start web server for paclink-unix
+      pushd ../plu
+      source ./pluweb_install.sh $USER
+      popd > /dev/null
    ;;
    pluimap)
-      echo "$scriptname: Config paclink-unix with imap"
+#      echo "$scriptname: Config paclink-unix with imap"
+      echo  "$scriptname: pluimap is under development, just use 'plu'"
       pushd ../plu
-      source ./pluimap_config.sh
+
+#      source ./pluimap_config.sh
+     source ./plu_config.sh $USER $CALLSIGN
+
       popd > /dev/null
    ;;
    messanger)

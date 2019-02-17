@@ -61,9 +61,12 @@ case $APP_SELECT in
 
    ;;
    pluimap)
-      echo "$scriptname: Install paclink-unix with imap"
+#      echo "$scriptname: Install paclink-unix with imap"
+      echo  "$scriptname: pluimap is under development, just use 'plu'"
       pushd ../plu
-      source ./pluimap_install.sh
+
+      source ./plu_install.sh
+
       popd > /dev/null
    ;;
    uronode)

@@ -63,12 +63,10 @@ cp node_modules/jquery/dist/jquery.min.js jquery.js
 # A different service file is used to install paclink-unix with a
 # tracker.
 if [ "$messanger" == "false" ] ; then
-   echo "$scriptname: Install systemd files for paclink-unix web service."
-   service_name="pluweb.service"
-   # Setup systemd files for paclink-unix web server auto start
-   if [ ! -f "/etc/systemd/system/$service_name" ] ; then
-      echo "File /etc/systemd/system/$service_name DOES NOT EXIST"
-   fi
+    # This sets up systemd to start web server for paclink-unix
+    source ./pluweb_install.sh
+else
+    echo "$scriptname: Using systemd files from messanger install"
 fi
 
 echo
