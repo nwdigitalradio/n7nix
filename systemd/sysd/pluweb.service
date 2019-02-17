@@ -3,6 +3,8 @@ Description=node.js server for paclink-unix
 After=network.service
 
 [Service]
+User=
+Group=
 ExecStart=/usr/bin/nodejs /usr/local/src/paclink-unix/webapp/plu-server.js
 # Using the following causes 200/CHDIR error
 # WorkingDirectory=/usr/local/src/paclink-unix/webapp
