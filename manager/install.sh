@@ -117,12 +117,12 @@ cd "$SRC_DIR/$PROG"
 
 files_exist
 if [ "$?" -eq 1 ] ; then
-    echo "$PROG previously installed ..."
-else
-    echo "=== Copy config & systemd files"
-    cp $PROG.service $SYSTEMD_DIR/
-    cp $PROG /etc/default
+    echo "$PROG previously installed, refreshing files ..."
 fi
+
+echo "=== Copy config & systemd files"
+cp $PROG.service $SYSTEMD_DIR/
+cp $PROG /etc/default
 
 echo "=== Start $PROG webapp install"
 cd "$SRC_DIR/$PROG/webapp"
@@ -167,4 +167,3 @@ cd $INITIAL_DIR
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: $PROG install script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
 echo
-
