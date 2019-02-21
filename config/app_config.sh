@@ -158,6 +158,11 @@ case $APP_SELECT in
       pushd ../plu
       source ./pluweb_install.sh $USER
       popd > /dev/null
+
+      # This installs rainloop & lighttpd
+      pushd ../email/rainloop
+      source ./rainloop_install.sh
+      popd > /dev/null
    ;;
    pluimap)
 #      echo "$scriptname: Config paclink-unix with imap"
