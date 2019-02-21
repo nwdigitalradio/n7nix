@@ -108,13 +108,16 @@ fi
 check_user
 
 # Setup node.js & modules required to run the plu web page.
-echo "$scriptname: Install nodejs, npm & jquery"
+echo
+echo "$scriptname: Install nodejs & npm"
 
 pushd /usr/local/src/paclink-unix/webapp
 
 apt-get install -y -q nodejs npm
 npm install -g websocket connect finalhandler serve-static
 
+echo
+echo "$scriptname: Install jquery"
 # jquery should be installed in same directory as plu.html
 npm install jquery
 cp node_modules/jquery/dist/jquery.min.js jquery.js
@@ -123,15 +126,18 @@ popd > /dev/null
 
 
 # Set up systemd to run on boot
-
 service="pluweb.service"
-cp sysd/$service $SYSD_DIR
+echo
+echo "$scriptname: Setup systemd for $service"
+
+LOCAL_SYSD_DIR="/home/$USER/n7nix/systemd/sysd"
+cp $LOCAL_SYSD_DIR/$service $SYSD_DIR
 # edit pluweb.service so starts as user
 
 # Check if file exists.
 if [ -f "$SYSD_DIR/$service" ] ; then
     dbgecho "Service already exists, comparing $service"
-    diff -s sysd/$service $SYSD_DIR/$service
+    diff -s $LOCAL_SYSD_DIR/$service $SYSD_DIR/$service
 else
     echo "file $SYSD_DIR/$service DOES NOT EXIST"
     exit 1
@@ -142,6 +148,9 @@ sed -i -e "/User=/ s/User=.*/User=$USER/" $SYSD_DIR/$service
 sed -i -e "/Group=/ s/Group=.*/Group=$USER/" $SYSD_DIR/$service
 
 # restart pluweb for new configuration to take affect
+echo
+echo "$scriptname: Start $service"
+
 start_service $service
 systemctl --no-pager status $service
 
