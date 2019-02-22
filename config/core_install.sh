@@ -164,6 +164,7 @@ function install_direwolf_source() {
 
    echo "copying direwolf config file from source to /etc/direwolf.conf"
    cp /root/direwolf.conf /etc
+   mv /root/direwolf.conf /root/direwolf.conf.dist
    # Build from source puts executable in /usr/local/bin
    # Copy executable here to not have to edit sysd/direwolf.service file
    cp /usr/local/bin/direwolf /usr/bin

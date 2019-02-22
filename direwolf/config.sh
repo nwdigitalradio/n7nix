@@ -133,8 +133,16 @@ fi
 
 dbgecho "using USER: $USER"
 
-# Check if direwolf config file exists in /etc
 filename="direwolf.conf"
+# Check if direwolf config file exists in /root
+# Remove confusion, this file is NOT to be used ast the direwolf config file.
+
+if [ -e "/root/$filename" ] ; then
+   mv /root/$filename /root/direwolf.conf.dist
+fi
+
+# Check if direwolf config file exists in /etc
+
 if [ ! -e "/etc/$filename" ] ; then
    # Check for a Debian package install
    if [ -e "/usr/share/doc/direwolf/examples/direwolf.conf.gz" ] ; then
