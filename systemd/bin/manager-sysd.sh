@@ -5,7 +5,7 @@
 #
 
 # Uncomment this statement for debug echos
-DEBUG=1
+# DEBUG=1
 
 service="draws-manager"
 scriptname="`basename $0`"

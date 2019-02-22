@@ -5,7 +5,7 @@
 #
 
 # Uncomment this statement for debug echos
-DEBUG=1
+# DEBUG=1
 
 service="pluweb"
 scriptname="`basename $0`"
