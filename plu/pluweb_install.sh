@@ -9,6 +9,7 @@
 DEBUG=1
 
 scriptname="`basename $0`"
+SCRIPTNAME="pluweb_install.sh"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 SYSD_DIR="/etc/systemd/system"
 USER=
@@ -32,7 +33,7 @@ function get_user() {
 
 function check_user() {
    userok=false
-   dbgecho "$scriptname: Verify user name: $USER"
+   dbgecho "$SCRIPTNAME: Verify user name: $USER"
    for username in $USERLIST ; do
       if [ "$USER" = "$username" ] ; then
          userok=true;
@@ -109,7 +110,7 @@ check_user
 
 # Setup node.js & modules required to run the plu web page.
 echo
-echo "$scriptname: Install nodejs & npm"
+echo "$SCRIPTNAME: Install nodejs & npm"
 
 pushd /usr/local/src/paclink-unix/webapp
 
@@ -117,7 +118,7 @@ apt-get install -y -q nodejs npm
 npm install -g websocket connect finalhandler serve-static
 
 echo
-echo "$scriptname: Install jquery"
+echo "$SCRIPTNAME: Install jquery"
 # jquery should be installed in same directory as plu.html
 npm install jquery
 cp node_modules/jquery/dist/jquery.min.js jquery.js
@@ -128,7 +129,7 @@ popd > /dev/null
 # Set up systemd to run on boot
 service="pluweb.service"
 echo
-echo "$scriptname: Setup systemd for $service"
+echo "$SCRIPTNAME: Setup systemd for $service"
 
 LOCAL_SYSD_DIR="/home/$USER/n7nix/systemd/sysd"
 cp $LOCAL_SYSD_DIR/$service $SYSD_DIR
@@ -149,11 +150,11 @@ sed -i -e "/Group=/ s/Group=.*/Group=$USER/" $SYSD_DIR/$service
 
 # restart pluweb for new configuration to take affect
 echo
-echo "$scriptname: Start $service"
+echo "$SCRIPTNAME: Start $service"
 
 start_service $service
 systemctl --no-pager status $service
 
 echo
-echo "$(date "+%Y %m %d %T %Z"): $scriptname:  script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $SCRIPTNAME: script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
 echo
