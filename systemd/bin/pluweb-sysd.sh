@@ -50,7 +50,10 @@ function service_start() {
     if [ "$?" -eq 0 ] ; then
         echo "$service is already running."
     else
-        systemctl start --no-pager $service.service
+        systemctl --no-pager start $service.service
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem starting $service"
+        fi
     fi
 }
 
@@ -64,6 +67,9 @@ function service_stop() {
         echo "$service is NOT running."
     else
         systemctl stop $service.service
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem stopping $service"
+        fi
     fi
 
     systemctl is-enabled "$service" > /dev/null 2>&1
