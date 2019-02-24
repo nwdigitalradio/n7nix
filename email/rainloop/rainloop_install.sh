@@ -30,21 +30,21 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/
 
 function cfg_lighttpd() {
 
-    package="apache2"
+    pkg_name="apache2"
     is_pkg_installed $pkg_name
     if [ $? -eq 0 ] ; then
-        apt-get remove -y -q $package
+        apt-get remove -y -q $pkg_name
     fi
-    package="lighttpd"
+    pkg_name="lighttpd"
     is_pkg_installed $pkg_name
     if [ $? -ne 0 ] ; then
-        apt-get install -y -q $package
+        apt-get install -y -q $pkg_name
     fi
 
     if [ ! -d "/var/log/lighttpd" ] ; then
         mkdir -p "/var/log/lighttpd"
         touch "/var/log/lighttpd/error.log"
-        chown www-data:www:data "/var/log/lighttpd/error.log"
+        chown www-data:www-data "/var/log/lighttpd/error.log"
     fi
     lighttpd-enable-mod fastcgi
     lighttpd-enable-mod fastcgi-php
