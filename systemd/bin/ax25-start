@@ -17,7 +17,7 @@ function start_service() {
             echo "Problem ENABLING $service"
         fi
     fi
-    systemctl start "$service"
+    systemctl --no-pager start "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem starting $service"
     fi

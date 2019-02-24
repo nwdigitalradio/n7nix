@@ -84,31 +84,31 @@ function ax25_debugstatus() {
     echo
     echo "== status networkd services =="
     systemctl is-enabled systemd-networkd-wait-online.service
-    systemctl status systemd-networkd-wait-online.service
+    systemctl --no-pager status systemd-networkd-wait-online.service
     systemctl is-enabled systemd-networkd.service
-    systemctl status systemd-networkd.service
+    systemctl --no-pager status systemd-networkd.service
     echo
     echo "== status direwolf service =="
     systemctl is-enabled direwolf.service
-    systemctl status direwolf.service
+    systemctl --no-pager status direwolf.service
     echo
     echo "== status ax25 service =="
     systemctl is-enabled ax25dev.service
-    systemctl status ax25dev.service
+    systemctl --no-pager status ax25dev.service
     echo
     journalctl -u ax25dev.service
     echo
     echo "== status ax25 path =="
     systemctl is-enabled ax25dev.path
-    systemctl status ax25dev.path
+    systemctl --no-pager status ax25dev.path
     echo
     echo "== status ax25-mheardd =="
     systemctl is-enabled ax25-mheardd.service
-    systemctl status ax25-mheardd.service
+    systemctl --no-pager status ax25-mheardd.service
     echo
     echo "== status ax25d =="
     systemctl is-enabled ax25d.service
-    systemctl status ax25d.service
+    systemctl --no-pager status ax25d.service
     echo
     echo "== netstat ax25 =="
     netstat --ax25
