@@ -10,7 +10,7 @@ pkg_name="rainloop"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 SRC_DIR="/usr/local/src/"
 TARGET_DIR="/var/www/rainloop"
-lighttpdcfg_file=
+lighttpdcfg_file="/etc/lighttpd/lighttpd.conf"
 
 num_cores=$(nproc --all)
 
@@ -51,7 +51,7 @@ function cfg_lighttpd() {
     ls -l /etc/lighttpd/conf-enabled
 
     # If you're using lighttpd, add the following to your configuration file:
-    cat << 'EOT' > $lighttpdcfg_file
+    cat << 'EOT' >> $lighttpdcfg_file
 # deny access to /data directory
 $HTTP["url"] =~ "^/data/" {
      url.access-deny = ("")
@@ -76,8 +76,12 @@ EOT
 
     # To enable PHP in Lighttpd, must modify /etc/php/7.0/fpm/php.ini
     # and uncomment the line cgi.fix_pathinfo=1:
-
-    sed -i -e '/cgi\.fix_pathinfo=/s/^;//' /etc/php/7.0/fpm/php.ini
+    php_filename="/etc/php/7.0/fpm/php.ini"
+    if [ -e "$php_filename" ] ; then
+        sed -i -e '/cgi\.fix_pathinfo=/s/^;//' "$php_filename"
+    else
+        echo "   ERROR: php config file: $php_filename does not exist"
+    fi
 
     # Change document root directory
     sed -i -e '/server\.document-root / s/server\.document-root .*/server\.document-root = \"\/var\/www\/rainloop\"/' /etc/lighttpd/lighttpd.conf
@@ -99,9 +103,6 @@ if [[ $EUID != 0 ]] ; then
    echo "Must be root."
    exit 1
 fi
-
-# install lighttpd
-cfg_lighttpd
 
 # Test if rainloop has already been installed.
 
@@ -134,6 +135,9 @@ if [ ! -e "$TARGET_DIR/rainloop" ] ; then
             exit 1
        fi
     fi
+
+    # install lighttpd
+    cfg_lighttpd
 
     echo "=== Install rainloop using $num_cores cores"
     # For testing only, check if zip file exists
