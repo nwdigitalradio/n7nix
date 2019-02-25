@@ -33,19 +33,23 @@ function cfg_lighttpd() {
     pkg_name="apache2"
     is_pkg_installed $pkg_name
     if [ $? -eq 0 ] ; then
+        echo "Remove $pkg_name package"
         apt-get remove -y -q $pkg_name
     fi
     pkg_name="lighttpd"
     is_pkg_installed $pkg_name
     if [ $? -ne 0 ] ; then
+        echo "Installing $pkg_name package"
         apt-get install -y -q $pkg_name
     fi
 
     if [ ! -d "/var/log/lighttpd" ] ; then
         mkdir -p "/var/log/lighttpd"
         touch "/var/log/lighttpd/error.log"
-        chown www-data:www-data "/var/log/lighttpd/error.log"
     fi
+
+    chown -R www-data:www-data "/var/log/lighttpd"
+
     lighttpd-enable-mod fastcgi
     lighttpd-enable-mod fastcgi-php
     ls -l /etc/lighttpd/conf-enabled
@@ -90,6 +94,7 @@ EOT
     lighttpd -t -f /etc/lighttpd/lighttpd.conf
 
     # Restart lighttpd
+    echo "lighttpd force-reload"
     service lighttpd force-reload
 }
 
