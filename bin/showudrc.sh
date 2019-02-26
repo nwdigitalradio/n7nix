@@ -225,6 +225,20 @@ function check_locale() {
 }
 # ===== Main
 
+# Check that the ASoC driver for the AudioSense-Pi soundcard is NOT
+# loaded
+driverdir="/lib/modules/$(uname -r)/kernel/sound/soc/codecs"
+audiosense_i2c_drivername="snd-soc-tlv320aic32x4-i2c.ko"
+audiosense_codec_drivername="snd-soc-tlv320aic32x4.ko"
+
+if [ -e  "$driverdir/$audiosense_i2c_drivername" ] ; then
+    echo "chk1: $audiosense_i2c_drivername exists, Driver CONFLICT"
+fi
+
+if [ -e  "$driverdir/$audiosense_codec_drivername" ] ; then
+    echo "chk2: $audiosense_codec_drivername exists, Driver CONFLICT"
+fi
+
 # Verify that aplay enumerates udrc sound card
 
 CARDNO=$(aplay -l | grep -i udrc)
