@@ -4,7 +4,7 @@
 # for kernel raspberrypi:rpi-4.14.98 and newer
 # https://github.com/raspberrypi/linux/pull/2793/commits/45b10f4c61ce0e7fda303ba435f2ad3b0a5747c0
 #
-# If conflicting driver found will move to a tmp director.
+# If conflicting driver found will move to a tmp directory.
 #
 # Uncomment this statement for debug echos
 # DEBUG=1
@@ -58,7 +58,6 @@ USERLIST="$(echo $USERLIST | tr '\n' ' ')"
 dbgecho "userlist: $USERLIST"
 
 get_user
-dbgecho "Check user: $USER"
 check_user
 
 tmpdir="/home/$USER/tmp"
