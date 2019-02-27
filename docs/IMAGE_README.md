@@ -25,7 +25,9 @@
 | ax25tools    |   1.0.3  |  yes  | yes   |  yes  |
 | rmsgw        |   2.5.0  |       |  yes  |  yes  |
 | paclink-unix |    0.7   |       |  yes  |  yes  |
+| mutt         |   1.7.2  |  yes  |  yes  |  yes    |
 | claws-mail   |   3.14.1 |  yes  |       |       |
+| rainloop     |   1.12.1 |  yes  |       |       |
 | FBB BBS      | 7.0.8-beta7 |    |  yes  |  yes  |
 | Xastir       |   2.0.8     | yes | yes  |       |
 | YAAC           | 1.0-beta129  |      | yes  |
