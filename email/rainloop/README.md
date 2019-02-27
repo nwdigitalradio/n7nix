@@ -35,6 +35,7 @@
 * SMTP Port: 25
 * SMTP Secure: None
 * __DO NOT DO THIS__: SMTP click green check mark next to _Use authentication_
+  * Make sure green mark next to _Use authentication_ is unchecked.
 * Click +Add in right hand corner
 
 #### Login
