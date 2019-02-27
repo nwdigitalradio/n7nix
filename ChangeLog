@@ -1,3 +1,17 @@
+Wed Feb 27 12:18:04 PST 2019  Basil Gunn <basil@pacabunga.com>
+  * Image BETA9 release
+    * Change default alsa settings to be less aggressive
+      * LO Driver Gain set to -6.0db
+      * PCM set to -25.0db
+    * Remove MagPi75.pdf
+    * Update js8call to 1.0.0-rc1
+    * Update draws-manager
+    * Update direwolf-dev to 1.6 B
+    * Put no-pager arg on most systemctl calls
+    * Fix simple dovecot/postfix config for claws-mail
+      * Add paclink-unix webserver to standard install
+    * Add lighttpd & rainloop web mail package
+    * Fix udrc driver conflict with AudioSense-Pi soundcard
 
 Mon Feb  4 15:21:48 PST 2019  Basil Gunn <basil@pacabunga.com>
 
