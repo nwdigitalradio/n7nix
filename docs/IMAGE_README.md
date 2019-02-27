@@ -19,7 +19,7 @@
 
 |    Program   |  Version |  PKG  |  DW   |  AX25 |
 | :---------:  | :------: | :---: | :---: | :---: |
-| direwolf     |   dev    |       |       |       |
+| direwolf     |   dev 1.6 B  |       |       |       |
 | libax25      |   1.1.0  |  yes  | yes   |  yes  |
 | ax25apps     |   1.0.5  |  yes  | yes   |  yes  |
 | ax25tools    |   1.0.3  |  yes  | yes   |  yes  |
@@ -35,7 +35,7 @@
 | ircccbgatewayd | 1.20180703-1 | yes |   |   |
 | ARDOP        |  2      |      |     |   |
 | ARIM         |  2.4    |      |     |   |
-| js8call      |  0.14.1 |      |     |   |
+| js8call      |  1.0.0-rc1 |      |     |   |
 | wsjt-x       |  2.0.0  |      |     |   |
 | hamlib       |  3.3    |      |     |   |
 | fldigi       |  4.0.18 |      |     |   |
