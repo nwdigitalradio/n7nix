@@ -48,9 +48,9 @@ fi
 
 amixer -c udrc -s << EOF
 #  Set default input and output levels
-sset 'PCM' 0.0dB,0.0dB
+sset 'PCM' -25.0dB,-25.0dB
 sset 'ADC Level' 0.0dB,0.0.0dB
-sset 'LO Driver Gain' 0.0dB,0.0dB
+sset 'LO Driver Gain' -6.0dB,-6.0dB
 
 # Everything after this is common to both audio channels
 
