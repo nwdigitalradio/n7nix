@@ -86,7 +86,8 @@ fi
 if (( $# != 0 )) ; then
    APP_SELECT=$1
 else
-   echo "No app chosen from command arg, so installing RMS Gateway"
+   echo "No app chosen from command arg, exiting"
+   exit 1
 fi
 
 # check argument(s) passed to this script
