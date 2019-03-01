@@ -103,18 +103,6 @@ fi
 
 # check argument(s) passed to this script
 
-# Get list of users with home directories
-USERLIST="$(ls /home)"
-USERLIST="$(echo $USERLIST | tr '\n' ' ')"
-
-get_user
-check_user
-
-# prompt for a callsign
-while get_callsign ; do
-    echo "Input error, try again"
-done
-
 while [[ $# -gt 0 ]] ; do
 APP_SELECT="$1"
 
@@ -128,6 +116,36 @@ case $APP_SELECT in
       usage
       exit 0
    ;;
+
+esac
+
+shift # past argument or value
+done
+
+
+# Get list of users with home directories
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+get_user
+check_user
+
+# Check again if there are any args on command line
+if (( $# == 0 )) ; then
+    echo "No app chosen from command arg, exiting"
+    usage
+    exit 1
+fi
+
+# prompt for a callsign
+while get_callsign ; do
+    echo "Input error, try again"
+done
+
+while [[ $# -gt 0 ]] ; do
+APP_SELECT="$1"
+
+case $APP_SELECT in
 
    core)
       echo "$scriptname: Config core"
@@ -210,7 +228,7 @@ case $APP_SELECT in
       exit 1
    ;;
 esac
-esac
+
 shift # past argument or value
 done
 
