@@ -17,6 +17,18 @@ APP_SELECT="rmsgw"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function usage
+function usage() {
+   echo "Usage: $scriptname [-d][-h][core][plu][rmsgw][messanger]" >&2
+   echo "   core      MUST be run before any other config"
+   echo "   plu       Configures paclink-unix & email applications"
+   echo "   rmsgw     Configures Linux RMS Gateway"
+   echo "   messanger Configures messanger appliance"
+   echo "   -d        set debug flag"
+   echo "   -h        no arg, display this message"
+   echo
+}
+
 # ===== function get_callsign
 
 function get_callsign() {
@@ -83,11 +95,10 @@ if [[ $EUID != 0 ]] ; then
 fi
 
 # Check if there are any args on command line
-if (( $# != 0 )) ; then
-   APP_SELECT=$1
-else
-   echo "No app chosen from command arg, exiting"
-   exit 1
+if (( $# == 0 )) ; then
+    echo "No app chosen from command arg, exiting"
+    usage
+    exit 1
 fi
 
 # check argument(s) passed to this script
@@ -104,8 +115,20 @@ while get_callsign ; do
     echo "Input error, try again"
 done
 
+while [[ $# -gt 0 ]] ; do
+APP_SELECT="$1"
 
 case $APP_SELECT in
+
+   -d|--debug)
+      DEBUG=1
+      echo "Debug mode on"
+   ;;
+   -h|--help|?)
+      usage
+      exit 0
+   ;;
+
    core)
       echo "$scriptname: Config core"
       # configure core
@@ -187,6 +210,9 @@ case $APP_SELECT in
       exit 1
    ;;
 esac
+esac
+shift # past argument or value
+done
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: app config ($APP_SELECT) script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
