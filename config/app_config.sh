@@ -101,7 +101,7 @@ if (( $# == 0 )) ; then
     exit 1
 fi
 
-# check argument(s) passed to this script
+# check for control arguments passed to this script
 
 while [[ $# -gt 0 ]] ; do
 APP_SELECT="$1"
@@ -116,12 +116,14 @@ case $APP_SELECT in
       usage
       exit 0
    ;;
+   *)
+      break;
+   ;;
 
 esac
 
-shift # past argument or value
+shift # past argument
 done
-
 
 # Get list of users with home directories
 USERLIST="$(ls /home)"
@@ -130,7 +132,7 @@ USERLIST="$(echo $USERLIST | tr '\n' ' ')"
 get_user
 check_user
 
-# Check again if there are any args on command line
+# Check again if there are any remaining args on command line
 if (( $# == 0 )) ; then
     echo "No app chosen from command arg, exiting"
     usage
@@ -141,6 +143,8 @@ fi
 while get_callsign ; do
     echo "Input error, try again"
 done
+
+# parse command args for app to config
 
 while [[ $# -gt 0 ]] ; do
 APP_SELECT="$1"
