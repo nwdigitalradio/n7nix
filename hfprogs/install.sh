@@ -12,6 +12,20 @@ DEB_DIR="/home/$user/debian"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== Display program help info
+#
+usage () {
+	(
+	echo "Usage: $scriptname [hfprog_name][hfprog_version]"
+        echo "    hfprog_name needs to be one of:"
+        echo "      js8call wsjtx hamlib fldigi flrig flmsg flamp"
+        echo "    hfprog_version needs to be a valid program version number"
+        echo
+	) 1>&2
+	exit 1
+}
+
+
 # ===== function get_user
 
 function get_user() {
@@ -44,38 +58,20 @@ function check_user() {
    dbgecho "using USER: $USER"
 }
 
-# ===== main
+# ===== function build_js8call
 
-echo -e "\n\t$(tput setaf 4) Install HF programs$(tput setaf 7)\n"
+function build_js8call() {
 
-# Check for any arguments
-if (( $# != 0 )) ; then
-   USER="$1"
-fi
+js8call_rootver="$1"
+js8call_ver="$js8call_rootver"
+download_filename="js8call_${js8call_ver}_armhf.deb"
 
-# Get list of users with home directories
-USERLIST="$(ls /home)"
-USERLIST="$(echo $USERLIST | tr '\n' ' ')"
-
-# Check if user name was supplied on command line
-if [ -z "$USER" ] ; then
-    # prompt for call sign & user name
-    # Check if there is only a single user on this system
-    get_user
-fi
-# Verify user name
-check_user
-
-
-js8call_rootver="1.0.0-rc1"
-
-js8call_ver="$js8call_rootver"-devel
 PKG_REQUIRE_JS8CALL="libqgsttools-p1 libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediaquick-p5 libqt5multimediawidgets5 libqt5qml5 libqt5quick5 libqt5serialport5"
 echo "Install js8call ver: $js8call_ver"
-download_filename="js8call_${js8call_ver}_armhf.deb"
 
 if [ ! -e "$SRC_DIR/$download_filename" ] ; then
     cd "$SRC_DIR"
+    # wget https://s3.amazonaws.com/js8call/1.0.0-rc1/js8call_1.0.0-rc1_armhf.deb
     sudo wget https://s3.amazonaws.com/js8call/${js8call_rootver}/$download_filename
     if [ $? -ne 0 ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)"
@@ -88,10 +84,15 @@ else
     sudo dpkg -i $download_filename
 fi
 
-wsjtx_ver="2.0.0"
+}
 
+# ===== function build_wsjtx
+function build_wsjtx() {
+
+wsjtx_ver="$1"
 echo "install wsjt-x ver: $wsjtx_ver"
 download_filename="wsjtx_${wsjtx_ver}_armhf.deb"
+
 cd "$SRC_DIR"
 # wsjt-x home page:
 #  - https://physics.princeton.edu/pulsar/k1jt/wsjtx.html
@@ -102,7 +103,12 @@ else
     sudo dpkg -i $download_filename
 fi
 
-hamlib_ver="3.3"
+}
+
+# ===== function build_hamlib
+function build_hamlib() {
+
+hamlib_ver="$1"
 echo "install hamlib ver: $hamlib_ver"
 sudo apt-get remove libhamlib2
 
@@ -137,13 +143,16 @@ else
     echo -e "\n\t$(tput setaf 4)Using previously built hamlib-$hamlib_ver$(tput setaf 7)\n"
     echo
 fi
+}
 
-fldigi_ver="4.0.18"
+# ===== function build_fldigi
+function build_fldigi() {
 
+fldigi_ver="$1"
 echo "Install fldigi ver: $fldigi_ver"
+download_filename="fldigi-$fldigi_ver.tar.gz"
 
 FLDIGI_SRC_DIR=$SRC_DIR/fldigi-$fldigi_ver
-download_filename="fldigi-$fldigi_ver.tar.gz"
 
 # fldigi takes a long time to build,
 #  check if there is a previous installation
@@ -162,7 +171,7 @@ if [ ! -d "$FLDIGI_SRC_DIR" ] ; then
         sudo tar -zxvsf $download_filename
         sudo chown -R $USER:$USER $FLDIGI_SRC_DIR
         cd fldigi-$fldigi_ver
-        ./configure
+        ./configure --with-hamlib --with-flxmlrpc
         echo -e "\n$(tput setaf 4)Starting fldigi build(tput setaf 7)\n"
         make
         echo -e "\n$(tput setaf 4)Starting fldigi install(tput setaf 7)\n"
@@ -170,29 +179,107 @@ if [ ! -d "$FLDIGI_SRC_DIR" ] ; then
         sudo ldconfig
     fi
 fi
+}
 
-flrig_ver="1.3.41"
+# ===== function fuild_flrig
+function build_flapp() {
 
-echo "install flrig ver: $flrig_ver"
+flapp_ver="$1"
+flapp="$2"
 
-FLRIG_SRC_DIR=$SRC_DIR/flrig-$flrig_ver
-download_filename="flrig-$flrig_ver.tar.gz"
+echo "install $flapp ver: $flapp_ver"
 
-if [ ! -d "$FLRIG_SRC_DIR" ] ; then
+FLAPP_SRC_DIR=$SRC_DIR/$flapp-$flapp_ver
+download_filename="$flapp-$flapp_ver.tar.gz"
+
+if [ ! -d "$FLAPP_SRC_DIR" ] ; then
     cd "$SRC_DIR"
-    sudo wget http://www.w1hkj.com/files/flrig/$download_filename
+    sudo wget http://www.w1hkj.com/files/$flapp/$download_filename
     if [ $? -ne 0 ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)"
     else
         sudo tar -zxvf $download_filename
-        sudo chown -R $USER:$USER $FLRIG_SRC_DIR
-        cd flrig-$flrig_ver
+        sudo chown -R $USER:$USER $FLAPP_SRC_DIR
+        cd $flapp-$flapp_ver
         ./configure --prefix=/usr/local --enable-static
         make
         sudo make install
     fi
 fi
+}
+
+
+# ===== main
+
+echo -e "\n\t$(tput setaf 4) Install HF programs$(tput setaf 7)\n"
+
+# Check for any arguments
+if (( $# != 0 )) ; then
+   USER="$1"
+fi
+
+# Get list of users with home directories
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+# Check if user name was supplied on command line
+if [ -z "$USER" ] ; then
+    # prompt for call sign & user name
+    # Check if there is only a single user on this system
+    get_user
+fi
+# Verify user name
+check_user
+
+# If there are no command line options build everything
+
+if [[ $# -eq 0 ]] ; then
+    hfapp="ALL"
+
+    build_js8call "1.0.0-rc1"
+    build_wsjtx "2.0.1"
+    build_hamlib "3.3"
+    build_fldigi "4.0.18"
+    build_flapp "1.3.41" flrig
+    build_flapp "4.0.8" flmsg
+    build_flapp "2.2.04" flamp
+else
+
+    if [[ $# -ne 2 ]] ; then
+        usage
+        exit 1
+    fi
+    hfapp="$1"
+    case $hfapp in
+        js8call)
+            build_js8call "$2"
+        ;;
+        wsjtx)
+            build_wsjtx "$2"
+        ;;
+        hamlib)
+            build_hamlib "$2"
+        ;;
+        fldigi)
+            build_fldigi "$2"
+        ;;
+        flrig)
+            build_flapp "$2" "flrig"
+        ;;
+        flmsg)
+            build_flapp "$2" "flmsg"
+        ;;
+        flamp)
+            build_flapp "$2" "flamp"
+        ;;
+        *)
+            echo "Undefined argument $hfapp"
+            usage
+            exit 1
+        ;;
+    esac
+fi
 
 echo
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: HF programs install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: HF program ($hfapp) install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo
