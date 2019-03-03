@@ -64,7 +64,7 @@ type -P $progname >/dev/null 2>&1
         prog_ver="NOT installed"
     else
         if [ "${progname:0:2}" == "fl" ] ; then
-            dirname="$(ls -1 $SRC_DIR/$progname*.tar.gz)"
+            dirname="$(ls -1 $SRC_DIR/$progname*.tar.gz | tail -n1)"
             prog_ver=$(basename $dirname .tar.gz | cut -d '-' -f2)
         else
             dirname="$(ls -1 $SRC_DIR/$progname*.deb)"
