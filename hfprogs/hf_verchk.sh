@@ -5,8 +5,9 @@
 
 scriptname="`basename $0`"
 user=$(whoami)
+UPDATE_FLAG=false
 
-# Fpr fl apps use this url
+# For fl apps use this url
 fl_url="http://www.w1hkj.com/files"
 
 
@@ -17,6 +18,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 usage () {
 	(
 	echo "Usage: $scriptname [-l][-s]"
+        echo "    -u Set application update flag."
         echo "    -l display local versions only."
         echo "    -s display available swap space."
         echo "    -h display this message."
@@ -67,7 +69,7 @@ type -P $progname >/dev/null 2>&1
             dirname="$(ls -1 $SRC_DIR/$progname*.tar.gz | tail -n1)"
             prog_ver=$(basename $dirname .tar.gz | cut -d '-' -f2)
         else
-            dirname="$(ls -1 $SRC_DIR/$progname*.deb)"
+            dirname="$(ls -1 $SRC_DIR/$progname*.deb | tail -n1)"
             prog_ver=$(basename $dirname .deb | cut -d'_' -f2)
         fi
     fi
@@ -141,6 +143,10 @@ while [[ $# -gt 0 ]] ; do
             display_swap_size
             exit
         ;;
+        -u)
+            echo "Update HF apps after checking version numbers."
+            UPDATE_FLAG=true
+        ;;
         -h)
             usage
             exit 0
@@ -163,9 +169,19 @@ js8_app="js8call"
 
 ver_url="https://bitbucket.org/widefido/$js8_app/downloads/?tab=tags"
 js8_ver=$(curl -s $ver_url | grep -A1 -i "iterable-item" | head -2 | tail -1 | cut -d'>' -f2 | cut -d '<' -f1)
+# Get rid of the leading v in string
+js8_ver="${js8_ver:1}"
 
 installed_prog_ver_get "$js8_app"
 echo "$js8_app: current version: $js8_ver, installed: $prog_ver"
+if $UPDATE_FLAG ; then
+    if [[ "$js8_ver" != "$prog_ver" ]] ; then
+        echo "         versions are different and WILL be updated."
+    else
+        echo "         version is current"
+    fi
+fi
+
 fi
 
 # wsjtx
@@ -179,25 +195,49 @@ wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])})
 
 installed_prog_ver_get "$wsjtx_app"
 echo "$wsjtx_app:   current version: $wsjtx_ver, installed: $prog_ver"
+if $UPDATE_FLAG ; then
+    if [[ "$wsjtx_ver" != "$prog_ver" ]] ; then
+        echo "       versions are different and WILL be updated."
+    else
+        echo "      version is current"
+    fi
 fi
 
-# fldigi
-fl_ver_get "fldigi"
-installed_prog_ver_get "fldigi"
-echo "$fl_app:  current version: $fl_ver, installed: $prog_ver"
+fi
 
+
+for fl_app in "fldigi" "flrig" "flmsg" "flamp" ; do
+
+    fl_ver_get "$fl_app"
+    installed_prog_ver_get "$fl_app"
+    echo "$fl_app:  current version: $fl_ver, installed: $prog_ver"
+    if $UPDATE_FLAG ; then
+        if [[ "$fl_ver" != "$prog_ver" ]] ; then
+            echo "      versions are different and WILL be updated."
+        else
+            echo "        version is current"
+        fi
+    fi
+done
+
+NOTYET="ON"
+if [ -z "$NOTYET" ] ; then
 # flrig
-fl_ver_get "flrig"
-installed_prog_ver_get "flrig"
+fl_app="flrig"
+fl_ver_get "$fl_app"
+installed_prog_ver_get "$fl_app"
 echo "$fl_app:   current version: $fl_ver, installed: $prog_ver"
 
 # flmsg
-fl_ver_get "flmsg"
-installed_prog_ver_get "flmsg"
+fl_app="flmsg"
+fl_ver_get "$fl_app"
+installed_prog_ver_get "$fl_app"
 echo "$fl_app:   current version: $fl_ver, installed: $prog_ver"
 
 # flamp
-
-fl_ver_get "flamp"
-installed_prog_ver_get "flamp"
+fl_app="flamp"
+fl_ver_get "$fl_app"
+installed_prog_ver_get "$fl_app"
 echo "$fl_app:   current version: $fl_ver, installed: $prog_ver"
+
+fi
