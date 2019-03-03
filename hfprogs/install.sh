@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# Build & install the HF applications
+#
 # Uncomment this statement for debug echos
 # DEBUG=1
 
@@ -13,7 +15,7 @@ DEB_DIR="/home/$user/debian"
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== Display program help info
-#
+
 usage () {
 	(
 	echo "Usage: $scriptname user_name [hfprog_name][hfprog_version]"
@@ -40,6 +42,7 @@ function get_user() {
 }
 
 # ==== function check_user
+
 # verify user name is legit
 
 function check_user() {
@@ -88,6 +91,7 @@ fi
 }
 
 # ===== function build_wsjtx
+
 function build_wsjtx() {
 
 wsjtx_ver="$1"
@@ -107,6 +111,7 @@ fi
 }
 
 # ===== function build_hamlib
+
 function build_hamlib() {
 
 hamlib_ver="$1"
@@ -147,6 +152,7 @@ fi
 }
 
 # ===== function build_fldigi
+
 function build_fldigi() {
 
 fldigi_ver="$1"
@@ -182,7 +188,8 @@ if [ ! -d "$FLDIGI_SRC_DIR" ] ; then
 fi
 }
 
-# ===== function fuild_flrig
+# ===== function build any of flrig, flmsg, flamp
+
 function build_flapp() {
 
 flapp_ver="$1"
