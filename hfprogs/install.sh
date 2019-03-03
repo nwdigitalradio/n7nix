@@ -16,7 +16,8 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 #
 usage () {
 	(
-	echo "Usage: $scriptname [hfprog_name][hfprog_version]"
+	echo "Usage: $scriptname user_name [hfprog_name][hfprog_version]"
+        echo "    login user name"
         echo "    hfprog_name needs to be one of:"
         echo "      js8call wsjtx hamlib fldigi flrig flmsg flamp"
         echo "    hfprog_version needs to be a valid program version number"
@@ -215,7 +216,18 @@ echo -e "\n\t$(tput setaf 4) Install HF programs$(tput setaf 7)\n"
 
 # Check for any arguments
 if (( $# != 0 )) ; then
-   USER="$1"
+    key="$1"
+    case $key in
+        -h)
+            usage
+            exit 1
+        ;;
+
+        *)
+            echo "User specified: $key"
+            USER="$1"
+        ;;
+    esac
 fi
 
 # Get list of users with home directories
@@ -233,44 +245,45 @@ check_user
 
 # If there are no command line options build everything
 
-if [[ $# -eq 0 ]] ; then
+if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     hfapp="ALL"
 
     build_js8call "1.0.0-rc1"
     build_wsjtx "2.0.1"
     build_hamlib "3.3"
     build_fldigi "4.0.18"
-    build_flapp "1.3.41" flrig
+    build_flapp "1.3.42" flrig
     build_flapp "4.0.8" flmsg
     build_flapp "2.2.04" flamp
 else
 
-    if [[ $# -ne 2 ]] ; then
+    if [[ $# -ne 3 ]] ; then
+        echo "Wrong number of arguments: $#"
         usage
         exit 1
     fi
-    hfapp="$1"
+    hfapp="$2"
     case $hfapp in
         js8call)
-            build_js8call "$2"
+            build_js8call "$3"
         ;;
         wsjtx)
-            build_wsjtx "$2"
+            build_wsjtx "$3"
         ;;
         hamlib)
-            build_hamlib "$2"
+            build_hamlib "$3"
         ;;
         fldigi)
-            build_fldigi "$2"
+            build_fldigi "$3"
         ;;
         flrig)
-            build_flapp "$2" "flrig"
+            build_flapp "$3" "flrig"
         ;;
         flmsg)
-            build_flapp "$2" "flmsg"
+            build_flapp "$3" "flmsg"
         ;;
         flamp)
-            build_flapp "$2" "flamp"
+            build_flapp "$3" "flamp"
         ;;
         *)
             echo "Undefined argument $hfapp"
