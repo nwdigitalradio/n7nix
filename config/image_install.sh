@@ -6,7 +6,7 @@
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
-imapinstall="true"
+imapinstall="false"
 USER=
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -118,17 +118,12 @@ popd > /dev/null
 
 pushd ../hfprogs
 echo "$scriptname: Install HF programs"
-sudo -u "$USER" ./install.sh $USER
+sudo -u "$USER" ./hf_install.sh $USER
 popd > /dev/null
 
 pushd ../dstar
 echo "$scriptname: Install DStar programs"
 sudo -u "$USER" ./install.sh $USER
-popd > /dev/null
-
-pushd ../gps
-echo "$scriptname: Install DRAWS gps programs"
-./install.sh
 popd > /dev/null
 
 pushd ../ardop
