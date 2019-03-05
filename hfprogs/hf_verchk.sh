@@ -4,8 +4,10 @@
 # DEBUG=1
 
 scriptname="`basename $0`"
-user=$(whoami)
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+
 UPDATE_FLAG=false
+USER=
 
 # For fl apps use this url
 fl_url="http://www.w1hkj.com/files"
@@ -26,6 +28,44 @@ usage () {
 	) 1>&2
 	exit 1
 }
+
+# ===== function get_user
+
+function get_user() {
+   # Check if there is only a single user on this system
+   if (( `ls /home | wc -l` == 1 )) ; then
+      USER=$(ls /home)
+   else
+      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+      read -e USER
+   fi
+}
+
+# ==== function check_user
+
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
+
+# Increase swap file
+# Default CONF_SWAPSIZE=100 102396 KBytes
+# Changed to CONF_SWAPSIZE=1000  1023996 KBytes
+# Change the size in /etc/dphys-swapfile:
 
 # ===== function display_swap_size
 
@@ -61,7 +101,7 @@ function installed_prog_ver_get() {
 progname="$1"
 SRC_DIR="/usr/local/src"
 
-type -P $progname >/dev/null 2>&1
+    type -P $progname >/dev/null 2>&1
     if [ "$?"  -ne 0 ]; then
         prog_ver="NOT installed"
     else
@@ -76,8 +116,8 @@ type -P $progname >/dev/null 2>&1
 }
 
 # ===== function installed_lib_ver_get
-
 # Get the installed version of a library
+
 function installed_lib_ver_get() {
 progname="$1"
 SRC_DIR="/usr/local/src"
@@ -96,7 +136,7 @@ SRC_DIR="/usr/local/src"
     if [ "$?" -ne 0 ]; then
         prog_ver="NOT installed"
     else
-        if [ "${progname:0:3}" == "ham" ] ; then
+        if [ "${progname:0:3}" == "ham" ] || [ "${progname:0:4}" == "flxm" ] ; then
             dirname="$(ls -1 $SRC_DIR/$progname*.tar.gz)"
             prog_ver=$(basename $dirname .tar.gz | cut -d '-' -f2)
         else
@@ -106,23 +146,42 @@ SRC_DIR="/usr/local/src"
     fi
 }
 
+# ===== function test_fldigi_ver
+# Verify version displayed on command line is same as what was
+# installed
+
+function test_fldigi_ver() {
+    flapp=$1
+    flver=$2
+#    echo "Debug: Testing $flapp, ver: $flver"
+    # Test if fldigi was installed ok
+    if [ "$flapp" == "fldigi" ] ; then
+        # Get version number of fldigi from command line
+        cl_ver=$(fldigi --version | head -n 1 | cut -d' ' -f2)
+        if [ "$flver" != "$cl_ver" ] ; then
+            echo "$(tput setaf 1)$flapp version built ($cl_ver) does not match source version ($flver) $(tput setaf 7)"
+        fi
+    fi
+}
+
 # ===== function installed_version_display
 
 function installed_version_display() {
-    # Get version numbers
+    # Get version numbers of all hf programs
 
     for progname in "js8call" "wsjtx" "fldigi" "flrig" "flmsg" "flamp" ; do
         installed_prog_ver_get "$progname"
         echo "$progname: $prog_ver"
+        test_fldigi_ver "$progname" "$prog_ver"
     done
-    for libname in "hamlib" ; do
+    # Check if hamlib has been loaded
+    for libname in "hamlib" "flxmlrpc" ; do
         installed_lib_ver_get "$libname"
         echo "$libname: $prog_ver"
     done
 }
 
 # ==== main
-
 
 # Check for any command line arguments
 # Command line args are passed with a dash & single letter
@@ -160,6 +219,44 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument or value
 done
 
+# Verify that hf_install program can be found
+# Need to run this script in the same directory as the
+#   hfprogs/hf_install.sh script
+if $UPDATE_FLAG ; then
+    progname="./hf_install.sh"
+
+    # Verify that swap size is large enough
+    swap_size=$(swapon -s | tail -n1 | expand -t 1 | tr -s '[[:space:]] ' | cut -d' ' -f3)
+    # Test if swap size is less than 1 Gig
+    if (( swap_size < 1023996 )) ; then
+        swap_config=$(grep -i conf_swapsize /etc/dphys-swapfile | cut -d"=" -f2)
+        sudo sed -i -e "/CONF_SWAPSIZE/ s/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=1000/" /etc/dphys-swapfile
+
+        echo "Swap size too small for builds, changed from $swap_config to 1000 ... need to reboot."
+        exit 1
+    fi
+    type -P $progname
+    if [ "$?"  -ne 0 ]; then
+        echo "Need $progname for HF program update but could not be found"
+        exit 1
+    else
+        dbgecho "Found $progname"
+    fi
+    # Verify user name
+    # Get list of users with home directories
+    USERLIST="$(ls /home)"
+    USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+    # Check if user name was supplied on command line
+    if [ -z "$USER" ] ; then
+        # prompt for call sign & user name
+        # Check if there is only a single user on this system
+        get_user
+    fi
+    # Verify user name
+    check_user
+fi
+
 # js8call
 if [ -z "$DEBUG1" ] ; then
 js8_app="js8call"
@@ -177,6 +274,7 @@ echo "$js8_app: current version: $js8_ver, installed: $prog_ver"
 if $UPDATE_FLAG ; then
     if [[ "$js8_ver" != "$prog_ver" ]] ; then
         echo "         versions are different and WILL be updated."
+        /bin/bash ./hf_install.sh "$USER" js8call "$js8_ver"
     else
         echo "         version is current"
     fi
@@ -198,6 +296,7 @@ echo "$wsjtx_app:   current version: $wsjtx_ver, installed: $prog_ver"
 if $UPDATE_FLAG ; then
     if [[ "$wsjtx_ver" != "$prog_ver" ]] ; then
         echo "       versions are different and WILL be updated."
+        /bin/bash ./hf_install.sh "$USER" wsjtx "$wsjtx_ver"
     else
         echo "      version is current"
     fi
@@ -205,39 +304,33 @@ fi
 
 fi
 
-
-for fl_app in "fldigi" "flrig" "flmsg" "flamp" ; do
+# Update all the fl programs
+for fl_app in "flxmlrpc" "fldigi" "flrig" "flmsg" "flamp" ; do
 
     fl_ver_get "$fl_app"
-    installed_prog_ver_get "$fl_app"
+
+    if [ "${fl_app:0:3}" == "ham" ] || [ "${fl_app:0:4}" == "flxm" ] ; then
+        installed_lib_ver_get "$fl_app"
+    else
+        installed_prog_ver_get "$fl_app"
+    fi
     echo "$fl_app:  current version: $fl_ver, installed: $prog_ver"
+    test_fldigi_ver "$fl_app" "$prog_ver"
+
     if $UPDATE_FLAG ; then
         if [[ "$fl_ver" != "$prog_ver" ]] ; then
             echo "      versions are different and WILL be updated."
+            dbgecho "Sending command: ./hf_install.sh $USER $fl_app $fl_ver"
+            /bin/bash ./hf_install.sh "$USER" "$fl_app" "$fl_ver"
+            test_fldigi_ver "$fl_app" "$fl_ver"
         else
             echo "        version is current"
         fi
     fi
 done
 
-NOTYET="ON"
-if [ -z "$NOTYET" ] ; then
-# flrig
-fl_app="flrig"
-fl_ver_get "$fl_app"
-installed_prog_ver_get "$fl_app"
-echo "$fl_app:   current version: $fl_ver, installed: $prog_ver"
-
-# flmsg
-fl_app="flmsg"
-fl_ver_get "$fl_app"
-installed_prog_ver_get "$fl_app"
-echo "$fl_app:   current version: $fl_ver, installed: $prog_ver"
-
-# flamp
-fl_app="flamp"
-fl_ver_get "$fl_app"
-installed_prog_ver_get "$fl_app"
-echo "$fl_app:   current version: $fl_ver, installed: $prog_ver"
-
+if $UPDATE_FLAG ; then
+    echo
+    echo "$(date "+%Y %m %d %T %Z"): $scriptname: hf program update script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
+    echo
 fi
