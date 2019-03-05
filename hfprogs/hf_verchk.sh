@@ -19,7 +19,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 #
 usage () {
 	(
-	echo "Usage: $scriptname [-l][-s]"
+	echo "Usage: $scriptname [-u][-l][-s][-h]"
         echo "    No arguments displays current & installed versions."
         echo "    -u Set application update flag."
         echo "       Update source, build & install."
@@ -300,7 +300,7 @@ if $UPDATE_FLAG ; then
         echo "       versions are different and WILL be updated."
         /bin/bash ./hf_install.sh "$USER" wsjtx "$wsjtx_ver"
     else
-        echo "      version is current"
+        echo "         version is current"
     fi
 fi
 
