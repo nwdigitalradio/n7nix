@@ -143,10 +143,21 @@ ldconfig
 # ===== function install direwolf from source
 
 function install_direwolf_source() {
-   num_cores=$(nproc --all)
+    num_cores=$(nproc --all)
+
+    pushd ../gps
+    echo "$scriptname: Install DRAWS gps programs"
+    ./install.sh
+    popd > /dev/null
+
    echo "=== Install direwolf version $DW_VER from source using $num_cores cores"
+
+#   apt-get install gpsd
+   apt-get install libgps-dev
+
    SRC_DIR="/usr/local/src/"
    cd "$SRC_DIR"
+
 # This gets current HOT version
 #   git clone https://www.github.com/wb2osz/direwolf
 #   cd direwolf
