@@ -20,7 +20,9 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 usage () {
 	(
 	echo "Usage: $scriptname [-l][-s]"
+        echo "    No arguments displays current & installed versions."
         echo "    -u Set application update flag."
+        echo "       Update source, build & install."
         echo "    -l display local versions only."
         echo "    -s display available swap space."
         echo "    -h display this message."
