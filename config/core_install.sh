@@ -145,15 +145,10 @@ ldconfig
 function install_direwolf_source() {
     num_cores=$(nproc --all)
 
-    pushd ../gps
-    echo "$scriptname: Install DRAWS gps programs"
-    ./install.sh
-    popd > /dev/null
-
-   echo "=== Install direwolf version $DW_VER from source using $num_cores cores"
+    echo "=== Install direwolf version $DW_VER from source using $num_cores cores"
 
 #   apt-get install gpsd
-   apt-get install libgps-dev
+    apt-get install libgps-dev
 
    SRC_DIR="/usr/local/src/"
    cd "$SRC_DIR"
@@ -360,6 +355,12 @@ ax25_lib
 echo " === libax25, ax25apps & ax25tools install FINISHED"
 
 cd $START_DIR
+
+# gps required before direwolf build
+pushd ../gps
+echo "=== $scriptname: Install DRAWS gps programs"
+./install.sh
+popd > /dev/null
 
 # Test if direwolf has previously been installed.
 #  - if not installed try installing Debian package
