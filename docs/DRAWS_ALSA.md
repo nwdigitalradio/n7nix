@@ -46,10 +46,10 @@ Controls](https://nw-digital-radio.groups.io/g/udrc/wiki/DRAWS%E2%84%A2-Audio-CO
   * Example output:
 ```
  ===== ALSA Controls for Radio Tansmit =====
-LO Driver Gain  L:[0.00dB]	R:[0.00dB]
-LO Playback CM	[Full Chip CM]
-PCM	        L:[0.00dB]	R:[0.00dB]
+LO Driver Gain  L:[-6.00dB]	R:[-6.00dB]
+PCM	        L:[-25.00dB]	R:[-25.00dB]
 DAC Playback PT	L:[PTM_P3]	R:[PTM_P3]
+LO Playback CM	[Full Chip CM]
 
  ===== ALSA Controls for Radio Receive =====
 ADC Level	L:[0.00dB]	R:[0.00dB]
