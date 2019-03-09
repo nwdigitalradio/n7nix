@@ -103,7 +103,7 @@ else
     echo -e "\n\t$(tput setaf 4)File: $mod_file NOT modified $(tput setaf 7)\n"
 fi
 
-arim_ver="2.4"
+arim_ver="2.6"
 download_filename="arim-${arim_ver}.tar.gz"
 ARIM_SRC_DIR=$SRC_DIR/arim-$arim_ver
 
