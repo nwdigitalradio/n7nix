@@ -8,7 +8,7 @@ DEBUG=1
 
 scriptname="`basename $0`"
 
-BUILDTOOLS_PKG_LIST="checkinstall rsync build-essential autoconf dh-autoreconf automake libtool git libncurses5-dev"
+BUILDTOOLS_PKG_LIST="checkinstall rsync build-essential autoconf dh-autoreconf automake libtool git libncurses5-dev libncursesw5-dev"
 
 # trap ctrl-c and call function ctrl_c()
 trap ctrl_c INT
