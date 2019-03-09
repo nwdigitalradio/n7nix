@@ -38,10 +38,12 @@ sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
 #  Turn off unnecessary pins
 sset 'IN1_L to Right Mixer Negative Resistor' 'Off'
 sset 'IN1_R to Left Mixer Positive Resistor' 'Off'
+
 sset 'IN2_L to Left Mixer Positive Resistor' 'Off'
 sset 'IN2_L to Right Mixer Positive Resistor' 'Off'
 sset 'IN2_R to Left Mixer Negative Resistor' 'Off'
 sset 'IN2_R to Right Mixer Positive Resistor' 'Off'
+
 sset 'IN3_L to Left Mixer Positive Resistor' 'Off'
 sset 'IN3_L to Right Mixer Negative Resistor' 'Off'
 sset 'IN3_R to Left Mixer Negative Resistor' 'Off'
