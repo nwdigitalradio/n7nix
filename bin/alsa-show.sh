@@ -120,12 +120,17 @@ if (( alsactrl_count >= 44 )) ; then
     printf "%s\t[%s]\n" "$control" "$CTRL_VAL"
 fi
 
+
 echo
 echo " ===== ALSA Controls for Radio Receive ====="
 
 control="ADC Level"
 audio_display_ctrl "$control"
 printf "%s\tL:%s\tR:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
+
+# Note: only Displaying Positive resistors for IN1 IN2 L/R
+# The Micor radio needs settings for:
+#  'IN1_L to Right Mixer Negative Resistor'
 
 control="IN1_L to Left Mixer Positive Resistor"
 display_ctrl "$control"
@@ -143,6 +148,14 @@ control="IN2_R to Right Mixer Positive Resistor"
 display_ctrl "$control"
 CTRL_IN2_R="$CTRL_VAL"
 
+control="CM_L to Left Mixer Negative Resistor"
+display_ctrl "$control"
+CTRL_CM_L="$CTRL_VAL"
+
+control="CM_R to Right Mixer Negative Resistor"
+display_ctrl "$control"
+CTRL_CM_R="$CTRL_VAL"
+
 control="IN1"
 strlen=${#CTRL_IN1_L}
 if ((strlen < 4)) ; then
@@ -158,6 +171,15 @@ if ((strlen < 4)) ; then
 else
     printf "%s\t\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_IN2_L" "$CTRL_IN2_R"
 fi
+
+control="CM"
+strlen=${#CTRL_CM_L}
+if ((strlen < 4)) ; then
+    printf "%s\t\tL:[%s]\t\tR:[%s]\n" "$control" "$CTRL_CM_L" "$CTRL_CM_R"
+else
+    printf "%s\t\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_CM_L" "$CTRL_CM_R"
+fi
+
 
 if [ ! -z "$DEBUG" ] ; then
     control="IN1_L to Left Mixer Positive Resistor"
