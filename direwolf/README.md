@@ -1,7 +1,7 @@
 # Direwolf installation files
 
 ###### config.sh
-* direwolf is normally installed as part of the [core installation.](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
+* direwolf is normally installed as part of the [core installation.](https://github.com/nwdigitalradio/n7nix/blob/master/docs/CORE_INSTALL.md)
 * This install script is called from the config/core_install.sh script.
 
 ###### callpass.c
@@ -37,7 +37,7 @@ sudo su
 
 The scripts ax25-stop, ax25-start, ax25-status were previously
 Installed as part of the [core
-install.](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
+install.](https://github.com/nwdigitalradio/n7nix/blob/master/docs/CORE_INSTALL.md)
 
 ### How to watch received packets
 

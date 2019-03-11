@@ -2,7 +2,7 @@
 
 ## Install core components
 
-* This installation assumes you have already [installed core components](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
+* This installation assumes you have already [installed core components](https://github.com/nwdigitalradio/n7nix/blob/master/docs/CORE_INSTALL.md)
 
 
 ## Install paclink-unix, Dovecot & hostap

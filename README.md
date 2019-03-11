@@ -52,7 +52,7 @@ requirements this option also configures
 to start direwolf, AX.25 attach & AX.25 apps like mheardd at boot time.
 
 Regardless of what functionality you want to install the first thing to run is
-[core_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/CORE_INSTALL.md)
+[core_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/docs/CORE_INSTALL.md)
 which will do the initial configuring of the compass kernel & install
 AX.25 & direwolf.
 
