@@ -27,6 +27,7 @@
 * Name: localhost
 
 #### Edit Domain "localhost"
+
 * IMAP Server: localhost
 * IMAP Port: 143
 * IMAP Secure: None
@@ -39,6 +40,7 @@
 * Click +Add in right hand corner
 
 #### Login
+* Using left panel click on Login
 * Default domain: localhost
 
 #### Admin Panel complete, Login in to new account
@@ -47,7 +49,7 @@
 * Login using Email: pi@localhost, password: user pi password
 
 #### Add an identity
-* Click on arrow by person's head next to pi@localhost
+* In right hand area of web page left click on arrow by person's head next to pi@localhost
 * Click on Settings
 * Using left panel click on _Accounts_
 * Under Identities, click on _Add an Identity_

@@ -53,6 +53,8 @@
 * Click save to start
 
 #### Verify claws-mail
+* Click on INBOX in left panel
+  * Any emails from root during install?
 * If imap mail directory already exists click **getmail** (left most icon in claws-mail) to see any previous email.
 
 * You may have to run _Rebuild folder tree_ when you first start up
