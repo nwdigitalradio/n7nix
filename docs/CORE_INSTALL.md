@@ -75,6 +75,7 @@ ssh pi@<rpi_ip_address>
 * and do the following:
 
 ```bash
+# Become root
 sudo su
 apt-get update
 # Be patient, the following command will take some time
@@ -114,6 +115,7 @@ Internet connection.
   * This was the way the SeaPac workshop image was created
 
 ```bash
+# Become root
 sudo su
 # Execute from n7nix/config directory
 ./image_install.sh
@@ -130,6 +132,7 @@ first
   * core includes, direwowlf, ax25, systemd
 
 ```bash
+# Become root
 sudo su
 # Execute from n7nix/config directory
 ./app_config.sh core
@@ -144,6 +147,7 @@ After Core packages are configure, you can config RMS Gateway or paclink-unix
 
 ```
 cd n7nix/config
+# Become root
 sudo su
 
 # If RMS Gateway is required then
@@ -173,6 +177,7 @@ sudo su
 
 ```bash
 cd n7nix/config
+# Become root
 sudo su
 ./core_install.sh
 ./app_config.sh core
