@@ -1,6 +1,6 @@
 #!/bin/bash
 # UDRC II for DStar on a Micor repeater
-# Note not a DR1x DStar Repeater
+# Note not a DR-1x DStar Repeater
 # From KU7M 03/2019
 
 amixer -c udrc -s << EOF
