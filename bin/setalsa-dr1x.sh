@@ -1,4 +1,5 @@
 #!/bin/bash
+# UDRC II for DSTar using a Yaesu DR-1x repeater
 
 amixer -c udrc -s << EOF
 #  If you change your level settings, make a new script, save, and run it
@@ -18,10 +19,12 @@ sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
 #  Turn off unnecessary pins
 sset 'IN1_L to Right Mixer Negative Resistor' 'Off'
 sset 'IN1_R to Left Mixer Positive Resistor' 'Off'
+
 sset 'IN2_L to Left Mixer Positive Resistor' 'Off'
 sset 'IN2_L to Right Mixer Positive Resistor' 'Off'
 sset 'IN2_R to Left Mixer Negative Resistor' 'Off'
 sset 'IN2_R to Right Mixer Positive Resistor' 'Off'
+
 sset 'IN3_L to Left Mixer Positive Resistor' 'Off'
 sset 'IN3_L to Right Mixer Negative Resistor' 'Off'
 sset 'IN3_R to Left Mixer Negative Resistor' 'Off'
