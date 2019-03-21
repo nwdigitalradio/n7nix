@@ -12,12 +12,6 @@ CALLSIGN0="$CALLSIGN-1"
 CALLSIGN1="$CALLSIGN-2"
 
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
-firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
-firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
-firmware_vendorfile="/sys/firmware/devicetree/base/hat/vendor"
-
-PROD_ID_NAMES=("INVALID" "INVALID" "UDRC" "UDRC II" "DRAWS" "1WSpot")
-NWDIG_VENDOR_NAME="NW Digital Radio"
 
 # Default to udrc II for gpio assignment
 chan1ptt_gpio=12
