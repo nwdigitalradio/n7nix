@@ -53,7 +53,9 @@ a020d3)
 ;;
 esac
 
-if [ "$HAS_WIFI" = "true" ] ; then
+retcode=1
+if $HAS_WIFI ; then
    echo " Has WiFi"
+   retcode=0
 fi
-exit 0
+exit $retcode

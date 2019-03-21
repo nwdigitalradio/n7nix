@@ -13,40 +13,31 @@ SSID="NOT_SET"
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 
-# ===== function is_rpi3
+# ===== function determine if RPi version has WiFi
 
-function is_rpi3() {
-
-CPUINFO_FILE="/proc/cpuinfo"
-HAS_WIFI=0
-
-piver="$(grep "Revision" $CPUINFO_FILE)"
-piver="$(echo -e "${piver##*:}" | tr -d '[[:space:]]')"
-
-case $piver in
-a01040)
-   echo " Pi 2 Model B Mfg by Unknown"
-;;
-a01041)
-   echo " Pi 2 Model B Mfg by Sony"
-;;
-a21041)
-   echo " Pi 2 Model B Mfg by Embest"
-;;
-a22042)
-   echo " Pi 2 Model B with BCM2837 Mfg by Embest"
-;;
-a02082)
-   echo " Pi 3 Model B Mfg by Sony"
-   HAS_WIFI=1
-;;
-a22082)
-   echo " Pi 3 Model B Mfg by Embest"
-   HAS_WIFI=1
-;;
-esac
-
-return $HAS_WIFI
+function get_has_WiFi() {
+# Initialize product ID
+HAS_WIFI=
+prgram="piver.sh"
+which $prgram
+if [ "$?" -eq 0 ] ; then
+   dbgecho "Found $prgram in path"
+   $prgram > /dev/null 2>&1
+   HAS_WIFI=$?
+else
+   currentdir=$(pwd)
+   # Get path one level down
+   pathdn1=$( echo ${currentdir%/*})
+   dbgecho "Test pwd: $currentdir, path: $pathdn1"
+   if [ -e "$pathdn1/bin/$prgram" ] ; then
+       dbgecho "Found $prgram here: $pathdn1/bin"
+       $pathdn1/bin/$prgram > /dev/null 2>&1
+       HAS_WIFI=$?
+   else
+       echo "Could not locate $prgram default to no WiFi found"
+       HAS_WIFI=0
+   fi
+fi
 }
 
 # ===== function copy_dnsmasq
@@ -163,6 +154,23 @@ else
 fi
 }
 
+# ===== function start_service
+
+function start_service() {
+    service="$1"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        echo "ENABLING $service"
+        systemctl enable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem ENABLING $service"
+        fi
+    fi
+    systemctl --no-pager start "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem starting $service"
+    fi
+}
 
 # ===== main
 
@@ -174,11 +182,13 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
-is_rpi3
-if [ $? -eq "0" ] ; then
-   echo "Not running on an RPi 3 ... exiting"
+get_has_WiFi
+if [ $? -ne "0" ] ; then
+   echo "No WiFi found ... exiting"
    exit 1
 fi
+
+echo "Found WiFi"
 
 echo "Configuring: hostapd.conf"
 hostapd_config
@@ -240,8 +250,8 @@ EOF
 fi
 
 systemctl daemon-reload
-service hostapd start
-service dnsmasq start
+start_service hostapd
+start_service dnsmasq
 
 echo
 echo "Test if $SERVICELIST services have been started."
