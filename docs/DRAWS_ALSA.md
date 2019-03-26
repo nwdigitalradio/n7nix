@@ -7,10 +7,11 @@ Controls](https://nw-digital-radio.groups.io/g/udrc/wiki/DRAWS%E2%84%A2-Audio-CO
 * For a [YouTube video on setting values using TX Calc spreadsheet](https://youtu.be/RxWiDYMcRn4)
   * Download [TX Calc spreadsheet](https://nw-digital-radio.groups.io/g/udrc/files/TX%20Calc.xlsx) for setting ALSA controls
 
-* DRAWS™ Manager is our web based program for setting the Controls -- it includes the TX Calculation function and direct setup of controls, set [this video] (https://www.youtube.com/watch?v=v5C3cWVVz_A) 
+* DRAWS Manager is our web based program for setting the Controls --
+it includes the TX Calculation function and direct setup of controls,
+set [this video] (https://www.youtube.com/watch?v=v5C3cWVVz_A)
 
 ### Transmit Controls that affect input to radio
-
 
 | ALSA Control Name |  Values  | Function |
 |     :---         |  :---   |  :---   |
