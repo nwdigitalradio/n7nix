@@ -9,7 +9,7 @@ Controls](https://nw-digital-radio.groups.io/g/udrc/wiki/DRAWS%E2%84%A2-Audio-CO
 
 * DRAWS Manager is our web based program for setting the Controls --
 it includes the TX Calculation function and direct setup of controls,
-set [this video] (https://www.youtube.com/watch?v=v5C3cWVVz_A)
+set [this video](https://www.youtube.com/watch?v=v5C3cWVVz_A)
 
 ### Transmit Controls that affect input to radio
 
