@@ -2,7 +2,8 @@
 #
 # set-udrc-din6.sh
 #
-# - Assumes using Kenwood TM-V71a attached to mDin6 connector
+# Configuration for a Kenwood TM-V71a attached to the mDin6 connector on
+# a UDRC II HAT.
 #
 # HD15  is on right channel, direwolf chan 0
 # mDin6 is on left channel,  direwolf chan 1
