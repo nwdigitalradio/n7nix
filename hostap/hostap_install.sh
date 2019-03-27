@@ -7,7 +7,6 @@ DEBUG=1
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
-SSID="NOT_SET"
 
 # Required pacakges
 PKGLIST="hostapd dnsmasq iptables iptables-persistent"
@@ -75,7 +74,10 @@ dbgecho "Check packages: $PKGLIST"
 #  https://discourse.osmc.tv/t/failed-to-start-load-kernel-modules/3163/14
 #  https://www.raspberrypi.org/forums/viewtopic.php?f=63&t=174648
 
-sed -i -e 's/^#*/#/' /etc/modules-load.d/cups-filters.conf
+file_name="/etc/modules-load.d/cups-filters.conf"
+if [ -e "$file_name" ] ; then
+    sed -i -e 's/^#*/#/' $file_name
+fi
 
 for pkg_name in `echo ${PKGLIST}` ; do
 
