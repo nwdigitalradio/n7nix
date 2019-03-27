@@ -212,7 +212,9 @@ dnsmasq_config
 
 # set up IPV4 forwarding
 echo "Set IPV4 forwarding"
-ipf=$(cat /proc/sys/net/ipv4/ip_forward)
+#ipf=$(cat /proc/sys/net/ipv4/ip_forward)
+ipf="$(tr -d '\0' </proc/sys/net/ipv4_ip_forward)"
+
 echo "ip_forward is $ipf"
 if [ $ipf = "0" ] ; then
   sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
