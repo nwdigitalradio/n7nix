@@ -108,8 +108,16 @@ SRC_DIR="/usr/local/src"
         prog_ver="NOT installed"
     else
         if [ "${progname:0:2}" == "fl" ] ; then
-            dirname="$(ls -1 $SRC_DIR/$progname*.tar.gz | tail -n1)"
-            prog_ver=$(basename $dirname .tar.gz | cut -d '-' -f2)
+            # Check for tarball
+            if [ -e $SRC_DIR/$progname*.tar.gz ] ; then
+                dbgecho "$progname exists"
+                dirname="$(ls -1 $SRC_DIR/$progname*.tar.gz | tail -n1)"
+                prog_ver=$(basename $dirname .tar.gz | cut -d '-' -f2)
+            else
+                # Get version number from directory name
+                prog_ver=$(ls -d $SRC_DIR/$progname* | cut -d'-' -f2)
+#               prog_ver=$(grep -i version $SRC_DIR/$progname*/ChangeLog | head -n1)
+           fi
         else
             dirname="$(ls -1 $SRC_DIR/$progname*.deb | tail -n1)"
             prog_ver=$(basename $dirname .deb | cut -d'_' -f2)
@@ -139,8 +147,16 @@ SRC_DIR="/usr/local/src"
         prog_ver="NOT installed"
     else
         if [ "${progname:0:3}" == "ham" ] || [ "${progname:0:4}" == "flxm" ] ; then
-            dirname="$(ls -1 $SRC_DIR/$progname*.tar.gz)"
-            prog_ver=$(basename $dirname .tar.gz | cut -d '-' -f2)
+            # Check for tarball
+            if [ -e $SRC_DIR/$progname*.tar.gz ] ; then
+                dirname="$(ls -1 $SRC_DIR/$progname*.tar.gz)"
+                prog_ver=$(basename $dirname .tar.gz | cut -d '-' -f2)
+            else
+                # Get version number from directory name
+                prog_ver=$(ls -d $SRC_DIR/$progname* | cut -d'-' -f2)
+#                dbgecho "Check change log in $progname directory"
+#                grep version $SRC_DIR/$progname*/ChangeLog | head -n1 | cut -d' ' -f2
+            fi
         else
             dirname="$(ls -1 $SRC_DIR/$progname*.deb)"
             prog_ver=$(basename $dirname .deb | cut -d'_' -f2)
