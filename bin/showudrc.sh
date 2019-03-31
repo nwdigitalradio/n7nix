@@ -193,8 +193,9 @@ fi
 
 }
 
+
 # ===== function check locale settings
-# Compare X11 layout settings with WPA settings
+# Compare country code in X11 layout, WPA config file & iw reg settings
 
 function check_locale() {
     wificonf_file="/etc/wpa_supplicant/wpa_supplicant.conf"
@@ -204,25 +205,29 @@ function check_locale() {
     # Convert to upper case
     x11_country=$(echo "$x11_country" | tr '[a-z]' '[A-Z]')
 
+    iw_country=$(iw reg get | grep -i country | cut -d' ' -f2 | cut -d':' -f1)
+    # Convert to upper case
+    iw_country=$(echo "$iw_country" | tr '[a-z]' '[A-Z]')
 
     if [ -e "$wificonf_file" ] ; then
-        # Compare country code in WiFi config file with X11 layout config
-
         wifi_country=$(grep -i "country=" "$wificonf_file" | cut -d '=' -f2)
         # Remove preceeding white space
         wifi_country="$(sed -e 's/^[[:space:]]*//' <<<"$wifi_country")"
         # Convert to upper case
-        x11_country=$(echo "$x11_country" | tr '[a-z]' '[A-Z]')
+        wifi_country=$(echo "$wifi_country" | tr '[a-z]' '[A-Z]')
 
-        if [ "$x11_country" == "$wifi_country" ] ; then
-            echo "Locale country codes consistent between WiFi & X11, $wifi_country"
-        else
-            echo "Locale country codes do not match: WiFi: $wifi_country & X11: $x11_country"
-        fi
     else
-        echo "Local country code check: WiFi config file: $wificonf_file, does not exist, locale: $x11_country"
+        echo "Local country code check: WiFi config file: $wificonf_file, does not exist"
+        wifi_country="00"
     fi
+
+    if [ "$x11_country" == "$wifi_country" ] && [ "$x11_country" == "$iw_country" ]; then
+        echo "Locale country codes consistent among WiFi cfg file, iw reg & X11: $wifi_country"
+    else
+        echo "Locale country codes do not match: WiFi: $wifi_country, iw: $iw_country, X11: $x11_country."
+     fi
 }
+
 # ===== Main
 
 # Check that the ASoC driver for the AudioSense-Pi soundcard is NOT
