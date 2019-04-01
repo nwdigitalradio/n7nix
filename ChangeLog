@@ -1,4 +1,24 @@
+Mon Apr  1 08:02:42 PDT 2019  Basil Gunn <basil@pacabunga.com>
+
+  * Image BETA10 release
+    * Added script that does an auto refresh of all HF program
+      versions since most of them are not Debian packages and it
+      takes a LONG time to build.
+    * Fixed FLdigi build to occur after required libraries have been built.
+    * Added scripts (start/stop/status) for setting up client/host AP WiFi.
+    * app_config.sh now exits instead of defaulting if no args are given
+    * Added setalsa script for a non DR-1x repeater (Micor) on UDRC II
+    * Added setalsa script for TM-V71a on UDRC II
+    * Put all RPi version detection in one script only.
+    * Added wide character support to AX25apps build (Bernard F6BVP)
+    * Updated claws-mail & rainloop email client config
+    * Updated output of alsa-show.sh
+    * Put gpsd install before direwolf
+    * Remove downloaded tarballs from /usr/local/src
+    * Wordsmithing of some markdown doc files.
+
 Wed Feb 27 12:18:04 PST 2019  Basil Gunn <basil@pacabunga.com>
+
   * Image BETA9 release
     * Change default alsa settings to be less aggressive
       * LO Driver Gain set to -6.0db
