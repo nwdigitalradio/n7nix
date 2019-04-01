@@ -17,7 +17,7 @@ n7nix/config/cfgcheck.sh
 -- app_config.sh core script has NOT been run: hostname: 1, passwd: 1, logfile: 1
 ```
 
-### Testing _direwolf_ & the UDRC
+### Testing _direwolf_ & the UDRC/DRAWS Hat
 
 * Before verifying CORE functionality you must have run the [app config script](https://github.com/nwdigitalradio/n7nix/blob/master/docs/DRAWS_CONFIG.md)
 * The first few commands assume a direwolf/ax.25 installation
@@ -41,7 +41,7 @@ sudo su
 
 #### Test Receive
 
-* Connect a cable from your UDRC to your radio.
+* Connect a cable from your UDRC/DRAWWS hat to your radio.
 * Tune your radio to the 2M 1200 baud APRS frequency 144.390 or some frequency known to have packet traffic
   * You should now be able to see the packets decoded by _direwolf_
 
