@@ -1,5 +1,7 @@
 ## DRAWS Raspberry Pi image
 
+### Provision the micro SD Card
+
 ##### Download the image file
 
 * [Go to the download site](http:nwdig.net/downloads) to find the current filename of the image
@@ -19,8 +21,8 @@ unzip current_beta.zip
 not running Linux go to the [Raspberry Pi documentation
 page](https://www.raspberrypi.org/documentation/installation/installing-images/)
 and scroll down to **"Writing an image to the SD card"**
-* For linux use the Department of Defense Computer Forensics Lab
-(DCFL) version of dd.
+* **For linux, use the Department of Defense Computer Forensics Lab
+(DCFL) version of dd, _dcfldd_**.
   * **You can ruin** the drive on the machine you are using if you do not
   get the output device (of=) correct. ie. below _/dev/sdf_ is just an
   example.
@@ -28,7 +30,11 @@ and scroll down to **"Writing an image to the SD card"**
   point](https://www.raspberrypi.org/documentation/installation/installing-images/linux.md)
 
 ```
-time dcfldd if=current_beta.img of=/dev/sdf bs=4M
+# Become root
+sudo su
+apt-get install dcfldd
+time (dcfldd if=current_beta.img of=/dev/sdf bs=4M status=progress; sync)
+# Doesn't hurt to run sync twice
 sync
 ```
 
@@ -42,6 +48,8 @@ minutes on my machine.
 login: pi
 passwd: nwcompass
 ```
+
+### Initial Configuration
 
 ##### Configure core functionality
 
@@ -67,13 +75,16 @@ sudo su
   * direwolf
   * systemd
 
+##### First Reboot After Initial Configuration
+
 * **Now reboot your RPi** & [verify your installation is working
 properly](https://github.com/nwdigitalradio/n7nix/blob/master/docs/VERIFY_CONFIG.md)
 * **NOTE:** the default core config leaves AX.25 & _direwolf_ **NOT
 running** & **NOT enabled**
   * The default config is to run HF applications like js8call, wsjtx
   and FLdigi
-  * If you want to run a packet application or run some tests on the
+  * If you are **not** interested in packet and want to run an HF app then go ahead & do that now.
+  * If you want to run a **packet application** or run some tests on the
   DRAWS board that requires _direwolf_ then enable AX.25/direwolf like this:
 ```
 cd ~/bin
@@ -81,13 +92,16 @@ cd ~/bin
 sudo su
 ./ax25-start
 ```
-* Now reboot and verify with
+
+##### Second Reboot to enable packet
+
+* Now reboot and verify by running:
 ```
 ax25-status
 ax25-status -d
 ```
 
-##### More program options
+##### More Packet Program Options
 
 * After confirming that the core functionality works you can configure
 other packet programs that will use _direwolf_ such as rmsgw,
@@ -98,7 +112,9 @@ cd
 cd n7nix/config
 # Become root
 sudo su
+# If you want to run a Linux RMS Gateway
 ./app_config.sh rmsgw
+# If you want to send & receive Winlink messages
 ./app_config.sh plu
 ```
 
@@ -115,11 +131,11 @@ cd bin
 sudo su
 ./ax25-stop
 ```
-* This will bring down _direwolf_ & all the AX.25 services allowing another program to use the DRAWS sound card.
+* This will stop _direwolf_ & all the AX.25 services allowing another program to use the DRAWS sound card.
 
 #### To Enable the RPi on board audio device
 
-* uncomment the following line in _/boot/config.txt_
+* As root uncomment the following line in _/boot/config.txt_
   * ie. remove the hash character from the beginning of the line.
 ```
 dtparam=audio=on
