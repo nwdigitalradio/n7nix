@@ -83,7 +83,7 @@ cd "$SRC_DIR"
 
 if [ ! -e "$SRC_DIR/$download_filename" ] ; then
 #    sudo wget https://s3.amazonaws.com/js8call/${js8call_rootver}/$download_filename
-    sudo wget https://files.js8call.com/${js8call_rootver}/$download_filename
+    sudo wget http://files.js8call.com/${js8call_rootver}/$download_filename
     if [ $? -ne 0 ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
         exit 1
