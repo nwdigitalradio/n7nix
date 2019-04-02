@@ -79,20 +79,20 @@ download_filename="js8call_${js8call_ver}_armhf.deb"
 
 PKG_REQUIRE_JS8CALL="libqgsttools-p1 libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediaquick-p5 libqt5multimediawidgets5 libqt5qml5 libqt5quick5 libqt5serialport5"
 echo "Install js8call ver: $js8call_ver"
+cd "$SRC_DIR"
 
 if [ ! -e "$SRC_DIR/$download_filename" ] ; then
-    cd "$SRC_DIR"
-    # wget https://s3.amazonaws.com/js8call/1.0.0-rc1/js8call_1.0.0-rc1_armhf.deb
-    sudo wget https://s3.amazonaws.com/js8call/${js8call_rootver}/$download_filename
+#    sudo wget https://s3.amazonaws.com/js8call/${js8call_rootver}/$download_filename
+    sudo wget https://files.js8call.com/js8call/${js8call_rootver}/$download_filename
     if [ $? -ne 0 ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
         exit 1
     else
-        sudo apt-get install -y "$PKG_REQUIRE_JS8CALL"
+        sudo apt-get -qq install -y $PKG_REQUIRE_JS8CALL
         sudo dpkg -i $download_filename
     fi
 else
-    sudo apt-get install -y "$PKG_REQUIRE_JS8CALL"
+    sudo apt-get -qq install -y $PKG_REQUIRE_JS8CALL
     sudo dpkg -i $download_filename
 fi
 
@@ -105,8 +105,8 @@ function build_wsjtx() {
 wsjtx_ver="$1"
 echo "install wsjt-x ver: $wsjtx_ver"
 download_filename="wsjtx_${wsjtx_ver}_armhf.deb"
-
 cd "$SRC_DIR"
+
 # wsjt-x home page:
 #  - https://physics.princeton.edu/pulsar/k1jt/wsjtx.html
 sudo wget http://physics.princeton.edu/pulsar/K1JT/$download_filename
@@ -179,8 +179,8 @@ if [ ! -d "$FLDIGI_SRC_DIR" ] ; then
     PKG_REQUIRE_FLDIGI="libfltk1.3-dev libjpeg9-dev libxft-dev libxinerama-dev libxcursor-dev libsndfile1-dev libsamplerate0-dev portaudio19-dev libusb-1.0-0-dev libpulse-dev"
     sudo apt-get install -y $PKG_REQUIRE_FLDIGI
     # wget -N  https://sourceforge.net/projects/fldigi/files/fldigi/fldigi-$FLDIGICUR.tar.gz
-
     cd "$SRC_DIR"
+
     sudo wget http://www.w1hkj.com/files/fldigi/$download_filename
     if [ $? -ne 0 ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
@@ -270,7 +270,7 @@ check_user
 if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     hfapp="ALL"
 
-    build_js8call "1.0.0-rc3"
+    build_js8call "1.0.0"
     build_wsjtx "2.0.1"
     build_hamlib "3.3"
     build_flapp "0.1.4" flxmlrpc

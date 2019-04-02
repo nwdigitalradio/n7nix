@@ -119,7 +119,7 @@ SRC_DIR="/usr/local/src"
 #               prog_ver=$(grep -i version $SRC_DIR/$progname*/ChangeLog | head -n1)
            fi
         else
-            dirname="$(ls -1 $SRC_DIR/$progname*.deb | tail -n1)"
+            dirname="$(ls -1 $SRC_DIR/$progname*.deb | head -n1)"
             prog_ver=$(basename $dirname .deb | cut -d'_' -f2)
         fi
     fi
