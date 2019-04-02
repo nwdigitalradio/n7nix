@@ -64,12 +64,9 @@ function check_user() {
    dbgecho "using USER: $USER"
 }
 
-# Increase swap file
-# Default CONF_SWAPSIZE=100 102396 KBytes
-# Changed to CONF_SWAPSIZE=1000  1023996 KBytes
-# Change the size in /etc/dphys-swapfile:
 
 # ===== function display_swap_size
+# Just display swap file size
 
 function display_swap_size() {
     swap_size_on=$(swapon -s | tail -n1 | expand -t 1 | tr -s '[[:space:]] ' | cut -d' ' -f3)
@@ -82,6 +79,28 @@ function display_swap_size() {
     swap_size_free=$(free | tail -n1 | expand -t 1 | tr -s '[[:space:]] ' | cut -d' ' -f2)
     echo "swap size: $swap_size_on $swap_size_free"
 }
+
+# ===== function swap_size_check
+# If swap too small, change config file /etc/dphys-swapfile & exit
+# To increase swap file:
+# Default   CONF_SWAPSIZE=100    102396 KBytes
+# Change to CONF_SWAPSIZE=1000  1023996 KBytes
+
+
+
+function swap_size_check() {
+    # Verify that swap size is large enough
+    swap_size=$(swapon -s | tail -n1 | expand -t 1 | tr -s '[[:space:]] ' | cut -d' ' -f3)
+    # Test if swap size is less than 1 Gig
+    if (( swap_size < 1023996 )) ; then
+        swap_config=$(grep -i conf_swapsize /etc/dphys-swapfile | cut -d"=" -f2)
+        sudo sed -i -e "/CONF_SWAPSIZE/ s/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=1000/" /etc/dphys-swapfile
+
+        echo "Swap size too small for builds, changed from $swap_config to 1000 ... need to reboot."
+        exit 1
+    fi
+}
+
 
 # ===== function fl_ver_get
 
@@ -243,16 +262,6 @@ done
 if $UPDATE_FLAG ; then
     progname="./hf_install.sh"
 
-    # Verify that swap size is large enough
-    swap_size=$(swapon -s | tail -n1 | expand -t 1 | tr -s '[[:space:]] ' | cut -d' ' -f3)
-    # Test if swap size is less than 1 Gig
-    if (( swap_size < 1023996 )) ; then
-        swap_config=$(grep -i conf_swapsize /etc/dphys-swapfile | cut -d"=" -f2)
-        sudo sed -i -e "/CONF_SWAPSIZE/ s/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=1000/" /etc/dphys-swapfile
-
-        echo "Swap size too small for builds, changed from $swap_config to 1000 ... need to reboot."
-        exit 1
-    fi
     type -P $progname
     if [ "$?"  -ne 0 ]; then
         echo "Need $progname for HF program update but could not be found"
@@ -337,6 +346,10 @@ for fl_app in "flxmlrpc" "fldigi" "flrig" "flmsg" "flamp" ; do
 
     if $UPDATE_FLAG ; then
         if [[ "$fl_ver" != "$prog_ver" ]] ; then
+            # Only check swap file size for making fldigi
+            if [ "$fl_app" = "fldigi" ] ; then
+                swap_size_check
+            fi
             echo "      versions are different and WILL be updated."
             dbgecho "Sending command: ./hf_install.sh $USER $fl_app $fl_ver"
             /bin/bash ./hf_install.sh "$USER" "$fl_app" "$fl_ver"
