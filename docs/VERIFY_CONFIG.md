@@ -161,6 +161,7 @@ User ADC 1:             +0.00 V
 User ADC 2:             +0.00 V
 ```
 
+[Check GPS](check
 #### Check GPS
 * Battery: CR 1220 3V lithium non-rechargeable
 * Check status of chronyd daemon
@@ -175,6 +176,17 @@ gpsmon
 * or
 ```
 cgps
+```
+* or
+```
+# For Raw NMEA sentences
+gpspipe -r
+
+# For GPS binary sentences
+gpspipe -R
+
+# For gpsd native data
+gpspipe -w
 ```
 
 #### Check chrony synchronization
