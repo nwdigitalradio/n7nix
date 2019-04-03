@@ -241,6 +241,7 @@ while [[ $# -gt 0 ]] ; do
         ;;
         -u)
             echo "Update HF apps after checking version numbers."
+            echo
             UPDATE_FLAG=true
         ;;
         -h)
@@ -261,8 +262,9 @@ done
 #   hfprogs/hf_install.sh script
 if $UPDATE_FLAG ; then
     progname="./hf_install.sh"
+    dbgecho "Check for $progname"
 
-    type -P $progname
+    type -P $progname  >/dev/null 2>&1
     if [ "$?"  -ne 0 ]; then
         echo "Need $progname for HF program update but could not be found"
         exit 1
