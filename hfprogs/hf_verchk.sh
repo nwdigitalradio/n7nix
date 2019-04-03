@@ -81,12 +81,12 @@ function display_swap_size() {
 }
 
 # ===== function swap_size_check
-# If swap too small, change config file /etc/dphys-swapfile & exit
-# To increase swap file:
+# If swap too small, change config file /etc/dphys-swapfile & exit to
+# do a reboot.
+#
+# To increase swap file size in /etc/dphys-swapfile:
 # Default   CONF_SWAPSIZE=100    102396 KBytes
 # Change to CONF_SWAPSIZE=1000  1023996 KBytes
-
-
 
 function swap_size_check() {
     # Verify that swap size is large enough
