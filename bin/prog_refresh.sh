@@ -13,8 +13,21 @@ if [[ $EUID -eq 0 ]]; then
     exit 1
 fi
 
+# refresh Debian package repository
+sudo apt-get update
+if [[ $? > 0 ]] ; then
+    echo
+    echo "ERROR in apt-get update"
+fi
+sudo apt-get upgrade -q -y
+if [[ $? > 0 ]] ; then
+    echo
+    echo "ERROR in apt-get upgrade"
+fi
+
 # refresh n7nix repository
 
+echo
 echo "Update scripts in n7nix directory"
 cd
 cd n7nix
