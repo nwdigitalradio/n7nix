@@ -4,7 +4,7 @@
 # Used to update the DRAWS image
 #
 # Uncomment this statement for debug echos
-DEBUG=1
+# DEBUG=1
 
 scriptname="`basename $0`"
 
@@ -52,8 +52,8 @@ if [ ! -d "$ax25bindir" ] ; then
    exit 1
 fi
 
-sudo cp /home/$USER/n7nix/systemd/ax25/ax25-* $ax25bindir
-sudo cp /home/$USER/n7nix/systemd/ax25/ax25dev-* $ax25bindir
+sudo cp -u /home/$USER/n7nix/systemd/ax25/ax25-* $ax25bindir
+sudo cp -u /home/$USER/n7nix/systemd/ax25/ax25dev-* $ax25bindir
 sudo chown -R root:staff $ax25bindir
 
 echo
