@@ -23,7 +23,8 @@
 # Uncomment this statement for debug echos
 # DEBUG=1
 
-CALLSIGN="NOONE"
+NULL_CALLSIGN="NOONE"
+CALLSIGN="$NULL_CALLSIGN"
 AX25PORT="NOPORT"
 SID="11"
 verbose="false"
@@ -56,7 +57,7 @@ function callsign_axports () {
    dbgecho "axports: found line: $getline"
 
    # Only set CALLSIGN or AX25PORT if they haven't already been set manually
-   if [ "$CALLSIGN" = "NOONE" ] ; then
+   if [ "$CALLSIGN" = "$NULL_CALLSIGN" ] ; then
       CALLSIGN=$(echo $getline | cut -d ' ' -f2 | cut -d '-' -f1)
    fi
    if [ "$AX25PORT" = "NOPORT" ] ; then
@@ -70,7 +71,7 @@ function callsign_axports () {
 function callsign_direwolf() {
    if [ ! -e $DIREWOLF_CFG_FILE ] ; then
       dbgecho "Direwolf: NO config file found!!"
-      if [ "$CALLSIGN" = "NOONE" ] ; then
+      if [ "$CALLSIGN" = "$NULL_CALLSIGN" ] ; then
          callsign_axports
          echo "$scriptname: call sign from axports"
       fi
@@ -84,7 +85,7 @@ function callsign_direwolf() {
 
 # ===== function callsign_verify
 function callsign_verify() {
-   if [ "$CALLSIGN" = "NOONE" ] ; then
+   if [ "$CALLSIGN" = "$NULL_CALLSIGN" ] ; then
       echo "$scriptname: need to edit this script with your CALLSIGN"
       exit 1
    fi
@@ -104,6 +105,41 @@ function callsign_verify() {
    dbgecho "Using callsign $CALLSIGN & port $AX25PORT"
 }
 
+# ===== function get_lat_lon
+function get_lat_lon() {
+    # Read data from gps device
+    gpsdata=$(gpspipe -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
+    lat=$(echo $gpsdata | cut -d' ' -f1)
+    lon=$(echo $gpsdata | cut -d' ' -f2)
+
+    dbgecho "gpsdata: $gpsdata"
+
+    # Separate lat & lon
+    lat=$(echo $gpsdata | cut -d' ' -f1)
+    lon=$(echo $gpsdata | cut -d' ' -f2)
+    dbgecho "lat: $lat"
+    dbgecho "lon: $lon"
+
+    # Separate latitude integer & decimal
+    latint=${lat%%.*}
+    latrat=${lat##*.}
+
+    # Get rid of leading minus sign on longitude
+    lon=${lon//[-_]/}
+    # Separate longitude integer & decimal
+    lonint=${lon%%.*}
+    lonrat=${lon##*.}
+
+    # Convert to APRS position format: Degrees Minutes.m
+    latrat=$((latrat*60))
+    dbgecho "latrat: $latrat"
+    lat=$latint${latrat:0:2}.${latrat:2:2}
+
+    lonrat=$((lonrat*60))
+    dbgecho "lonrat: $lonrat"
+    lon=$lonint${lonrat:0:2}.${lonrat:2:2}
+}
+
 # ===== function usage
 function usage() {
    echo "Usage: $scriptname [-P <port>][-s <num>][-p][-m][-v][-h]" >&2
@@ -117,10 +153,11 @@ function usage() {
 }
 
 # ===== main
-# must run as root
+
+# Check if running as root
 if [[ $EUID -ne 0 ]]; then
-  echo "*** Run as root ***" 2>&1
-  exit 1
+  echo "*** Running as user: $(whoami) ***" 2>&1
+#  exit 1
 fi
 
 # does the AXPORTS file exist ie. is ax.25 installed?
@@ -129,12 +166,20 @@ if [ ! -e $AXPORTS_FILE ] ; then
     exit 1
 fi
 
-# has the beacon program been installed
+# Has the beacon program been installed?
 type -P $BEACON &>/dev/null
 if [ $? -ne 0 ] ; then
    # Get here if beacon program NOT installed.
    echo "$scriptname: ax25tools not installed."
    exit 1
+fi
+
+# Check if program to get lat/lon info is installed.
+prog_name="gpspipe"
+type -P $prog_name &> /dev/null
+if [ $? -ne 0 ] ; then
+    echo "$scriptname: Installing gpsd-clients package"
+    sudo apt-get install gpsd-clients
 fi
 
 seqnum=0
@@ -144,7 +189,7 @@ if [ -e $SEQUENCE_FILE ] ; then
 fi
 
 # Check if the callsign & ax25 port have been manually set
-if [ "$CALLSIGN" = "NOONE" ] || [ "$AX25PORT" = "NOPORT" ] ; then
+if [ "$CALLSIGN" = "$NULL_CALLSIGN" ] || [ "$AX25PORT" = "NOPORT" ] ; then
    callsign_axports
 fi
 callsign_verify
@@ -161,7 +206,6 @@ while [[ $# -gt 0 ]] ; do
 
    case $key in
       -m|--message)
-         echo "Send a message beacon"
 	 BEACON_TYPE="mesg_beacon"
 	 ;;
       -P |--portname)
@@ -169,7 +213,6 @@ while [[ $# -gt 0 ]] ; do
           shift  # past argument
          ;;
       -p|--position)
-         echo "Send a position beacon"
 	 BEACON_TYPE="posit_beacon"
 	 ;;
       -h|--help)
@@ -208,6 +251,7 @@ else
       CALLPAD="$CALLSIGN$whitespace"
 fi
 
+get_lat_lon
 timestamp=$(date "+%d %T %Z")
 
 # ; object
@@ -216,19 +260,25 @@ timestamp=$(date "+%d %T %Z")
 # eg: 0A<0x0f> [Invalid message packet]
 
 if [ "$BEACON_TYPE" = "mesg_beacon" ] ; then
-   beacon_msg=":$CALLPAD:$timestamp $CALLSIGN beacon test from host $(hostname) on port $AX25PORT Seq: $seqnum"
+    echo "Send a message beacon"
+    beacon_msg=":$CALLPAD:$timestamp $CALLSIGN $BEACON_TYPE test from host $(hostname) on port $AX25PORT Seq: $seqnum"
 else
-   beacon_msg="!4829.06N/12254.12W-$timestamp, from $(hostname) on port $AX25PORT Seq: $seqnum"
+    echo "Send a position beacon"
+    beacon_msg="!${lat}N/${lon}W-$timestamp, from $(hostname) on port $AX25PORT Seq: $seqnum"
 fi
 
 if [ "$verbose" = "true" ] ; then
    echo "Callsign: $CALLSIGN-$SID, Port: $AX25PORT"
 fi
-echo " Sent \
+echo " Sent: \
  BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}""
 $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}"
+if [ "$?" -ne 0 ] ; then
+    echo "Beacon command failed."
+fi
 
 # increment sequence number
+sudo chown $(whoami):$(whoami) $SEQUENCE_FILE
 ((seqnum++))
 echo $seqnum > $SEQUENCE_FILE
 
