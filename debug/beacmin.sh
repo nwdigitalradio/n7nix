@@ -24,9 +24,6 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 function get_lat_lon() {
     # Read data from gps device
     gpsdata=$(gpspipe -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
-    linecnt=$(echo $gpsdata | wc -l)
-    dbgecho "Read $linecnt lines of gps data"
-
     lat=$(echo $gpsdata | cut -d' ' -f1)
     lon=$(echo $gpsdata | cut -d' ' -f2)
 
@@ -49,13 +46,14 @@ function get_lat_lon() {
     lonrat=${lon##*.}
 
     # Convert to APRS position format: Degrees Minutes.m
-    latrat=$((latrat*60))
+    latrat=$(echo ".$latrat*60" | bc)
     dbgecho "latrat: $latrat"
-    lat=$latint${latrat:0:2}.${latrat:2:2}
+    lat=$(printf "%02i%05.2f" $latint $latrat)
 
-    lonrat=$((lonrat*60))
+    lonrat=$(echo ".$lonrat*60" | bc)
     dbgecho "lonrat: $lonrat"
-    lon=$lonint${lonrat:0:2}.${lonrat:2:2}
+    lon=$(printf "%03i%05.2f" $lonint $lonrat)
+    dbgecho "lat: $lat, lon: $lon"
 }
 
 # ===== function callsign_axports
@@ -87,6 +85,13 @@ if [ $? -ne 0 ] ; then
     sudo apt-get install -y -q gpsd-clients
 fi
 
+prog_name="bc"
+type -P $prog_name &> /dev/null
+if [ $? -ne 0 ] ; then
+    echo "$scriptname: Installing $prog_name package"
+    sudo apt-get install -y -q $prog_name
+fi
+
 get_lat_lon
 
 timestamp=$(date "+%d %T %Z")
@@ -111,11 +116,14 @@ beacon_msg="!${lat}N/${lon}Wp$timestamp, Seq: $seqnum"
 
 echo " Sent: \
 $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}""
-$BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}"
-if [ "$?" -ne 0 ] ; then
-    echo "Beacon command failed."
+if [ -z "$DEBUG" ] ; then
+    $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}"
+    if [ "$?" -ne 0 ] ; then
+        echo "Beacon command failed."
+    fi
+else
+    echo "Debug set, beacon not actually sent."
 fi
-
 # increment sequence number
 ((seqnum++))
 echo $seqnum > $SEQUENCE_FILE

@@ -131,13 +131,14 @@ function get_lat_lon() {
     lonrat=${lon##*.}
 
     # Convert to APRS position format: Degrees Minutes.m
-    latrat=$((latrat*60))
+    latrat=$(echo ".$latrat*60" | bc)
     dbgecho "latrat: $latrat"
-    lat=$latint${latrat:0:2}.${latrat:2:2}
+    lat=$(printf "%02i%05.2f" $latint $latrat)
 
-    lonrat=$((lonrat*60))
+    lonrat=$(echo ".$lonrat*60" | bc)
     dbgecho "lonrat: $lonrat"
-    lon=$lonint${lonrat:0:2}.${lonrat:2:2}
+    lon=$(printf "%03i%05.2f" $lonint $lonrat)
+    dbgecho "lat: $lat, lon: $lon"
 }
 
 # ===== function usage
@@ -180,6 +181,13 @@ type -P $prog_name &> /dev/null
 if [ $? -ne 0 ] ; then
     echo "$scriptname: Installing gpsd-clients package"
     sudo apt-get install gpsd-clients
+fi
+
+prog_name="bc"
+type -P $prog_name &> /dev/null
+if [ $? -ne 0 ] ; then
+    echo "$scriptname: Installing $prog_name package"
+    sudo apt-get install -y -q $prog_name
 fi
 
 seqnum=0
@@ -251,7 +259,6 @@ else
       CALLPAD="$CALLSIGN$whitespace"
 fi
 
-get_lat_lon
 timestamp=$(date "+%d %T %Z")
 
 # ; object
@@ -264,6 +271,7 @@ if [ "$BEACON_TYPE" = "mesg_beacon" ] ; then
     beacon_msg=":$CALLPAD:$timestamp $CALLSIGN $BEACON_TYPE test from host $(hostname) on port $AX25PORT Seq: $seqnum"
 else
     echo "Send a position beacon"
+    get_lat_lon
     beacon_msg="!${lat}N/${lon}W-$timestamp, from $(hostname) on port $AX25PORT Seq: $seqnum"
 fi
 
@@ -271,7 +279,7 @@ if [ "$verbose" = "true" ] ; then
    echo "Callsign: $CALLSIGN-$SID, Port: $AX25PORT"
 fi
 echo " Sent: \
- BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}""
+$BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}""
 $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}"
 if [ "$?" -ne 0 ] ; then
     echo "Beacon command failed."
