@@ -16,10 +16,10 @@
 
 ### From Anna 12/16/2018
 
-  * The DRAWS has an ADC built into it.
-    * You are correct that those are brought out on pins _Ain2_ and _Ain3_
-    * You can access the values of these in a variety of ways through the [lmsensors/hwmon](https://github.com/lm-sensors/lm-sensors) subsystem in linux.
-    * If you type _sensors_ on a running system, you'll get something that looks like this:
+* The DRAWS has an ADC built into it.
+  * You are correct that those are brought out on pins _Ain2_ and _Ain3_
+  * You can access the values of these in a variety of ways through the [lmsensors/hwmon](https://github.com/lm-sensors/lm-sensors) subsystem in linux.
+  * If you type _sensors_ on a running system, you'll get something that looks like this:
 
 ```
 ads1015-i2c-1-48
@@ -30,20 +30,20 @@ User ADC 1:             +0.01 V
 User ADC 2:             +0.00 V
 ```
 
-  * The __+12V__ input is hooked to the DC input of the DRAWS.
-  * You can do various scaling on the User ADC values by using the sensors configuration file for DRAWS located at /etc/sensors.d/draws.
-  * Note that there are also some scaling factors available as __dtparam__ settings in config.txt.
+* The __+12V__ input is hooked to the DC input of the DRAWS.
+* You can do various scaling on the User ADC values by using the sensors configuration file for DRAWS located at /etc/sensors.d/draws.
+* Note that there are also some scaling factors available as __dtparam__ settings in config.txt.
 
-  * These pins are also connected to pins 22 and 24 on the Broadcom SoC for doing digital inputs or outputs.
-  *  Incidentally these are the __BCM__ pin numbers.
-    *   You'll *never* hear me referring to wiringPi's pin numberings.
+* These pins are also connected to pins 22 and 24 on the Broadcom SoC for doing digital inputs or outputs.
+*  Incidentally these are the __BCM__ pin numbers.
+  *  You'll *never* hear me referring to wiringPi's pin numberings.
 
 I'll let Bryan speak to the electrical characteristics of these pins, but I'm sure that if you try to measure a few thousand volts on them you'll have a bad day.
 
 > Also I noticed on there that one of the pins is labeled rx and one is labeled tx.  Do those forward through to the serial port on the raspberry pi, or are they for something else?
 
-  * They do not connect to the /dev/ttyAMA0 port on the Pi.
-    *  We don't bring that out on draws.
-    *  They connect to an additional serial port, /dev/ttySC1, which is on the I2C serial chip we use to access the GPS.
-    * ttySC0 used by GPS.
-    * ttySC1 available serial port on Aux port
+* They do not connect to the /dev/ttyAMA0 port on the Pi.
+  *  We don't bring that out on draws.
+  *  They connect to an additional serial port, /dev/ttySC1, which is on the I2C serial chip we use to access the GPS.
+  * ttySC0 used by GPS.
+  * ttySC1 available serial port on Aux connector
