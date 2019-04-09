@@ -275,7 +275,7 @@ START_DIR=$(pwd)
 if [ "$UPDATE_NOW" = "true" ] ; then
    echo " === Check for updates"
    apt-get update
-   apt-get upgrade
+   apt-get upgrade -q -y
 fi
 
 install_build_tools
