@@ -87,7 +87,7 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument or value
 done
 
-echo " ===== ALSA Controls for Radio Tansmit ====="
+echo " ===== ALSA Controls for Radio Transmit ====="
 
 control="LO Driver Gain"
 audio_display_ctrl "$control"
