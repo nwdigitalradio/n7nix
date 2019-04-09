@@ -16,13 +16,56 @@ CALLSIGN="$NULL_CALLSIGN"
 SEQUENCE_FILE="/home/pi/tmp/sequence.tmp"
 AXPORTS_FILE="/etc/ax25/axports"
 
+# boolean for using gpsd sentence instead of nema sentence
+b_gpsdsentence=false
+
+# get_lat_lon_nemasentence will set the following direction variables
+# get_lat_long_gpsdsentence will not
+latdir="N"
+londir="W"
 
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
-# ===== function get_lat_lon
-function get_lat_lon() {
-    # Read data from gps device
+# ===== function get_lat_lon_nemasentence
+# Much easier to parse a nema sentence &
+# convert to aprs format than a gpsd sentence
+function get_lat_lon_nemasentence() {
+    # Read data from gps device, nema sentences
+    gpsdata=$(gpspipe -r -n 15 | grep -m 1 -i gngll)
+
+    # Get geographic gps position status
+    ll_valid=$(echo $gpsdata | cut -d',' -f7)
+    dbgecho "Status: $ll_valid"
+    if [ "$ll_valid" != "A" ] ; then
+        echo "GPS data not valid, exiting "
+        echo "gps data: $gpsdata"
+        return 1
+    fi
+
+    dbgecho "gpsdata: $gpsdata"
+
+    # Separate lat, lon & position direction
+    lat=$(echo $gpsdata | cut -d',' -f2)
+    latdir=$(echo $gpsdata | cut -d',' -f3)
+    lon=$(echo $gpsdata | cut -d',' -f4)
+    londir=$(echo $gpsdata | cut -d',' -f5)
+
+    dbgecho "lat: $lat$latdir, lon: $lon$londir"
+
+    # Convert to legit APRS format
+    lat=$(printf "%07.2f" $lat)
+    lon=$(printf "%08.2f" $lon)
+
+    dbgecho "lat: $lat$latdir, lon: $lon$londir"
+    return 0
+}
+
+# ===== function get_lat_lon_gpsdsentence
+# Only for reference, not used
+# See get_lat_lon_nemasentence
+function get_lat_lon_gpsdsentence() {
+    # Read data from gps device, gpsd sentences
     gpsdata=$(gpspipe -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
     lat=$(echo $gpsdata | cut -d' ' -f1)
     lon=$(echo $gpsdata | cut -d' ' -f2)
@@ -32,8 +75,8 @@ function get_lat_lon() {
     # Separate lat & lon
     lat=$(echo $gpsdata | cut -d' ' -f1)
     lon=$(echo $gpsdata | cut -d' ' -f2)
-    dbgecho "lat: $lat"
-    dbgecho "lon: $lon"
+
+    dbgecho "lat: $lat$latdir, lon: $lon$londir"
 
     # Separate latitude integer & decimal
     latint=${lat%%.*}
@@ -85,17 +128,29 @@ if [ $? -ne 0 ] ; then
     sudo apt-get install -y -q gpsd-clients
 fi
 
-prog_name="bc"
-type -P $prog_name &> /dev/null
-if [ $? -ne 0 ] ; then
-    echo "$scriptname: Installing $prog_name package"
-    sudo apt-get install -y -q $prog_name
+# Choose between using gpsd sentences or nema sentences
+if $b_gpsdsentence ; then
+    prog_name="bc"
+    type -P $prog_name &> /dev/null
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Installing $prog_name package"
+        sudo apt-get install -y -q $prog_name
+    fi
+
+    # echo "gpsd sentence"
+    get_lat_lon_gpsdsentence
+else
+
+    # echo "nema sentence"
+    get_lat_lon_nemasentence
+    if [ "$?" -ne 0 ] ; then
+        echo "Invalid gps data"
+        exit 1
+    fi
 fi
 
-get_lat_lon
 
 timestamp=$(date "+%d %T %Z")
-beacon_msg="!${lat}N/${lon}W-$timestamp"
 
 seqnum=0
 # get sequence number
@@ -112,7 +167,7 @@ fi
 # /j = jeep, /k = pickup truck, /> = car, /s = boat
 # /p = dog, /- = house, /i = tree on island
 
-beacon_msg="!${lat}N/${lon}Wp$timestamp, Seq: $seqnum"
+beacon_msg="!${lat}${latdir}/${lon}${londir}p$timestamp, Seq: $seqnum"
 
 echo " Sent: \
 $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}""
