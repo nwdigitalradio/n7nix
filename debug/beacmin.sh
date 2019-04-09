@@ -67,8 +67,6 @@ function get_lat_lon_nemasentence() {
 function get_lat_lon_gpsdsentence() {
     # Read data from gps device, gpsd sentences
     gpsdata=$(gpspipe -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
-    lat=$(echo $gpsdata | cut -d' ' -f1)
-    lon=$(echo $gpsdata | cut -d' ' -f2)
 
     dbgecho "gpsdata: $gpsdata"
 
