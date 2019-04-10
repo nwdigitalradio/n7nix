@@ -40,6 +40,9 @@ User ADC 2:             +0.00 V
 
 I'll let Bryan speak to the electrical characteristics of these pins, but I'm sure that if you try to measure a few thousand volts on them you'll have a bad day.
 
+### From Bryan 04/09/2019
+* The I/O pins are passed thru a 33ohm resistor and an ESD diode for protection
+
 > Also I noticed on there that one of the pins is labeled rx and one is labeled tx.  Do those forward through to the serial port on the raspberry pi, or are they for something else?
 
 * They do not connect to the /dev/ttyAMA0 port on the Pi.
