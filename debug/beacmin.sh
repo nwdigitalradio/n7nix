@@ -16,10 +16,10 @@ CALLSIGN="$NULL_CALLSIGN"
 SEQUENCE_FILE="/home/pi/tmp/sequence.tmp"
 AXPORTS_FILE="/etc/ax25/axports"
 
-# boolean for using gpsd sentence instead of nema sentence
+# boolean for using gpsd sentence instead of nmea sentence
 b_gpsdsentence=false
 
-# get_lat_lon_nemasentence will set the following direction variables
+# get_lat_lon_nmeasentence will set the following direction variables
 # get_lat_long_gpsdsentence will not
 latdir="N"
 londir="W"
@@ -27,11 +27,11 @@ londir="W"
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
-# ===== function get_lat_lon_nemasentence
-# Much easier to parse a nema sentence &
+# ===== function get_lat_lon_nmeasentence
+# Much easier to parse a nmea sentence &
 # convert to aprs format than a gpsd sentence
-function get_lat_lon_nemasentence() {
-    # Read data from gps device, nema sentences
+function get_lat_lon_nmeasentence() {
+    # Read data from gps device, nmea sentences
     gpsdata=$(gpspipe -r -n 15 | grep -m 1 -i gngll)
 
     # Get geographic gps position status
@@ -63,7 +63,7 @@ function get_lat_lon_nemasentence() {
 
 # ===== function get_lat_lon_gpsdsentence
 # Only for reference, not used
-# See get_lat_lon_nemasentence
+# See get_lat_lon_nmeasentence
 function get_lat_lon_gpsdsentence() {
     # Read data from gps device, gpsd sentences
     gpsdata=$(gpspipe -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
@@ -126,7 +126,7 @@ if [ $? -ne 0 ] ; then
     sudo apt-get install -y -q gpsd-clients
 fi
 
-# Choose between using gpsd sentences or nema sentences
+# Choose between using gpsd sentences or nmea sentences
 if $b_gpsdsentence ; then
     prog_name="bc"
     type -P $prog_name &> /dev/null
@@ -139,8 +139,8 @@ if $b_gpsdsentence ; then
     get_lat_lon_gpsdsentence
 else
 
-    # echo "nema sentence"
-    get_lat_lon_nemasentence
+    # echo "nmea sentence"
+    get_lat_lon_nmeasentence
     if [ "$?" -ne 0 ] ; then
         echo "Invalid gps data"
         exit 1
