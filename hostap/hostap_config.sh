@@ -8,6 +8,7 @@ DEBUG=1
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 SSID="NOT_SET"
+SERVICELIST="hostapd.service dnsmasq.service"
 
 # ===== function debugecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -93,7 +94,10 @@ hw_mode=g
 channel=7
 
 # Enable 802.11n
+# Set proper Country Code
+country_code=US
 ieee80211n=1
+ieee80211d=1
 
 # Enable WMM
 wmm_enabled=1
@@ -107,6 +111,7 @@ macaddr_acl=0
 # Require clients to know the network name
 #ignore_broadcast_ssid=0
 
+## Authentication begin
 # Use WPA authentication
 #auth_algs=1
 
@@ -125,10 +130,46 @@ macaddr_acl=0
 EOT
 }
 
+# ===== function seq_backup
+# Backup previous configuration file with a sequential name
+# ie. never destroy a backup file
+# arg 1 is root configuration filename
+
+function seq_backup() {
+    rootfname=$1
+    today="$( date +"%Y%m%d" )"
+    number=0
+
+    while test -e "$rootfname-$today$suffix.conf"; do
+        (( ++number ))
+        suffix="$( printf -- '-%02d' "$number" )"
+    done
+
+    fname="$rootfname-$today$suffix.conf"
+    mv /etc/dnsmasq.conf $fname
+}
+
+
 # ===== function dnsmasq_config
 
 function dnsmasq_config() {
 
+# Check if a previous dnsmasq configuration file exists
+if [ -f "/etc/dnsmasq.conf" ] ; then
+   dnsmasq_linecnt=$(wc -l /etc/dnsmasq.conf)
+   # get rid of everything except line count
+   dnsmasq_linecnt=${dnsmasq_linecnt%% *}
+   dbgecho "dnsmasq.conf line count: $dnsmasq_linecnt"
+   if (("$dnsmasq_linecnt" > "10")) ; then
+      seq_backup "/etc/dnsmasq"
+      echo "Original dnsmasq config file saved as $fname"
+   fi
+fi
+
+# Previous dnsmasq config file should be saved at this point and there
+# should be no config file
+
+# Check if there is no dnsmasq config file
 if [ ! -f /etc/dnsmasq.conf ] ; then
    copy_dnsmasq "/etc"
 else
@@ -143,6 +184,7 @@ fi
 # ===== hostapd_config
 
 function hostapd_config() {
+echo "Copy hostap config file."
 if [ ! -f /etc/hostapd/hostapd.conf ] ; then
    copy_hostapd "/etc/hostapd"
 else
@@ -174,7 +216,7 @@ function start_service() {
 
 # ===== main
 
-echo "Config hostap on an RPi 3"
+echo " == Config hostap on an RPi 3"
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
@@ -188,26 +230,45 @@ if [ $? -ne "0" ] ; then
    exit 1
 fi
 
-echo "Found WiFi"
+echo "== Found WiFi"
 
-echo "Configuring: hostapd.conf"
+echo "== Configuring: hostapd.conf"
 hostapd_config
 
-# edit hostapd to use new config file
-sed -i 's;\#DAEMON_CONF="";DAEMON_CONF="/etc/hostapd/hostapd.conf";' /etc/default/hostapd
+echo "Edit existing default config file to point to new config file."
+# edit default hostapd config to use new config file
+sed -i 's;\#DAEMON_CONF="";DAEMON_CONF="/etc/hostapd/hostapd.conf";' /etc/default /hostapd
 
+# Check dnsmasq version number for dns-root-data problem
+# Dnsmasq bug: in versions below 2.77 there is a recent bug that may
+# cause the hotspot not to start for some users. This can be resolved by
+# removing the dns-root-data.
 
-echo "Configuring: dnsmasq"
-if [ -f "/etc/dnsmasq.conf" ] ; then
-   dnsmasq_linecnt=$(wc -l /etc/dnsmasq.conf)
-   # get rid of everything except line count
-   dnsmasq_linecnt=${dnsmasq_linecnt%% *}
-   dbgecho "dnsmasq.conf line count: $dnsmasq_linecnt"
-   if (("$dnsmasq_linecnt" > "10")) ; then
-      mv /etc/dnsmasq.conf /etc/dnsmasq.conf.backup
-      echo "Original dnsmasq.conf saved as .backup"
-   fi
+echo "== Check dnsmasq Version number"
+dnsmasq_ver=$(dnsmasq --version | head -n1 | cut -d ' ' -f3)
+echo "Configuring: dnsmasq, running version: $dnsmasq_ver"
+
+check_dnsmasq_ver="2.77"
+echo "Current dnsmasq ver: $current_dnsmasq_ver"
+
+if [ "$current_dnsmasq_ver" = "$check_dnsmasq_ver" ] ; then
+    echo "dnsmasq version is identical to check version: $check_dnsmasq_ver, OK"
+else
+    if version_gt $current_dnsmasq_ver $check_dnsmasq_ver ; then
+        echo "Current dnsmasq version is greater than check version($check_dnsmasq_ver), OK"
+    else
+        pkg_name="dns-root-data"
+        echo "Current dnsmasq version is less than check version($check_dnsmasq_ver), removing package dns-root-data"
+        is_pkg_installed $pkg_name
+        if [ $? -eq 0 ] ; then
+            echo "$scriptname: Will purge $pkg_name program"
+            sudo apt-get purge dns-root-data
+
+        fi
+    fi
 fi
+
+echo "== Configure dnsmasq"
 dnsmasq_config
 
 # set up IPV4 forwarding
@@ -222,7 +283,7 @@ fi
 
 sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
 
-echo "setup iptables"
+echo "== setup iptables"
 #echo "add iptables-restore to rc.local"
 # or use iptables-persistent
 CREATE_IPTABLES=false
@@ -251,12 +312,15 @@ EOF
 
 fi
 
+echo "== start systemd services"
 systemctl daemon-reload
-start_service hostapd
-start_service dnsmasq
+for service in `echo ${SERVICELIST}` ; do
+    echo "Starting: $service"
+    start_service $service
+done
 
 echo
-echo "Test if $SERVICELIST services have been started."
+echo "Test if services: $SERVICELIST have been started."
 for service_name in `echo ${SERVICELIST}` ; do
 
    systemctl is-active $service_name >/dev/null

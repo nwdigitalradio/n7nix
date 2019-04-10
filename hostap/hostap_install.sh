@@ -9,7 +9,7 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 # Required pacakges
-PKGLIST="hostapd dnsmasq iptables iptables-persistent"
+PKGLIST="hostapd dnsmasq iptables iptables-persistent iw"
 SERVICELIST="hostapd dnsmasq"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -67,9 +67,6 @@ fi
 
 echo "Found WiFi"
 
-# check if packages are installed
-dbgecho "Check packages: $PKGLIST"
-
 # Fix for iptables-persistent broken
 #  https://discourse.osmc.tv/t/failed-to-start-load-kernel-modules/3163/14
 #  https://www.raspberrypi.org/forums/viewtopic.php?f=63&t=174648
@@ -79,6 +76,13 @@ if [ -e "$file_name" ] ; then
     sed -i -e 's/^#*/#/' $file_name
 fi
 
+# Refresh packages
+apt-get update
+apt-get upgrade -q -y
+
+# check if required packages are installed
+dbgecho "Check packages: $PKGLIST"
+
 for pkg_name in `echo ${PKGLIST}` ; do
 
    is_pkg_installed $pkg_name
@@ -86,6 +90,13 @@ for pkg_name in `echo ${PKGLIST}` ; do
       echo "$scriptname: Need to Install $pkg_name program"
       apt-get -qy install $pkg_name
    fi
+done
+
+# Installed packages run when the RPi is started. For this setup they
+# only need to be started if the home router is not found.
+
+for service_name in `echo ${SERVICELIST}` ; do
+    sytemctl disable "$servicename"
 done
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: hostap install script FINISHED" >> $UDR_INSTALL_LOGFILE
