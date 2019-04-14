@@ -1,7 +1,7 @@
 [Desktop Entry]
 Encoding=UTF-8
 Name=xastir
-Exec=/usr/bin/xastir
+Exec=/usr/local/bin/xastir
 Icon=/usr/share/xastir/symbols/icon.png
 Terminal=False
 Type=Application
