@@ -43,6 +43,7 @@ while [[ $# -gt 0 ]] ; do
             /home/$USER/n7nix/xastir/xs_verchk.sh
             /home/$USER/n7nix/gps/gp_verchk.sh
             exit
+        ;;
         -l)
             # List local versions of programs built from source
             /home/$USER/n7nix/hfprogs/hf_verchk.sh -l
