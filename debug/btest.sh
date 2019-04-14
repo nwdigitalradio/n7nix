@@ -28,6 +28,8 @@ CALLSIGN="$NULL_CALLSIGN"
 AX25PORT="NOPORT"
 SID="11"
 verbose="false"
+# boolean for using gpsd sentence instead of nmea sentence
+b_gpsdsentence=false
 
 scriptname="`basename $0`"
 BEACON="/usr/local/sbin/beacon"
@@ -105,20 +107,54 @@ function callsign_verify() {
    dbgecho "Using callsign $CALLSIGN & port $AX25PORT"
 }
 
-# ===== function get_lat_lon
-function get_lat_lon() {
-    # Read data from gps device
+# ===== function get_lat_lon_nmeasentence
+# Much easier to parse a nmea sentence &
+# convert to aprs format than a gpsd sentence
+function get_lat_lon_nmeasentence() {
+    # Read data from gps device, nmea sentences
+    gpsdata=$(gpspipe -r -n 15 | grep -m 1 -i gngll)
+
+    # Get geographic gps position status
+    ll_valid=$(echo $gpsdata | cut -d',' -f7)
+    dbgecho "Status: $ll_valid"
+    if [ "$ll_valid" != "A" ] ; then
+        echo "GPS data not valid, exiting "
+        echo "gps data: $gpsdata"
+        return 1
+    fi
+
+    dbgecho "gpsdata: $gpsdata"
+
+    # Separate lat, lon & position direction
+    lat=$(echo $gpsdata | cut -d',' -f2)
+    latdir=$(echo $gpsdata | cut -d',' -f3)
+    lon=$(echo $gpsdata | cut -d',' -f4)
+    londir=$(echo $gpsdata | cut -d',' -f5)
+
+    dbgecho "lat: $lat$latdir, lon: $lon$londir"
+
+    # Convert to legit APRS format
+    lat=$(printf "%07.2f" $lat)
+    lon=$(printf "%08.2f" $lon)
+
+    dbgecho "lat: $lat$latdir, lon: $lon$londir"
+    return 0
+}
+
+# ===== function get_lat_lon_gpsdsentence
+# Only for reference, not used
+# See get_lat_lon_nmeasentence
+function get_lat_lon_gpsdsentence() {
+    # Read data from gps device, gpsd sentences
     gpsdata=$(gpspipe -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
-    lat=$(echo $gpsdata | cut -d' ' -f1)
-    lon=$(echo $gpsdata | cut -d' ' -f2)
 
     dbgecho "gpsdata: $gpsdata"
 
     # Separate lat & lon
     lat=$(echo $gpsdata | cut -d' ' -f1)
     lon=$(echo $gpsdata | cut -d' ' -f2)
-    dbgecho "lat: $lat"
-    dbgecho "lon: $lon"
+
+    dbgecho "lat: $lat$latdir, lon: $lon$londir"
 
     # Separate latitude integer & decimal
     latint=${lat%%.*}
@@ -183,11 +219,14 @@ if [ $? -ne 0 ] ; then
     sudo apt-get install gpsd-clients
 fi
 
-prog_name="bc"
-type -P $prog_name &> /dev/null
-if [ $? -ne 0 ] ; then
-    echo "$scriptname: Installing $prog_name package"
-    sudo apt-get install -y -q $prog_name
+# Choose between using gpsd sentences or nmea sentences
+if $b_gpsdsentence ; then
+    prog_name="bc"
+    type -P $prog_name &> /dev/null
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Installing $prog_name package"
+        sudo apt-get install -y -q $prog_name
+    fi
 fi
 
 seqnum=0
@@ -271,7 +310,12 @@ if [ "$BEACON_TYPE" = "mesg_beacon" ] ; then
     beacon_msg=":$CALLPAD:$timestamp $CALLSIGN $BEACON_TYPE test from host $(hostname) on port $AX25PORT Seq: $seqnum"
 else
     echo "Send a position beacon"
-    get_lat_lon
+    get_lat_lon_nemasentence
+    if [ "$?" -ne 0 ] ; then
+        echo "Invalid gps data"
+#        exit 1
+    fi
+
     beacon_msg="!${lat}N/${lon}W-$timestamp, from $(hostname) on port $AX25PORT Seq: $seqnum"
 fi
 
