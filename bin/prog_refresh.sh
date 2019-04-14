@@ -37,7 +37,14 @@ while [[ $# -gt 0 ]] ; do
 
     key="$1"
     case $key in
+        -c)
+            # Compare current versions with installed versions
+            /home/$USER/n7nix/hfprogs/hf_verchk.sh
+            /home/$USER/n7nix/xastir/xs_verchk.sh
+            /home/$USER/n7nix/gps/gp_verchk.sh
+            exit
         -l)
+            # List local versions of programs built from source
             /home/$USER/n7nix/hfprogs/hf_verchk.sh -l
             /home/$USER/n7nix/xastir/xs_verchk.sh -l
             /home/$USER/n7nix/gps/gp_verchk.sh -l
@@ -65,12 +72,12 @@ done
 echo
 echo "Update from raspbian repo"
 
-sudo apt-get update
+sudo apt-get -qq update
 if [[ $? > 0 ]] ; then
     echo
     echo "ERROR in apt-get update"
 fi
-sudo apt-get upgrade -q -y
+sudo apt-get -q -y upgrade
 if [[ $? > 0 ]] ; then
     echo
     echo "ERROR in apt-get upgrade"
