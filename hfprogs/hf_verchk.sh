@@ -229,7 +229,7 @@ while [[ $# -gt 0 ]] ; do
     key="$1"
     case $key in
         -l)
-            echo "Display local versions only."
+            dbgecho "Display local versions only."
             installed_version_display
             exit
         ;;
