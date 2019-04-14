@@ -261,7 +261,7 @@ if [ "$DEBUG_MODE" = "false" ] ; then
 
 # Set either WiFi or Lan fixed ip address not both
    if [ "$SET_WIFI_IPADDR" = "true" ] ; then
-      set_static_wlan $wan_ipaddr
+      set_static_wan $wan_ipaddr
    else
       set_static_lan $lan_ipaddr $lan_router
    fi
