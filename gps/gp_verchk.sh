@@ -9,7 +9,7 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 UPDATE_FLAG=false
 USER=
 SRC_DIR="/usr/local/src"
-SRC_DIR_GPSD="$SRC_DIR/gpsd-*"
+SRC_DIR_GPSD="$SRC_DIR/gpsd"
 BIN_DIR="/usr/local/bin"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -71,7 +71,7 @@ function check_user() {
 # ===== function get_installed_version
 
 function get_installed_version() {
-    # Get installed version number of Xastir programs
+    # Get installed version number of gpsd program
 
     installed_prog_ver=
 
@@ -83,12 +83,13 @@ function get_installed_version() {
 # ===== function get_source_version
 
 function get_source_version() {
-    # Get installed version number of Xastir programs
+    # Get source version number of gpsd program
 
     source_prog_ver=
     cd "$SRC_DIR_GPSD"
     #./revision.h:#define REVISION "3.18.1"
-    source_prog_ver=$(grep -i revision revision.h | cut -d' ' -f3 | tr -d '\"')
+    # source_prog_ver=$(grep -i revision revision.h | cut -d' ' -f3 | tr -d '\"')
+    source_prog_ver=$(curl -s http://download-mirror.savannah.gnu.org/releases/gpsd/?C=M | tail -n 2 | head -n 1 | cut -d'-' -f2 | cut -d '.' -f1,2,3)
 }
 
 # ==== main
@@ -127,4 +128,64 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument or value
 done
 
-# Verify that gp_install program can be found
+# Verify that gp_install.sh program can be found
+if $UPDATE_FLAG ; then
+    prog_name="./gp_install.sh"
+    dbgecho "Update flag set, check for $progname"
+
+    type -P $prog_name  >/dev/null 2>&1
+    if [ "$?"  -ne 0 ]; then
+        echo "Need $prog_name for gpsd program update but could not be found"
+        exit 1
+    else
+        dbgecho "Found $prog_name"
+    fi
+    # Verify user name
+    # Get list of users with home directories
+    USERLIST="$(ls /home)"
+    USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+    # Check if user name was supplied on command line
+    if [ -z "$USER" ] ; then
+        # prompt for call sign & user name
+        # Check if there is only a single user on this system
+        get_user
+    fi
+    # Verify user name
+    check_user
+fi
+
+# Progname must be gpsd
+# Determine if gpsd has ever been installed
+dbgecho "Get installed version of gpsd"
+type -P $progname >/dev/null 2>&1
+if [ "$?"  -ne 0 ] ; then
+    installed_prog_ver="NOT installed"
+else
+    get_installed_version
+fi
+
+# Find latest gpsd source version
+cd $SRC_DIR
+dbgecho "Get latest gpsd source, pwd: $(pwd)"
+
+get_source_version
+
+install_method="source"
+is_pkg_installed $progname
+if [ $? -ne 0 ] ; then
+    dbgecho "$scriptname: No package found, $progname will be installed/updated from source"
+else
+    # Found gpsd package, will uninstall
+    echo "$scriptname: Detected $progname package."
+fi
+
+echo "$progname: current version: $source_prog_ver, installed: $installed_prog_ver"
+
+if $UPDATE_FLAG ; then
+    install_gpsd
+
+    echo
+    echo "$(date "+%Y %m %d %T %Z"): $scriptname: gpsd program update script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
+    echo
+fi

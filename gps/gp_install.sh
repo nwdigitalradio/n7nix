@@ -19,10 +19,18 @@ sudo apt-get install gpsd gpsd-clients python-gps pps-tools libgps-dev chrony
 # The following is from notes & not tested in a scrit
 
 echo "Build gpsd from source"
-gpsd_ver="3.18.1"
+#gpsd_ver="3.18.1"
+gpsd_ver="$(curl -s http://download-mirror.savannah.gnu.org/releases/gpsd/?C=M | tail -n 2 | head -n 1 | cut -d'-' -f2 |cut -d '.' -f1,2,3)"
+
+# Download tarball
 wget http://download-mirror.savannah.gnu.org/releases/gpsd/gpsd-$gpsd_ver.tar.gz
 tar -zxvf gpsd-$gpsd_ver.tar.gz
 cd gpsd-$gpsd_ver
+
+# Clone git repo
+# git clone https://git.savannah.gnu.org/git/gpsd.git
+# cd gpsd
+
 apt-get install scons
 scons
 sudo scons check
