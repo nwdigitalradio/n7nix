@@ -310,7 +310,7 @@ if [ "$BEACON_TYPE" = "mesg_beacon" ] ; then
     beacon_msg=":$CALLPAD:$timestamp $CALLSIGN $BEACON_TYPE test from host $(hostname) on port $AX25PORT Seq: $seqnum"
 else
     echo "Send a position beacon"
-    get_lat_lon_nemasentence
+    get_lat_lon_nmeasentence
     if [ "$?" -ne 0 ] ; then
         echo "Invalid gps data"
 #        exit 1
