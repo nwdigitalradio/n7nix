@@ -5,6 +5,20 @@
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
+# ===== Display program help info
+#
+usage () {
+	(
+	echo "Usage: $scriptname [-u][-l][-h]"
+        echo "    No arguments displays current & installed versions."
+        echo "    -u Set application update flag."
+        echo "    -l display local version only."
+        echo "    -h display this message."
+        echo
+	) 1>&2
+	exit 1
+}
+
 # ===== main
 
 # Do not run as root
@@ -13,7 +27,45 @@ if [[ $EUID -eq 0 ]]; then
     exit 1
 fi
 
+USER=$(whoami)
+
+# Check for any command line arguments
+# Command line args are passed with a dash & single letter
+#  See usage function
+
+while [[ $# -gt 0 ]] ; do
+
+    key="$1"
+    case $key in
+        -l)
+            echo "Display local version only."
+            /home/$USER/n7nix/hfprogs/hf_verchk.sh -l
+            /home/$USER/n7nix/xastir/xs_verchk.sh -l
+            /home/$USER/n7nix/gps/gp_verchk.sh -l
+            exit
+        ;;
+        -u)
+            echo "Update programs"
+            echo
+            UPDATE_FLAG=true
+        ;;
+        -h)
+            usage
+            exit 0
+        ;;
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+    shift # past argument or value
+done
+
 # refresh Debian package repository
+echo
+echo "Update from raspbian repo"
+
 sudo apt-get update
 if [[ $? > 0 ]] ; then
     echo
@@ -54,6 +106,11 @@ cd n7nix/hfprogs
 
 # Update source files & build
 ./hf_verchk.sh -u
+
+echo "Update Xastir"
+cd
+cd n7nix/xastir
+./xs_verchk.sh -u
 
 # Check if swap file size was changed
 swap_size=$(swapon --show=SIZE --noheadings)
