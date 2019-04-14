@@ -72,7 +72,7 @@ function check_user() {
 # ===== function get_installed_version
 
 function get_installed_version() {
-    # Get installed version number of Xastir programs
+    # Get installed version number of Xastir program
 
     installed_prog_ver=
 
@@ -86,7 +86,7 @@ function get_installed_version() {
 # ===== function get_source_version
 
 function get_source_version() {
-    # Get installed version number of Xastir programs
+    # Get latest source version number of Xastir program
 
     source_prog_ver=
     cd "$SRC_DIR_XASTIR"
@@ -162,7 +162,7 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument or value
 done
 
-# Verify that xs_install program can be found
+# Verify that xs_install.sh program can be found
 # Need to run this script in the same directory as the
 #   xastir/xs_install.sh script
 if $UPDATE_FLAG ; then
@@ -201,7 +201,7 @@ else
     get_installed_version
 fi
 
-# Find lastest xastir source
+# Find latest xastir source
 dbgecho "Get latest Xastir source"
 cd $SRC_DIR
 
@@ -234,13 +234,13 @@ get_source_version
 install_method="source"
 is_pkg_installed $progname
 if [ $? -ne 0 ] ; then
-    echo "$scriptname: No package found, $progname will be installed/updated from source"
+    dbgecho "$scriptname: No package found, $progname will be installed/updated from source"
 else
     # Found xastir package, will uninstall
     echo "$scriptname: Detected $progname package."
 fi
 
-echo "$progname: current verison: $source_prog_ver installed from $install_method, installed: $installed_prog_ver"
+echo "$progname: current version: $source_prog_ver, installed: $installed_prog_ver"
 
 if $UPDATE_FLAG ; then
     install_xastir
