@@ -38,7 +38,6 @@ while [[ $# -gt 0 ]] ; do
     key="$1"
     case $key in
         -l)
-            echo "Display local version only."
             /home/$USER/n7nix/hfprogs/hf_verchk.sh -l
             /home/$USER/n7nix/xastir/xs_verchk.sh -l
             /home/$USER/n7nix/gps/gp_verchk.sh -l
