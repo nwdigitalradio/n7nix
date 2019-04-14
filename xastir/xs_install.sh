@@ -5,6 +5,7 @@
 # Uncomment this statement for debug echos
 # DEBUG=1
 USER=
+SRC_DIR="/usr/local/src"
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
@@ -72,18 +73,49 @@ fi
 # Verify user name
 check_user
 
-sudo apt-get install xastir
+install_method="source"
+is_pkg_installed $progname
+if [ $? -ne 0 ] ; then
+    echo "$scriptname: $progname will be installed/updated from source"
+else
+    # Found xastir package, will uninstall
+    echo "$scriptname: Detected $progname package, will UNinstall."
+    apt-get -qy remove $progname
+fi
 
-# Enable desktop icon for xastir
-cp xastir.desktop /home/$USER/Desktop
+# Build latest version from source
+cd $SRC_DIR
+if [ ! -d $SRC_DIR/Xastir ] ; then
+    # get latest Xastir source
+    # Will this over write existing source file
+    git clone https://github.com/Xastir/Xastir.git
+fi
 
-# Copy silence.wav to xastir sound dir
-sudo cp *.wav /usr/share/xastir/sounds
+cd Xastir
+./bootstrap.sh
+mkdir -p build
+cd build
+../configure --without-festival CPPFLAGS="-I/usr/include/geotiff"
+make -j$(nproc)
+sudo make install
+sudo strip /usr/local/bin/xastir
 
+# create local xastir sound repo off of local home dir
 cd
 git clone https://github.com/Xastir/xastir-sounds
-cd xastir-sounds/sounds
-sudo cp *.wav /usr/share/xastir/sounds
+
+# Enable desktop icon for xastir
+cp /home/$USER/n7nix/xastir/xastir.desktop /home/$USER/Desktop
+
+# If the local share dir does NOT exist use defaut share directory.
+SHARE_DIR="/usr/local/share/xastir"
+if [ ! -d "$SHARE_DIR" ] ; then
+    SHARE_DIR="/usr/share/xastir"
+fi
+# Copy silence.wav to xastir sound dir
+sudo cp /home/$USER/n7nix/xastir/*.wav $SHARE_DIR/sounds
+# Copy xastir audio alert sound files to xastir sound dir
+sudo cp /home/$USER/xastir-sounds/*.wav $SHARE_DIR/sounds
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: Xastir install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
