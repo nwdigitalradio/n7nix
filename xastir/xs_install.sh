@@ -5,7 +5,8 @@
 # Uncomment this statement for debug echos
 # DEBUG=1
 USER=
-SRC_DIR="/usr/local/src"
+ROOT_DST="/usr/local"
+SRC_DIR="$ROOT_DST/src"
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
@@ -47,13 +48,6 @@ function check_user() {
 #
 # ===== main
 #
-# Check if there are any args on command line
-if (( $# != 0 )) ; then
-    USER="$1"
-else
-    echo "$scriptname: Must supply user name as command line argument"
-    exit 1
-fi
 # Check for any arguments
 if (( $# != 0 )) ; then
    USER="$1"
@@ -98,7 +92,7 @@ cd build
 ../configure --without-festival CPPFLAGS="-I/usr/include/geotiff"
 make -j$(nproc)
 sudo make install
-sudo strip /usr/local/bin/xastir
+sudo strip $ROOT_DST/bin/xastir
 
 # create local xastir sound repo off of local home dir
 cd
@@ -108,7 +102,7 @@ git clone https://github.com/Xastir/xastir-sounds
 cp /home/$USER/n7nix/xastir/xastir.desktop /home/$USER/Desktop
 
 # If the local share dir does NOT exist use defaut share directory.
-SHARE_DIR="/usr/local/share/xastir"
+SHARE_DIR="$ROOT_DST/share/xastir"
 if [ ! -d "$SHARE_DIR" ] ; then
     SHARE_DIR="/usr/share/xastir"
 fi
