@@ -88,6 +88,8 @@ refclock SHM 2 refid PPS precision 1e-9 poll 3 trust
 #allow 44.0.0.0/8
 EOT
 
+systemctl unmask gpsd
+
 systemctl enable gpsd
 systemctl --no-pager start gpsd
 systemctl enable chrony
