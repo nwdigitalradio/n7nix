@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Uncomment this statement for debug echos
-DEBUG=1
+#DEBUG=1
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
@@ -93,7 +93,7 @@ function get_source_version() {
 
 # ==== main
 
-progname="xastir"
+progname="gpsd"
 
 # Check for any command line arguments
 # Command line args are passed with a dash & single letter
