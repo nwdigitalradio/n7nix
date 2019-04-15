@@ -25,7 +25,9 @@ gpsd_ver="$(curl -s http://download-mirror.savannah.gnu.org/releases/gpsd/?C=M |
 # Download tarball
 wget http://download-mirror.savannah.gnu.org/releases/gpsd/gpsd-$gpsd_ver.tar.gz
 tar -zxvf gpsd-$gpsd_ver.tar.gz
-cd gpsd-$gpsd_ver
+# get rid of version number in directory name
+mv gpsd-$gpsd_ver gpsd
+cd gpsd
 
 # Clone git repo
 # git clone https://git.savannah.gnu.org/git/gpsd.git
