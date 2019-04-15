@@ -88,6 +88,10 @@ cd
 cd n7nix
 git pull
 
+# Check raspbian repo update didn't install conflicting AudioSense-Pi
+# drivers
+bin/chk_conflict.sh
+
 # refresh local bin directory
 echo "Refresh local bin directory"
 cd config
