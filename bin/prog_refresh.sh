@@ -114,10 +114,13 @@ cd n7nix/hfprogs
 # Update source files & build
 ./hf_verchk.sh -u
 
-echo "Update Xastir"
 cd
 cd n7nix/xastir
 ./xs_verchk.sh -u
+
+cd
+cd n7nix/gps
+./gp_verchk.sh -u
 
 # Check if swap file size was changed
 swap_size=$(swapon --show=SIZE --noheadings)
