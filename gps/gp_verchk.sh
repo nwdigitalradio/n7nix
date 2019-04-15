@@ -92,7 +92,7 @@ function get_source_version() {
     source_prog_ver=$(curl -s http://download-mirror.savannah.gnu.org/releases/gpsd/?C=M | tail -n 2 | head -n 1 | cut -d'-' -f2 | cut -d '.' -f1,2,3)
 }
 
-# ===== function install_xastir
+# ===== function install_gps
 
 function install_gps() {
 if [ "$installed_prog_ver" != "$source_prog_ver" ] ; then
@@ -181,10 +181,12 @@ else
 fi
 
 # Find latest gpsd source version
-cd $SRC_DIR
+pushd $SRC_DIR > /dev/null
 dbgecho "Get latest gpsd source, pwd: $(pwd)"
 
 get_source_version
+
+popd > /dev/null
 
 install_method="source"
 is_pkg_installed $progname
@@ -196,6 +198,7 @@ else
 fi
 
 if $UPDATE_FLAG ; then
+
     install_gpsd
 
     echo
