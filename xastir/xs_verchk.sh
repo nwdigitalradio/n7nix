@@ -127,16 +127,19 @@ function test_xastir_ver() {
 # ===== function install_xastir
 
 function install_xastir() {
+retcode=1
 if [ "$installed_prog_ver" != "$source_prog_ver" ] ; then
     if $UPDATE_FLAG ; then
         echo "      versions are different and WILL be updated."
         dbgecho "Sending command: ./xs_install.sh $USER"
         /bin/bash ./xs_install.sh "$USER"
         test_xastir_ver
+        retcode=0
     fi
 else
     echo "$progname: Running current version $installed_prog_ver"
 fi
+return $retcode
 }
 
 # ==== main
@@ -263,10 +266,12 @@ fi
 if $UPDATE_FLAG ; then
 
     install_xastir
-
-    echo
-    echo "$(date "+%Y %m %d %T %Z"): $scriptname: Xastir program update script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
-    echo
+    # Only put a log entry if install script was called.
+    if [ $? -eq 0 ] ; then
+        echo
+        echo "$(date "+%Y %m %d %T %Z"): $scriptname: Xastir program update script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
+        echo
+    fi
 else
     echo "$progname: current version: $source_prog_ver, installed: $installed_prog_ver"
 fi

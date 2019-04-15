@@ -92,19 +92,22 @@ function get_source_version() {
     source_prog_ver=$(curl -s http://download-mirror.savannah.gnu.org/releases/gpsd/?C=M | tail -n 2 | head -n 1 | cut -d'-' -f2 | cut -d '.' -f1,2,3)
 }
 
-# ===== function install_gps
+# ===== function install_gpsd
 
-function install_gps() {
+function install_gpsd() {
+retcode=1
 if [ "$installed_prog_ver" != "$source_prog_ver" ] ; then
     if $UPDATE_FLAG ; then
         echo "      versions are different and WILL be updated."
         dbgecho "Sending command: ./xs_install.sh $USER"
         /bin/bash ./gp_install.sh "$USER"
         test_xastir_ver
+        retcode=0
     fi
 else
     echo "$progname: Running current version $installed_prog_ver"
 fi
+return $retcode
 }
 
 # ==== main
@@ -126,8 +129,7 @@ while [[ $# -gt 0 ]] ; do
             exit
         ;;
         -u)
-            echo "Update HF apps after checking version numbers."
-            echo
+            echo "Update gpsd after checking version numbers."
             UPDATE_FLAG=true
         ;;
         -h)
@@ -200,10 +202,12 @@ fi
 if $UPDATE_FLAG ; then
 
     install_gpsd
-
-    echo
-    echo "$(date "+%Y %m %d %T %Z"): $scriptname: gpsd program update script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
-    echo
+    # Only put a log entry if install script was called.
+    if [ $? -eq 0 ] ; then
+        echo
+        echo "$(date "+%Y %m %d %T %Z"): $scriptname: gpsd program update script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
+        echo
+    fi
 else
     echo "$progname: current version: $source_prog_ver, installed: $installed_prog_ver"
 fi
