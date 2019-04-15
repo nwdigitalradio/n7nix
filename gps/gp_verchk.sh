@@ -92,6 +92,24 @@ function get_source_version() {
     source_prog_ver=$(curl -s http://download-mirror.savannah.gnu.org/releases/gpsd/?C=M | tail -n 2 | head -n 1 | cut -d'-' -f2 | cut -d '.' -f1,2,3)
 }
 
+# ===== function test_gpsd_ver
+# Verify version displayed on command line is same as what was
+# installed
+
+function test_gpsd_ver() {
+
+    # Test if gpsd was installed ok
+    # Get version number of gpsd from command line
+    get_installed_version
+    get_source_version
+
+    echo "Debug: Testing $source_prog_ver, ver: $installed_prog_ver"
+
+    if [ "$source_prog_ver" != "$installed_prog_ver" ] ; then
+        echo "$(tput setaf 1)gpsd version built ($installed_prog_ver) does not match source version ($source_prog_ver) $(tput setaf 7)"
+    fi
+}
+
 # ===== function install_gpsd
 
 function install_gpsd() {
@@ -101,7 +119,7 @@ if [ "$installed_prog_ver" != "$source_prog_ver" ] ; then
         echo "      versions are different and WILL be updated."
         dbgecho "Sending command: ./xs_install.sh $USER"
         /bin/bash ./gp_install.sh "$USER"
-        test_xastir_ver
+        test_gpsd_ver
         retcode=0
     fi
 else
@@ -129,7 +147,7 @@ while [[ $# -gt 0 ]] ; do
             exit
         ;;
         -u)
-            echo "Update gpsd after checking version numbers."
+            dbgecho "Update gpsd after checking version numbers."
             UPDATE_FLAG=true
         ;;
         -h)

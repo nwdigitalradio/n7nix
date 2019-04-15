@@ -119,7 +119,7 @@ function test_xastir_ver() {
 
     echo "Debug: Testing $source_prog_ver, ver: $installed_prog_ver"
 
-    if [ "$xsver" != "$installed_prog_ver" ] ; then
+    if [ "$source_prog_ver" != "$installed_prog_ver" ] ; then
         echo "$(tput setaf 1)Xastir version built ($installed_prog_ver) does not match source version ($source_prog_ver) $(tput setaf 7)"
     fi
 }
