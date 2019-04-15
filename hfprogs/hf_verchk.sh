@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Uncomment this statement for debug echos
-# DEBUG=1
+#DEBUG=1
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
@@ -128,13 +128,15 @@ SRC_DIR="/usr/local/src"
     else
         if [ "${progname:0:2}" == "fl" ] ; then
             # Check for tarball
-            if [ -e $SRC_DIR/$progname*.tar.gz ] ; then
-                dbgecho "$progname exists"
+            dbgecho "Checking for tarball"
+            if [ -e ${SRC_DIR/$progname}*.tar.gz ] ; then
+                dbgecho "Get version from tarball: $progname"
                 dirname="$(ls -1 $SRC_DIR/$progname*.tar.gz | tail -n1)"
                 prog_ver=$(basename $dirname .tar.gz | cut -d '-' -f2)
             else
+                dbgecho "Get version from directory name"
                 # Get version number from directory name
-                prog_ver=$(ls -d $SRC_DIR/$progname* | cut -d'-' -f2)
+                prog_ver=$(ls -d $SRC_DIR/$progname*/ | tail -n1 | cut -d'-' -f2 | tr -d '/')
 #               prog_ver=$(grep -i version $SRC_DIR/$progname*/ChangeLog | head -n1)
            fi
         else
