@@ -102,7 +102,7 @@ function test_xastir_ver() {
     # Test if xastir was installed ok
     # Get version number of Xastir from command line
     get_installed_version
-    get_source_ver
+    get_source_version
 
     echo "Debug: Testing $source_prog_ver, ver: $installed_prog_ver"
 
