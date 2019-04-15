@@ -66,7 +66,10 @@ cp *.wav /usr/share/xastir/sounds
   * Make a wave file that is 2 seconds of silence
   * Just use [silence.wav file in this repo](https://github.com/nwdigitalradio/n7nix/blob/master/xastir/silence.wav)
   * Put silence.wav in Xastir sounds directory /usr/share/xastir/sounds
-  * _Audio Play Command_ for HDMI: aplay -D "plughw:0,1" /usr/share/xastir/sounds/silence.wav
+
+  * _Audio Play Command_ for HDMI:
+
+```aplay -D "plughw:0,1" /usr/share/xastir/sounds/silence.wav```
 
 * To make a two second silent wave file execute the following on a computer with audio input
   * Make sure the microphone is not attached.
