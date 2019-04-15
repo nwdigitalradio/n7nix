@@ -78,12 +78,15 @@ function get_installed_version() {
 
     # Get second string separated by a space
     # Also delete preceding cr & white space
-    # xastir versions only supported -V option after version 2.1.1
-    prog_ver=$(xastir -V 2>&1 | cut -d' ' -f2 | head -n 1 | tr -d '[:space:]')
+    # xastir only supported -V option after version 2.1.1
+    prog_ver=$(xastir -V 2>&1 | cut -d' ' -f2)
     grep -i "invalid"  > /dev/null 2>&1 <<< "$prog_ver"
     if [ "$?" -eq 0 ] ; then
         installed_prog_ver="2.0.8?"
     else
+        # Delete all white space
+        prog_ver=$(echo $prog_ver | tr -d '[:space:]')
+
         # Remove leading 'V'
         installed_prog_ver="${prog_ver:1}"
     fi
@@ -210,8 +213,9 @@ else
     get_installed_version
 fi
 
-# Find latest xastir source
-cd $SRC_DIR
+# Find latest xastir source version
+pushd $SRC_DIR > /dev/null
+
 dbgecho "Get latest Xastir source: $(pwd)"
 
 # Begin DO NOT Execute
@@ -242,7 +246,10 @@ fi
 # end DO NOT Execute
 
 dbgecho "Get Xastir source version"
+
 get_source_version
+
+popd > /dev/null
 
 install_method="source"
 is_pkg_installed $progname
@@ -254,6 +261,7 @@ else
 fi
 
 if $UPDATE_FLAG ; then
+
     install_xastir
 
     echo
