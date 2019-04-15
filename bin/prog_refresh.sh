@@ -10,8 +10,8 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 usage () {
 	(
 	echo "Usage: $scriptname [-u][-l][-h]"
-        echo "    No arguments displays current & installed versions."
-        echo "    -u Set application update flag."
+        echo "    No args will update all programs."
+        echo "    -c displays current & installed versions."
         echo "    -l display local version only."
         echo "    -h display this message."
         echo
