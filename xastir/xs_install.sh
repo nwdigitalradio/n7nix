@@ -13,6 +13,13 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function is_pkg_installed
+
+function is_pkg_installed() {
+
+return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
+}
+
 # ===== function get_user
 
 function get_user() {
@@ -96,7 +103,9 @@ sudo strip $ROOT_DST/bin/xastir
 
 # create local xastir sound repo off of local home dir
 cd
-git clone https://github.com/Xastir/xastir-sounds
+if [ ! -d /home/$USER/xastir-sounds/ ] ; then
+    git clone https://github.com/Xastir/xastir-sounds
+fi
 
 # Enable desktop icon for xastir
 cp /home/$USER/n7nix/xastir/xastir.desktop /home/$USER/Desktop
@@ -109,7 +118,7 @@ fi
 # Copy silence.wav to xastir sound dir
 sudo cp /home/$USER/n7nix/xastir/*.wav $SHARE_DIR/sounds
 # Copy xastir audio alert sound files to xastir sound dir
-sudo cp /home/$USER/xastir-sounds/*.wav $SHARE_DIR/sounds
+sudo cp /home/$USER/xastir-sounds/sounds/*.wav $SHARE_DIR/sounds
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: Xastir install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
