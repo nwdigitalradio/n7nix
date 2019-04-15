@@ -7,6 +7,7 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 UPDATE_FLAG=false
+UPDATE_EXEC_FLAG=false
 USER=
 
 # For fl apps use this url
@@ -307,6 +308,7 @@ if $UPDATE_FLAG ; then
     if [[ "$js8_ver" != "$prog_ver" ]] ; then
         echo "         versions are different and WILL be updated."
         /bin/bash ./hf_install.sh "$USER" js8call "$js8_ver"
+        UPDATE_EXEC_FLAG=true
     else
         echo "         version is current"
     fi
@@ -329,6 +331,7 @@ if $UPDATE_FLAG ; then
     if [[ "$wsjtx_ver" != "$prog_ver" ]] ; then
         echo "       versions are different and WILL be updated."
         /bin/bash ./hf_install.sh "$USER" wsjtx "$wsjtx_ver"
+        UPDATE_EXEC_FLAG=true
     else
         echo "         version is current"
     fi
@@ -358,6 +361,7 @@ for fl_app in "flxmlrpc" "fldigi" "flrig" "flmsg" "flamp" ; do
             echo "      versions are different and WILL be updated."
             dbgecho "Sending command: ./hf_install.sh $USER $fl_app $fl_ver"
             /bin/bash ./hf_install.sh "$USER" "$fl_app" "$fl_ver"
+            UPDATE_EXEC_FLAG=true
             test_fldigi_ver "$fl_app" "$fl_ver"
         else
             echo "        version is current"
@@ -365,7 +369,8 @@ for fl_app in "flxmlrpc" "fldigi" "flrig" "flmsg" "flamp" ; do
     fi
 done
 
-if $UPDATE_FLAG ; then
+if $UPDATE_FLAG && $UPDATE_EXEC_FLAG ; then
+    # Only put a log entry if install script was called
     echo
     echo "$(date "+%Y %m %d %T %Z"): $scriptname: hf program update script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
     echo
