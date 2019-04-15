@@ -63,10 +63,12 @@ if [ ! -d "$userbindir" ] ; then
    mkdir $userbindir
 fi
 
-cp /home/$USER/n7nix/systemd/bin/* $userbindir
-cp /home/$USER/n7nix/bin/* $userbindir
-cp /home/$USER/n7nix/iptables/iptable-*.sh $userbindir
-cp /usr/local/src/paclink-unix/test_scripts/chk_perm.sh $userbindir
+cp -u /home/$USER/n7nix/systemd/bin/* $userbindir
+cp -u /home/$USER/n7nix/bin/* $userbindir
+cp -u /home/$USER/n7nix/iptables/iptable-*.sh $userbindir
+cp -u /usr/local/src/paclink-unix/test_scripts/chk_perm.sh $userbindir
+cp -u /home/$USER/n7nix/hostap/ap-*.sh  $userbindir
+
 chown -R $USER:$USER $userbindir
 
 echo
