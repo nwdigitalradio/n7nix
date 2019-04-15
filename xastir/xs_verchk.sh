@@ -145,8 +145,7 @@ while [[ $# -gt 0 ]] ; do
             exit
         ;;
         -u)
-            echo "Update Xastir after checking version number."
-            echo
+            dbgecho "Update Xastir after checking version number."
             UPDATE_FLAG=true
         ;;
         -h)
@@ -202,9 +201,11 @@ else
 fi
 
 # Find latest xastir source
-dbgecho "Get latest Xastir source"
 cd $SRC_DIR
+dbgecho "Get latest Xastir source: $(pwd)"
 
+# Begin DO NOT Execute
+if  [ 1 -eq 0 ] ; then
 # Check Xastir source directory
 if [ ! -d "$SRC_DIR_XASTIR" ] ; then
     # Xastir directory does NOT exist
@@ -227,6 +228,8 @@ else
         exit 1
     fi
 fi
+fi
+# end DO NOT Execute
 
 dbgecho "Get Xastir source version"
 get_source_version
@@ -240,12 +243,12 @@ else
     echo "$scriptname: Detected $progname package."
 fi
 
-echo "$progname: current version: $source_prog_ver, installed: $installed_prog_ver"
-
 if $UPDATE_FLAG ; then
     install_xastir
 
     echo
     echo "$(date "+%Y %m %d %T %Z"): $scriptname: Xastir program update script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
     echo
+else
+    echo "$progname: current version: $source_prog_ver, installed: $installed_prog_ver"
 fi
