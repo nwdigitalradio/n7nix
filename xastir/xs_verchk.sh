@@ -78,9 +78,15 @@ function get_installed_version() {
 
     # Get second string separated by a space
     # Also delete preceding cr & white space
-    prog_ver=$(xastir -V | cut -d' ' -f2 | tr -d '[:space:]')
-    # Remove leading 'V'
-    installed_prog_ver="${prog_ver:1}"
+    # xastir versions only supported -V option after version 2.1.1
+    prog_ver=$(xastir -V 2>&1 | cut -d' ' -f2 | head -n 1 | tr -d '[:space:]')
+    grep -i "invalid"  > /dev/null 2>&1 <<< "$prog_ver"
+    if [ "$?" -eq 0 ] ; then
+        installed_prog_ver="2.0.8?"
+    else
+        # Remove leading 'V'
+        installed_prog_ver="${prog_ver:1}"
+    fi
 }
 
 # ===== function get_source_version
@@ -89,8 +95,12 @@ function get_source_version() {
     # Get latest source version number of Xastir program
 
     source_prog_ver=
-    cd "$SRC_DIR_XASTIR"
-    source_prog_ver=$(grep -i "AC_INIT(\[xastir\]," configure.ac | cut -d',' -f2 | tr -d '[:space:]' | tr -d '[]')
+    if [ ! -e "$SRC_DIR_XASTIR/configure.ac" ] ; then
+        echo "Source not downloaded."
+    else
+        cd "$SRC_DIR_XASTIR"
+        source_prog_ver=$(grep -i "AC_INIT(\[xastir\]," configure.ac | cut -d',' -f2 | tr -d '[:space:]' | tr -d '[]')
+    fi
 }
 
 # ===== function test_xastir_ver
