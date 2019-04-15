@@ -5,6 +5,7 @@
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
+
 # ===== Display program help info
 #
 usage () {
@@ -50,11 +51,6 @@ while [[ $# -gt 0 ]] ; do
             /home/$USER/n7nix/xastir/xs_verchk.sh -l
             /home/$USER/n7nix/gps/gp_verchk.sh -l
             exit
-        ;;
-        -u)
-            echo "Update programs"
-            echo
-            UPDATE_FLAG=true
         ;;
         -h)
             usage
@@ -128,5 +124,6 @@ if [ "$swap_size" != "100M" ] ; then
     echo "Change swap size back to default, currently set to $swap_size"
 fi
 
+# Only put a log entry if install script was called
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: Program Refresh script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo
