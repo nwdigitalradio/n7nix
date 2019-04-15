@@ -81,8 +81,17 @@ if [ $? -ne 0 ] ; then
 else
     # Found xastir package, will uninstall
     echo "$scriptname: Detected $progname package, will UNinstall."
-    apt-get -qy remove $progname
+    sudo apt-get -qy remove $progname
 fi
+
+# Install files required for build
+echo "Install Xastir build requirements"
+apt-get install libmotif-common libmotif-dev
+apt-get install git autoconf automake xorg-dev graphicsmagick gv libmotif-dev libcurl4-openssl-dev
+# Do not install festival packages
+# apt-get install shapelib libshp-dev festival festival-dev libgeotiff-dev libwebp-dev libgraphicsmagick1-dev
+apt-get install shapelib libshp-dev libgeotiff-dev libwebp-dev libgraphicsmagick1-dev
+apt-get install xfonts-100dpi xfonts-75dpi
 
 # Build latest version from source
 cd $SRC_DIR
