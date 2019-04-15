@@ -180,12 +180,12 @@ else
     echo "$scriptname: Detected $progname package."
 fi
 
-echo "$progname: current version: $source_prog_ver, installed: $installed_prog_ver"
-
 if $UPDATE_FLAG ; then
     install_gpsd
 
     echo
     echo "$(date "+%Y %m %d %T %Z"): $scriptname: gpsd program update script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
     echo
+else
+    echo "$progname: current version: $source_prog_ver, installed: $installed_prog_ver"
 fi
