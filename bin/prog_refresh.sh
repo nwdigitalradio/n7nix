@@ -4,6 +4,7 @@
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+UPGRADE_ALL=true
 
 
 # ===== Display program help info
@@ -14,6 +15,7 @@ usage () {
         echo "    No args will update all programs."
         echo "    -c displays current & installed versions."
         echo "    -l display local version only."
+        echo "    -u update HAM programs only."
         echo "    -h display this message."
         echo
 	) 1>&2
@@ -52,6 +54,10 @@ while [[ $# -gt 0 ]] ; do
             /home/$USER/n7nix/gps/gp_verchk.sh -l
             exit
         ;;
+        -u)
+            # Upgrade ham programs only
+            UPGRADE_ALL=false
+        ;;
         -h)
             usage
             exit 0
@@ -65,19 +71,21 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument or value
 done
 
-# refresh Debian package repository
-echo
-echo "Update from raspbian repo"
+if $UPGRADE_ALL ; then
+    # refresh Debian package repository
+    echo
+    echo "Update from raspbian repo"
 
-sudo apt-get -qq update
-if [[ $? > 0 ]] ; then
-    echo
-    echo "ERROR in apt-get update"
-fi
-sudo apt-get -q -y upgrade
-if [[ $? > 0 ]] ; then
-    echo
-    echo "ERROR in apt-get upgrade"
+    sudo apt-get -qq update
+    if [[ $? > 0 ]] ; then
+        echo
+        echo "ERROR in apt-get update"
+    fi
+    sudo apt-get -q -y upgrade
+    if [[ $? > 0 ]] ; then
+        echo
+        echo "ERROR in apt-get upgrade"
+    fi
 fi
 
 # refresh n7nix repository
