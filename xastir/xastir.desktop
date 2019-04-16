@@ -2,7 +2,7 @@
 Encoding=UTF-8
 Name=xastir
 Exec=/usr/local/bin/xastir
-Icon=/usr/share/xastir/symbols/icon.png
+Icon=/usr/local/share/xastir/symbols/icon.png
 Terminal=False
 Type=Application
 Categories=Network;Ham Radio;
