@@ -414,6 +414,9 @@ echo
 echo "---- syslog"
 grep -i udrc /var/log/syslog
 echo
+echo "---- dmesg"
+dmesg | grep -i udrc
+echo
 echo "---- compass"
 preference_file="/etc/apt/preferences.d/compass"
 if [ -f "$preference_file" ] ; then
@@ -450,10 +453,15 @@ echo "==== boot config ===="
 tail -n 15 /boot/config.txt
 echo
 echo "---- gpsd"
+which gpsd
+if [ "$?" != 0 ] ; then
+    echo "gpsd not installed"
+else
+    gpsd -V
+fi
 systemctl --no-pager status gpsd
 echo
 echo "---- chrony"
-systemctl --no-pager status gpsd
 ls -al /dev/pps* /dev/ttySC*
 
 # Check if chronyc is installed
