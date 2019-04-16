@@ -15,7 +15,7 @@ wget http://images.nwdigitalradio.com/downloads/current_beta.zip
 unzip current_beta.zip
 ```
 ##### Provision an SD card
-* At least an 8GB microSD card is recommended
+* At least a 16GB microSD card is recommended
 
 * If you need options for writing the image to the SD card ie. you are
 not running Linux go to the [Raspberry Pi documentation
