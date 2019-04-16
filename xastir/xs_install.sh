@@ -85,13 +85,14 @@ else
 fi
 
 # Install files required for build
+echo
 echo "Install Xastir build requirements"
-apt-get install libmotif-common libmotif-dev
-apt-get install git autoconf automake xorg-dev graphicsmagick gv libmotif-dev libcurl4-openssl-dev
+sudo apt-get -y -qq install libmotif-common libmotif-dev
+sudo apt-get -y -qq install git autoconf automake xorg-dev graphicsmagick gv libmotif-dev libcurl4-openssl-dev
 # Do not install festival packages
 # apt-get install shapelib libshp-dev festival festival-dev libgeotiff-dev libwebp-dev libgraphicsmagick1-dev
-apt-get install shapelib libshp-dev libgeotiff-dev libwebp-dev libgraphicsmagick1-dev
-apt-get install xfonts-100dpi xfonts-75dpi
+sudo apt-get -y -qq install shapelib libshp-dev libgeotiff-dev libwebp-dev libgraphicsmagick1-dev
+sudo apt-get -y -qq install xfonts-100dpi xfonts-75dpi
 
 # Build latest version from source
 cd $SRC_DIR
@@ -101,18 +102,27 @@ if [ ! -d $SRC_DIR/Xastir ] ; then
     git clone https://github.com/Xastir/Xastir.git
 fi
 
+echo
+echo "Running bootstrap script"
 cd Xastir
 ./bootstrap.sh
 mkdir -p build
 cd build
+echo
+echo "Running configure script"
 ../configure --without-festival CPPFLAGS="-I/usr/include/geotiff"
+echo
+echo "Running make with $(nproc) threads"
 make -j$(nproc)
+echo
+echo "Running install"
 sudo make install
 sudo strip $ROOT_DST/bin/xastir
 
 # create local xastir sound repo off of local home dir
 cd
 if [ ! -d /home/$USER/xastir-sounds/ ] ; then
+    echo "Getting Xastir sound files."
     git clone https://github.com/Xastir/xastir-sounds
 fi
 
