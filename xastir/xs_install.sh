@@ -55,6 +55,13 @@ function check_user() {
 #
 # ===== main
 #
+
+# Do not run as root
+if [[ $EUID -eq 0 ]]; then
+    echo "*** DO NOT run as root ***" 2>&1
+    exit 1
+fi
+
 # Check for any arguments
 if (( $# != 0 )) ; then
    USER="$1"
@@ -133,6 +140,7 @@ cp /home/$USER/n7nix/xastir/xastir.desktop /home/$USER/Desktop
 
 # If the local share dir does NOT exist use defaut share directory.
 SHARE_DIR="$ROOT_DST/share/xastir"
+XASTIR_CFG_FILE="/home/$USER/.xastir/config/xastir.cnf"
 
 if [ ! -d "$SHARE_DIR" ] ; then
     echo "WARNING: expected directory: $SHARE_DIR"
@@ -142,7 +150,7 @@ else
     echo "Existing /usr/share/xastir directories in xastir.cnf"
     find /home/$USER/.xastir -type f -print | xargs grep -i "/usr/share/xastir"
 
-    sed -i -e 's|/usr/share/xastir|/usr/local/share/xastir|g' /home/$USER/.xastir/config/xastir.cnf
+    sed -i -e 's|/usr/share/xastir|/usr/local/share/xastir|g' $XASTIR_CFG_FILE
 
     echo "Changed /usr/share/xastir directories to /usr/local/share/xastir in xastir.cnf"
     find /home/$USER/.xastir -type f -print | xargs grep -i "/usr/local/share/xastir"
@@ -153,7 +161,13 @@ sudo cp /home/$USER/n7nix/xastir/*.wav $SHARE_DIR/sounds
 # Copy xastir audio alert sound files to xastir sound dir
 sudo cp /home/$USER/xastir-sounds/sounds/*.wav $SHARE_DIR/sounds
 
-# Enable on board audio
+# Change sound command in config file
+# replace string after ':' in SOUND_COMMAND:play
+silence_file="$SHARE_DIR/sounds/silence.wav"
+
+sed -i -e "s|^SOUND_COMMAND:.*|SOUND_COMMAND:aplay -D \"plughw:0,1\" $silence_file |" $XASTIR_CFG_FILE
+
+# Enable RPi on-board audio
 # Delete comment character & any preceding white space
 sudo sed -i -e "/dtparam=audio=on/ s/^#*\s*//" /boot/config.txt
 #
