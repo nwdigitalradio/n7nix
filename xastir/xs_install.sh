@@ -97,7 +97,7 @@ echo "Install Xastir build requirements"
 # geotiff requires libproj
 sudo apt-get -y -qq install libmotif-common libmotif-dev
 sudo apt-get -y -qq install git autoconf automake xorg-dev graphicsmagick gv libmotif-dev libcurl4-openssl-dev
-sudo apt-get install gpsman gpsmanshp libpcre3-dev libproj-dev libdb5.3-dev python-dev libwebp-dev
+sudo apt-get -y -qq install gpsman gpsmanshp libpcre3-dev libproj-dev libdb5.3-dev python-dev libwebp-dev
 # Do not install festival packages
 # apt-get install shapelib libshp-dev festival festival-dev libgeotiff-dev libwebp-dev libgraphicsmagick1-dev
 sudo apt-get -y -qq install shapelib libshp-dev libgeotiff-dev libwebp-dev libgraphicsmagick1-dev
