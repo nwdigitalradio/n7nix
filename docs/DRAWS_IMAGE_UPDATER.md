@@ -5,7 +5,7 @@
 
 ### Get the lastest script versions
 
-* Get the current version of the image updater script.
+* Get the current version of the image updater scripts.
 
 ```
 cd
@@ -15,7 +15,7 @@ git pull
 
 ### How to update Xastir only
 
-* The _xs_verchk.sh_ script lives in directory ```n7nix\xastir```
+* The _xs_verchk.sh_ script lives in directory ```n7nix/xastir```
 ```
 cd
 cd n7nix/xastir
