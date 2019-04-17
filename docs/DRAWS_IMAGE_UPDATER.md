@@ -1,5 +1,8 @@
 ## How to update an existing image
 
+* First read notes from Xastir wiki [If you already installed the binary version](http://xastir.org/index.php/HowTo:Raspbian)
+  * Describes how to save your maps
+
 ### Get the lastest script versions
 
 * Get the current version of the image updater script.
@@ -74,13 +77,14 @@ sudo apt-get -q -y upgrade
 * At this time (Q1 2019 Linux kernel version 4.14.xx) when you do an
 ```apt-get upgrade``` the AudioSense-Pi driver prevents the DRAWS
 tlv320aic32x4 driver from running.
-  * **You must run this script to enable the DRAWS audio driver**
+  * **You must run the _chk_conflict.sh_ script to enable the DRAWS audio driver**
+  * The _prog_refresh.sh_ script always runs the following script.
 ```
 chk_conflict.sh
 ```
 
 ```
-./prog_refresh.sh -h
+prog_refresh.sh -h
 Usage: prog_refresh.sh [-u][-l][-h]
     No args will update all programs.
     -c displays current & installed versions.
