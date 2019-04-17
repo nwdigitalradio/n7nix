@@ -65,17 +65,6 @@ to build!
   * updates GPSD from source repository
   * checks for conflicting AudioSense-Pi driver
 
-
-```
-./prog_refresh.sh -h
-Usage: prog_refresh.sh [-u][-l][-h]
-    No args will update all programs.
-    -c displays current & installed versions.
-    -l display local version only.
-    -u update HAM programs only.
-    -h display this message.
-```
-
 The _prog_refresh.sh_ script starts out by executing:
 ```
 sudo apt-get -qq update
@@ -90,7 +79,17 @@ tlv320aic32x4 driver from running.
 chk_conflict.sh
 ```
 
-* ```-u``` option prevents this from occurring and will just refresh most of the ham programs from source.
+```
+./prog_refresh.sh -h
+Usage: prog_refresh.sh [-u][-l][-h]
+    No args will update all programs.
+    -c displays current & installed versions.
+    -l display local version only.
+    -u update HAM programs only.
+    -h display this message.
+```
+
+* ```-u``` option omits running ```apt-get update & apt-get upgrade``` and will just refresh most of the ham programs from source.
 * ```-c``` option displays current version from a repository & installed version.
   * This is also the list of programs currently maintained from source.
 
