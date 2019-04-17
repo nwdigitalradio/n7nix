@@ -3,7 +3,7 @@
 # Script to stop WiFi access point
 # The script disables & stops the services
 
-SERVICE_LIST=" "
+SERVICE_LIST="draws-manager"
 
 # ===== function stop_service
 
