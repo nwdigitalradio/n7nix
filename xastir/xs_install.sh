@@ -87,8 +87,10 @@ fi
 # Install files required for build
 echo
 echo "Install Xastir build requirements"
+# geotiff requires libproj
 sudo apt-get -y -qq install libmotif-common libmotif-dev
 sudo apt-get -y -qq install git autoconf automake xorg-dev graphicsmagick gv libmotif-dev libcurl4-openssl-dev
+sudo apt-get install gpsman gpsmanshp libpcre3-dev libproj-dev libdb5.3-dev python-dev libwebp-dev
 # Do not install festival packages
 # apt-get install shapelib libshp-dev festival festival-dev libgeotiff-dev libwebp-dev libgraphicsmagick1-dev
 sudo apt-get -y -qq install shapelib libshp-dev libgeotiff-dev libwebp-dev libgraphicsmagick1-dev
@@ -131,13 +133,31 @@ cp /home/$USER/n7nix/xastir/xastir.desktop /home/$USER/Desktop
 
 # If the local share dir does NOT exist use defaut share directory.
 SHARE_DIR="$ROOT_DST/share/xastir"
+
 if [ ! -d "$SHARE_DIR" ] ; then
+    echo "WARNING: expected directory: $SHARE_DIR"
     SHARE_DIR="/usr/share/xastir"
+else
+    # Change all configuration entries from /usr/share/xastir to /usr/local/share/xastir
+    echo "Existing /usr/share/xastir directories in xastir.cnf"
+    find /home/$USER/.xastir -type f -print | xargs grep -i "/usr/share/xastir"
+
+    sed -i -e 's|/usr/share/xastir|/usr/local/share/xastir|g' /home/$USER/.xastir/config/xastir.cnf
+
+    echo "Changed /usr/share/xastir directories to /usr/local/share/xastir in xastir.cnf"
+    find /home/$USER/.xastir -type f -print | xargs grep -i "/usr/local/share/xastir"
 fi
+
 # Copy silence.wav to xastir sound dir
 sudo cp /home/$USER/n7nix/xastir/*.wav $SHARE_DIR/sounds
 # Copy xastir audio alert sound files to xastir sound dir
 sudo cp /home/$USER/xastir-sounds/sounds/*.wav $SHARE_DIR/sounds
+
+# Enable on board audio
+# Delete comment character & any preceding white space
+sudo sed -i -e "/dtparam=audio=on/ s/^#*\s*//" /boot/config.txt
+#
+grep -i "dtparam=audio"  /boot/config.txt
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: Xastir install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
