@@ -1,3 +1,15 @@
+Wed Apr 17 09:31:03 PDT 2019  Basil Gunn <basil@pacabunga.com>
+
+  * Image BETA12 release
+    * Add latest release of Xastir to fix gpsd problem
+    * Change Xaster install script to use latest source
+    * Add program updater for programs installed from source
+    * beacmin.sh & btest.sh get position from gpsd
+      * Use NMEA sentences instead of GPSD sentences
+    * Add script to stop draws manager
+    * Add hostap setup script
+    * Fix new js8call download URL
+
 Tue Apr  2 12:31:11 PDT 2019  Basil Gunn <basil@pacabunga.com>
 
   * Image BETA11 release
@@ -66,7 +78,7 @@ Thu Jan  3 08:19:18 PST 2019  Basil Gunn <basil@pacabunga.com>
     * Boot with direwolf/ax.25 NOT running/enabled
     * Put image version in /var/log/udr_install.log
 
-Sun Dec 23  2017  Basil Gunn <basil@pacabunga.com>
+Sun Dec 23  2018  Basil Gunn <basil@pacabunga.com>
 
   * BETA6 release
 
