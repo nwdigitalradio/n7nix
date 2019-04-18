@@ -98,7 +98,7 @@ prog_refresh.sh
 cd  ~n7nix/hfprogs
 ./hf_verchk.sh -u
 ```
-#### prog_refresh options
+#### prog_refresh.sh options
 
 * ```-h```list all the command line arguments for this script
 
