@@ -412,7 +412,10 @@ else
 fi
 echo
 echo "---- syslog"
-grep -i udrc /var/log/syslog
+# Only look at the last couple of days of sys logging.
+datestr1=$(echo "$(date +"%b %d")")
+datestr2=$(echo "$(date -d "yesterday" +"%b %d")")
+grep -i "$datestr1\|$datestr2" /var/log/syslog | grep -i udrc
 echo
 echo "---- dmesg"
 dmesg | grep -i udrc
