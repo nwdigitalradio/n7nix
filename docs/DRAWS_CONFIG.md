@@ -30,10 +30,15 @@ and scroll down to **"Writing an image to the SD card"**
   point](https://www.raspberrypi.org/documentation/installation/installing-images/linux.md)
 
 ```
+unzip current_beta.zip
+# You will find an image file: draws_betaxx.img
+
 # Become root
 sudo su
 apt-get install dcfldd
-time (dcfldd if=current_beta.img of=/dev/sdf bs=4M status=progress; sync)
+
+# Use name of unzipped file ie. draws_beta10.img
+time (dcfldd if=draws_betaxx.img of=/dev/sdf bs=4M status=progress; sync)
 # Doesn't hurt to run sync twice
 sync
 ```
