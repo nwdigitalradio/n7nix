@@ -12,8 +12,8 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 CALLSIGN="N0ONE"
 USER=
-APP_CHOICES="core, rmsgw, plu, pluimap, uronode"
-APP_SELECT="rmsgw"
+APP_CHOICES="core, rmsgw, plu, test"
+APP_SELECT=
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -103,10 +103,12 @@ fi
 
 # check for control arguments passed to this script
 
-while [[ $# -gt 0 ]] ; do
 APP_SELECT="$1"
 
-case $APP_SELECT in
+while [[ $# -gt 0 ]] ; do
+APP_ARG="$1"
+
+case $APP_ARG in
 
    -d|--debug)
       DEBUG=1
@@ -236,7 +238,7 @@ case $APP_SELECT in
       source ./setax25-ipaddr.sh
    ;;
    *)
-      echo "Undefined app, must be one of $APPCHOICES"
+      echo "Undefined app, must be one of $APP_CHOICES"
       echo "$(date "+%Y %m %d %T %Z"): app install ($APP_SELECT) script ERROR, undefined app" >> $UDR_INSTALL_LOGFILE
       exit 1
    ;;
