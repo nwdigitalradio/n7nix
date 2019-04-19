@@ -139,10 +139,13 @@ if (( $# == 0 )) ; then
     exit 1
 fi
 
-# prompt for a callsign
-while get_callsign ; do
-    echo "Input error, try again"
-done
+# Get call sign if not doing a test
+if [ "$APP_SELECT" != "test" ] ; then
+    # prompt for a callsign
+    while get_callsign ; do
+        echo "Input error, try again"
+    done
+fi
 
 # parse command args for app to config
 
@@ -225,6 +228,12 @@ case $APP_SELECT in
       pushd ../plu
       source ./pluimap_config.sh -
       popd > /dev/null
+   ;;
+   test)
+      echo
+      echo " ===== $scriptname: Test setting up AX.25 IP Address"
+      echo
+      source ./setax25-ipaddr.sh
    ;;
    *)
       echo "Undefined app, must be one of $APPCHOICES"
