@@ -219,7 +219,7 @@ void print_date(time_t timet) {
     struct tm *tm = localtime(&timet);
     char s[64];
     strftime(s, sizeof(s), "%c", tm);
-    /* for debug: printf("%s\n", s); */
+    printf("%s\n", s);
 }
 
 const char *getprogname(void)
