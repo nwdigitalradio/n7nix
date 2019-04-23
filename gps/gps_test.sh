@@ -46,6 +46,8 @@ function start_service() {
 function ctrl_c() {
         echo
         echo "Exiting script from trapped CTRL-C"
+        echo "Cleaning up & starting gpsd"
+        make clean
         start_service "gpsd"
 	exit
 }
@@ -58,11 +60,17 @@ fi
 
 stop_service "gpsd"
 
-if type -P ./$progname >/dev/null 2>&1 ; then
-    echo "Found C program: $progname"
-else
-    echo "C program not found, building."
+# Check for C source file to test gps port
+if [ -e ${progname}.c ] ; then
+    echo "Source file found, building"
     make $progname
+else
+    echo "Source file: ${progname}.c not found"
+fi
+
+if ! type -P ./$progname >/dev/null 2>&1 ; then
+    echo "No binary file found ... exiting"
+    exit 1
 fi
 
 if $bverbose ; then
