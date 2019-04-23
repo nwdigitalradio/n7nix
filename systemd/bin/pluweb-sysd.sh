@@ -46,8 +46,7 @@ function service_start() {
         dbgecho "Service $service already enabled"
     fi
 
-    systemctl is-active $service >/dev/null
-    if [ "$?" -eq 0 ] ; then
+    if systemctl is-active --quiet $service ; then
         echo "$service is already running."
     else
         systemctl --no-pager start $service.service
@@ -62,14 +61,13 @@ function service_start() {
 function service_stop() {
     root_chk
 
-    systemctl is-active $service >/dev/null
-    if [ "$?" -ne 0 ] ; then
-        echo "$service is NOT running."
-    else
+    if systemctl is-active --quiet $service ; then
         systemctl stop $service.service
         if [ "$?" -ne 0 ] ; then
             echo "Problem stopping $service"
         fi
+    else
+        echo "$service is NOT running."
     fi
 
     systemctl is-enabled "$service" > /dev/null 2>&1

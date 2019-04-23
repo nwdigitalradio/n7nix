@@ -63,8 +63,7 @@ function start_service() {
         fi
     fi
     # Is service alread running?
-    systemctl is-active "$service"
-    if [ "$?" -eq 0 ] ; then
+    if systemctl is-active --quiet "$service" ; then
         # service is already running, restart it to update config changes
         systemctl --no-pager restart "$service"
         if [ "$?" -ne 0 ] ; then
