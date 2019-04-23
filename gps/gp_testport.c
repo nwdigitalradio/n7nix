@@ -202,8 +202,8 @@ void min_check(int satcnt, int *min_satcnt)
          * wrong
          */
         if ( satcnt > 0 ) {
-            putchar('\n');
-/*            print_date(current_sec); */
+/*    debug putchar('\n'); */
+/*    debug print_date(current_sec); */
             b_onetimeflag = true;
             *min_satcnt = satcnt;
         }
@@ -219,7 +219,7 @@ void print_date(time_t timet) {
     struct tm *tm = localtime(&timet);
     char s[64];
     strftime(s, sizeof(s), "%c", tm);
-    printf("%s\n", s);
+    /* for debug: printf("%s\n", s); */
 }
 
 const char *getprogname(void)
