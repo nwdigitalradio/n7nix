@@ -1,5 +1,5 @@
 #
-# Makefile for ows_init.c
+# Makefile for gp_testport.c
 #
 #
 VERSION = 0.1
