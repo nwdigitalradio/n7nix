@@ -44,6 +44,7 @@ function start_service() {
 # ===== function ctrl_c trap handler
 
 function ctrl_c() {
+        echo
         echo "Exiting script from trapped CTRL-C"
         start_service "gpsd"
 	exit
