@@ -174,10 +174,11 @@ FLDIGI_SRC_DIR=$SRC_DIR/fldigi-$fldigi_ver
 # fldigi takes a long time to build,
 #  check if there is a previous installation
 
+PKG_REQUIRE_FLDIGI="libfltk1.3-dev libjpeg9-dev libxft-dev libxinerama-dev libxcursor-dev libsndfile1-dev libsamplerate0-dev portaudio19-dev libusb-1.0-0-dev libpulse-dev"
+sudo apt-get install -y $PKG_REQUIRE_FLDIGI
+
 if [ ! -d "$FLDIGI_SRC_DIR" ] ; then
     # instructions from here: http://www.kk5jy.net/fldigi-build/
-    PKG_REQUIRE_FLDIGI="libfltk1.3-dev libjpeg9-dev libxft-dev libxinerama-dev libxcursor-dev libsndfile1-dev libsamplerate0-dev portaudio19-dev libusb-1.0-0-dev libpulse-dev"
-    sudo apt-get install -y $PKG_REQUIRE_FLDIGI
     # wget -N  https://sourceforge.net/projects/fldigi/files/fldigi/fldigi-$FLDIGICUR.tar.gz
     cd "$SRC_DIR"
 
@@ -274,10 +275,10 @@ if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     build_wsjtx "2.0.1"
     build_hamlib "3.3"
     build_flapp "0.1.4" flxmlrpc
-    build_flapp "1.3.42" flrig
+    build_flapp "1.3.43" flrig
     build_flapp "4.0.8" flmsg
     build_flapp "2.2.04" flamp
-    build_fldigi "4.1.01"
+    build_fldigi "4.1.03"
 else
 
     if [[ $# -ne 3 ]] ; then
