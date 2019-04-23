@@ -46,6 +46,6 @@ gp_testport:	$(SRC) $(HDRS) $(OBJS) Makefile
 
 # Clean up the object files for distribution
 clean:
-		rm -f $(OBJS)
-		rm -f core *.asc
-		rm -f gp_testport
+		@rm -f $(OBJS)
+		@rm -f core *.asc
+		@rm -f gp_testport
