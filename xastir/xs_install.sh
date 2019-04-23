@@ -168,8 +168,17 @@ silence_file="$SHARE_DIR/sounds/silence.wav"
 sed -i -e "s|^SOUND_COMMAND:.*|SOUND_COMMAND:aplay -D \"plughw:0,1\" $silence_file |" $XASTIR_CFG_FILE
 
 # Enable RPi on-board audio
+# Rather than just deleting comment character need to put on last line
 # Delete comment character & any preceding white space
-sudo sed -i -e "/dtparam=audio=on/ s/^#*\s*//" /boot/config.txt
+#sudo sed -i -e "/dtparam=audio=on/ s/^#*\s*//" /boot/config.txt
+
+# Add to bottom of file
+cat << EOT >> /boot/config.txt
+
+# Enable audio (loads snd_bcm2835)
+dtparam=audio=on
+EOT
+
 #
 grep -i "dtparam=audio"  /boot/config.txt
 
