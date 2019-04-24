@@ -41,8 +41,8 @@
 | wsjt-x       |  2.0.1  | yes  |     |   |
 | hamlib       |  3.3    |      |     |   |
 | flxmlrpc lib |  0.1.4  |      |     |   |
-| fldigi       |  4.1.01 |      |     |   |
-| flrig        |  1.3.42 |      |     |   |
+| fldigi       |  4.1.03 |      |     |   |
+| flrig        |  1.3.43 |      |     |   |
 | flmsg        |  4.0.8  |      |     |   |
 | flamp        |  2.2.04 |      |     |   |
 | iptables     |  1.6.0  |  yes |     |   |
