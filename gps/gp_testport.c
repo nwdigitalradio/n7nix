@@ -113,13 +113,12 @@ int main(int argc, char *argv[])
     newtio.c_lflag = ICANON;
 
     /* clean the modem line and activate settings for the port */
-    tcflush(fd, TCIOFLUSH); // Flush the previously buffered data
+    tcflush(fd, TCIOFLUSH); /* Flush the previously buffered data */
 
     if ((tcsetattr(fd, TCSANOW, &newtio)) == -1) {
         perror("tcgetattr()");
         exit(GP_ERROR_SETTING_GPSCOM_ATTR);
     }
-    /*         tcsetattr(fd,TCSANOW,&newtio); */
 
     /* NMEA command to ouput all sentences */
     n = write(fd, "$PTNLSNM,273F,01*27\r\n", 21);
@@ -138,14 +137,12 @@ int main(int argc, char *argv[])
     min_satcnt=max_satcnt = 0;
 
     while (true) {     /* loop continuously */
-#if 0
-        sleep(1); // Wait for at least 1 PPS
-#endif
+
         n = read (fd, buf, sizeof buf);
         buf[n] = 0;             /* set end of string, so we can printf */
         if( n > 0 ) {
             if(bVerbose) {
-                // Find a $GP string coming from the gps
+                /* Find a $GP string coming from the gps */
                 pch = strstr(buf ,"$GP");
 
                 if( pch != NULL ){
@@ -155,7 +152,7 @@ int main(int argc, char *argv[])
                     printf (" %s", buf);
                 }
             }
-            // Find a $GNGGA string coming from the gps
+            /* Find a $GNGGA string coming from the gps */
             pch = strstr(buf ,"$GNGGA");
             if( pch != NULL ){
                 testResult = 1;
@@ -165,6 +162,7 @@ int main(int argc, char *argv[])
                 strtok(buf,",");
                 ptr=buf;
                 cnt=0;
+                /* Get the Satellites views value from position 7 */
                 while( ptr != NULL && cnt < 7) {
                     ptr = strtok(NULL, ",");
                     cnt++;
@@ -174,7 +172,7 @@ int main(int argc, char *argv[])
                 if ( satcnt > max_satcnt ) {
                     max_satcnt = satcnt;
                 }
-                /* Only enable spinner when gps first comes up */
+                /* Enable spinner when gps first comes up */
                 if(! b_onetimeflag && satcnt == 0) {
                     spinner(spinind++);
                 } else {
@@ -217,6 +215,7 @@ void print_elapsed(unsigned long elapsed_secs) {
         }
     }
 }
+
 void min_check(int satcnt, int *min_satcnt)
 {
 
