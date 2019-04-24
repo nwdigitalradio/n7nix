@@ -173,10 +173,10 @@ int main(int argc, char *argv[])
                 min_check(satcnt, &min_satcnt);
 
                 if(bVerbose) {
-                    printf("sats: %d, min: %d, max: %d\n",
+                    printf("sats: %2d, min: %2d, max: %2d\n",
                            satcnt, min_satcnt, max_satcnt);
                 } else {
-                    printf("sats: %d, min: %d, max: %d\r",
+                    printf("sats: %2d, min: %2d, max: %2d                \r",
                            satcnt, min_satcnt, max_satcnt);
                     fflush(stdout);
                 }
@@ -198,7 +198,7 @@ void min_check(int satcnt, int *min_satcnt)
 
     /* wait about 2 minutes before reading satellites */
     if ( ! b_onetimeflag && (current_sec - start_sec > elapsed_sec_check)) {
-        /* if the sat count is zero from the get go then some thing is
+        /* if the sat count is zero from the get go then something is
          * wrong
          */
         if ( satcnt > 0 ) {
