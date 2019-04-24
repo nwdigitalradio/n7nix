@@ -57,7 +57,8 @@ int min_check_cnt = 0;
 
 int main(int argc, char *argv[])
 {
-    int opt, spinind;
+    int opt;
+    int spinind=0;
     extern int optind;
     extern char *optarg;
     int n, cnt;
@@ -135,7 +136,6 @@ int main(int argc, char *argv[])
 
     /* initialize sat counts */
     min_satcnt=max_satcnt = 0;
-    spinind=0;
 
     while (true) {     /* loop continuously */
 #if 0
@@ -180,15 +180,13 @@ int main(int argc, char *argv[])
                 } else {
                     min_check(satcnt, &min_satcnt);
 
-                    if ( satcnt > 0 ) {
-                        if(bVerbose) {
-                            printf("sats: %2d, min: %2d, max: %2d\n",
-                                   satcnt, min_satcnt, max_satcnt);
-                        } else {
-                            printf("sats: %2d, min: %2d, max: %2d                \r",
-                                   satcnt, min_satcnt, max_satcnt);
-                            fflush(stdout);
-                        }
+                    if(bVerbose) {
+                        printf("sats: %2d, min: %2d, max: %2d\n",
+                               satcnt, min_satcnt, max_satcnt);
+                    } else {
+                        printf("sats: %2d, min: %2d, max: %2d  ",
+                               satcnt, min_satcnt, max_satcnt);
+                        spinner(spinind++);
                     }
                 }
             }
@@ -206,7 +204,7 @@ void print_elapsed(unsigned long elapsed_secs) {
     unsigned long secs;
 
     /* Do not display elapsed time if only a few seconds long */
-    if ( elapsed_secs > 2) {
+    if ( elapsed_secs > 4) {
         hours = elapsed_secs/3600;
         mins = (elapsed_secs -(3600*hours))/60;
         secs = (elapsed_secs-(3600*hours)-(mins*60));
@@ -223,10 +221,13 @@ void min_check(int satcnt, int *min_satcnt)
 {
 
     if ( ! b_onetimeflag && satcnt > 0 ) {
+
         /* wait some arbitrary time for the satellite count to settle */
-        sleep(2);
+        /* sleep(2); */
         /* Read the gps a couple of times after first satellite view
          * before setting the min satellite count */
+        *min_satcnt = satcnt;
+
         if (min_check_cnt++ > 2) {
             /* Time how long it takes gps to see first satellite. */
             time_t current_sec = time(NULL);
