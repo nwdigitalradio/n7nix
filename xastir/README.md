@@ -34,8 +34,7 @@ apt-get install xastir
 
 ###### Add a GPS interface
 
-* Add: _Serial GPS_
-  * Stand alone GPS port: /dev/ttyUSB0
+* Add: _Networked GPS (via gpsd)__
 * Select Device 1 -> Start
   * Status should change from Down to Up
 
