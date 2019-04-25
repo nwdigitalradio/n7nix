@@ -50,6 +50,7 @@ a020d3)
 ;;
 *)
    echo "Unknown pi version: $piver"
+   grep "Revision" /proc/cpuinfo
 ;;
 esac
 
