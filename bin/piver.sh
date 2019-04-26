@@ -51,7 +51,7 @@ a020d3)
 *)
    echo "Unknown pi version: $piver"
    echo "Model: $(tr -d '\0' </proc/device-tree/model)"
-   grep "Revision" /proc/cpuinfo
+   grep "Revision" $CPUINFO_FILE
 ;;
 esac
 
