@@ -10,6 +10,7 @@ SRC_DIR="$ROOT_DST/src"
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+BOOT_CFGFILE="/boot/config.txt"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -50,6 +51,35 @@ function check_user() {
    fi
 
    dbgecho "using USER: $USER"
+}
+
+# ===== check onboard audio device enabled
+function chk_onboard_audio() {
+
+    # Is write turned on?
+    b_fixit=$1
+
+    # Is last line 'dtparam=audio=on' ?
+    last_line=$(tail -n1 $BOOT_CFGFILE)
+    audio_on_line="dtparam=audio=on"
+
+    if [ "$last_line" != "$audio_on_line" ] ; then
+        echo "  Last line in $BOOT_CFGFILE NOT: $audio_on_line"
+
+        # Check if update is enabled
+        if $b_fixit ; then
+            # Add Comment character to beginning of current audio line
+            sudo sed -i -e 's/^dtparam=audio=on/#&/' $BOOT_CFGFILE
+            # Add audio enable line to bottom of file
+            sudo tee -a $BOOT_CFGFILE << EOT
+
+# Enable audio (loads snd_bcm2835)
+dtparam=audio=on
+EOT
+        fi
+    else
+        echo "  Last line in $BOOT_CFGFILE OK"
+    fi
 }
 
 #
@@ -169,18 +199,8 @@ sed -i -e "s|^SOUND_COMMAND:.*|SOUND_COMMAND:aplay -D \"plughw:0,1\" $silence_fi
 
 # Enable RPi on-board audio
 # Rather than just deleting comment character need to put on last line
-# Delete comment character & any preceding white space
-#sudo sed -i -e "/dtparam=audio=on/ s/^#*\s*//" /boot/config.txt
 
-# Add to bottom of file
-cat << EOT >> /boot/config.txt
-
-# Enable audio (loads snd_bcm2835)
-dtparam=audio=on
-EOT
-
-#
-grep -i "dtparam=audio"  /boot/config.txt
+chk_onboard_audio true
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: Xastir install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
