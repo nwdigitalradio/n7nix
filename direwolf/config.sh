@@ -168,8 +168,11 @@ get_prod_id
 
 case $PROD_ID in
 0|1)
-   echo "No UDRC found, exiting"
-   exit 1
+   echo "$(tput setaf 1)No udrc sound card found default to DRAWS$(tput setaf 7) "
+   # left channel
+   chan1ptt_gpio=12
+   # right channel
+   chan2ptt_gpio=23
 ;;
 2)
    echo "Original UDRC is installed."
@@ -205,8 +208,10 @@ if [ ! -z "$CARDNO" ] ; then
    CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
    echo "udrc is sound card #$CARDNO"
 else
-   echo "No udrc sound card found by aplay ... exiting"
-   exit 1
+   echo "$(tput setaf 1)No udrc sound card found by aplay ... $(tput setaf 7) "
+   # Used to exit here BUT there is no way to rerun core config.
+   chk_onboard_audio
+   chk_dtoverlay
 fi
 
 dbgecho "MYCALL"

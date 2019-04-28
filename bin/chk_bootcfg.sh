@@ -65,7 +65,6 @@ function chk_onboard_audio() {
             # Add Comment character to beginning of current audio line
             sudo sed -i -e 's/^dtparam=audio=on/#&/' $BOOT_CFGFILE
             # Add audio enable line to bottom of file
-#            sudo cat << EOT >> $BOOT_CFGFILE
             sudo tee -a $BOOT_CFGFILE << EOT
 
 # Enable audio (loads snd_bcm2835)

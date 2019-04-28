@@ -201,7 +201,7 @@ prgram="udrcver.sh"
 which $prgram
 if [ "$?" -eq 0 ] ; then
    dbgecho "Found $prgram in path"
-   $prgram
+   $prgram -
    PROD_ID=$?
 else
    currentdir=$(pwd)
@@ -232,7 +232,7 @@ if [ $? -ne 0 ] ; then
     if [[ "$PROD_ID" -eq 4 ]] ; then
         set_dtoverlay="dtoverlay=draws"
     else
-        set_dtoverlay="# dtoverlay=udrc"
+        set_dtoverlay="dtoverlay=udrc"
     fi
     # Add to bottom of file
     cat << EOT >> /boot/config.txt
