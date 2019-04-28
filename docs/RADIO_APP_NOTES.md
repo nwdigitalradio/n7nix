@@ -106,7 +106,7 @@ new setting for Menu #39
   * 0.4 Vp-p (0.2 Vrms): recommended level
   * 0.2-0.5 Vp-p (0.1-0.25 Vrms): acceptable level
 * When in packet mode route RX Audio to pin 4 DATA OUT (discriminator)
-  * Select IN1 (L & R) 10 kOhm (or 20 & 40 kOmn) in alsamixer
+  * Select IN1 (L & R) 10 kOhm (or 20 & 40 kOhm) in alsamixer
 * While testing with FLdigi it was noticed that the tones where cleaner when routing through the discriminator.
 * The IC-7000 presents the received signal on both pin 4 DISCOUT & pin 5 AFOUT
 
@@ -116,7 +116,7 @@ new setting for Menu #39
 
 ###### Transmit
 * ALSA control _DAC Playback Power Tune_ set to PTM_P1
-* Same LO Drive Gain & PCM settings ast Yaesu FT-817
+* Same LO Drive Gain & PCM settings as Yaesu FT-817
 
 ###### Receive
 * Make sure the preamp is turned off.
