@@ -31,6 +31,7 @@ set [this video](https://www.youtube.com/watch?v=v5C3cWVVz_A)
 | IN1_R to Right Mixer positive Resistor    | Off, 10, 20 or 40 kOhm | resistor ctrl on path from IN1_L to Right Mixer |
 | IN2_L to Left Mixer positive Resistor     | Off, 10, 20 or 40 kOhm | resistor ctrl on path from IN2_L to Left Mixer |
 | IN2_R to Right Mixer positive Resistor    | Off, 10, 20 or 40 kOhm | resistor ctrl on path from IN2_L to Right Mixer |
+| CM (L & R)                                | Off, 10, 20 or 40 kOhm | resistor ctrl on path for Common Mode |
 
 ### Programs to View & Set ALSA controls
 
@@ -45,7 +46,7 @@ set [this video](https://www.youtube.com/watch?v=v5C3cWVVz_A)
 ##### alsa-show.sh
 * Script to view a condensed output of ALSA controls
   * Parses amixer output to display the most commonly used controls
-  * Example output:
+  * Example output of default configuration:
 ```
  ===== ALSA Controls for Radio Tansmit =====
 LO Driver Gain  L:[-6.00dB]	R:[-6.00dB]
@@ -57,9 +58,22 @@ LO Playback CM	[Full Chip CM]
 ADC Level	L:[0.00dB]	R:[0.00dB]
 IN1		L:[Off]		R:[Off]
 IN2		L:[10 kOhm]	R:[10 kOhm]
+CM		L:[10 kOhm]	R:[10 kOhm]
 ```
 
 ##### Programs to set up initial ALSA controls
 
+###### For DRAWS HAT
+
 * setalsa-default.sh
 * setalsa-ft817.sh
+* setalsa-ft817.sh
+* setalsa-ic7000.sh
+* setalsa-tmv71a.sh
+
+
+###### For UDRC II HAT
+* setalsa-udrc-alinco.sh
+* setalsa-udrc-din6.sh
+* setalsa-dr1x.sh
+* setalsa-not-dr1x.sh
