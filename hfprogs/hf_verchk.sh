@@ -302,6 +302,10 @@ js8_ver=$(curl -s $ver_url | grep -A1 -i "iterable-item" | head -2 | tail -1 | c
 # Get rid of the leading v in string
 js8_ver="${js8_ver:1}"
 
+# Need to fix: js8call_1.0.1-ga_armhf.deb
+# Get rid of the trailing -ga
+js8_ver=$(echo $js8_ver | cut -d'-' -f1)
+
 installed_prog_ver_get "$js8_app"
 echo "$js8_app: current version: $js8_ver, installed: $prog_ver"
 if $UPDATE_FLAG ; then
