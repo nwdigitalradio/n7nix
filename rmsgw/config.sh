@@ -159,10 +159,12 @@ sed -i -e "/AA00AA/ s/AA00AA/$GRIDSQUARE/" $RMSGW_CHANFILE
 sed -i -e "/144000000/ s/144000000/$FREQUENCY/" $RMSGW_CHANFILE
 }
 
+#
 # ===== main
+#
+
 echo
 echo "rmsgw config START"
-echo "Check for required files ..."
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
@@ -170,6 +172,7 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
+echo "Check for required files ..."
 EXITFLAG=false
 for prog_name in `echo ${REQUIRED_PRGMS}` ; do
    type -P $prog_name &>/dev/null
@@ -179,8 +182,9 @@ for prog_name in `echo ${REQUIRED_PRGMS}` ; do
       EXITFLAG=true
    fi
 done
-if [ "$EXITFLAG" = "true" ] ; then
-  exit 1
+
+if $EXITFLAG ; then
+    exit 1
 fi
 
 # if there are any args on command line assume it's a callsign
