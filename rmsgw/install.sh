@@ -17,15 +17,7 @@ DEBUG=1
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 REPO_BASE_DIR="$HOME/dev/github"
-
-# Color Codes
-Reset='\e[0m'
-Red='\e[31m'
-Green='\e[32m'
-Yellow='\e[33m'
-Blue='\e[34m'
-White='\e[37m'
-BluW='\e[37;44m'
+RMSGW_BUILD_DIR="$REPO_BASE_DIR/rmsgw"
 
 PKG_REQUIRE="xutils-dev libxml2 libxml2-dev python-requests"
 RMS_BUILD_FILE="rmsbuild.txt"
@@ -76,7 +68,7 @@ function check_user() {
 # ===== main
 #
 
-echo -e "${BluW}\n \t  Install Linux RMS Gate \n${White}  Parts of this Script provided by Charles S. Schuman ( K4GBB )  \n${Reset}"
+echo -e "$(tput setaf 6)\n \t  Install Linux RMS Gateway\n$(tput setaf 7)  Parts of this Script provided by Charles S. Schuman ( K4GBB )  \n"
 
 # Running as root?
 if [[ $EUID == 0 ]] ; then
@@ -120,8 +112,8 @@ for pkg_name in `echo ${PKG_REQUIRE}` ; do
    fi
 done
 
-if [ "$needs_pkg" = "true" ] ; then
-   echo -e "${BluW}\t Installing Support libraries \t${Reset}"
+if $needs_pkg ; then
+   echo -e "$(tput setaf 6)\t Installing Support libraries \t$(tput setaf 7)"
 
    sudo apt-get install -y -q $PKG_REQUIRE
    if [ "$?" -ne 0 ] ; then
@@ -153,19 +145,20 @@ else
    echo "Repo directory: $REPO_BASE_DIR already exists, will try to update"
 fi
 
-cd $REPO_BASE_DIR
-
 # Does repo directory exist?
-if [ ! -d "rmsgw" ] ; then
+if [ ! -d "$RMSGW_BUILD_DIR" ] ; then
    # repo not there so clone it
+   cd $REPO_BASE_DIR
    git clone https://github.com/nwdigitalradio/rmsgw
    if [ "$?" -ne 0 ] ; then
       echo "$(tput setaf 1)Problem cloning repository rmsgw$(tput setaf 7)"
       exit 1
    fi
+   # Change permissions to USER for build
+   sudo chown -R $USER:$USER $RMSGW_BUILD_DIR
 else
    echo "Directory rmsgw already exists, attempting to update"
-   cd $REPO_BASE_DIR/rmsgw
+   cd $RMSGW_BUILD_DIR
    # Test if this diretory is really a git repo
    git rev-parse --is-inside-work-tree
    if [ "$?" -ne 0 ] ; then
@@ -182,15 +175,16 @@ else
 fi
 
 # Go to the build directory
-cd $REPO_BASE_DIR/rmsgw
+cd $RMSGW_BUILD_DIR
+echo -e "$(tput setaf 4)\t Build RMS Gateway source$(tput setaf 7)"
 # Redirect stderr to stdout & capture to a file
 make -j$num_cores > $RMS_BUILD_FILE 2>&1
 if [ $? -ne 0 ] ; then
-   echo -e "${BluW}$Red} \tCompile error${White} - check $RMS_BUILD_FILE File \t${Reset}"
+   echo -e "$(tput setaf 1)\tCompile error$(tput bold)$(tput setaf 7) - check $RMS_BUILD_FILE File \t$(tput sgr0)"
    exit 1
 fi
 
-echo -e "${BluW}\t Installing RMS Gateway\t${Reset}"
+echo -e "$(tput setaf 4)\t Installing RMS Gateway$(tput setaf 7)"
 sudo make install
 if [ $? -ne 0 ] ; then
   echo "$(tput setaf 1)Error during install.$(tput setaf 7)"
@@ -199,6 +193,6 @@ fi
 # rm /etc/rmsgw/stat/.*
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: RMS Gateway updated" | sudo tee -a $UDR_INSTALL_LOGFILE
-echo -e "${BluW}RMS Gateway updated \t${Reset}"
+echo -e "$(tput setaf 4)RMS Gateway updated \t$(tput setaf 7)"
 
 # (End of Script)
