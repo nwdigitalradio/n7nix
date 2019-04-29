@@ -128,7 +128,7 @@ echo "AX.25 ip addresses: ax0: $ipaddr_ax0, ax1: $ipaddr_ax1"
 # Insert the two ip addresses into the ax25-upd script
 ax25upd_filename="/etc/ax25/ax25-upd"
 
-echo "== Check 1: current $ax25upd_filename on $(date)"
+dbgecho "== Check 1: current $ax25upd_filename on $(date)"
 ls -alt $ax25upd_filename
 
 echo -e "\n\t$(tput setaf 4)before: $(tput setaf 7)\n"
@@ -148,7 +148,7 @@ fi
 echo -e "\n\t$(tput setaf 4)after: $(tput setaf 7)\n"
 grep -i "IPADDR_AX.=" $ax25upd_filename
 
-echo "== Check 2: Verify $ax25upd_filename on $(date)"
+dbgecho "== Check 2: Verify $ax25upd_filename on $(date)"
 head -n 20 $ax25upd_filename
 ls -alt $ax25upd_filename
 
