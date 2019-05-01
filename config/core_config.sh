@@ -252,12 +252,24 @@ function check_locale() {
 # ===== main
 
 echo "Initial core config script"
+# Determine if driver has enumerated device
+aplay -l | grep -i udrc > /dev/null 2>&1
+if [ "$?" -ne 0 ] ; then
+    # There are a couple of things that might cause this problem.
+    # Check if there is a conflict with AudioSense-Pi driver
+    chk_conflict.sh
+    # Check if on-board audio enable is in wrong location in /boot/config.txt file
+    chk_bootcfg.sh
+    echo "udrc driver load problem, must reboot !"
+    exit 1
+fi
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root"
    exit 1
 fi
+
 
 # Confirm that config core script has not been run yet.
 cfg_script_name="app_config.sh core"
@@ -396,14 +408,28 @@ dbgecho "Set sound card levels return: $retcode"
 
 echo "=== Set ip addresses on AX.25 interfaces"
 
+# If the IP addresses have already been changed then use the changed
+# addresses as the default
+
 # Reference:
 #  https://www.febo.com/packet/linux-ax25/ax25-config.html
+# Default addresses for reference
 dummy_ipaddress_0="192.168.255.2"
 dummy_ipaddress_1="192.168.255.3"
 
-ipaddr_ax0="$dummy_ipaddress_0"
-ipaddr_ax1="$dummy_ipaddress_1"
+ipaddr_ax0=$(grep -i "IPADDR_AX0=" "$ax25upd_filename" | cut -d'=' -f2)
+#Remove surronding quotes
+ipaddr_ax0="${ipaddr_ax0%\"}"
+ipaddr_ax0="${ipaddr_ax0#\"}"
+cur_ipaddr_ax0="$ipaddr_ax0"
 
+ipaddr_ax1=$(grep -i "IPADDR_AX1=" "$ax25upd_filename" | cut -d'=' -f2)
+#Remove surronding quotes
+ipaddr_ax1="${ipaddr_ax1%\"}"
+ipaddr_ax1="${ipaddr_ax1#\"}"
+cur_ipaddr_ax1="$ipaddr_ax1"
+
+echo "Current AX.25 ip addresses: ax0: $ipaddr_ax0, ax1: $ipaddr_ax1"
 echo "If you do not understand or care about the following just hit enter for default values"
 
 while  ! get_ipaddr ax0 ; do
@@ -412,8 +438,6 @@ done
 if [ ! -z "$ip_addr" ] ; then
     echo "Setting ax0 to $ip_addr"
     ipaddr_ax0="$ip_addr"
-else
-    echo "ax0 using default: $ipaddr_ax0"
 fi
 
 while  ! get_ipaddr ax1 ; do
@@ -422,28 +446,31 @@ done
 if [ ! -z "$ip_addr" ] ; then
     echo "Setting ax1 to $ip_addr"
     ipaddr_ax1="$ip_addr"
+fi
+
+# Are the current IP addresses same as input addresses?
+# ie. no addresses were input
+if [ "$ipaddr_ax0" = "$cur_ipaddr_ax0" ] && [ "$ipaddr_ax1" = "$cur_ipaddr_ax1" ] ; then
+    echo "No change to AX.25 IP addresses"
 else
-    echo "ax1 using default: $ipaddr_ax1"
-fi
 
-echo "AX.25 ip addresses: ax0: $ipaddr_ax0, ax1: $ipaddr_ax1"
+    # Insert the two ip addresses into the ax25-upd script
+    ax25upd_filename="/etc/ax25/ax25-upd"
 
-# Insert the two ip addresses into the ax25-upd script
+    echo -e "\n\t$(tput setaf 4)before: $(tput setaf 7)\n"
+    grep -i "IPADDR_AX.=" "$ax25upd_filename"
 
-ax25upd_filename="/etc/ax25/ax25-upd"
+    # Replace everything after string IPADDR_AX0
+    sed -i -e "/IPADDR_AX0/ s/^IPADDR_AX0=.*/IPADDR_AX0=\"$ipaddr_ax0\"/"  $ax25upd_filename
+    if [ "$?" -ne 0 ] ; then
+        echo -e "\n\t$(tput setaf 1)Failed to change ax0 ip address $(tput setaf 7)\n"
+    fi
 
-echo -e "\n\t$(tput setaf 4)before: $(tput setaf 7)\n"
-grep -i "IPADDR_AX.=" "$ax25upd_filename"
-
-# Replace everything after strings IPADDR_AX0 & IPADDR_AX1
-sed -i -e "/IPADDR_AX0/ s/^IPADDR_AX0=.*/IPADDR_AX0=\"$ipaddr_ax0\"/"  $ax25upd_filename
-if [ "$?" -ne 0 ] ; then
-    echo -e "\n\t$(tput setaf 1)Failed to change ax0 ip address $(tput setaf 7)\n"
-fi
-
-sed -i -e "/IPADDR_AX1/ s/^IPADDR_AX1=.*/IPADDR_AX1=\"$ipaddr_ax1\"/"  $ax25upd_filename
-if [ "$?" -ne 0 ] ; then
-    echo -e "\n\t$(tput setaf 1)Failed to change ax1 ip address $(tput setaf 7)\n"
+    # Replace everything after string IPADDR_AX1
+    sed -i -e "/IPADDR_AX1/ s/^IPADDR_AX1=.*/IPADDR_AX1=\"$ipaddr_ax1\"/"  $ax25upd_filename
+    if [ "$?" -ne 0 ] ; then
+        echo -e "\n\t$(tput setaf 1)Failed to change ax1 ip address $(tput setaf 7)\n"
+    fi
 fi
 
 echo -e "\n\t$(tput setaf 4)after: $(tput setaf 7)\n"
