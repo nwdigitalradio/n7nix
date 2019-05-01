@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Run this script after:
-#  - core_install.sh or
-#  - first boot from an SD card image created with image_install.sh
+# Change IP addresses of two AX.25 interfaces
+# To take affect must either stop start ax.25 or reboot
 #
 # Uncomment this statement for debug echos
-DEBUG=1
+#DEBUG=1
 
 scriptname="`basename $0`"
+ax25upd_filename="/etc/ax25/ax25-upd"
 
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -82,23 +82,40 @@ function get_ipaddr() {
 return $retcode
 }
 
+# ===== function change_ax25_ip
+# If the IP addresses have already been changed prompt for changing them back
+# to default addresses
 
-# ===== main
-
-echo "=== Set ip addresses on AX.25 interfaces"
-# Be sure we're running as root
-if [[ $EUID != 0 ]] ; then
-   echo "Must be root"
-   exit 1
-fi
+function change_ax25_ip() {
 
 # Reference:
 #  https://www.febo.com/packet/linux-ax25/ax25-config.html
+# Default addresses
 dummy_ipaddress_0="192.168.255.2"
 dummy_ipaddress_1="192.168.255.3"
 
-ipaddr_ax0="$dummy_ipaddress_0"
-ipaddr_ax1="$dummy_ipaddress_1"
+ipaddr_ax0=$(grep -i "IPADDR_AX0=" "$ax25upd_filename" | cut -d'=' -f2)
+#Remove surronding quotes
+ipaddr_ax0="${ipaddr_ax0%\"}"
+ipaddr_ax0="${ipaddr_ax0#\"}"
+
+ipaddr_ax1=$(grep -i "IPADDR_AX1=" "$ax25upd_filename" | cut -d'=' -f2)
+#Remove surronding quotes
+ipaddr_ax1="${ipaddr_ax1%\"}"
+ipaddr_ax1="${ipaddr_ax1#\"}"
+
+echo "Current AX.25 ip addresses: ax0: $ipaddr_ax0, ax1: $ipaddr_ax1"
+
+if [ "$ipaddr_ax0" = "$dummy_ipaddress_0" ] && [ "$ipaddr_ax1" = "$dummy_ipaddress_1" ] ; then
+    dbgecho "AX.25 ip addresses are original default addresses"
+else
+    read -p "AX.25 addresses have already been modified, continue to change again (y or n)" -n 1 -r REPLY
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
+        echo "IP addresses unchanged ..."
+        return
+    fi
+fi
 
 echo " hit enter for default values"
 
@@ -124,10 +141,6 @@ fi
 
 echo "AX.25 ip addresses: ax0: $ipaddr_ax0, ax1: $ipaddr_ax1"
 
-
-# Insert the two ip addresses into the ax25-upd script
-ax25upd_filename="/etc/ax25/ax25-upd"
-
 dbgecho "== Check 1: current $ax25upd_filename on $(date)"
 ls -alt $ax25upd_filename
 
@@ -149,7 +162,24 @@ echo -e "\n\t$(tput setaf 4)after: $(tput setaf 7)\n"
 grep -i "IPADDR_AX.=" $ax25upd_filename
 
 dbgecho "== Check 2: Verify $ax25upd_filename on $(date)"
-head -n 20 $ax25upd_filename
-ls -alt $ax25upd_filename
+if [ ! -z "$DEBUG" ] ; then
+    head -n 20 $ax25upd_filename
+    ls -alt $ax25upd_filename
+fi
+}
+
+# ===== main
+
+echo "=== Set ip addresses on AX.25 interfaces"
+# Be sure we're running as root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root"
+   exit 1
+fi
+
+
+# Insert the two ip addresses into the ax25-upd script
+
+change_ax25_ip
 
 echo "=== FINISHED Setting up ip addresses for AX.25 interfaces"
