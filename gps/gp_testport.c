@@ -43,17 +43,19 @@ static void usage(char *progname);
 const char *getprogname(void);
 void min_check(int, int *);
 void print_date(time_t timet, char *msg);
+void print_elapsed(unsigned long elapsed_secs, char *display);
 static void spinner(int n);
 
 extern char *__progname;
 
 int gp_baudrate = B9600; /* nope: B4800 */
 bool bVerbose=false;
-time_t start_sec;
+time_t start_sec, nosats_startsec;
 #define elapsed_sec_check (2*60)
 
 bool b_onetimeflag = false;
 int min_check_cnt = 0;
+enum STATE{STATE_START, STATE_RUN, STATE_0SATS}state;
 
 int main(int argc, char *argv[])
 {
@@ -172,21 +174,55 @@ int main(int argc, char *argv[])
                 if ( satcnt > max_satcnt ) {
                     max_satcnt = satcnt;
                 }
-                /* Enable spinner when gps first comes up */
-                if(! b_onetimeflag && satcnt == 0) {
-                    spinner(spinind++);
-                } else {
-                    min_check(satcnt, &min_satcnt);
+                switch (state) {
+                    case STATE_START:
+                        if(! b_onetimeflag && satcnt == 0) {
+                            spinner(spinind++);
+                        } else {
+                            state=STATE_RUN;
+                        }
 
-                    if(bVerbose) {
-                        printf("sats: %2d, min: %2d, max: %2d\n",
-                               satcnt, min_satcnt, max_satcnt);
-                    } else {
-                        printf("sats: %2d, min: %2d, max: %2d  ",
-                               satcnt, min_satcnt, max_satcnt);
+                        break;
+                    case STATE_RUN:
+                        min_check(satcnt, &min_satcnt);
+
+                        if(bVerbose) {
+                            printf("sats: %2d, min: %2d, max: %2d\n",
+                                   satcnt, min_satcnt, max_satcnt);
+                        } else {
+                            printf("sats: %2d, min: %2d, max: %2d  ",
+                                   satcnt, min_satcnt, max_satcnt);
+                            spinner(spinind++);
+                        }
+                        if ( satcnt == 0 ) {
+                            state=STATE_0SATS;
+                            printf("\n");
+                            /* Read current time of day */
+                            nosats_startsec = time(NULL);
+                        }
+                        break;
+                    case STATE_0SATS:
+                        if ( satcnt > 0 ) {
+                            state=STATE_RUN;
+                            /* Time how long it takes gps to see next satellite */
+                            time_t current_sec = time(NULL);
+                            /* printf("\n"); */
+                            print_elapsed((unsigned long)(current_sec - nosats_startsec), "since 0 sats    \n");
+                            print_date(current_sec, " sat acquired");
+                            min_satcnt=satcnt;
+                        } else {
+                            time_t current_sec = time(NULL);
+                            print_elapsed((unsigned long)(current_sec - nosats_startsec), "since 0 sats");
+                            spinner(spinind++);
+                        }
+                        break;
+                    default:
+                        printf("State=%d", state);
                         spinner(spinind++);
-                    }
+                        break;
+
                 }
+                /* Enable spinner when gps first comes up */
             }
         }
     }
@@ -195,7 +231,7 @@ int main(int argc, char *argv[])
     return err;
 }
 
-void print_elapsed(unsigned long elapsed_secs) {
+void print_elapsed(unsigned long elapsed_secs, char *display) {
 
     unsigned long hours;
     unsigned long mins;
@@ -207,11 +243,11 @@ void print_elapsed(unsigned long elapsed_secs) {
         mins = (elapsed_secs -(3600*hours))/60;
         secs = (elapsed_secs-(3600*hours)-(mins*60));
         if(hours > 0) {
-            printf("%lu:%lu:%lu H:M:S until first view\n", hours, mins, secs);
+            printf("%lu:%lu:%lu H:M:S %s", hours, mins, secs, display);
         } else if (mins > 0){
-            printf("%lu minutes, %lu seconds  until first view\n", mins, secs);
+            printf("%lu minutes, %lu seconds %s", mins, secs, display);
         } else {
-            printf("%lu seconds until first sat view\n", secs);
+            printf("%lu seconds %s", secs, display);
         }
     }
 }
@@ -227,11 +263,11 @@ void min_check(int satcnt, int *min_satcnt)
          * before setting the min satellite count */
         *min_satcnt = satcnt;
 
-        if (min_check_cnt++ > 2) {
+        if (min_check_cnt++ == 2) {
             /* Time how long it takes gps to see first satellite. */
             time_t current_sec = time(NULL);
 
-            print_elapsed((unsigned long)(current_sec - start_sec));
+            print_elapsed((unsigned long)(current_sec - start_sec), "until first sat view\n");
 
             b_onetimeflag = true;
             *min_satcnt = satcnt;
