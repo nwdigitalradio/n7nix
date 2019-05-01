@@ -91,4 +91,10 @@ lsmod | egrep -e '(udrc|tlv320)'
 
 echo
 echo "=== Sound card check"
-aplay -l
+aplay -l | grep -i udrc > /dev/null 2>&1
+if [ "$?" -ne 0 ] ; then
+    echo "udrc driver not loaded."
+else
+    echo "OK"
+fi
+
