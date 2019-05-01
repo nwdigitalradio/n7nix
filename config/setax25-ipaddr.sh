@@ -177,7 +177,6 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
-
 # Insert the two ip addresses into the ax25-upd script
 
 change_ax25_ip
