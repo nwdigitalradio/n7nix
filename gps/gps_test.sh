@@ -46,8 +46,11 @@ function start_service() {
 function ctrl_c() {
         echo
         echo "Exiting script from trapped CTRL-C"
+        echo
+        ELAPSED="Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
+        echo "$ELAPSED"
         echo "Cleaning up & starting gpsd"
-        make clean
+        make clean > /dev/null 2>&1
         start_service "gpsd"
 	exit
 }
@@ -58,6 +61,7 @@ if [[ $# -gt 0 ]] ; then
     bverbose=true
 fi
 
+gpsd -V
 stop_service "gpsd"
 
 # Check for C source file to test gps port
@@ -73,6 +77,9 @@ if ! type -P ./$progname >/dev/null 2>&1 ; then
     exit 1
 fi
 
+# Reset bash time counter
+SECONDS=0
+
 if $bverbose ; then
     echo "Running in verbose mode"
     ./$progname -v
@@ -87,3 +94,8 @@ if [ "$retcode" == 0 ] ; then
 else
     echo "$progname Error: $retcode"
 fi
+
+echo
+echo "Exiting script from C program failure"
+ELAPSED="Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
+echo "$ELAPSED"
