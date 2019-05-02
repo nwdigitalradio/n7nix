@@ -37,7 +37,7 @@
 | ircccbgatewayd | 1.20180703-1 | yes |   |   |
 | ARDOP        |  2      |      |     |   |
 | ARIM         |  2.6    |      |     |   |
-| js8call      |  1.0.0  | yes  |     |   |
+| js8call      |  1.0.1  | yes  |     |   |
 | wsjt-x       |  2.0.1  | yes  |     |   |
 | hamlib       |  3.3    |      |     |   |
 | flxmlrpc lib |  0.1.4  |      |     |   |
