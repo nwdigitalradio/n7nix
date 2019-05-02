@@ -210,8 +210,6 @@ if [ ! -z "$CARDNO" ] ; then
 else
    echo "$(tput setaf 1)No udrc sound card found by aplay ... $(tput setaf 7) "
    # Used to exit here BUT there is no way to rerun core config.
-   chk_onboard_audio
-   chk_dtoverlay
 fi
 
 dbgecho "MYCALL"
