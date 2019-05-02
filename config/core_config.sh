@@ -410,7 +410,6 @@ echo "=== Set ip addresses on AX.25 interfaces"
 # Insert the two ip addresses into the ax25-upd script
 ax25upd_filename="/etc/ax25/ax25-upd"
 
-
 # If the IP addresses have already been changed then use the changed
 # addresses as the default
 
