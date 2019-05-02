@@ -115,6 +115,7 @@ sudo git pull
 echo "Update draws manager"
 cd /usr/local/var/draws-manager
 sudo git pull
+sudo cp -u /usr/local/var/draws-manager/draws-manager.service /etc/systemd/system/
 
 echo "Update HF programs"
 # Update hf programs (this can take a long time)
