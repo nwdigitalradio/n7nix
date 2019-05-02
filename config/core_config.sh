@@ -407,6 +407,9 @@ retcode="$?"
 dbgecho "Set sound card levels return: $retcode"
 
 echo "=== Set ip addresses on AX.25 interfaces"
+# Insert the two ip addresses into the ax25-upd script
+ax25upd_filename="/etc/ax25/ax25-upd"
+
 
 # If the IP addresses have already been changed then use the changed
 # addresses as the default
@@ -453,9 +456,6 @@ fi
 if [ "$ipaddr_ax0" = "$cur_ipaddr_ax0" ] && [ "$ipaddr_ax1" = "$cur_ipaddr_ax1" ] ; then
     echo "No change to AX.25 IP addresses"
 else
-
-    # Insert the two ip addresses into the ax25-upd script
-    ax25upd_filename="/etc/ax25/ax25-upd"
 
     echo -e "\n\t$(tput setaf 4)before: $(tput setaf 7)\n"
     grep -i "IPADDR_AX.=" "$ax25upd_filename"
