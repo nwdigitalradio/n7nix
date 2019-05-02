@@ -36,12 +36,13 @@ function check_ipforward() {
     echo "ipv4 packet forwarding is $ipf_status"
 }
 
-# ===== function start_service
+# ===== function status_service
 
 function status_service() {
     service="$1"
     IS_ENABLED="ENABLED"
     IS_RUNNING="RUNNING"
+
     # echo "Checking service: $service"
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
@@ -58,7 +59,7 @@ function status_service() {
 function hostap_status() {
 
     for service in `echo ${SERVICE_LIST}` ; do
-         status_service $service
+        status_service $service
         echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
     done
 }
@@ -71,8 +72,7 @@ function hostap_debugstatus() {
     for service_name in `echo ${SERVICE_LIST}` ; do
         echo
         echo "== status $service_name services =="
-        systemctl is-active $service_name >/dev/null
-        if [ "$?" = "0" ] ; then
+        if systemctl is-active --quiet $service_name ; then
             echo "$service_name is running"
         else
             echo "$service_name is NOT running"
