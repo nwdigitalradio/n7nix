@@ -47,7 +47,7 @@ function start_service() {
 
 function ctrl_c() {
         echo
-        echo "Exiting script from trapped CTRL-C"
+        echo "Exiting script from trapped CTRL-C on $(date)"
         echo
         ELAPSED="Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
         echo "$ELAPSED"
@@ -100,6 +100,6 @@ else
 fi
 
 echo
-echo "Exiting script from C program failure"
+echo "Exiting script from C program failure at: $(date)"
 ELAPSED="Elapsed: $(($SECONDS / 3600))hrs $((($SECONDS / 60) % 60))min $(($SECONDS % 60))sec"
 echo "$ELAPSED"
