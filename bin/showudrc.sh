@@ -210,12 +210,12 @@ function check_locale() {
     iw_country=$(echo "$iw_country" | tr '[a-z]' '[A-Z]')
 
     if [ -e "$wificonf_file" ] ; then
-        wifi_country=$(grep -i "country=" "$wificonf_file" | cut -d '=' -f2)
+        # Only match first occurrence
+        wifi_country=$(grep -i "country=" "$wificonf_file" | head -n1 | cut -d '=' -f2)
         # Remove preceeding white space
         wifi_country="$(sed -e 's/^[[:space:]]*//' <<<"$wifi_country")"
         # Convert to upper case
         wifi_country=$(echo "$wifi_country" | tr '[a-z]' '[A-Z]')
-
     else
         echo "Local country code check: WiFi config file: $wificonf_file, does not exist"
         wifi_country="00"
