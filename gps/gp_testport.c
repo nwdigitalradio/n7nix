@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <time.h>
 
+#define PROGRAM_VERSION "1.1"
 const char* GPS_PORT_NAME = "/dev/ttySC0";
 
 int testResult = 0;
@@ -45,6 +46,7 @@ void min_check(int, int *);
 void print_date(time_t timet, char *msg);
 void print_elapsed(unsigned long elapsed_secs, char *display);
 static void spinner(int n);
+static void displayversion(void);
 
 extern char *__progname;
 
@@ -72,16 +74,20 @@ int main(int argc, char *argv[])
     /*
      *  parse the command line options
      */
-    while ((opt = getopt(argc, argv, "vh")) != -1) {
+    while ((opt = getopt(argc, argv, "vVh")) != -1) {
         switch (opt) {
             case 'v': /* set verbose mode */
                 bVerbose=true;
                 break;
             case 'h': /* help */
+            case '?':
                 usage(argv[0]);
                 exit(0);
                 break;
-            case '?':
+            case 'V':
+                displayversion();
+                exit(0);
+                break;
             default:
                 printf("ERROR: invalid option usage");
                 usage(argv[0]);
@@ -279,12 +285,21 @@ void min_check(int satcnt, int *min_satcnt)
     }
 }
 
-void print_date(time_t timet, char *msg) {
-
+void print_date(time_t timet, char *msg)
+{
     struct tm *tm = localtime(&timet);
     char s[64];
     strftime(s, sizeof(s), "%c", tm);
     printf("%s, %s\n", s, msg);
+}
+
+/*
+ * Display package version of this program.
+ */
+static void displayversion(void)
+{
+
+    printf("%s: version: %s \n", getprogname(), PROGRAM_VERSION);
 }
 
 const char *getprogname(void)
@@ -308,5 +323,6 @@ static void usage(char *progname)
     printf("Usage: %s [options]\n", progname);
     printf("  -h    Display this usage info\n");
     printf("  -v    Set verbose mode\n");
+    printf("  -V    Display version\n");
     exit(0);
 }

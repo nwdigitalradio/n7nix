@@ -3,6 +3,8 @@
 # Script to run C program gp_testport
 # If program not found then it will build it
 
+PROGRAM_VERSION="1.1"
+scriptname="`basename $0`"
 progname="gp_testport"
 bverbose=false
 
@@ -76,6 +78,8 @@ if ! type -P ./$progname >/dev/null 2>&1 ; then
     echo "No binary file found ... exiting"
     exit 1
 fi
+echo "$scriptname: version: $PROGRAM_VERSION, $(./$progname -V)"
+
 
 # Reset bash time counter
 SECONDS=0
