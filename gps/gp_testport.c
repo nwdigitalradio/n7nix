@@ -55,7 +55,7 @@ time_t start_sec, nosats_startsec;
 
 bool b_onetimeflag = false;
 int min_check_cnt = 0;
-enum STATE{STATE_START, STATE_RUN, STATE_0SATS}state;
+enum STATE { STATE_START, STATE_RUN, STATE_0SATS } state;
 
 int main(int argc, char *argv[])
 {
