@@ -122,27 +122,27 @@ function get_ipaddr() {
     # -e readline is used to obtain the line
     read -ep ": " ip_addr
 
-    count_dots=$(grep -o "\." <<< "$ip_addr" | wc -l)
-    if (( count_dots != 3 )) ; then
-        dbgecho "Error: Wrong number of dots in ipaddr: $ip_addr $count_dots"
-        if [ -z "$ip_addr" ] ; then
-            dbgecho "ip address is NULL"
-            return 0
-        else
+    if [ ! -z "$ip_addr" ] ; then
+
+        count_dots=$(grep -o "\." <<< "$ip_addr" | wc -l)
+        if (( count_dots != 3 )) ; then
+            dbgecho "Error: Wrong number of dots in ipaddr: $ip_addr $count_dots"
             return 1
         fi
-    fi
-    valid_ip $ip_addr
-    retcode=$?
-    if [ $retcode -eq 1 ] ; then
-        echo "INVALID IP address: $ip_addr"
-        retcode=1
+        valid_ip $ip_addr
+        retcode=$?
+        if [ $retcode -eq 1 ] ; then
+            echo "INVALID IP address: $ip_addr"
+            retcode=1
+        else
+            echo "Valid ip address: $ip_addr"
+            retcode=0
+        fi
     else
-        echo "Valid ip address: $ip_addr"
+        # Return code for no ip address inputted.
         retcode=0
     fi
-
-return $retcode
+    return $retcode
 }
 
 # ===== function is_hostname

@@ -59,27 +59,27 @@ function get_ipaddr() {
     # -e readline is used to obtain the line
     read -ep ": " ip_addr
 
-    count_dots=$(grep -o "\." <<< "$ip_addr" | wc -l)
-    if (( count_dots != 3 )) ; then
-        dbgecho "Error: Wrong number of dots in ipaddr: $ip_addr $count_dots"
-        if [ -z "$ip_addr" ] ; then
-            dbgecho "ip address is NULL"
-            return 0
-        else
+    if [ ! -z "$ip_addr" ] ; then
+
+        count_dots=$(grep -o "\." <<< "$ip_addr" | wc -l)
+        if (( count_dots != 3 )) ; then
+            dbgecho "Error: Wrong number of dots in ipaddr: $ip_addr $count_dots"
             return 1
         fi
-    fi
-    valid_ip $ip_addr
-    retcode=$?
-    if [ $retcode -eq 1 ] ; then
-        echo "INVALID IP address: $ip_addr"
-        retcode=1
+        valid_ip $ip_addr
+        retcode=$?
+        if [ $retcode -eq 1 ] ; then
+            echo "INVALID IP address: $ip_addr"
+            retcode=1
+        else
+            echo "Valid ip address: $ip_addr"
+            retcode=0
+        fi
     else
-        echo "Valid ip address: $ip_addr"
+        # Return code for no ip address inputted.
         retcode=0
     fi
-
-return $retcode
+    return $retcode
 }
 
 # ===== function change_ax25_ip
@@ -98,11 +98,13 @@ ipaddr_ax0=$(grep -i "IPADDR_AX0=" "$ax25upd_filename" | cut -d'=' -f2)
 #Remove surronding quotes
 ipaddr_ax0="${ipaddr_ax0%\"}"
 ipaddr_ax0="${ipaddr_ax0#\"}"
+cur_ipaddr_ax0="$ipaddr_ax0"
 
 ipaddr_ax1=$(grep -i "IPADDR_AX1=" "$ax25upd_filename" | cut -d'=' -f2)
 #Remove surronding quotes
 ipaddr_ax1="${ipaddr_ax1%\"}"
 ipaddr_ax1="${ipaddr_ax1#\"}"
+cur_ipaddr_ax1="$ipaddr_ax1"
 
 echo "Current AX.25 ip addresses: ax0: $ipaddr_ax0, ax1: $ipaddr_ax1"
 
@@ -144,18 +146,26 @@ echo "AX.25 ip addresses: ax0: $ipaddr_ax0, ax1: $ipaddr_ax1"
 dbgecho "== Check 1: current $ax25upd_filename on $(date)"
 ls -alt $ax25upd_filename
 
-echo -e "\n\t$(tput setaf 4)before: $(tput setaf 7)\n"
-grep -i "IPADDR_AX.=" "$ax25upd_filename"
+# Are the current IP addresses same as input addresses?
+# ie. no addresses were input
+if [ "$ipaddr_ax0" = "$cur_ipaddr_ax0" ] && [ "$ipaddr_ax1" = "$cur_ipaddr_ax1" ] ; then
+    echo "No change to AX.25 IP addresses"
+else
 
-# Replace everything after strings IPADDR_AX0 & IPADDR_AX1
-sed -i -e "/IPADDR_AX0/ s/^IPADDR_AX0=.*/IPADDR_AX0=\"$ipaddr_ax0\"/"  $ax25upd_filename
-if [ "$?" -ne 0 ] ; then
-    echo -e "\n\t$(tput setaf 1)Failed to change ax0 ip address $(tput setaf 7)\n"
-fi
+    echo -e "\n\t$(tput setaf 4)before: $(tput setaf 7)\n"
+    grep -i "IPADDR_AX.=" "$ax25upd_filename"
 
-sed -i -e "/IPADDR_AX1/ s/^IPADDR_AX1=.*/IPADDR_AX1=\"$ipaddr_ax1\"/"  $ax25upd_filename
-if [ "$?" -ne 0 ] ; then
-    echo -e "\n\t$(tput setaf 1)Failed to change ax1 ip address $(tput setaf 7)\n"
+    # Replace everything after string IPADDR_AX0
+    sed -i -e "/IPADDR_AX0/ s/^IPADDR_AX0=.*/IPADDR_AX0=\"$ipaddr_ax0\"/"  $ax25upd_filename
+    if [ "$?" -ne 0 ] ; then
+        echo -e "\n\t$(tput setaf 1)Failed to change ax0 ip address $(tput setaf 7)\n"
+    fi
+
+    # Replace everything after string IPADDR_AX1
+    sed -i -e "/IPADDR_AX1/ s/^IPADDR_AX1=.*/IPADDR_AX1=\"$ipaddr_ax1\"/"  $ax25upd_filename
+    if [ "$?" -ne 0 ] ; then
+        echo -e "\n\t$(tput setaf 1)Failed to change ax1 ip address $(tput setaf 7)\n"
+    fi
 fi
 
 echo -e "\n\t$(tput setaf 4)after: $(tput setaf 7)\n"
