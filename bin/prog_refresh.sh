@@ -105,6 +105,12 @@ echo "Refresh local bin directory"
 cd config
 ./bin_refresh.sh
 
+# refresh split-channels repository
+echo "Update split-channels"
+cd
+cd split-channels
+sudo git pull
+
 # refresh draws-manager repository
 echo "Update draws manager"
 cd /usr/local/var/draws-manager
