@@ -100,7 +100,6 @@ function chk_dtoverlay() {
             echo "  Using wrong overlay for UDRC or UDRC II"
             echo "  $(tput setaf 4)Changing from $dtoverlay_name to udrc$(tput setaf 7)"
             if $b_fixit ; then
-#                sed 's/\(.*\)dtoverlay=/\1dtoverlay=udrc/' $BOOT_CFGFILE
                 sudo sed -ier ':a;$!{N;ba};s/^\(.*\)dtoverlay=.*/\1dtoverlay=udrc/' $BOOT_CFGFILE
             fi
         fi
@@ -115,7 +114,7 @@ function chk_dtoverlay() {
 #                sed 's/\(.*\)^dtoverlay=.*/\1dtoverlay=draws/' $BOOT_CFGFILE
 #                 sed -ier ':a;$!{N;ba};s/^(.*\n?)dtoverlay=.*/\1dtoverlay=draws/' $BOOT_CFGFILE
 #                sudo sed -ier ':a;$!{N;ba};s/^\(.*\n?\)dtoverlay=.*/\1dtoverlay=draws/' $BOOT_CFGFILE
-                 sudo sed -ier ':a;$!{N;ba};s/^\(.*\)dtoverlay=.*/\1dtoverlay=draws/' /boot/config.txt
+                 sudo sed -ier ':a;$!{N;ba};s/^\(.*\)dtoverlay=.*/\1dtoverlay=draws/' $BOOT_CFGFILE
             fi
         fi
     fi
