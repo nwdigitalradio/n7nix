@@ -272,7 +272,7 @@ if [ "$?" -ne 0 ] ; then
     exit 1
 fi
 
-# Check that dtoverlay is correctly for HAT
+# Check that dtoverlay name is correct for HAT detected.
 # Needs to be either draws or udrc
 chk_bootcfg.sh
 
