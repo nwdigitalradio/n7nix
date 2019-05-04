@@ -251,7 +251,15 @@ function check_locale() {
 
 # ===== main
 
-echo "Initial core config script"
+runmsg="Initial"
+if is_logappcfg ; then
+    # How many times has this script been run?
+    runcnt=$(grep -c "$CFG_FINISHED_MSG" "$UDR_INSTALL_LOGFILE")
+    runmsg="  Already run $runcnt time(s): "
+fi
+
+echo "$runmsg core config script"
+
 # Determine if driver has enumerated device
 aplay -l | grep -i udrc > /dev/null 2>&1
 if [ "$?" -ne 0 ] ; then
@@ -264,12 +272,15 @@ if [ "$?" -ne 0 ] ; then
     exit 1
 fi
 
+# Check that dtoverlay is correctly for HAT
+# Needs to be either draws or udrc
+chk_bootcfg.sh
+
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "Must be root"
    exit 1
 fi
-
 
 # Confirm that config core script has not been run yet.
 cfg_script_name="app_config.sh core"
