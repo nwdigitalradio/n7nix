@@ -3,8 +3,8 @@
 # Check /boot/config.txt file is set up properly
 #  - verify on-board audio enable is on last line
 #  - verify proper overlay is being loaded for HAT
-
-DEBUG=1
+#
+#DEBUG=1
 UPDATE_ENABLE=true
 
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
@@ -26,7 +26,8 @@ function get_prod_id() {
 # Initialize product ID
 PROD_ID=
 prgram="udrcver.sh"
-which $prgram
+
+which $prgram > /dev/null 2>&1
 if [ "$?" -eq 0 ] ; then
    dbgecho "Found $prgram in path"
    $prgram -
@@ -104,7 +105,7 @@ function chk_dtoverlay() {
             fi
         fi
     elif [ "$PROD_ID" -eq 4 ] ; then
-        grep -i "dtoverlay=draws" $BOOT_CFGFILE
+        grep -i "dtoverlay=draws" $BOOT_CFGFILE > /dev/null 2>&1
         if [ $? -eq 0 ] ; then
             echo "  dtoverlay for DRAWS ok"
         else
@@ -117,6 +118,8 @@ function chk_dtoverlay() {
                  sudo sed -ier ':a;$!{N;ba};s/^\(.*\)dtoverlay=.*/\1dtoverlay=draws/' $BOOT_CFGFILE
             fi
         fi
+    else
+        echo "Product ID test failed with: $PROD_ID"
     fi
 }
 
