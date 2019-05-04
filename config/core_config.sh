@@ -260,21 +260,28 @@ fi
 
 echo "$runmsg core config script"
 
+# Find path to scripts to be run
+currentdir=$(pwd)
+echo "current dir: $currentdir"
+# Get path one level down
+pathdn1=$( echo ${currentdir%/*})
+dbgecho "Test pwd: $currentdir, path: $pathdn1"
+
 # Determine if driver has enumerated device
 aplay -l | grep -i udrc > /dev/null 2>&1
 if [ "$?" -ne 0 ] ; then
     # There are a couple of things that might cause this problem.
     # Check if there is a conflict with AudioSense-Pi driver
-    chk_conflict.sh
+    $pathdn1/bin/chk_conflict.sh
     # Check if on-board audio enable is in wrong location in /boot/config.txt file
-    chk_bootcfg.sh
+    $pathdn1/bin/chk_bootcfg.sh
     echo "udrc driver load problem, must reboot !"
     exit 1
 fi
 
 # Check that dtoverlay name is correct for HAT detected.
 # Needs to be either draws or udrc
-chk_bootcfg.sh
+$pathdn1/bin/chk_bootcfg.sh
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
