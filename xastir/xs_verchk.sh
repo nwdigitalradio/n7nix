@@ -263,6 +263,7 @@ else
     echo "$scriptname: Detected $progname package."
 fi
 
+echo "$progname: current version: $source_prog_ver, installed: $installed_prog_ver"
 if $UPDATE_FLAG ; then
 
     install_xastir
@@ -272,6 +273,4 @@ if $UPDATE_FLAG ; then
         echo "$(date "+%Y %m %d %T %Z"): $scriptname: Xastir program update script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
         echo
     fi
-else
-    echo "$progname: current version: $source_prog_ver, installed: $installed_prog_ver"
 fi
