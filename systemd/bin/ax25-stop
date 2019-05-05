@@ -21,7 +21,7 @@ function stop_service() {
     fi
     systemctl stop "$service"
     if [ "$?" -ne 0 ] ; then
-        echo "Problem stopping $service"
+        echo "Problem STOPPING $service"
     fi
 }
 
