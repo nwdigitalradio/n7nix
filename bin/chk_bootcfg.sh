@@ -7,7 +7,6 @@
 #DEBUG=1
 UPDATE_ENABLE=true
 
-DIREWOLF_CFGFILE="/etc/direwolf.conf"
 BOOT_CFGFILE="/boot/config.txt"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -93,6 +92,7 @@ function chk_dtoverlay() {
     get_prod_id
     # Test product ID for UDRC or UDRC II
     if [[ "$PROD_ID" -eq 2 ]] || [[ "$PROD_ID" -eq 3 ]] ; then
+        # UDRC or UDRC II hat
         # Verify dtoverlay=udrc
         grep -i "dtoverlay=udrc" $BOOT_CFGFILE > /dev/null 2>&1
         if [ $? -eq 0 ] ; then
@@ -104,7 +104,20 @@ function chk_dtoverlay() {
                 sudo sed -ier ':a;$!{N;ba};s/^\(.*\)dtoverlay=.*/\1dtoverlay=udrc/' $BOOT_CFGFILE
             fi
         fi
+        # This shouldn't be here but it was convenient because it gets called from core_config.sh
+        # Draws manager does NOT work with UDRC or UDRC II
+        service="draws-manager.service"
+        systemctl disable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem DISABLING $service"
+        fi
+         systemctl stop "$service"
+         if [ "$?" -ne 0 ] ; then
+            echo "Problem STOPPING $service"
+        fi
+
     elif [ "$PROD_ID" -eq 4 ] ; then
+        # Draws hat
         grep -i "dtoverlay=draws" $BOOT_CFGFILE > /dev/null 2>&1
         if [ $? -eq 0 ] ; then
             echo "  dtoverlay for DRAWS ok"
