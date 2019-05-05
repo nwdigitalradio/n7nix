@@ -18,7 +18,7 @@ cd n7nix/config
   * On-board BCM2835 audio driver loaded before udrc driver
   * AudioSense-Pi sound card driver prevents udrc driver from loading
 
-##
+###### Verify driver running properly by running aplay -l
 ```
 aplay -l
 
@@ -47,7 +47,7 @@ card 1: udrc [udrc], device 0: Universal Digital Radio Controller tlv320aic32x4-
 chk_conflict.sh
 chk_bootcfg.sh
 ```
-* Verify by running _aplay -l_ again.
+* **After you reboot** verify by running _aplay -l_ again.
 * For images newer than **BETA12** ie. BETA13, congratulations you have discovered a new problem
   * Please post a description of the problem.
 
@@ -62,10 +62,18 @@ chk_bootcfg.sh
 - What is the make & model number of your radio?
 
 * Include the console output of:
-  * Complete console output of install by running _script_ program before first configuration script
-  * _script_ captures everything output to your terminal in a file
+  - Complete console output of install by running _script_ program before first configuration script
+  - Console output of _showudrc.sh_ script
+    * Run this script to display information about your system.
+    * Cut & paste the console output to the forum or in an email
+```
+showudrc.sh
+```
+
+
 
 ###### Capture Console Output Instructions
+  * _script_ captures everything output to your terminal in a file
 ```
 script ~/tmp/install_boot1.txt
 # You should see something like this:
@@ -82,11 +90,6 @@ Script done, file is /home/pi/tmp/draws_install.txt
   * Change the _install_bootx.txt_ filename after each reboot.
   * Attach these files to your problem report email.
 * Now Follow the instructions from [Getting Starting Guide](https://nw-digital-radio.groups.io/g/udrc/wiki/DRAWS%3A-Getting-Started)
-* Run this script to display information about your system.
-  * Cut & paste the console output to the forum or in an email
-```
-showudrc.sh
-```
 
 ### Web links to instructional videos
 
