@@ -500,6 +500,8 @@ cd $START_DIR
 # Make sure gpsd has set time to something close to reasonable.
 chronyc makestep
 
+
+
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: $CFG_FINISHED_MSG" | tee -a $UDR_INSTALL_LOGFILE
 echo
 
