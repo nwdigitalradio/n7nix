@@ -84,7 +84,8 @@ function chk_dtoverlay() {
 
     set_dtoverly=
 
-    dtoverlay_name=$(grep -i "dtoverlay" $BOOT_CFGFILE | tail -n 1 | cut -d"=" -f2)
+#    dtoverlay_name=$(grep -i "dtoverlay" $BOOT_CFGFILE | tail -n 1 | cut -d"=" -f2)
+    dtoverlay_name=$(grep -i "dtoverlay" $BOOT_CFGFILE | tail -n 1 | sed 's/^.*= //')
     if [ $? -eq 0 ] ; then
         echo "  dtoverlay currently set to: $dtoverlay_name"
     fi
@@ -96,7 +97,7 @@ function chk_dtoverlay() {
         # Verify dtoverlay=udrc
         grep -i "dtoverlay=udrc" $BOOT_CFGFILE > /dev/null 2>&1
         if [ $? -eq 0 ] ; then
-            echo "  dtoverlay for UDRC II ok"
+            echo "  dtoverlay for UDRC II OK"
         else
             echo "  Using wrong overlay for UDRC or UDRC II"
             echo "  $(tput setaf 4)Changing from $dtoverlay_name to udrc$(tput setaf 7)"
@@ -107,11 +108,11 @@ function chk_dtoverlay() {
         # This shouldn't be here but it was convenient because it gets called from core_config.sh
         # Draws manager does NOT work with UDRC or UDRC II
         service="draws-manager.service"
-        systemctl disable "$service"
+        sudo systemctl disable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem DISABLING $service"
         fi
-         systemctl stop "$service"
+         sudo systemctl stop "$service"
          if [ "$?" -ne 0 ] ; then
             echo "Problem STOPPING $service"
         fi
@@ -120,7 +121,7 @@ function chk_dtoverlay() {
         # Draws hat
         grep -i "dtoverlay=draws" $BOOT_CFGFILE > /dev/null 2>&1
         if [ $? -eq 0 ] ; then
-            echo "  dtoverlay for DRAWS ok"
+            echo "  dtoverlay for DRAWS OK"
         else
             echo "  Using wrong overlay for DRAWS HAT"
             echo "  $(tput setaf 4)Changing from $dtoverlay_name to draws$(tput setaf 7)"
@@ -128,7 +129,7 @@ function chk_dtoverlay() {
 #                sed 's/\(.*\)^dtoverlay=.*/\1dtoverlay=draws/' $BOOT_CFGFILE
 #                 sed -ier ':a;$!{N;ba};s/^(.*\n?)dtoverlay=.*/\1dtoverlay=draws/' $BOOT_CFGFILE
 #                sudo sed -ier ':a;$!{N;ba};s/^\(.*\n?\)dtoverlay=.*/\1dtoverlay=draws/' $BOOT_CFGFILE
-                 sudo sed -ier ':a;$!{N;ba};s/^\(.*\)dtoverlay=.*/\1dtoverlay=draws/' $BOOT_CFGFILE
+                 sudo sed -ier ':a;$!{N;ba};s/^\(.*\)dtoverlay=.*/\1dtoverlay=draws,alsaname=udrc/' $BOOT_CFGFILE
             fi
         fi
     else
