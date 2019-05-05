@@ -225,12 +225,12 @@ function mod_config_txt() {
 echo " === Modify /boot/config.txt"
 
 # default to draws HAT
-set_dtoverly="dtoverlay=draws"
+set_dtoverly="dtoverlay=draws,alsaname=udrc"
 
 grep "force_turbo" /boot/config.txt > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
     if [[ "$PROD_ID" -eq 4 ]] ; then
-        set_dtoverlay="dtoverlay=draws"
+        set_dtoverlay="dtoverlay=draws,alsaname=udrc"
     else
         set_dtoverlay="dtoverlay=udrc"
     fi
