@@ -494,3 +494,10 @@ else
 fi
 echo "---- locale"
 sudo bash -c "$(declare -f check_locale) ; check_locale"
+
+# How many times has the app_config.sh core script been run?
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+CFG_FINISHED_MSG="core config script FINISHED"
+
+runcnt=$(grep -c "$CFG_FINISHED_MSG" "$UDR_INSTALL_LOGFILE")
+echo "core_config.sh has been run $runcnt time(s)"
