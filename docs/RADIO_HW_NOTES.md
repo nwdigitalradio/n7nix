@@ -25,6 +25,9 @@ set mode (see p. 54 item 29 9600 MODE).
 |   5   | AF OUT   | Outputs 1200 bps receive data |
 |   6   | SQ       | Squelch output, goes to ground when squelch opens |
 
+### IC-7000
+
+* [IC-7000 Instruction Manual](https://www.icomamerica.com/en/downloads/DownloadDocument.aspx?Document=165)
 
 ### IC-7300
 
