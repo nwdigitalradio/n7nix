@@ -1,3 +1,14 @@
+Sun May  5 09:50:05 PDT 2019  Basil Gunn <basil@pacabunga.com>
+
+  * Image BETA13 release
+    * Fix core_config.sh from changing ip addresses if they are already changed.
+    * Fix exiting direwolf config if DRAWS card not found
+    * Put BCM2835 on-board sound device driver at end of /boot/config.txt
+    * Check for proper dtoverlay name in /boot/config.txt at start of core_config.sh
+    * Display home many times core_config.sh script has been run
+    * Add continuous gps sats in view debug program
+    * Add split-channels repo
+
 Wed Apr 17 09:31:03 PDT 2019  Basil Gunn <basil@pacabunga.com>
 
   * Image BETA12 release
