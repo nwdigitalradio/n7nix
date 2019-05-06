@@ -121,6 +121,13 @@ status for interface ax0: unavailable
 <?xml version="1.0" encoding="UTF-8"?>
 <rmschannels xmlns="http://www.namespace.org"
 ```
+### Changing AX.25 port
+* Port currently defaults to ```udr1``` which is the right mDin6 connector on a DRAWS hat.
+* To change the port to ```udr0```, the left port, modify the following files.
+  * /etc/rmsgw/channels.xml
+  * /etc/ax25/axports
+  * /etc/ax25/ax25d.conf
+
 ### Sending daily RMS Gateway reports via email using CRON
 
 * See [Sending System reports via Winlink using CRON](https://github.com/nwdigitalradio/n7nix/blob/master/debug/MAILSYSREPORT.md)

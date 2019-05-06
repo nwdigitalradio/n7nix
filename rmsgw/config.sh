@@ -132,15 +132,6 @@ echo
 function cfg_ax25d() {
 {
 
-axport_wl=
-# Get the winlink port name previously configured in /etc/ax25/axports
-axport_wl=$(grep "\-$SSID" $AX25_CFGDIR/axports | cut -d' ' -f1)
-
-if [ ! -z $axport_wl ] ; then
-   if [ "$axport_wl" != "$AX25PORT" ] ; then
-       AX25PORT="$axport_wl"
-   fi
-fi
 echo "#"
 echo "[$CALLSIGN-$SSID VIA $AX25PORT]"
 echo "NOCALL   * * * * * *  L"
@@ -259,6 +250,19 @@ if [ $? -eq 0 ] ; then
    } > $RMSGW_GWCFGFILE
 else
    echo "$RMSGW_GWCFGFILE already configured."
+fi
+
+# Get the winlink port name previously configured in /etc/ax25/axports
+# AX25PORT is needed for these functions:
+#     cfg_ax25d
+#     cfg_chan_xml
+axport_wl=
+axport_wl=$(grep "\-$SSID" $AX25_CFGDIR/axports | cut -d' ' -f1)
+
+if [ ! -z $axport_wl ] ; then
+   if [ "$axport_wl" != "$AX25PORT" ] ; then
+       AX25PORT="$axport_wl"
+   fi
 fi
 
 # Edit channels.xml
