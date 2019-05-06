@@ -131,6 +131,16 @@ echo
 
 function cfg_ax25d() {
 {
+
+axport_wl=
+# Get the winlink port name previously configured in /etc/ax25/axports
+axport_wl=$(grep "\-$SSID" $AX25_CFGDIR/axports | cut -d' ' -f1)
+
+if [ ! -z $axport_wl ] ; then
+   if [ "$axport_wl" != "$AX25PORT" ] ; then
+       AX25PORT="$axport_wl"
+   fi
+fi
 echo "#"
 echo "[$CALLSIGN-$SSID VIA $AX25PORT]"
 echo "NOCALL   * * * * * *  L"
@@ -323,7 +333,7 @@ fi
 
 # Create a /etc/ax25d.conf entry
 CHECK_CALL="N0ONE"
-grep $CHECK_CALL  /etc/ax25/ax25d.conf  > /dev/null 2>&1
+grep $CHECK_CALL  $AX25_CFGDIR/ax25d.conf  > /dev/null 2>&1
 if [ $? -eq 0 ] ; then
    echo "ax25d never configured"
    mv $AX25_CFGDIR/ax25d.conf $AX25_CFGDIR/ax25d.conf-dist
@@ -335,9 +345,9 @@ if [ $? -eq 0 ] ; then
   cfg_ax25d
 else
    echo "ax25d is configured, checking for RMS Gateway entry"
-   grep  "\-10" /etc/ax25/ax25d.conf  > /dev/null 2>&1
+   grep  "\-$SSID" $AX25_CFGDIR/ax25d.conf  > /dev/null 2>&1
    if [ $? -eq 0 ] ; then
-      echo "ax25d.conf already configured"
+      echo "ax25d.conf already configured with SSID: $SSID"
    else
       echo "ax25d NOT configured for Gateway"
       get_callsign
