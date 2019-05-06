@@ -49,7 +49,7 @@ function check_user() {
 # ===== main
 
 echo
-echo "Fix udrc driver conflict for Kernel release: $(uname -r)"
+echo "Check udrc driver conflict for Kernel release: $(uname -r)"
 echo
 
 # Get list of users with home directories
@@ -97,4 +97,3 @@ if [ "$?" -ne 0 ] ; then
 else
     echo "OK"
 fi
-
