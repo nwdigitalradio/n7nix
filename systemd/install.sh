@@ -140,10 +140,11 @@ else
    echo " Found ax.25 directory"
 fi
 
-cp ax25/* /etc/ax25/
+# This may clobber previously configured files.
+cp -u ax25/* /etc/ax25/
 
 echo "copy systemd service files ..."
-cp sysd/* /etc/systemd/system/
+cp -u sysd/* /etc/systemd/system/
 
 echo "copy log cfg files ..."
 
@@ -172,7 +173,7 @@ if [ ! -d "$userbindir" ] ; then
    mkdir $userbindir
 fi
 
-cp bin/* $userbindir
+cp -u bin/* $userbindir
 chown -R $USER:$USER $userbindir
 
 echo
