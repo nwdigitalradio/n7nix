@@ -29,8 +29,8 @@ function get_user() {
    if (( `ls /home | wc -l` == 1 )) ; then
       USER=$(ls /home)
    else
-      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-      read -e USER
+      echo -n "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]"
+      read -ep ": " USER
    fi
 }
 
@@ -334,9 +334,9 @@ echo "=== Verify current hostname: $HOSTNAME"
 if ! is_hostname  ; then
    # Change hostname
    echo "Current host name: $HOSTNAME, change it"
-   echo "Enter new host name followed by [enter]:"
    read -t 1 -n 10000 discard
-   read -e HOSTNAME
+   echo -n "Enter new host name followed by [enter]"
+   read -ep ": " HOSTNAME
 
    if [ ! -z "$HOSTNAME" ] ; then
        echo "Setting new hostname: $HOSTNAME"

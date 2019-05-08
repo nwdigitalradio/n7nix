@@ -35,8 +35,10 @@ function get_callsign() {
 
 if [ "$CALLSIGN" == "N0ONE" ] ; then
    read -t 1 -n 10000 discard
-   echo "Enter call sign, followed by [enter]:"
-   read -e CALLSIGN
+   echo -n "Enter call sign, followed by [enter]"
+    # -p display PROMPT without a trailing new line
+    # -e readline is used to obtain the line
+   read -ep ": " CALLSIGN
 
    sizecallstr=${#CALLSIGN}
 
@@ -59,8 +61,8 @@ function get_user() {
    if (( `ls /home | wc -l` == 1 )) ; then
       USER=$(ls /home)
    else
-      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-      read -e USER
+      echo -n "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]"
+      read -ep ": " USER
    fi
 }
 

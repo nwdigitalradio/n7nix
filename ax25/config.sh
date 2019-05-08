@@ -24,8 +24,8 @@ function get_callsign() {
 if [ "$CALLSIGN" == "N0ONE" ] ; then
 
    read -t 1 -n 10000 discard
-   echo "Enter call sign, followed by [enter]:"
-   read CALLSIGN
+   echo -n "Enter call sign, followed by [enter]"
+   read -ep ": " CALLSIGN
 
    sizecallstr=${#CALLSIGN}
 
@@ -49,8 +49,8 @@ function get_user() {
    if (( `ls /home | wc -l` == 1 )) ; then
       USER=$(ls /home)
    else
-      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-      read -e USER
+      echo -n "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]"
+      read -ep ": " USER
    fi
 }
 
@@ -80,8 +80,8 @@ function check_user() {
 function get_ssid() {
 
 read -t 1 -n 10000 discard
-echo "Enter ssid (0 - 15) for direwolf APRS, followed by [enter]:"
-read -e SSID
+echo -n "Enter ssid (0 - 15) for direwolf APRS, followed by [enter]"
+read -ep ": " SSID
 
 if [ -z "${SSID##*[!0-9]*}" ] ; then
    echo "Input: $SSID, not a positive integer"
