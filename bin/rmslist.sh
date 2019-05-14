@@ -19,7 +19,7 @@ RMS_PROXIMITY_FILE_RAW="$TMPDIR/rmsgwprox.json"
 RMS_PROXIMITY_FILE_OUT="$TMPDIR/rmsgwprox.txt"
 PKG_REQUIRE="jq curl"
 
-do_it_flag=0
+do_it_flag=false
 DEBUG=
 
 max_distance=30        # default max distance of RMS Gateways
@@ -99,7 +99,7 @@ if (( $# > 0 )) && [ -n "$1" ] ; then
 # Have an argument, check if it's numeric
   if (( $1 > 0 )) 2>/dev/null; then
     max_distance=$1
-    do_it_flag=1
+    do_it_flag=true
 
   else
     echo "$0: arg ($1) invalid distance"
@@ -115,7 +115,7 @@ if (( $# == 2 )) ; then
      echo "Invalid grid square ($2) using default $grid_square"
   else
      grid_square=$2
-     do_it_flag=1
+     do_it_flag=true
   fi
 fi
 
@@ -124,7 +124,7 @@ grid_square=$(echo "$grid_square" | tr '[a-z]' '[A-Z]')
 
 #  Test if temporary proximity file already exists
 if [ ! -e "$RMS_PROXIMITY_FILE_RAW" ] ; then
-  do_it_flag=1
+  do_it_flag=true
 
 else # Do this, proximity file exists
 
@@ -140,16 +140,16 @@ else # Do this, proximity file exists
 
 # Only refresh the proximity file every day or so
   if ((elapsed_hours > 10)) ; then
-    do_it_flag=1
+    do_it_flag=true
   fi
 fi # END Test if temporary proximity file already exists
 
 WL_KEY="43137F63FDBA4F3FBEEBA007EB1ED348"
 curlret=0
 # temporary - disable Winlink web services interrogation for testing $RMS_PROXIMITY_FILE_PARSE
-#do_it_flag=1
+# do_it_flag=false
 
-if [ $do_it_flag -ne 0 ]; then
+if $do_it_flag ; then
     # Get the proximity information from the winlink server
     echo "Using distance of $max_distance miles & grid square $grid_square"
     echo
