@@ -20,6 +20,7 @@ RMS_PROXIMITY_FILE_OUT="$TMPDIR/rmsgwprox.txt"
 PKG_REQUIRE="jq curl"
 
 do_it_flag=false
+silent=false
 DEBUG=
 
 max_distance=30        # default max distance of RMS Gateways
@@ -96,7 +97,7 @@ fi
 
 if (( $# > 0 )) && [ -n "$1" ] ; then
 
-# Have an argument, check if it's numeric
+  # Have an argument, check if it's numeric
   if (( $1 > 0 )) 2>/dev/null; then
     max_distance=$1
     do_it_flag=true
@@ -110,7 +111,7 @@ fi
 
 # check for a second command line argument - grid square
 
-if (( $# == 2 )) ; then
+if (( $# >= 2 )) ; then
   if [[ "$2" =~ [^a-zA-Z0-9] ]]; then
      echo "Invalid grid square ($2) using default $grid_square"
   else
@@ -118,6 +119,12 @@ if (( $# == 2 )) ; then
      do_it_flag=true
   fi
 fi
+
+# check for a third command line argument - be silent
+if (( $# >= 3 )) ; then
+    silent=true
+fi
+
 
 # Convert grid square to upper case
 grid_square=$(echo "$grid_square" | tr '[a-z]' '[A-Z]')
@@ -135,8 +142,10 @@ else # Do this, proximity file exists
   elapsed_time=$((current_epoch - file_epoch))
   elapsed_hours=$((elapsed_time / 3600))
 
-#echo "File: $RMS_PROXIMITY_FILE_RAW is $elapsed_time seconds old"
-  echo "Proximity file is: $elapsed_hours hours $((($elapsed_time % 3600)/60)) minute(s), $((elapsed_time % 60)) seconds old"
+if ! $silent ; then
+    #echo "File: $RMS_PROXIMITY_FILE_RAW is $elapsed_time seconds old"
+    echo "Proximity file is: $elapsed_hours hours $((($elapsed_time % 3600)/60)) minute(s), $((elapsed_time % 60)) seconds old"
+fi
 
 # Only refresh the proximity file every day or so
   if ((elapsed_hours > 10)) ; then
@@ -151,8 +160,10 @@ curlret=0
 
 if $do_it_flag ; then
     # Get the proximity information from the winlink server
-    echo "Using distance of $max_distance miles & grid square $grid_square"
-    echo
+    if ! $silent ; then
+        echo "Using distance of $max_distance miles & grid square $grid_square"
+        echo
+    fi
 #    generate_post_data
 #    echo "early exit"
 #    exit 1
@@ -203,21 +214,37 @@ dbgecho "Have good request json"
 # Parse the JSON file
 # cat $RMS_PROXIMITY_FILE_RAW | jq '.GatewayList[] | {Callsign, Frequency, Distance}' > $RMS_PROXIMITY_FILE_PARSE
 
+if $silent ; then
 
-# Print the table header
-echo "  Callsign       Frequency  Distance    Baud"
+    # iterate through the JSON parsed file
+    for k in $(jq '.GatewayList | keys | .[]' $RMS_PROXIMITY_FILE_RAW); do
+        value=$(jq -r ".GatewayList[$k]" $RMS_PROXIMITY_FILE_RAW);
 
-# iterate through the JSON parsed file
-for k in $(jq '.GatewayList | keys | .[]' $RMS_PROXIMITY_FILE_RAW); do
-    value=$(jq -r ".GatewayList[$k]" $RMS_PROXIMITY_FILE_RAW);
+        callsign=$(jq -r '.Callsign' <<< $value);
+        callsign=$(echo "$callsign" | tr -d ' ')
+        frequency=$(jq -r '.Frequency' <<< $value);
+        baud=$(jq -r '.Baud' <<< $value);
+        distance=$(jq -r '.Distance' <<< $value);
 
-    callsign=$(jq -r '.Callsign' <<< $value);
-    callsign=$(echo "$callsign" | tr -d ' ')
-    frequency=$(jq -r '.Frequency' <<< $value);
-    baud=$(jq -r '.Baud' <<< $value);
-    distance=$(jq -r '.Distance' <<< $value);
+        printf ' %-10s\t%10s\t%s\t%4s\n' "$callsign" "$frequency" "$distance" "$baud"
+    done 2>&1 > $RMS_PROXIMITY_FILE_OUT
+else
 
-    printf ' %-10s\t%10s\t%s\t%4s\n' "$callsign" "$frequency" "$distance" "$baud"
-done 2>&1 | tee $RMS_PROXIMITY_FILE_OUT
+    # Print the table header
+    echo "  Callsign       Frequency  Distance    Baud"
+
+    # iterate through the JSON parsed file
+    for k in $(jq '.GatewayList | keys | .[]' $RMS_PROXIMITY_FILE_RAW); do
+        value=$(jq -r ".GatewayList[$k]" $RMS_PROXIMITY_FILE_RAW);
+
+        callsign=$(jq -r '.Callsign' <<< $value);
+        callsign=$(echo "$callsign" | tr -d ' ')
+        frequency=$(jq -r '.Frequency' <<< $value);
+        baud=$(jq -r '.Baud' <<< $value);
+        distance=$(jq -r '.Distance' <<< $value);
+
+        printf ' %-10s\t%10s\t%s\t%4s\n' "$callsign" "$frequency" "$distance" "$baud"
+    done 2>&1 | tee $RMS_PROXIMITY_FILE_OUT
+fi
 
 exit 0
