@@ -106,8 +106,16 @@ cd config
 ./bin_refresh.sh
 
 # refresh split-channels repository
-echo "Update split-channels"
+repo_name="split-channels"
+echo "Update $repo_name"
+# Does split-channels repository exist
 cd
+if [ ! -d "$repo_name" ] ; then
+    git clone https://github.com/nwdigitalradio/split-channels
+   if [ "$?" -ne 0 ] ; then
+      echo "$(tput setaf 1)Problem cloning repository $repo_name$(tput setaf 7)"
+   fi
+fi
 cd split-channels
 sudo git pull
 
