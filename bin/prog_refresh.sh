@@ -4,7 +4,7 @@
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
-UPGRADE_ALL=true
+UPGRADE_ALL=false
 
 
 # ===== Display program help info
