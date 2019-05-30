@@ -35,10 +35,10 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 function usage() {
    echo "Usage: $scriptname [-l][-r][-on][-off][-c][-h]" >&2
-   echo "   -l | --left    Select left connector"
-   echo "   -r | --right   Select right connector"
-   echo "   -on            Turn selected gpio ON"
-   echo "   -off           Turn selected gpio OFF"
+   echo "   -l | --left    Select left connector gpio"
+   echo "   -r | --right   Select right connector gpio"
+   echo "   -on  | on      Turn selected gpio ON"
+   echo "   -off | off     Turn selected gpio OFF"
    echo "   -t | --toggle  Toggle PTT state"
    echo "   -c | --check   Check gpio state ie. read gpio"
    echo "   -d | --debug   Turn debug on"
