@@ -61,11 +61,11 @@ while [[ $# -gt 0 ]] ; do
       -r|--right)
 	 gpio_num=23
          ;;
-      -on|-On|-ON)
+      -on|-On|-ON|on|On|ON)
          b_gpioON=true
          b_gpioWRITE=true
          ;;
-      -off|-Off|OFF)
+      -off|-Off|-OFF|off|Off|OFF)
          b_gpioON=false
          b_gpioWRITE=true
          ;;
