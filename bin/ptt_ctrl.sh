@@ -4,19 +4,19 @@
 # Turn PTT gpio on & off & check result
 #
 # Turn right connector PTT on
-# ptt_ctrl.sh -on -r
+# ptt_ctrl.sh -r on
 #
 # Turn right connector PTT off
-# ptt_ctrl.sh -off -r
+# ptt_ctrl.sh -r off
 #
 # Turn left connector PTT on
-#  ptt_ctrl.sh -on -l
+#  ptt_ctrl.sh -l on
 #
 # Turn left connector PTT off
-#  ptt_ctrl.sh -off -l
+#  ptt_ctrl.sh -l off
 #
 # Read left connector PTT
-#  ptt_ctrl.sh -c -l
+#  ptt_ctrl.sh -l -c
 
 #DEBUG=
 
