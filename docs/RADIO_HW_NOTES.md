@@ -73,3 +73,7 @@ set mode (see p. 54 item 29 9600 MODE).
 * Data terminal speed Menu 518 (DAT.SPD)
   * 1200 bps: Transmit data input (PKD) sensitivity is 40mVp-p, input impedance is 10K ohms
   * 9600 bps: Transmit data input (PKD) sensitivity is 2Vp-p, input impedance is 10K ohms
+
+### Kenwood TM-281a
+
+* [Mod for direct digital connect](https://groups.io/g/TM281KenwoodMods/topic/tm_281_mod/18112488?p=,,,20,0,0,0::recentpostdate%2Fsticky,,,20,2,0,18112488)
