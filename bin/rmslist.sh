@@ -98,7 +98,7 @@ fi
 if (( $# > 0 )) && [ -n "$1" ] ; then
 
   # Have an argument, check if it's numeric
-  if (( $1 > 0 )) 2>/dev/null; then
+  if (( $1 > 0 )) ; then
     max_distance=$1
     do_it_flag=true
 
