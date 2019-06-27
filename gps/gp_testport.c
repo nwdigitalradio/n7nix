@@ -150,6 +150,7 @@ int main(int argc, char *argv[])
         buf[n] = 0;             /* set end of string, so we can printf */
         if( n > 0 ) {
             if(bVerbose) {
+#if 0
                 /* Find a $GP string coming from the gps */
                 pch = strstr(buf ,"$GP");
 
@@ -159,7 +160,18 @@ int main(int argc, char *argv[])
                 } else {
                     printf (" %s", buf);
                 }
+#endif
+
+            /*
+             * Find a $GPGSV string coming from the gps
+             *  - GPS Satellites in view (http://aprs.gids.nl/nmea/)
+             */
+                pch = strstr(buf ,"$GPGSV");
+                if( pch != NULL ){
+                    printf ("GSV: %s", buf);
+                }
             }
+
             /* Find a $GNGGA string coming from the gps */
             pch = strstr(buf ,"$GNGGA");
             if( pch != NULL ){
