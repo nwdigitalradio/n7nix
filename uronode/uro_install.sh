@@ -10,10 +10,12 @@ AX25_CFGDIR="/usr/local/etc/ax25"
 PKG_REQUIRE="telnet openbsd-inetd"
 
 # Same info required by  RMS Gateway
-CALLSIGN="N7NIX"
+CALLSIGN="NOONE"
 CITY="LOPEZ Island"
 STATE="WA"
 GRIDSQUARE="CN88nl"
+AX25PORT="udr0"
+SSID="7"
 
 USER=
 
@@ -26,37 +28,58 @@ function is_pkg_installed() {
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
 }
 
+# ===== function get_callsign
+
+function get_callsign() {
+
+if [ "$CALLSIGN" == "N0ONE" ] ; then
+   read -t 1 -n 10000 discard
+   echo "Enter call sign, followed by [enter]:"
+   read -e CALLSIGN
+
+   sizecallstr=${#CALLSIGN}
+
+   if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
+      echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
+      return 0
+   fi
+
+   # Convert callsign to upper case
+   CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
+fi
+
+dbgecho "Using CALL SIGN: $CALLSIGN"
+return 1
+}
+
 # ===== function get_user
 function get_user() {
-
-# prompt for user name
-# Check if there is only a single user on this system
-
-USERLIST="$(ls /home)"
-USERLIST="$(echo $USERLIST | tr '\n' ' ')"
-
-if (( `ls /home | wc -l` == 1 )) ; then
-   USER=$(ls /home)
-else
-  echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-  read -e USER
-fi
-
+    # Check if there is only a single user on this system
+    if (( `ls /home | wc -l` == 1 )) ; then
+        USER=$(ls /home)
+    else
+        echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+        read -e USER
+    fi
+}
+# ==== function check_user
 # verify user name is legit
-userok=false
 
-for username in $USERLIST ; do
-  if [ "$USER" = "$username" ] ; then
-     userok=true;
-  fi
-done
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
 
-if [ "$userok" = "false" ] ; then
-   echo "$myname: User name does not exist,  must be one of: $USERLIST"
-   exit 1
-fi
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
 
-dbgecho "$myname: using USER: $USER"
+   dbgecho "using USER: $USER"
 }
 
 # ===== main
@@ -89,7 +112,17 @@ if [ "$needs_pkg" = "true" ] ; then
    fi
 fi
 
+# Get list of users with home directories
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
 get_user
+check_user
+
+# prompt for a callsign
+while get_callsign ; do
+    echo "Input error, try again"
+done
 
 # check if /var/ax25 exists as a directory or symbolic link
 if [ ! -d "/var/ax25" ] || [ ! -L "/var/ax25" ] ; then
@@ -122,7 +155,7 @@ if [ $? -eq 1 ] ; then
    echo "$myname: uronode ax25d entry not installed"
 
 cat << EOT >> $AX25_CFGDIR/ax25d.conf
-[N7NIX-7 VIA udr0]
+[$CALLSIGN-$SSID VIA $AX25PORT]
 NOCALL   * * * * * *  L
 default  * * * * * *  - root /usr/local/sbin/uronode uronode
 #
@@ -138,7 +171,7 @@ prog_name=uronode
 type -P $prog_name &>/dev/null
 if [ $? -ne 0 ] ; then
 # Currently manually check for latest version
-   URONODE_VER="2.6"
+   URONODE_VER="2.10"
    cd /usr/local/src
    wget http://downloads.sourceforge.net/project/uronode/uronode-$URONODE_VER.tar.gz
    tar -xzxf uronode-$URONODE_VER.tar.gz
