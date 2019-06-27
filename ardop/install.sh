@@ -45,7 +45,7 @@ function check_user() {
 
 # ===== main
 
-echo -e "\n\t$(tput setaf 4) Install HF programs$(tput setaf 7)\n"
+echo -e "\n\t$(tput setaf 4) Install ardop$(tput setaf 7)\n"
 
 # Check for any arguments
 if (( $# != 0 )) ; then
