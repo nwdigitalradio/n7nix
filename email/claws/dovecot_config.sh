@@ -186,7 +186,7 @@ fi
 
 # restart dovecot for new configuration to take affect
 start_service dovecot
-systemctl --no-pager status postfix
+systemctl --no-pager status dovecot
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: dovecot config FINISHED" | tee -a $UDR_INSTALL_LOGFILE
