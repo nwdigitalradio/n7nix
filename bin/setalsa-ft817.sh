@@ -66,6 +66,7 @@ sset 'IN1_R to Left Mixer Positive Resistor' 'Off'
 
 sset 'IN2_L to Right Mixer Positive Resistor' 'Off'
 sset 'IN2_R to Left Mixer Negative Resistor' 'Off'
+
 sset 'IN3_L to Left Mixer Positive Resistor' 'Off'
 sset 'IN3_L to Right Mixer Negative Resistor' 'Off'
 sset 'IN3_R to Left Mixer Negative Resistor' 'Off'

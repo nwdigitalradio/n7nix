@@ -1,11 +1,9 @@
 #!/bin/bash
 #
-# setalsa-ic7000.sh
-# For iCom IC-7000 radio
+# setalsa-ft891.sh
 #
 
-# Enable setting receive path from discriminator
-MODE_9600_ENABLE=true
+MODE_9600_ENABLE=false
 
 asoundstate_file="/var/lib/alsa/asound.state"
 
@@ -50,12 +48,9 @@ fi
 
 amixer -c udrc -s << EOF
 #  Set default input and output levels
-sset 'PCM' -16.5dB,-16.5dB
-sset 'ADC Level' -2.0dB,-2.0dB
+sset 'PCM' -3.0dB,-3.0dB
+sset 'ADC Level' 0.0dB,0.0dB
 sset 'LO Driver Gain' -6.0dB,-6.0dB
-
-sset 'DAC Left Playback PowerTune'  PTM_P1
-sset 'DAC Right Playback PowerTune' PTM_P1
 
 # Everything after this is common to both audio channels
 
