@@ -68,28 +68,36 @@ check_user
 cd "$SRC_DIR"
 download_filename="piARDOP_GUI"
 sudo wget http://www.cantab.net/users/john.wiseman/Downloads/Beta/$download_filename
-    if [ $? -ne 0 ] ; then
-        echo -e "\n$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)\n"
-    else
-        echo -e "\n$(tput setaf 1)Need to install $download_filename $(tput setaf 7)\n"
-    fi
+if [ $? -ne 0 ] ; then
+    echo -e "\n$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)\n"
+else
+    echo -e "\n$(tput setaf 1)Need to install $download_filename $(tput setaf 7)\n"
 fi
 
 cd "$SRC_DIR"
 download_filename="piardop2"
 wget http://www.cantab.net/users/john.wiseman/Downloads/Beta/$download_filename
-    if [ $? -ne 0 ] ; then
-        echo -e "\n$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)\n"
-    else
-        echo -e "\n$(tput setaf 1)Need to install $download_filename $(tput setaf 7)\n"
-    fi
+if [ $? -ne 0 ] ; then
+    echo -e "\n$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)\n"
+else
+    echo -e "\n$(tput setaf 1)Need to install $download_filename $(tput setaf 7)\n"
 fi
 
+cd "$SRC_DIR"
+download_filename="piardopc"
+wget http://www.cantab.net/users/john.wiseman/Downloads/Beta/$download_filename
+if [ $? -ne 0 ] ; then
+    echo -e "\n$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)\n"
+else
+    echo -e "\n$(tput setaf 1)Need to install $download_filename $(tput setaf 7)\n"
+fi
+
+# Set up virtual sound device ARDOP
 mod_file="/home/$USER/.asoundrc"
 grep -i "pcm.ARDOP" $mod_file > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
     # Add to bottom of file
-    cat << EOT >> $modfile
+    cat << EOT >> $mod_file
 
 pcm.ARDOP {
         type rate
@@ -103,7 +111,7 @@ else
     echo -e "\n\t$(tput setaf 4)File: $mod_file NOT modified $(tput setaf 7)\n"
 fi
 
-arim_ver="2.6"
+arim_ver="2.7"
 download_filename="arim-${arim_ver}.tar.gz"
 ARIM_SRC_DIR=$SRC_DIR/arim-$arim_ver
 
@@ -123,9 +131,9 @@ if [ ! -d "$ARIM_SRC_DIR" ] ; then
                 sudo chown -R $USER:$USER $ARIM_SRC_DIR
                 cd $ARIM_SRC_DIR
                 ./configure
-                echo -e "\n$(tput setaf 4)Starting arim build(tput setaf 7)\n"
+                echo -e "\n$(tput setaf 4)Starting arim build $(tput setaf 7)\n"
                 make
-                echo -e "\n$(tput setaf 4)Starting arim install(tput setaf 7)\n"
+                echo -e "\n$(tput setaf 4)Starting arim install $(tput setaf 7)\n"
                 sudo make install
             fi
         fi
