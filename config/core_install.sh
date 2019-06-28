@@ -148,7 +148,7 @@ function install_direwolf_source() {
     echo "=== Install direwolf version $DW_VER from source using $num_cores cores"
 
 #   apt-get install gpsd
-    apt-get install libgps-dev
+    apt-get install -y -q libgps-dev
 
    SRC_DIR="/usr/local/src/"
    cd "$SRC_DIR"
@@ -359,7 +359,7 @@ cd $START_DIR
 # gps required before direwolf build
 pushd ../gps
 echo "=== $scriptname: Install DRAWS gps programs"
-./install.sh
+./gp_install.sh
 popd > /dev/null
 
 # Test if direwolf has previously been installed.

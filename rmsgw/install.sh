@@ -177,6 +177,9 @@ fi
 # Go to the build directory
 cd $RMSGW_BUILD_DIR
 echo -e "$(tput setaf 4)\t Build RMS Gateway source$(tput setaf 7)"
+# Use Autotools for build
+./autogen.sh
+./configure.sh
 # Redirect stderr to stdout & capture to a file
 make -j$num_cores > $RMS_BUILD_FILE 2>&1
 if [ $? -ne 0 ] ; then

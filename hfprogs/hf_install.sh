@@ -271,7 +271,7 @@ check_user
 if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     hfapp="ALL"
 
-    build_js8call "1.0.0"
+    build_js8call "1.1.0"
     build_wsjtx "2.0.1"
     build_hamlib "3.3"
     build_flapp "0.1.4" flxmlrpc

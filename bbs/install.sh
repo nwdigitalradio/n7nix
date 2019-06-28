@@ -2,7 +2,7 @@
 #
 # Install FBB BBS
 #
-BBS_VER="7.0.8-beta7"
+BBS_VER="7.0.8-beta8"
 num_cores=$(nproc --all)
 
 SRC_DIR="/usr/local/src/"
