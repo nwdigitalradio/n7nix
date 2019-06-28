@@ -27,7 +27,7 @@ a02082)
    HAS_WIFI=true
 ;;
 a020d3)
-   echo " Pi 3 Model B+,  Rev 1.3, Mfg by Sony UK"
+   echo " Pi 3 Model B+, Rev 1.3, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
 a21041)
@@ -53,15 +53,15 @@ a22083)
    HAS_WIFI=true
 ;;
 a03111)
-   echo " Pi 4 Model B,  Rev 1.1, 1GB mem, Mfg by Sony UK"
+   echo " Pi 4 Model B, Rev 1.1, 1GB mem, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
 b03111)
-   echo " Pi 4 Model B,  Rev 1.1, 2GB mem, Mfg by Sony UK"
+   echo " Pi 4 Model B, Rev 1.1, 2GB mem, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
 c03111)
-   echo " Pi 4 Model B,  Rev 1.1, 4GB mem, Mfg by Sony UK"
+   echo " Pi 4 Model B, Rev 1.1, 4GB mem, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
 *)
