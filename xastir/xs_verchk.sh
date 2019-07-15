@@ -102,6 +102,11 @@ function get_source_version() {
         echo "Source not downloaded."
     else
         cd "$SRC_DIR_XASTIR"
+        # Refresh repo
+        git pull -q
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem updating Xastir repository"
+        fi
         source_prog_ver=$(grep -i "AC_INIT(\[xastir\]," configure.ac | cut -d',' -f2 | tr -d '[:space:]' | tr -d '[]')
     fi
 }
@@ -241,7 +246,7 @@ else
     # Refresh repo
     git pull -q
     if [ "$?" -ne 0 ] ; then
-        echo "Problem updating repository $PROG"
+        echo "Problem updating Xastir repository"
         exit 1
     fi
 fi
