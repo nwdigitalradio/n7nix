@@ -13,7 +13,7 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 # Install files for the NW Digital Radio DRAWS HAT
 # sudo apt-get install gpsd gpsd-clients python-gps pps-tools libgps-dev chrony
-sudo apt-get install gpsd gpsd-clients python-gps pps-tools libgps-dev chrony
+sudo apt-get install -y -q gpsd gpsd-clients python-gps pps-tools libgps-dev chrony
 
 # Ended up have to build gpsd from source like this
 # The following is from notes & not tested in a scrit
@@ -33,7 +33,7 @@ cd gpsd
 # git clone https://git.savannah.gnu.org/git/gpsd.git
 # cd gpsd
 
-apt-get install scons
+apt-get install -y -q scons
 scons
 sudo scons check
 sudo scons udev-install
