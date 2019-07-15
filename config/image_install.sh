@@ -132,6 +132,21 @@ echo "$scriptname: Install ardop programs"
 popd > /dev/null
 
 sudo apt-get -y install lm-sensors
+
+# Does DRAWS sensor file name exist?
+sensor_fname="/etc/sensors.d/draws"
+if [ ! -e "$sensor_fname" ] ; then
+
+cat  > $sensor_fname <<EOF
+chip "ads1015-*"
+	label in3 "User ADC Differential"
+        label in4 "+12V"
+	label in6 "User ADC 1"
+	label in7 "User ADC 2"
+	compute in4 ((48.7/10)+1)*@, @/((48.7/10)+1)
+EOF
+fi
+
 apt-get -y purge libreoffice* minecraft-pi scratch scratch2 fluid geany smartsim python3-thonny sense-hat sense-emu-tools python-sense-emu python3-sense-emu idle-python*
 apt-get clean
 apt-get -y autoremove
