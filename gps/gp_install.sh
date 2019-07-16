@@ -11,6 +11,15 @@
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
+# ===== function is_integer
+
+function is_integer() {
+    [ "$1" -eq "$1" ] > /dev/null 2>&1
+    return $?
+}
+
+# ===== main
+
 # Install files for the NW Digital Radio DRAWS HAT
 # sudo apt-get install gpsd gpsd-clients python-gps pps-tools libgps-dev chrony
 sudo apt-get install -y -q gpsd gpsd-clients python-gps pps-tools libgps-dev chrony
@@ -21,6 +30,13 @@ sudo apt-get install -y -q gpsd gpsd-clients python-gps pps-tools libgps-dev chr
 echo "Build gpsd from source"
 #gpsd_ver="3.18.1"
 gpsd_ver="$(curl -s http://download-mirror.savannah.gnu.org/releases/gpsd/?C=M | tail -n 2 | head -n 1 | cut -d'-' -f2 |cut -d '.' -f1,2,3)"
+
+# Verify last version digit is numeric & not tar
+prog_ver_3rd_dig=$(echo $gpsd_ver | cut -d '.' -f3)
+if [ ! $(is_integer $prog_ver_3rd_dig) ] ; then
+    gpsd_ver=$(echo $gpsd_ver | cut -d '.' -f1,2)
+fi
+echo "Debug: using version number: $gpsd_ver"
 
 # Download tarball
 wget http://download-mirror.savannah.gnu.org/releases/gpsd/gpsd-$gpsd_ver.tar.gz
@@ -33,8 +49,8 @@ cd gpsd
 # git clone https://git.savannah.gnu.org/git/gpsd.git
 # cd gpsd
 
-apt-get install -y -q scons
-scons
+sudo apt-get install -y -q scons
+sudo scons
 sudo scons check
 sudo scons udev-install
 
@@ -98,12 +114,12 @@ refclock SHM 2 refid PPS precision 1e-9 poll 3 trust
 #allow 44.0.0.0/8
 EOT
 
-systemctl unmask gpsd
+sudo systemctl unmask gpsd
 
-systemctl enable gpsd
-systemctl --no-pager start gpsd
-systemctl enable chrony
-systemctl --no-pager start chrony
+sudo systemctl enable gpsd
+sudo systemctl --no-pager start gpsd
+sudo systemctl enable chrony
+sudo systemctl --no-pager start chrony
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: gps install script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: gps install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo

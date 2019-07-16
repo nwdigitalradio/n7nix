@@ -79,6 +79,7 @@ function get_installed_version() {
     # Also delete preceding cr & white space
     installed_prog_ver=$(gpsd -V | cut -d' ' -f2)
 }
+
 # ===== function is_integer
 
 function is_integer() {
@@ -97,7 +98,7 @@ function get_source_version() {
     # source_prog_ver=$(grep -i revision revision.h | cut -d' ' -f3 | tr -d '\"')
     source_prog_ver=$(curl -s http://download-mirror.savannah.gnu.org/releases/gpsd/?C=M | tail -n 2 | head -n 1 | cut -d'-' -f2 | cut -d '.' -f1,2,3)
 
-    # Verify last digit is numeric & not tar
+    # Verify last version digit is numeric & not tar
     prog_ver_3rd_dig=$(echo $source_prog_ver | cut -d '.' -f3)
     if [ ! $(is_integer $prog_ver_3rd_dig) ] ; then
         source_prog_ver=$(echo $source_prog_ver | cut -d '.' -f1,2)
