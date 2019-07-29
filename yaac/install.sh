@@ -9,7 +9,7 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 USER=
 
-PKG_REQUIRE="openjdk-8-jre-headless openjdk-8-jre librxtx-java unzip"
+PKG_REQUIRE="openjdk-8-jre-headless openjdk-8-jre librxtx-java unzip xterm"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
