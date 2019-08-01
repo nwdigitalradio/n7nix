@@ -36,7 +36,6 @@ prog_ver_3rd_dig=$(echo $gpsd_ver | cut -d '.' -f3)
 if [ ! $(is_integer $prog_ver_3rd_dig) ] ; then
     gpsd_ver=$(echo $gpsd_ver | cut -d '.' -f1,2)
 fi
-echo "Debug: using version number: $gpsd_ver"
 
 # Download tarball
 wget http://download-mirror.savannah.gnu.org/releases/gpsd/gpsd-$gpsd_ver.tar.gz

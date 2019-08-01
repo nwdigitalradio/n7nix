@@ -116,7 +116,7 @@ function test_gpsd_ver() {
     get_installed_version
     get_source_version
 
-    echo "Debug: Testing $source_prog_ver, ver: $installed_prog_ver"
+#    echo "Debug: Testing $source_prog_ver, ver: $installed_prog_ver"
 
     if [ "$source_prog_ver" != "$installed_prog_ver" ] ; then
         echo "$(tput setaf 1)gpsd version built ($installed_prog_ver) does not match source version ($source_prog_ver) $(tput setaf 7)"
