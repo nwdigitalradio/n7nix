@@ -160,6 +160,27 @@ sed -i -e "/AA00AA/ s/AA00AA/$GRIDSQUARE/" $RMSGW_CHANFILE
 sed -i -e "/144000000/ s/144000000/$FREQUENCY/" $RMSGW_CHANFILE
 }
 
+# ===== function chk_perm
+# Check permissions of the rmsgw stat directory
+
+function chk_perm() {
+   # Verify permissions for /etc/rmwgw/stat directory
+   # Check user & group permissions for version & channels aging directory
+   #
+   RMSGW_STAT_DIR="/etc/rmsgw/stat"
+   USER="rmsgw"
+   GROUP="rmsgw"
+
+   echo "=== test owner & group id of stat directory"
+   if [ $(stat -c "%U" $RMSGW_STAT_DIR) != "$USER" ]  || [ $(stat -c "%G" $RMSGW_STAT_DIR) != "$GROUP" ] ; then
+      echo "RMSGW stat dir has wrong permissions: $(stat -c "%U" $RMSGW_STAT_DIR):$(stat -c "%G" $RMSGW_STAT_DIR)"
+      sudo chown -R $USER:$GROUP $RMSGW_STAT_DIR
+      echo "New permissions for stat dir: $(stat -c "%U" $RMSGW_STAT_DIR):$(stat -c "%G" $RMSGW_STAT_DIR)"
+   else
+      echo "RMSGW stat dir permissions OK: $(stat -c "%U" $RMSGW_STAT_DIR):$(stat -c "%G" $RMSGW_STAT_DIR)"
+   fi
+}
+
 #
 # ===== main
 #
@@ -359,11 +380,14 @@ else
   fi
 fi
 
+# Check permissions of rmsgw stat directory
+chk_perm
+
 # create a sysop record
 # run mksysop.py
 # Check /etc/rmsgw/new-sysop.xml
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: rmsgw config script FINISHED" >> $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: RMS Gateway config script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo
 echo "rmsgw config script FINISHED"
 echo

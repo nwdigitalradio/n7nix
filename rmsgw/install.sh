@@ -193,7 +193,11 @@ if [ $? -ne 0 ] ; then
   echo "$(tput setaf 1)Error during install.$(tput setaf 7)"
   exit 1
 fi
+
 # rm /etc/rmsgw/stat/.*
+
+# Set proper permissions for channel & version aging files.
+sudo chown rmsgw:rmsgw /etc/rmsgw/stat
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: RMS Gateway updated" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo -e "$(tput setaf 4)RMS Gateway updated \t$(tput setaf 7)"
