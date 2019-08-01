@@ -4,7 +4,8 @@
 #
 
 SRC_DIR="/usr/local/src/"
-YAAC_SRC_DIR=$HOME/yaac
+YAAC_SRC_DIR=$SRC_DIR/yaac
+YAAC_DST_DIR=$HOME/YAAC 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 USER=
@@ -56,7 +57,8 @@ function check_user() {
 # Unzip yaac & create a desktop icon
 
 function install_zip() {
-    unzip YAAC.zip
+    cd $YAAC_DST_DIR
+    unzip $YAAC_SRC_DIR/YAAC.zip
     echo "$(tput setaf 4)Finished yaac install, installing desktop icon$(tput setaf 7)"
     cd $START_DIR
     cp yaac.desktop /home/$USER/Desktop

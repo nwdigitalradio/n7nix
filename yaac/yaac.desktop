@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=YAAC
-Exec=/usr/bin/java -jar /home/pi/yaac/YAAC.jar
+Exec=/usr/bin/java -jar /home/pi/YAAC/YAAC.jar
 Comment=Yet Another APRS Client
 Icon=/home/pi/YAAC/images/yaaclogo64.ico
 Path=/home/pi/YAAC
@@ -8,4 +8,3 @@ Terminal=true
 Type=Application
 Categories=HamRadio
 Keywords=Ham Radio;APRS Client;KISS;AGWPE;AX.25
-
