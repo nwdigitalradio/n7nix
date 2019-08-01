@@ -66,8 +66,10 @@ fi
 check_user
 
 cd "$SRC_DIR"
+sudo chown -R $USER:$USER .
+
 download_filename="piARDOP_GUI"
-sudo wget http://www.cantab.net/users/john.wiseman/Downloads/Beta/$download_filename
+wget http://www.cantab.net/users/john.wiseman/Downloads/Beta/$download_filename
 if [ $? -ne 0 ] ; then
     echo -e "\n$(tput setaf 1)FAILED to download file: $download_filename$(tput setaf 7)\n"
 else
