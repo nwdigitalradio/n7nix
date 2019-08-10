@@ -174,12 +174,18 @@ else
    fi
 fi
 
+# Verify that directory /usr/local/etc/rmsgw does NOT exist
+# and create a symbolic link from /etc/rmsgw to it.
+if [ ! -d /usr/local/etc/rmsgw ] ; then
+    sudo ln -s /etc/rmsgw /usr/local/etc/rmsgw
+fi
+
 # Go to the build directory
 cd $RMSGW_BUILD_DIR
 echo -e "$(tput setaf 4)\t Build RMS Gateway source$(tput setaf 7)"
 # Use Autotools for build
 ./autogen.sh
-./configure.sh
+./configure
 # Redirect stderr to stdout & capture to a file
 make -j$num_cores > $RMS_BUILD_FILE 2>&1
 if [ $? -ne 0 ] ; then
