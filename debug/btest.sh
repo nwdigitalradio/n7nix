@@ -316,7 +316,7 @@ else
 #        exit 1
     fi
 
-    beacon_msg="!${lat}N/${lon}W-$timestamp, from $(hostname) on port $AX25PORT Seq: $seqnum"
+    beacon_msg="!${lat}${latdir}/${lon}${londir}-$timestamp, from $(hostname) on port $AX25PORT Seq: $seqnum"
 fi
 
 if [ "$verbose" = "true" ] ; then
