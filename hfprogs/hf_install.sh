@@ -272,13 +272,13 @@ if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     hfapp="ALL"
 
     build_js8call "1.1.0"
-    build_wsjtx "2.0.1"
+    build_wsjtx "2.1.0"
     build_hamlib "3.3"
     build_flapp "0.1.4" flxmlrpc
-    build_flapp "1.3.43" flrig
-    build_flapp "4.0.8" flmsg
-    build_flapp "2.2.04" flamp
-    build_fldigi "4.1.03"
+    build_flapp "1.3.47" flrig
+    build_flapp "4.0.14" flmsg
+    build_flapp "2.2.05" flamp
+    build_fldigi "4.1.07"
 else
 
     if [[ $# -ne 3 ]] ; then
