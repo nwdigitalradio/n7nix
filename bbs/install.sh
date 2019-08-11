@@ -11,7 +11,7 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 USER=
 
 PKG_REQUIRE=""
-PKG_REQUIRE_X11="libx11-dev ligxt-dev libxext-dev libxpm-dev lesstif2-dev"
+PKG_REQUIRE_X11="libx11-dev libxext-dev lesstif2-dev libxpm-dev ligxt-dev"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -77,6 +77,8 @@ check_user
 
 # check if required packages are installed
 dbgecho "Check packages: $PKG_REQUIRE"
+
+apt-get install -y -q $PKG_REQUIRE
 
 echo "=== Install fbb version $BBS_VER from source using $num_cores cores"
 
