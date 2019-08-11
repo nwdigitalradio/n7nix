@@ -4,12 +4,13 @@
 #
 
 SRC_DIR="/usr/local/src/"
-YAAC_SRC_DIR=$HOME/yaac
+YAAC_SRC_DIR=$SRC_DIR/yaac
+YAAC_DST_DIR=$HOME/YAAC 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 USER=
 
-PKG_REQUIRE="openjdk-8-jre-headless openjdk-8-jre librxtx-java unzip"
+PKG_REQUIRE="openjdk-8-jre-headless openjdk-8-jre librxtx-java unzip xterm"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -56,7 +57,8 @@ function check_user() {
 # Unzip yaac & create a desktop icon
 
 function install_zip() {
-    unzip YAAC.zip
+    cd $YAAC_DST_DIR
+    unzip -oq $YAAC_SRC_DIR/YAAC.zip
     echo "$(tput setaf 4)Finished yaac install, installing desktop icon$(tput setaf 7)"
     cd $START_DIR
     cp yaac.desktop /home/$USER/Desktop
@@ -142,9 +144,43 @@ else
 fi
 
 sudo chown -R $USER:$USER $YAAC_SRC_DIR
+# Does destionation directory exist?
+if [ ! -d $YAAC_DST_DIR ] ; then
+   sudo mkdir -p $YAAC_DST_DIR
+   if [ "$?" -ne 0 ] ; then
+      echo "Problems creating destination directory: $YAAC_DST_DIR"
+      exit 1
+   fi
+else
+   echo "YAAC destination directory: $YAAC_DST_DIR already exists, will try to update"
+fi
+sudo chown -R $USER:$USER $YAAC_DST_DIR
 
 cd "$YAAC_SRC_DIR"
 
+download_filename="YAAC.zip"
+download_shaname="YAAC.sha256"
+# Download sha file:
+wget -r -O $download_shaname http://www.ka2ddo.org/ka2ddo/$download_shaname
+if [ $? -ne 0 ] ; then
+   echo "$(tput setaf 1)FAILED to download file: $download_shaname$(tput setaf 7)"
+   gotsha256=0
+# for now we keep going and bypass this error maybe more checking later
+else
+   gotsha256=1
+fi
+
+if [ $gotsha256 -ne 0 ] ; then 
+   shasum -c $download_shaname
+   if [ $? -ne 0 ] ; then
+     echo "$(tput setaf 1)shasum not exist or not ok renaming file  $(tput setaf 7)"
+     if [ -e "$YAAC_SRC_DIR/$download_filename" ] ; then
+        mv "$YAAC_SRC_DIR/$download_filename" "$YAAC_SRC_DIR/$download_filename".old
+     fi
+   else
+     echo "$(tput setaf 1)shasum ok keep going $(tput setaf 7)"
+   fi
+fi
 # Download zip file:
 download_filename="YAAC.zip"
 if [ ! -e "$YAAC_SRC_DIR/$download_filename" ] ; then
