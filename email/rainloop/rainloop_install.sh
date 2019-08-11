@@ -81,15 +81,15 @@ EOT
 ## Start an FastCGI server for php (needs the php5-cgi package)
 fastcgi.server += ( ".php" =>
         ((
-                "socket" => "/var/run/php/php7.0-fpm.sock",
+                "socket" => "/var/run/php/php${PHPVER}-fpm.sock",
                 "broken-scriptfilename" => "enable"
         ))
 )
 EOT
 
-    # To enable PHP in Lighttpd, must modify /etc/php/7.0/fpm/php.ini
+    # To enable PHP in Lighttpd, must modify /etc/php/$PHPVER/fpm/php.ini
     # and uncomment the line cgi.fix_pathinfo=1:
-    php_filename="/etc/php/7.0/fpm/php.ini"
+    php_filename="/etc/php/$PHPVER/fpm/php.ini"
     if [ -e "$php_filename" ] ; then
         sed -i -e '/cgi\.fix_pathinfo=/s/^;//' "$php_filename"
     else
