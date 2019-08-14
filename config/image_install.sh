@@ -131,6 +131,7 @@ echo "$scriptname: Install ardop programs"
 ./install.sh
 popd > /dev/null
 
+echo "$scriptname: Install sensor support"
 sudo apt-get -y install lm-sensors
 
 # Does DRAWS sensor file name exist?
