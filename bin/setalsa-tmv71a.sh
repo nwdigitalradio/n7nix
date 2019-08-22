@@ -14,6 +14,12 @@ MODE_9600_ENABLE=false
 
 asoundstate_file="/var/lib/alsa/asound.state"
 
+SWITCH_FILE="/etc/ax25/packet_9600baud"
+
+if [ -e "$SWITCH_FILE" ] ; then
+    MODE_9600_ENABLE=true
+fi
+
 stateowner=$(stat -c %U $asoundstate_file)
 if [ $? -ne 0 ] ; then
    "Command 'alsactl store' will not work, file: $asoundstate_file does not exist"
@@ -33,6 +39,10 @@ if [ "$MODE_9600_ENABLE" = "true" ] ; then
     # ie. Receive audio off & discriminator output on
 
     amixer -c udrc -s << EOF
+sset 'PCM' 0.0dB,0.0dB
+sset 'LO Driver Gain' 3.0dB,3.0dB
+sset 'ADC Level' -2.0dB,-2.0dB
+
 sset 'IN1_L to Left Mixer Positive Resistor' '10 kOhm'
 sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
 sset 'IN2_L to Left Mixer Positive Resistor' 'Off'
@@ -46,6 +56,10 @@ else
     # ie. Receive audio on & discriminator off
 
     amixer -c udrc -s << EOF
+sset 'PCM' -2.0dB,-2.0dB
+sset 'LO Driver Gain' 0.0dB,0.0dB
+sset 'ADC Level' 0.0dB,0.0dB
+
 sset 'IN1_L to Left Mixer Positive Resistor' 'Off'
 sset 'IN1_R to Right Mixer Positive Resistor' 'Off'
 sset 'IN2_L to Left Mixer Positive Resistor' '10 kOhm'
@@ -55,9 +69,6 @@ fi
 
 amixer -c udrc -s << EOF
 #  Set default input and output levels
-sset 'PCM' -2.0dB,-2.0dB
-sset 'ADC Level' 0.0dB,0.0dB
-sset 'LO Driver Gain' 0.0dB,0.0dB
 
 # Everything after this is common to both audio channels
 
