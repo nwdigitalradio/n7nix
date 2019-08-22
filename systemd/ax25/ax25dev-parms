@@ -14,11 +14,22 @@ fi
 
 echo "Using Device = $Device"
 
+# For 1200 baud packet
+T1_TIMEOUT="3000"
+T2_TIMEOUT="1000"
+
+# For 9600 baud packet
+if [ -e "/etc/ax25/packet_9600baud" ] ; then
+    T1_TIMEOUT="2000"
+    T2_TIMEOUT="100"
+
+fi
+
 if [ -d /proc/sys/net/ax25/$Device ] ; then
  PARMDIR="/proc/sys/net/ax25/$Device"
 # Parms for a USER Port
-echo 3000    > $PARMDIR/t1_timeout		# (Frack) /1000 = ? Sec
-echo 1000    > $PARMDIR/t2_timeout 		# (RESPtime) /1000 = ? sec
+echo $T1_TIMEOUT    > $PARMDIR/t1_timeout	# (Frack) /1000 = ? Sec (1200 3000, 9600 2000)
+echo $T2_TIMEOUT    > $PARMDIR/t2_timeout 	# (RESPtime) /1000 = ? sec (1200 1000, 9600 100)
 echo 300000  > $PARMDIR/t3_timeout 		# (Check) /6000 = ? Min
 echo 900000  > $PARMDIR/idle_timeout		# Idle Timer /6000 = ? min
 echo 2       > $PARMDIR/standard_window_size	# Outstanding Frames

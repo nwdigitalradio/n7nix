@@ -162,6 +162,28 @@ case $id_check_ret in
 ;;
 esac
 
+# For 1200 baud packet
+SLOTTIME="200"
+TXDELAY="500"
+
+# For 9600 baud packet
+if [ -e "/etc/ax25/packet_9600baud" ] ; then
+    SLOTTIME="20"
+    TXDELAY="300"
+
+fi
+
+#
+# Install KISS Parameter: P=32, W=200, TX-Delay=500
+#  -l txtail   Sets the TX Tail time in milliseconds, in steps of ten milliseconds only
+#  -r persist  Sets the persist value. range 0 to 255.
+#  -s slottime Sets  the slottime in milliseconds, in steps of ten milliseconds only
+#  -t txdelay  Sets the TX Delay in milliseconds, in steps of ten milliseconds only
+
+/usr/local/sbin/kissparms -p udr0 -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
+/usr/local/sbin/kissparms -p udr1 -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
+
+
 # configure netrom
 # Needs a callsign
 # source /home/pi/n7nix/systemd/ax25/nr-up.sh

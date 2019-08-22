@@ -11,19 +11,6 @@ Type=oneshot
 ExecStart=/bin/bash -c '/etc/ax25/ax25-upd'
 RemainAfterExit=yes
 
-#ExecStart= /bin/bash -c '/usr/local/sbin/kissattach  /tmp/kisstnc udr0 192.168.255.2' >/tmp/ax25-config.tmp
-#ExecStart= /bin/bash -c '/usr/local/sbin/kissattach  /tmp/kisstnc udr0 192.168.255.3'
-#
-# ExecStartPost=/etc/ax25/ax25dev-parms
-#
-# Install KISS Parameter: P=32, W=200, TX-Delay=500
-#  -l txtail   Sets the TX Tail time in milliseconds, in steps of ten milliseconds only
-#  -r persist  Sets the persist value. range 0 to 255.
-#  -s slottime Sets  the slottime in milliseconds, in steps of ten milliseconds only
-#  -t txdelay  Sets the TX Delay in milliseconds, in steps of ten milliseconds only
-
-ExecStartPost=/bin/bash -c '/usr/local/sbin/kissparms -p udr0 -f no -l 100 -r 32 -s 200 -t 500'
-
 ExecStop=/bin/bash -c '/etc/ax25/ax25-downd'
 
 [Install]
