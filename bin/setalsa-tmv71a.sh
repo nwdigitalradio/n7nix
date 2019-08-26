@@ -41,7 +41,7 @@ if [ "$MODE_9600_ENABLE" = "true" ] ; then
     amixer -c udrc -s << EOF
 sset 'PCM' 0.0dB,0.0dB
 sset 'LO Driver Gain' 3.0dB,3.0dB
-sset 'ADC Level' -2.0dB,-2.0dB
+sset 'ADC Level' -4.0dB,-4.0dB
 
 sset 'IN1_L to Left Mixer Positive Resistor' '10 kOhm'
 sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
