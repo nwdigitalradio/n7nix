@@ -96,7 +96,7 @@ done
 # only need to be started if the home router is not found.
 
 for service_name in `echo ${SERVICELIST}` ; do
-    sytemctl disable "$servicename"
+    systemctl disable "$servicename"
 done
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: hostap install script FINISHED" >> $UDR_INSTALL_LOGFILE
