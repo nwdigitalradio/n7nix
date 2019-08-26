@@ -50,7 +50,7 @@ fi
 # Setup node.js & modules required to run the plu web page.
 echo "$scriptname: Install nodejs, npm & jquery"
 
-cd /usr/local/src/paclink-unix/webapp
+pushd /usr/local/src/paclink-unix/webapp
 
 apt-get install -y -q nodejs npm
 npm install -g websocket connect finalhandler serve-static
@@ -58,6 +58,8 @@ npm install -g websocket connect finalhandler serve-static
 # jquery should be installed in same directory as plu.html
 npm install jquery
 cp node_modules/jquery/dist/jquery.min.js jquery.js
+
+popd
 
 # If there are any command line args do not install this service file
 # A different service file is used to install paclink-unix with a
