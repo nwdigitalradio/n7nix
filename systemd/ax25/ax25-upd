@@ -168,8 +168,8 @@ TXDELAY="500"
 
 # For 9600 baud packet
 if [ -e "/etc/ax25/packet_9600baud" ] ; then
-    SLOTTIME="20"
-    TXDELAY="300"
+    SLOTTIME="10"
+    TXDELAY="150"
 
 fi
 
