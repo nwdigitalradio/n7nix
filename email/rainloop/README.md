@@ -11,8 +11,17 @@
     * Sets app ownership
 
 ### Configuration
-* Using a browser start Rainloop in Admin mode using this URL ```localhost/?admin```
-  * You can also use another computer on the same network & substitute localhost with the ip address of your RPi.
+##### How to start rainloop in a browser
+* Start rainloop in admin mode
+````
+http://Your-IP-Address/rainloop/?admin
+# or
+http://localhost/?admin
+User : admin
+Pass : 12345
+```
+* You can run rainloop remotely on the same network from a different coomputer
+  * substitute localhost with the ip address of your RPi.
 
 ##### Set new admin password
 * Screen displays _Login_ and _Password_
