@@ -235,20 +235,24 @@ case $connector in
    ;;
 esac
 
+USER=$(whoami)
 # Won't work if direwolf or any other sound card program is running
 pid=$(pidof direwolf)
 if [ $? -eq 0 ] ; then
    echo "Direwolf is running, with a pid of $pid"
-   echo "As root kill this process"
-   exit 1
+   echo "Stopping this process"
+   sudo /home/$USER/bin/ax25-stop
 fi
 
 # Won't work unless gpio 4 is set to ALT 0
 # gpio 4 (BCM) is calld gpio. 7 by WiringPi
 mode_gpio7="$(gpio readall | grep -i "gpio. 7" | cut -d "|" -f 5 | tr -d '[:space:]')"
 if [ "$mode_gpio7" != "ALT0" ] ; then
-   echo "gpio 7 is in wrong mode: |$mode_gpio7|, should be: ALT0"
-   exit 1
+   echo
+   echo "  gpio 7 is in wrong mode: |$mode_gpio7|, should be: ALT0"
+   echo "  Setting gpio set to mode ALT0"
+   gpio mode 7 ALT0
+   echo
 fi
 
 wavefile="$freq$wavefile_basename"
