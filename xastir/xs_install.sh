@@ -136,9 +136,11 @@ sudo apt-get -y -qq install xfonts-100dpi xfonts-75dpi
 # Build latest version from source
 cd $SRC_DIR
 if [ ! -d $SRC_DIR/Xastir ] ; then
+
     # get latest Xastir source
     # Will this over write existing source file
-    git clone https://github.com/Xastir/Xastir.git
+    sudo git clone https://github.com/Xastir/Xastir.git
+    sudo chown -R pi:pi Xastir
 fi
 
 echo
