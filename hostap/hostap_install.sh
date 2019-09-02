@@ -51,7 +51,7 @@ fi
 
 # ===== main
 
-echo "Install hostap on an RPi 3"
+echo "Install hostap on an RPi 3/4"
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
@@ -81,7 +81,7 @@ apt-get update
 apt-get upgrade -q -y
 
 # check if required packages are installed
-dbgecho "Check packages: $PKGLIST"
+dbgecho "=== Check packages: $PKGLIST"
 
 for pkg_name in `echo ${PKGLIST}` ; do
 
@@ -96,10 +96,11 @@ done
 # only need to be started if the home router is not found.
 
 for service_name in `echo ${SERVICELIST}` ; do
-    systemctl disable "$servicename"
+    echo
+    echo "=== Disabling service $service_name"
+    systemctl disable "$service_name"
 done
 
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: hostap install script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
-echo "hostap install FINISHED"
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: hostap install script FINISHED" | tee -a  $UDR_INSTALL_LOGFILE
 echo
