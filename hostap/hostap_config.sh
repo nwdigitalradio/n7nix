@@ -226,7 +226,7 @@ function start_service() {
 
 # ===== main
 
-echo " == Config hostap on an RPi 3"
+echo " == Config hostap on an RPi 3/4"
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
