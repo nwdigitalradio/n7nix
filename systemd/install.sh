@@ -149,7 +149,7 @@ cp -u sysd/* /etc/systemd/system/
 echo "copy log cfg files ..."
 
 #-- creates /var/log/direwolf, if not exists
-if [ ! -d "${DIRWOLF_LOG_DIR}" ] ; then
+if [ ! -d "${DIREWOLF_LOG_DIR}" ] ; then
    echo "Create direwolf log directory: $DIREWOLF_LOG_DIR"
    mkdir -p "$DIREWOLF_LOG_DIR"
 fi
