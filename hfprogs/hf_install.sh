@@ -182,6 +182,8 @@ function build_fldigi() {
 
 fldigi_ver="$1"
 echo "Install fldigi ver: $fldigi_ver"
+cd $SRC_DIR
+
 download_filename="fldigi-$fldigi_ver.tar.gz"
 
 FLDIGI_SRC_DIR=$SRC_DIR/fldigi-$fldigi_ver
