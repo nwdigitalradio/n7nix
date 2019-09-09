@@ -77,9 +77,10 @@ js8call_rootver="$1"
 js8call_ver="$js8call_rootver"
 download_filename="js8call_${js8call_ver}_armhf.deb"
 
-PKG_REQUIRE_JS8CALL="libqgsttools-p1 libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediaquick-p5 libqt5multimediawidgets5 libqt5qml5 libqt5quick5 libqt5serialport5"
+PKG_REQUIRE_JS8CALL="libqgsttools-p1 libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediaquick-p5 libqt5multimediawidgets5 libqt5qml5 libqt5quick5 libqt5serialport5 libgfortran3"
 echo "Install js8call ver: $js8call_ver"
 cd "$SRC_DIR"
+sudo apt-get -qq install -y $PKG_REQUIRE_JS8CALL
 
 if [ ! -e "$SRC_DIR/$download_filename" ] ; then
 #    sudo wget https://s3.amazonaws.com/js8call/${js8call_rootver}/$download_filename
@@ -88,11 +89,9 @@ if [ ! -e "$SRC_DIR/$download_filename" ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
         exit 1
     else
-        sudo apt-get -qq install -y $PKG_REQUIRE_JS8CALL
         sudo dpkg -i $download_filename
     fi
 else
-    sudo apt-get -qq install -y $PKG_REQUIRE_JS8CALL
     sudo dpkg -i $download_filename
 fi
 
@@ -161,6 +160,22 @@ else
 fi
 }
 
+# ===== function build_fldigi_src
+
+function build_fldigi_src() {
+    sudo apt-get build-dep fldigi
+    sudo tar -zxvsf $download_filename
+    sudo chown -R $USER:$USER $FLDIGI_SRC_DIR
+    cd fldigi-$fldigi_ver
+
+    ./configure --with-hamlib --with-flxmlrpc
+    echo -e "\n$(tput setaf 4)Starting fldigi build $(tput setaf 7)\n"
+    make
+    echo -e "\n$(tput setaf 4)Starting fldigi install $(tput setaf 7)\n"
+    sudo make install
+    sudo ldconfig
+}
+
 # ===== function build_fldigi
 
 function build_fldigi() {
@@ -187,18 +202,10 @@ if [ ! -d "$FLDIGI_SRC_DIR" ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
         exit 1
     else
-        sudo apt-get build-dep fldigi
-        sudo tar -zxvsf $download_filename
-        sudo chown -R $USER:$USER $FLDIGI_SRC_DIR
-        cd fldigi-$fldigi_ver
-
-        ./configure --with-hamlib --with-flxmlrpc
-        echo -e "\n$(tput setaf 4)Starting fldigi build $(tput setaf 7)\n"
-        make
-        echo -e "\n$(tput setaf 4)Starting fldigi install $(tput setaf 7)\n"
-        sudo make install
-        sudo ldconfig
+        build_fldigi_src
     fi
+else
+    build_fldigi_src
 fi
 }
 
@@ -270,7 +277,7 @@ check_user
 
 if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     hfapp="ALL"
-
+    # Build js8call first to satisfy some wsjtx dependencies
     build_js8call "1.1.0"
     build_wsjtx "2.1.0"
     build_hamlib "3.3"
