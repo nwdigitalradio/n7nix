@@ -77,7 +77,7 @@ js8call_rootver="$1"
 js8call_ver="$js8call_rootver"
 download_filename="js8call_${js8call_ver}_armhf.deb"
 
-PKG_REQUIRE_JS8CALL="libqgsttools-p1 libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediaquick-p5 libqt5multimediawidgets5 libqt5qml5 libqt5quick5 libqt5serialport5 libgfortran3"
+PKG_REQUIRE_JS8CALL="libqgsttools-p1 libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediaquick5 libqt5multimediawidgets5 libqt5qml5 libqt5quick5 libqt5serialport5 libgfortran3"
 echo "Install js8call ver: $js8call_ver"
 cd "$SRC_DIR"
 sudo apt-get -qq install -y $PKG_REQUIRE_JS8CALL
