@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Run this after copying a fresh compass file system image
+# Run this after copying a fresh raspbian file system image
 #
 # Uncomment this statement for debug echos
 #DEBUG=1

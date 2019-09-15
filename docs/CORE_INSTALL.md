@@ -15,22 +15,22 @@
 
 # Installing CORE functionality
 
-## git a compass image
+## git a raspbian image
 
-* Compass is a file system image for the Raspberry Pi that contains a kernel with the driver for the Texas Instruments tlv320aic32x4 Codec module.
-* The NW Digital Radio UDRC II is a [hat](https://github.com/raspberrypi/hats) that contains this codec plus routes GPIO pins to control PTT.
+* Raspbian is a file system image for the Raspberry Pi that contains a kernel with the driver for the Texas Instruments tlv320aic32x4 Codec module.
+* The NW Digital Radio UDRC II & DRAWS is a [hat](https://github.com/raspberrypi/hats) that contains this codec plus routes GPIO pins to control PTT.
 
-* Download a Compass Linux image from http://archive.compasslinux.org/images
+* Download a Raspbian image from https://www.raspberrypi.org/downloads/raspbian/
   * The 'lite' version is without a GUI
-  * The full version has the LXDE Windows Manager & a graphic configuration tools for other stuff.
+  * The 'desktop' version has the LXDE Windows Manager & a graphic configuration tools for other stuff.
 * Unzip and copy the uncompressed image to the SD card using the procedure outlined on the [Raspberry Pi site](https://www.raspberrypi.org/documentation/installation/installing-images/)
   * For example, see below:
     * **Note:** If you don't get the output device correct of=/dev/sdx you can ruin what ever you have installed on workstation hard drive
-    * Below is an example only, the dates on the files will change.
+    * Below is a Linux example only, the dates on the files will change.
 
 ```bash
-unzip image-2016_05-23-compass-lite.zip
-dd if=2016-05-23-compass-lite.img of=/dev/sdc bs=4M
+unzip 2019-07-10-raspbian-buster.zip
+dd if=2019-07-10-raspbian-buster.img of=/dev/sdc bs=4M
 ```
 
 * To enable ssh on first boot mount flash drive & create ssh file in /boot partition
