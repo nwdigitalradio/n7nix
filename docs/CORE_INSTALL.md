@@ -115,6 +115,12 @@ Internet connection.
   * This was the way the SeaPac workshop image was created
 
 ```bash
+# Save all console output
+cd
+script
+# Go to install script directory
+cd n7nix/config
+
 # Become root
 sudo su
 # Execute from n7nix/config directory
