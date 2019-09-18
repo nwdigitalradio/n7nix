@@ -39,10 +39,10 @@ LIBFAP_SRC_DIR="$SRC_DIR/libfap"
 JSON_C_SRC_DIR="$SRC_DIR/json-c"
 LIBFAP_VER="1.5"
 LIBINIPARSER_VER="3.1"
-NODEJS_VER="8.4.0"
+NODEJS_VER="10.15.2"
 
 BIN_FILES="tracker-up tracker-down tracker-restart .screenrc.trk"
-PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool libgps-dev screen"
+PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool libgps-dev screen nodejs npm git"
 
 # ===== function dbgecho
 
@@ -117,25 +117,32 @@ else
 fi
 
 # as root install a bunch of stuff
-sudo apt-get -y install $PKGLIST
+sudo apt-get install -y -q $PKGLIST
 
 node_file_name="node-v$NODEJS_VER-linux-armv7l.tar.xz"
 
-if [ ! -f $node_file_name ] ; then
-   echo "Download node.js from nodejs.org"
-   wget https://nodejs.org/dist/v$NODEJS_VER/$node_file_name
-   current_dir=$(pwd)
-   pushd /usr/local
-   sudo tar --strip-components 1 -xvf $current_dir/$node_file_name
-   echo "node version: $(/usr/local/bin/node -v)"
-   echo "npm version: $(/usr/local/bin/npm -v)"
-   echo
-   echo "== get node modules"
-   sudo npm -g install ctype iniparser websocket connect serve-static finalhandler uid-number
-   cd
-else
-   echo "** already have nodejs source"
-fi
+#
+# Do not do this!
+#
+GET_NODEJS=false
+
+if $GET_NODEJS ; then
+    if [ ! -f $node_file_name ] ; then
+        echo "Download node.js from nodejs.org"
+        wget https://nodejs.org/dist/v$NODEJS_VER/$node_file_name
+        current_dir=$(pwd)
+        pushd /usr/local
+        sudo tar --strip-components 1 -xvf $current_dir/$node_file_name
+        echo "node version: $(/usr/local/bin/node -v)"
+        echo "npm version: $(/usr/local/bin/npm -v)"
+        echo
+        echo "== get node modules"
+        sudo npm -g install ctype iniparser websocket connect serve-static finalhandler uid-number
+        cd
+    else
+        echo "** already have nodejs source"
+    fi
+fi # GET_NODEJS
 
 if [ -d $SRC_DIR/libfap-$LIBFAP_VER ] ; then
    echo "** already have libfap-$LIBFAP_VER source"
