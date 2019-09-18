@@ -174,12 +174,6 @@ else
    fi
 fi
 
-# Verify that directory /usr/local/etc/rmsgw does NOT exist
-# and create a symbolic link from /etc/rmsgw to it.
-if [ ! -d /usr/local/etc/rmsgw ] ; then
-    sudo ln -s /etc/rmsgw /usr/local/etc/rmsgw
-fi
-
 # Go to the build directory
 cd $RMSGW_BUILD_DIR
 echo -e "$(tput setaf 4)\t Build RMS Gateway source$(tput setaf 7)"
@@ -200,7 +194,16 @@ if [ $? -ne 0 ] ; then
   exit 1
 fi
 
+# Verify that directory /etc/rmsgw does NOT exist
+# and create a symbolic link from /usr/local/etc/rmsgw to it.
+if [ ! -d /etc/rmsgw ] ; then
+    sudo ln -s /usr/local/etc/rmsgw /etc/rmsgw
+fi
+
 # rm /etc/rmsgw/stat/.*
+
+# Assume user rmsgw does not exist
+adduser --no-create-home --system rmsgw
 
 # Set proper permissions for channel & version aging files.
 sudo chown rmsgw:rmsgw /etc/rmsgw/stat
