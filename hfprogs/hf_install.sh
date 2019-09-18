@@ -237,9 +237,9 @@ FLAPP_SRC_DIR=$SRC_DIR/$flapp-$flapp_ver
 echo "install $flapp ver: $flapp_ver in $FLAPP_SRC_DIR"
 
 download_filename="$flapp-$flapp_ver.tar.gz"
+cd "$SRC_DIR"
 
 if [ ! -d "$FLAPP_SRC_DIR" ] ; then
-    cd "$SRC_DIR"
     sudo wget http://www.w1hkj.com/files/$flapp/$download_filename
     if [ $? -ne 0 ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
