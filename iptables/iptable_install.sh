@@ -106,7 +106,7 @@ for pkg_name in `echo ${PKGLIST}` ; do
    is_pkg_installed $pkg_name
    if [ $? -ne 0 ] ; then
       echo "$scriptname: Will Install $pkg_name program"
-      apt-get -qy install $pkg_name
+      sudo apt-get -qy install $pkg_name
    fi
 done
 
@@ -132,7 +132,7 @@ if [ "$CREATE_IPTABLES" = "true" ] ; then
 
     sh -c "iptables-save > /etc/iptables/rules.ipv4.ax25"
 
-    cat  > /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 <<EOF
+    sudo cat  > /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 <<EOF
 iptables-restore < /etc/iptables/rules.ipv4.ax25
 EOF
 
