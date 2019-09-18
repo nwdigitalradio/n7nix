@@ -266,9 +266,9 @@ function swap_size_check() {
     # Test if swap size is less than 1 Gig
     if (( swap_size < 1023996 )) ; then
         swap_config=$(grep -i conf_swapsize /etc/dphys-swapfile | cut -d"=" -f2)
-        sudo sed -i -e "/CONF_SWAPSIZE/ s/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=1000/" /etc/dphys-swapfile
+        sudo sed -i -e "/CONF_SWAPSIZE/ s/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=1024/" /etc/dphys-swapfile
 
-        echo "Swap size too small for builds, changed from $swap_config to 1000 ... need to reboot."
+        echo "Swap size too small for builds, changed from $swap_config to 1024 ... need to reboot."
         exit 1
     fi
 }
