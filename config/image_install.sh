@@ -131,7 +131,7 @@ popd > /dev/null
 
 pushd ../xastir
 echo "$scriptname: Install Xastir"
-sudo -u "$USER" ./install.sh $USER
+sudo -u "$USER" ./xs_install.sh $USER
 popd > /dev/null
 
 pushd ../yaac
@@ -165,6 +165,12 @@ chip "ads1015-*"
 	compute in4 ((48.7/10)+1)*@, @/((48.7/10)+1)
 EOF
 fi
+
+# Install DRAWS web manager
+pushd ../manager
+echo "$scriptname: Install DRAWS manager"
+./install.sh
+popd > /dev/null
 
 # Install HF programs last
 pushd ../hfprogs
