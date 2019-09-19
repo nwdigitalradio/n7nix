@@ -238,7 +238,9 @@ if [ $? -ne 0 ] ; then
     # Add to bottom of file
     cat << EOT >> /boot/config.txt
 
-# enable udrc/draws if no eeprom
+# Flush all overlays, ie. deprecated overlays loaded from eeprom
+dtoverlay=
+# enable udrc/draws
 $set_dtoverlay
 force_turbo=1
 EOT
