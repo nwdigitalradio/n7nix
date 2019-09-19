@@ -209,7 +209,7 @@ fi
 # Check that source dir belongs to user to that they can do a git pull
 #  if required.
 echo "=== test owner & group id of source directory"
-if [ $(stat -c "%U" $SRC_DIR/paclink-unix) != "$USER" || $(stat -c "%G" $SRC_DIR/paclink-unix) != "$USER" ] ; then
+if [ "$(stat -c "%U" $SRC_DIR/paclink-unix)" != "$USER" ] || [ "$(stat -c "%G" $SRC_DIR/paclink-unix)" != "$USER" ] ; then
    chown -R $USER:$USER $SRC_DIR/paclink-unix
 fi
 
