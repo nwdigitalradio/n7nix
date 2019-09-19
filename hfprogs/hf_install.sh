@@ -320,10 +320,12 @@ if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     build_wsjtx "2.1.0"
     build_hamlib "3.3"
     build_flapp "0.1.4" flxmlrpc
+    # Must build fldigi before the other apps
+    # apps rely on /usr/bin/fltk-config
+    build_fldigi "4.1.08"
     build_flapp "1.3.48" flrig
     build_flapp "4.0.14" flmsg
     build_flapp "2.2.05" flamp
-    build_fldigi "4.1.08"
 else
 
     if [[ $# -ne 3 ]] ; then
