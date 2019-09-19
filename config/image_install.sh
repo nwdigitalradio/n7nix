@@ -139,11 +139,6 @@ echo "$scriptname: Install YAAC"
 sudo -u "$USER" ./install.sh $USER
 popd > /dev/null
 
-pushd ../hfprogs
-echo "$scriptname: Install HF programs"
-sudo -u "$USER" ./hf_install.sh $USER
-popd > /dev/null
-
 pushd ../dstar
 echo "$scriptname: Install DStar programs"
 sudo -u "$USER" ./install.sh $USER
@@ -170,6 +165,13 @@ chip "ads1015-*"
 	compute in4 ((48.7/10)+1)*@, @/((48.7/10)+1)
 EOF
 fi
+
+# Install HF programs last
+pushd ../hfprogs
+echo "$scriptname: Install HF programs"
+sudo -u "$USER" ./hf_install.sh $USER
+popd > /dev/null
+
 
 apt-get -y purge libreoffice* minecraft-pi scratch scratch2 fluid geany smartsim python3-thonny sense-hat sense-emu-tools python-sense-emu python3-sense-emu idle-python*
 apt-get clean
