@@ -6,9 +6,10 @@
 # Check last line of wl2ktelnet out for "refused".
 #
 
-user=$(whoami)
+USER=$(whoami)
 outboxdir="/usr/local/var/wl2k/outbox"
-testfilename="/home/$user/tmp/wl2ktest.txt"
+TMPDIR=/home/$USER/tmp
+testfilename="$TMPDIR/wl2ktest.txt"
 WL2KTEL="/usr/local/bin/wl2ktelnet"
 
 
@@ -44,6 +45,11 @@ fi
 if [ "$filecountb4" -eq 0 ]; then
 #  echo "Outbox empty."
   exit 0
+fi
+
+# If test file directory doesn't exist create it
+if [ ! -d "$TMPDIR" ] ; then
+  mkdir -p "$TMPDIR"
 fi
 
 # If the output file exists delete it
