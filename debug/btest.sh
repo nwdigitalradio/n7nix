@@ -233,6 +233,8 @@ seqnum=0
 # get sequence number
 if [ -e $SEQUENCE_FILE ] ; then
    seqnum=`cat $SEQUENCE_FILE`
+else
+   echo "0" > $SEQUENCE_FILE
 fi
 
 # Check if the callsign & ax25 port have been manually set
@@ -312,8 +314,11 @@ else
     echo "Send a position beacon"
     get_lat_lon_nmeasentence
     if [ "$?" -ne 0 ] ; then
-        echo "Invalid gps data"
-#        exit 1
+        echo "Read Invalid gps data, using canned values"
+        lat="4829.07"
+        latdir="N"
+        lon="12254.12"
+        londir="W"
     fi
 
     beacon_msg="!${lat}${latdir}/${lon}${londir}-$timestamp, from $(hostname) on port $AX25PORT Seq: $seqnum"

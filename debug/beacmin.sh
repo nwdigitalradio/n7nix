@@ -38,24 +38,27 @@ function get_lat_lon_nmeasentence() {
     ll_valid=$(echo $gpsdata | cut -d',' -f7)
     dbgecho "Status: $ll_valid"
     if [ "$ll_valid" != "A" ] ; then
-        echo "GPS data not valid, exiting "
-        echo "gps data: $gpsdata"
-        return 1
+        echo "Read gps data: $gpsdata"
+#       return 1
+        echo "Read GPS data not valid, using canned values"
+        lat="4829.07"
+        latdir="N"
+        lon="12254.12"
+        londir="W"
+    else
+
+        # Separate lat, lon & position direction
+        lat=$(echo $gpsdata | cut -d',' -f2)
+        latdir=$(echo $gpsdata | cut -d',' -f3)
+        lon=$(echo $gpsdata | cut -d',' -f4)
+        londir=$(echo $gpsdata | cut -d',' -f5)
+
+        dbgecho "lat: $lat$latdir, lon: $lon$londir"
+
+        # Convert to legit APRS format
+        lat=$(printf "%07.2f" $lat)
+        lon=$(printf "%08.2f" $lon)
     fi
-
-    dbgecho "gpsdata: $gpsdata"
-
-    # Separate lat, lon & position direction
-    lat=$(echo $gpsdata | cut -d',' -f2)
-    latdir=$(echo $gpsdata | cut -d',' -f3)
-    lon=$(echo $gpsdata | cut -d',' -f4)
-    londir=$(echo $gpsdata | cut -d',' -f5)
-
-    dbgecho "lat: $lat$latdir, lon: $lon$londir"
-
-    # Convert to legit APRS format
-    lat=$(printf "%07.2f" $lat)
-    lon=$(printf "%08.2f" $lon)
 
     dbgecho "lat: $lat$latdir, lon: $lon$londir"
     return 0
