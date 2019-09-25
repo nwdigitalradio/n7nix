@@ -22,7 +22,7 @@ NONESSENTIAL_PKG_LIST="mg jed whois"
 NONESSENTIAL_PKG=true
 
 # Required packages
-BUILDTOOLS_PKG_LIST="rsync build-essential autoconf dh-autoreconf automake libtool git libasound2-dev libncurses5-dev libncursesw5-dev libudev-dev bc"
+BUILDTOOLS_PKG_LIST="rsync build-essential autoconf dh-autoreconf automake libtool git libasound2-dev libncurses5 libncurses5-dev libncursesw5-dev libudev-dev bc"
 
 # If the following is set to true, bluetooth will be disabled
 SERIAL_CONSOLE=false
