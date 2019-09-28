@@ -475,10 +475,11 @@ if [ "$?" -ne 0 ] ; then
 else
     sensors
 fi
-echo
-echo "---- throttle"
-vcgencmd get_throttled
 
+echo "---- throttle"
+vcgencmd measure_temp
+vcgencmd get_throttled
+echo
 echo "---- locale"
 sudo bash -c "$(declare -f check_locale) ; check_locale"
 
