@@ -130,7 +130,6 @@ control="PCM"
 audio_display_ctrl "$control"
 printf "%s\t        L:%s\tR:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
 
-# Running udrc-dkms version 1.0.5 or later
 alsactrl_count=$(amixer -c $CARD scontrols | wc -l)
 
 if (( alsactrl_count >= 44 )) ; then
@@ -229,20 +228,6 @@ function check_locale() {
 }
 
 # ===== Main
-
-# Check that the ASoC driver for the AudioSense-Pi soundcard is NOT
-# loaded
-driverdir="/lib/modules/$(uname -r)/kernel/sound/soc/codecs"
-audiosense_i2c_drivername="snd-soc-tlv320aic32x4-i2c.ko"
-audiosense_codec_drivername="snd-soc-tlv320aic32x4.ko"
-
-if [ -e  "$driverdir/$audiosense_i2c_drivername" ] ; then
-    echo "chk1: $audiosense_i2c_drivername exists, Driver CONFLICT"
-fi
-
-if [ -e  "$driverdir/$audiosense_codec_drivername" ] ; then
-    echo "chk2: $audiosense_codec_drivername exists, Driver CONFLICT"
-fi
 
 # Verify that aplay enumerates udrc sound card
 
@@ -386,18 +371,34 @@ hostnamectl
 echo
 echo "---- modules"
 lsmod | egrep -e '(udrc|tlv320)'
-dkmsdir="/lib/modules/$(uname -r)/updates/dkms"
-echo
-if [ -d "$dkmsdir" ] ; then
-   ls -o $dkmsdir/udrc.ko $dkmsdir/tlv320aic32x4*.ko
-else
-   echo "Command 'apt-get install udrc-dkms' failed or was not run."
-fi
+
+# Running udrc-dkms version 1.0.5 or later
+# dkmsdir="/lib/modules/$(uname -r)/updates/dkms"
+#echo
+#if [ -d "$dkmsdir" ] ; then
+#   ls -o $dkmsdir/udrc.ko $dkmsdir/tlv320aic32x4*.ko
+#else
+#   echo "Command 'apt-get install udrc-dkms' failed or was not run."
+#fi
 
 echo
 echo "---- kernel"
-dpkg -l "*kernel" "udrc-dkms" | tail -n 4
+dpkg -l "*kernel" | tail -n 4
 echo
+echo "---- Codec drivers"
+# Check for ASoC driver for the TI tlv320aic32x4 codec
+
+driverdir="/lib/modules/$(uname -r)/kernel/sound/soc/codecs"
+tlv320_i2c_drivername="snd-soc-tlv320aic32x4-i2c.ko"
+tlv320_codec_drivername="snd-soc-tlv320aic32x4.ko"
+
+if [ -e  "$driverdir/$tlv320_i2c_drivername" ] ; then
+    echo "Found: $audiosense_i2c_drivername, OK"
+fi
+
+if [ -e  "$driverdir/$tlv320_codec_drivername" ] ; then
+    echo "Found: $audiosense_codec_drivername, OK"
+fi
 
 # Verify that the tlv320aic32 driver is loaded
 dirname="/proc/device-tree/soc/i2c@7e804000/tlv320aic32x4@18"
