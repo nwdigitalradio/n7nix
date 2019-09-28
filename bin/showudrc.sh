@@ -393,11 +393,11 @@ tlv320_i2c_drivername="snd-soc-tlv320aic32x4-i2c.ko"
 tlv320_codec_drivername="snd-soc-tlv320aic32x4.ko"
 
 if [ -e  "$driverdir/$tlv320_i2c_drivername" ] ; then
-    echo "Found: $audiosense_i2c_drivername, OK"
+    echo "Found: $tlv320_i2c_drivername, OK"
 fi
 
 if [ -e  "$driverdir/$tlv320_codec_drivername" ] ; then
-    echo "Found: $audiosense_codec_drivername, OK"
+    echo "Found: $tlv320_codec_drivername, OK"
 fi
 
 # Verify that the tlv320aic32 driver is loaded
