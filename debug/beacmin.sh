@@ -13,7 +13,9 @@ AX25PORT=udr0
 BEACON="/usr/local/sbin/beacon"
 NULL_CALLSIGN="NOONE"
 CALLSIGN="$NULL_CALLSIGN"
-SEQUENCE_FILE="/home/pi/tmp/sequence.tmp"
+USER="$(whoami)"
+TMPDIR="/home/$USER/tmp"
+SEQUENCE_FILE="$TMPDIR/sequence.tmp"
 AXPORTS_FILE="/etc/ax25/axports"
 
 # boolean for using gpsd sentence instead of nmea sentence
@@ -27,6 +29,21 @@ londir="W"
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function is_gpsd
+# Check if gpsd has been installed
+function is_gpsd() {
+    systemctl --no-pager status gpsd > /dev/null 2>&1
+    return $?
+}
+
+# ===== function set_canned_location
+function set_canned_location() {
+    lat="4830.00"
+    latdir="N"
+    lon="12250.00"
+    londir="W"
+}
+
 # ===== function get_lat_lon_nmeasentence
 # Much easier to parse a nmea sentence &
 # convert to aprs format than a gpsd sentence
@@ -38,27 +55,24 @@ function get_lat_lon_nmeasentence() {
     ll_valid=$(echo $gpsdata | cut -d',' -f7)
     dbgecho "Status: $ll_valid"
     if [ "$ll_valid" != "A" ] ; then
-        echo "Read gps data: $gpsdata"
-#       return 1
-        echo "Read GPS data not valid, using canned values"
-        lat="4829.07"
-        latdir="N"
-        lon="12254.12"
-        londir="W"
-    else
-
-        # Separate lat, lon & position direction
-        lat=$(echo $gpsdata | cut -d',' -f2)
-        latdir=$(echo $gpsdata | cut -d',' -f3)
-        lon=$(echo $gpsdata | cut -d',' -f4)
-        londir=$(echo $gpsdata | cut -d',' -f5)
-
-        dbgecho "lat: $lat$latdir, lon: $lon$londir"
-
-        # Convert to legit APRS format
-        lat=$(printf "%07.2f" $lat)
-        lon=$(printf "%08.2f" $lon)
+        echo "GPS data not valid"
+        echo "gps data: $gpsdata"
+       return 1
     fi
+
+    dbgecho "gps data: $gpsdata"
+
+    # Separate lat, lon & position direction
+    lat=$(echo $gpsdata | cut -d',' -f2)
+    latdir=$(echo $gpsdata | cut -d',' -f3)
+    lon=$(echo $gpsdata | cut -d',' -f4)
+    londir=$(echo $gpsdata | cut -d',' -f5)
+
+    dbgecho "lat: $lat$latdir, lon: $lon$londir"
+
+    # Convert to legit APRS format
+    lat=$(printf "%07.2f" $lat)
+    lon=$(printf "%08.2f" $lon)
 
     dbgecho "lat: $lat$latdir, lon: $lon$londir"
     return 0
@@ -121,42 +135,51 @@ function callsign_axports () {
 
 # ===== main
 
-# Check if program to get lat/lon info is installed.
-prog_name="gpspipe"
-type -P $prog_name &> /dev/null
-if [ $? -ne 0 ] ; then
-    echo "$scriptname: Installing gpsd-clients package"
-    sudo apt-get install -y -q gpsd-clients
-fi
+# Don't bother looking for gpspipe if gpsd is not installed
 
-# Choose between using gpsd sentences or nmea sentences
-if $b_gpsdsentence ; then
-    prog_name="bc"
+if is_gpsd ; then
+    # Check if program to get lat/lon info is installed.
+    prog_name="gpspipe"
     type -P $prog_name &> /dev/null
     if [ $? -ne 0 ] ; then
-        echo "$scriptname: Installing $prog_name package"
-        sudo apt-get install -y -q $prog_name
+        echo "$scriptname: Installing gpsd-clients package"
+        sudo apt-get install gpsd-clients
     fi
 
-    # echo "gpsd sentence"
-    get_lat_lon_gpsdsentence
-else
+    # Choose between using gpsd sentences or nmea sentences
+    if $b_gpsdsentence ; then
+        prog_name="bc"
+        type -P $prog_name &> /dev/null
+        if [ $? -ne 0 ] ; then
+            echo "$scriptname: Installing $prog_name package"
+            sudo apt-get install -y -q $prog_name
+        fi
 
-    # echo "nmea sentence"
-    get_lat_lon_nmeasentence
-    if [ "$?" -ne 0 ] ; then
-        echo "Invalid gps data"
-        exit 1
+    else
+        # echo "nmea sentence"
+        get_lat_lon_nmeasentence
+        if [ "$?" -ne 0 ] ; then
+            echo "Read Invalid gps data read from gpsd, using canned values"
+            set_canned_location
+        fi
     fi
 fi
-
 
 timestamp=$(date "+%d %T %Z")
 
 seqnum=0
+
+# Test if temporary directory for SEQUENCE_FILE exists
+if [ ! -d "$TMPDIR" ] ; then
+   dbgecho "Directory: $TMPDIR does not exist, making ..."
+   mkdir -p "$TMPDIR"
+fi
+
 # get sequence number
 if [ -e $SEQUENCE_FILE ] ; then
    seqnum=`cat $SEQUENCE_FILE`
+else
+   echo "0" > $SEQUENCE_FILE
 fi
 
 # Check if the callsign & ax25 port have been manually set
@@ -183,3 +206,5 @@ fi
 # increment sequence number
 ((seqnum++))
 echo $seqnum > $SEQUENCE_FILE
+
+exit 0

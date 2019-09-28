@@ -107,6 +107,21 @@ function callsign_verify() {
    dbgecho "Using callsign $CALLSIGN & port $AX25PORT"
 }
 
+# ===== function is_gpsd
+# Check if gpsd has been installed
+function is_gpsd() {
+    systemctl --no-pager status gpsd > /dev/null 2>&1
+    return $?
+}
+
+# ===== function set_canned_location
+function set_canned_location() {
+    lat="4830.00"
+    latdir="N"
+    lon="12250.00"
+    londir="W"
+}
+
 # ===== function get_lat_lon_nmeasentence
 # Much easier to parse a nmea sentence &
 # convert to aprs format than a gpsd sentence
@@ -118,12 +133,12 @@ function get_lat_lon_nmeasentence() {
     ll_valid=$(echo $gpsdata | cut -d',' -f7)
     dbgecho "Status: $ll_valid"
     if [ "$ll_valid" != "A" ] ; then
-        echo "GPS data not valid, exiting "
+        echo "GPS data not valid"
         echo "gps data: $gpsdata"
         return 1
     fi
 
-    dbgecho "gpsdata: $gpsdata"
+    dbgecho "gps data: $gpsdata"
 
     # Separate lat, lon & position direction
     lat=$(echo $gpsdata | cut -d',' -f2)
@@ -211,30 +226,42 @@ if [ $? -ne 0 ] ; then
    exit 1
 fi
 
-# Check if program to get lat/lon info is installed.
-prog_name="gpspipe"
-type -P $prog_name &> /dev/null
-if [ $? -ne 0 ] ; then
-    echo "$scriptname: Installing gpsd-clients package"
-    sudo apt-get install gpsd-clients
-fi
+# Don't bother looking for gpspipe if gpsd is not installed
 
-# Choose between using gpsd sentences or nmea sentences
-if $b_gpsdsentence ; then
-    prog_name="bc"
+if is_gpsd ; then
+    # Check if program to get lat/lon info is installed.
+    prog_name="gpspipe"
     type -P $prog_name &> /dev/null
     if [ $? -ne 0 ] ; then
-        echo "$scriptname: Installing $prog_name package"
-        sudo apt-get install -y -q $prog_name
+        echo "$scriptname: Installing gpsd-clients package"
+        sudo apt-get install gpsd-clients
+    fi
+
+    # Choose between using gpsd sentences or nmea sentences
+    if $b_gpsdsentence ; then
+        prog_name="bc"
+        type -P $prog_name &> /dev/null
+        if [ $? -ne 0 ] ; then
+            echo "$scriptname: Installing $prog_name package"
+            sudo apt-get install -y -q $prog_name
+        fi
     fi
 fi
 
 seqnum=0
+
 # get sequence number
 if [ -e $SEQUENCE_FILE ] ; then
    seqnum=`cat $SEQUENCE_FILE`
 else
-   echo "0" > $SEQUENCE_FILE
+    echo "0" > $SEQUENCE_FILE
+fi
+
+dbgecho "=== test owner & group id of SEQUENCE_FILE"
+USER="$(whoami)"
+if [ "$(stat -c "%U" $SEQUENCE_FILE)" != "$USER" ] || [ "$(stat -c "%G" $SEQUENCE_FILE)" != "$USER" ] ; then
+    echo "Changing owner & group on file $SEQUENCE_FILE"
+    sudo chown $USER:$USER $SEQUENCE_FILE
 fi
 
 # Check if the callsign & ax25 port have been manually set
@@ -312,13 +339,19 @@ if [ "$BEACON_TYPE" = "mesg_beacon" ] ; then
     beacon_msg=":$CALLPAD:$timestamp $CALLSIGN $BEACON_TYPE test from host $(hostname) on port $AX25PORT Seq: $seqnum"
 else
     echo "Send a position beacon"
-    get_lat_lon_nmeasentence
-    if [ "$?" -ne 0 ] ; then
-        echo "Read Invalid gps data, using canned values"
-        lat="4829.07"
-        latdir="N"
-        lon="12254.12"
-        londir="W"
+    # Check if gpsd is even running
+
+    if is_gpsd ; then
+        # read current location from gpsd
+        get_lat_lon_nmeasentence
+        if [ "$?" -ne 0 ] ; then
+            echo "Read Invalid gps data read from gpsd, using canned values"
+            set_canned_location
+        fi
+    else
+        # gpsd not running
+        dbgecho "gpsd not running, using static lat/lon values"
+        set_canned_location
     fi
 
     beacon_msg="!${lat}${latdir}/${lon}${londir}-$timestamp, from $(hostname) on port $AX25PORT Seq: $seqnum"
@@ -335,7 +368,6 @@ if [ "$?" -ne 0 ] ; then
 fi
 
 # increment sequence number
-sudo chown $(whoami):$(whoami) $SEQUENCE_FILE
 ((seqnum++))
 echo $seqnum > $SEQUENCE_FILE
 
