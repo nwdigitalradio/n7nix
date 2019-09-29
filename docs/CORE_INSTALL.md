@@ -160,14 +160,11 @@ sudo su
 ./app_config.sh rmsgw
 # test RMS Gateway
 
-# If basic paclink-unix is required
+# If paclink-unix is required
+# Note this installs an IMAP server and email clients
+#  claws-mail & rainlooop
 ./app_config.sh plu
 # test basic plu
-
-# If paclink-unix with mail server is required then
-./app_config.sh pluimap
-# test plu with imap
-
 ```
 
 ### Alternate Install /  Config method
