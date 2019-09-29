@@ -7,6 +7,8 @@ USER=pi
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
 # ===== main
 
 # Be sure we're running as root
