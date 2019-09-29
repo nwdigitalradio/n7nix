@@ -7,12 +7,12 @@
 * [Go to the download site](http:nwdig.net/downloads) to find the current filename of the image
   * You can get the image using the following or just click on the filename using your browser.
 ```bash
-wget http://images.nwdigitalradio.com/downloads/current_beta.zip
+wget http://images.nwdigitalradio.com/downloads/current_image.zip
 ```
 
 ##### Unzip the image file
 ```bash
-unzip current_beta.zip
+unzip current_image.zip
 ```
 ##### Provision an SD card
 * At least a 16GB microSD card is recommended
@@ -30,15 +30,15 @@ and scroll down to **"Writing an image to the SD card"**
   point](https://www.raspberrypi.org/documentation/installation/installing-images/linux.md)
 
 ```
-unzip current_beta.zip
-# You will find an image file: draws_betaxx.img
+unzip current_image.zip
+# You will find an image file: nwdrxx.img
 
 # Become root
 sudo su
 apt-get install dcfldd
 
-# Use name of unzipped file ie. draws_beta10.img
-time (dcfldd if=draws_betaxx.img of=/dev/sdf bs=4M status=progress; sync)
+# Use name of unzipped file ie. nwdr14.img
+time (dcfldd if=nwdrxx.img of=/dev/sdf bs=4M status=progress; sync)
 # Doesn't hurt to run sync twice
 sync
 ```
@@ -51,7 +51,7 @@ minutes on my machine.
 
 ```
 login: pi
-passwd: nwcompass
+passwd: digiberry
 ```
 
 ### Initial Configuration
@@ -169,3 +169,25 @@ card 1: udrc [udrc], device 0: Universal Digital Radio Controller tlv320aic32x4-
   Subdevices: 0/1
   Subdevice #0: subdevice #0
 ```
+
+### Make your own Raspberry Pi image
+* The driver required by the NW Digital Radio is now in the main line Linux kernel (version 4.19.66)
+* To make your own Raspberry Pi image
+  * Download the lastest version of Raspbian [from here](https://www.raspberrypi.org/downloads/raspbian/)
+    * Choose one of:
+      * Raspbian Buster Lite
+      * Raspbian Buster with desktop
+      * desktop and recommended software
+* Add the following lines to the bottom of /boot/config.txt
+```
+dtoverlay=
+dtoverlay=draws,alsaname=udrc
+force_turbo=1
+```
+* If you want to ssh into your device then add an ssh file to the boot directory
+```
+touch /boot/ssh
+```
+
+* Boot the new micro SD card.
+
