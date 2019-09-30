@@ -267,16 +267,18 @@ echo "current dir: $currentdir"
 pathdn1=$( echo ${currentdir%/*})
 dbgecho "Test pwd: $currentdir, path: $pathdn1"
 
-# Determine if driver has enumerated device
+# Run this to set correct dtoverlay name: udrc or draws
+$pathdn1/bin/chk_bootcfg.sh
+
+# Determine if driver was loaded and properly enumerated udrc/DRAWS device
 aplay -l | grep -i udrc > /dev/null 2>&1
 if [ "$?" -ne 0 ] ; then
     # There are a couple of things that might cause this problem.
-    # Check if there is a conflict with AudioSense-Pi driver
-    # Do not do this with latest tlv320aic driver!!!
-#    $pathdn1/bin/chk_conflict.sh
     # Check if on-board audio enable is in wrong location in /boot/config.txt file
     $pathdn1/bin/chk_bootcfg.sh
-    echo "udrc driver load problem, must reboot !"
+    echo
+    echo "  $(tput setaf 1)udrc/DRAWS driver load problem, must reboot !$(tput setaf 7)"
+    echo
     exit 1
 fi
 
