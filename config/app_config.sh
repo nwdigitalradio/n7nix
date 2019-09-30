@@ -217,12 +217,12 @@ case $APP_SELECT in
       source ./rainloop_install.sh
       popd > /dev/null
 
-      # This installs claws-mail & dovecot
+      # This installs claws-mail
       pushd ../email/claws
       sudo -u "$USER" ./claws_install.sh $USER $CALLSIGN
       popd > /dev/null
    ;;
-# Take out option pluimap should all be done in default plu install
+# Take out option pluimap should all now be done in default plu install
 #   pluimap)
 #      echo "$scriptname: Config paclink-unix with imap"
 #      echo  "$scriptname: pluimap is under development, just use 'plu'"
