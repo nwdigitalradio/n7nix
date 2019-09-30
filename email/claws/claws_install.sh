@@ -156,8 +156,8 @@ if [ $? -ne 0 ] ; then
    echo "$(tput setaf 1) claws-mail is now installed!"
    echo " NOW run claws-mail from GUI before proceeding."
    echo " This will create the claws-mail config files."
-   echo " After running claws-mail, run this install script again."
-   echo " See install notes in readme.$(tput setaf 7)"
+   echo " After running claws-mail, run email/claws/claws_install.sh script again."
+   echo " See claws-mail install notes in email/claws/README.md.$(tput setaf 7)"
    exit 0
 fi
 
