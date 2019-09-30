@@ -202,19 +202,24 @@ case $APP_SELECT in
       source ./plu_config.sh $USER $CALLSIGN
       popd > /dev/null
 
-      # This installs claws-mail & dovecot
-      pushd ../email/claws
-      sudo -u "$USER" ./claws_install.sh $USER $CALLSIGN
-      popd > /dev/null
-
       # This sets up systemd to start web server for paclink-unix
       pushd ../plu
       source ./pluweb_install.sh $USER
       popd > /dev/null
 
+      # configure dovecot
+      pushd ../email/claws
+      source ./dovecot_config.sh $USER
+      popd > /dev/null
+
       # This installs rainloop & lighttpd
       pushd ../email/rainloop
       source ./rainloop_install.sh
+      popd > /dev/null
+
+      # This installs claws-mail & dovecot
+      pushd ../email/claws
+      sudo -u "$USER" ./claws_install.sh $USER $CALLSIGN
       popd > /dev/null
    ;;
 # Take out option pluimap should all be done in default plu install

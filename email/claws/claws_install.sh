@@ -153,11 +153,11 @@ is_pkg_installed $pkg_name
 if [ $? -ne 0 ] ; then
    echo "$scriptname: Will Install $pkg_name program"
    sudo apt-get -y install $pkg_name
-   echo " claws-mail is now installed!"
+   echo "$(tput setaf 1) claws-mail is now installed!"
    echo " NOW run claws-mail from GUI before proceeding."
    echo " This will create the claws-mail config files."
    echo " After running claws-mail, run this install script again."
-   echo " See install notes in readme."
+   echo " See install notes in readme.$(tput setaf 7)"
    exit 0
 fi
 
@@ -213,5 +213,3 @@ cp /usr/share/raspi-ui-overrides/applications/claws-mail.desktop /home/$USER/Des
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: claws-mail install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo
-# configure dovecot
-sudo $CUR_DIR/dovecot_config.sh $USER
