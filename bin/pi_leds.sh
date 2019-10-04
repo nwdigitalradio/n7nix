@@ -39,6 +39,10 @@ if [[ $# -gt 0 ]] ; then
             dbgecho "Changing led trigger from $trigger to ssd card activity"
             echo mmc0 | sudo tee /sys/class/leds/led$LED_N/trigger
         ;;
+        -h)
+            usage
+            exit 1
+        ;;
         *)
             echo "Undefined argument: $key"
             usage
