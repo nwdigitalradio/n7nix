@@ -47,6 +47,11 @@ BEACON_TYPE="mesg_beacon"
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function is_ax25up
+function is_ax25up() {
+  ip a show ax0 up > /dev/null  2>&1
+}
+
 # ===== function callsign_axports
 # Pull a call sign from the /etc/ax25/axports file
 function callsign_axports () {
@@ -107,11 +112,35 @@ function callsign_verify() {
    dbgecho "Using callsign $CALLSIGN & port $AX25PORT"
 }
 
+# ===== function is_draws
+# Determine if a NWDR DRAWS hat is installed
+function is_draws() {
+    retval=1
+    firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
+    UDRC_ID="$(tr -d '\0' < $firmware_prod_idfile)"
+    #get last character in product id file
+    UDRC_ID=${UDRC_ID: -1}
+    if [ "$UDRC_ID" -eq 4 ] ; then
+        retval=0
+    fi
+    return $retval
+}
+
 # ===== function is_gpsd
 # Check if gpsd has been installed
 function is_gpsd() {
+    dbgecho "is_gpsd"
     systemctl --no-pager status gpsd > /dev/null 2>&1
     return $?
+}
+
+# ===== function is_gps_sentence
+# Check if gpsd is returning sentences
+# Returns gps sentence count, should be 3
+function is_gps_sentence() {
+    dbgecho "is_gps_sentence"
+    retval=$(gpspipe -r -n 3 -x 2 | grep -ic "class")
+    return $retval
 }
 
 # ===== function set_canned_location
@@ -212,64 +241,6 @@ if [[ $EUID -ne 0 ]]; then
 #  exit 1
 fi
 
-# does the AXPORTS file exist ie. is ax.25 installed?
-if [ ! -e $AXPORTS_FILE ] ; then
-    echo "$scriptname: Couldn't locate ax25/axports file, is AX.25 installed?"
-    exit 1
-fi
-
-# Has the beacon program been installed?
-type -P $BEACON &>/dev/null
-if [ $? -ne 0 ] ; then
-   # Get here if beacon program NOT installed.
-   echo "$scriptname: ax25tools not installed."
-   exit 1
-fi
-
-# Don't bother looking for gpspipe if gpsd is not installed
-
-if is_gpsd ; then
-    # Check if program to get lat/lon info is installed.
-    prog_name="gpspipe"
-    type -P $prog_name &> /dev/null
-    if [ $? -ne 0 ] ; then
-        echo "$scriptname: Installing gpsd-clients package"
-        sudo apt-get install gpsd-clients
-    fi
-
-    # Choose between using gpsd sentences or nmea sentences
-    if $b_gpsdsentence ; then
-        prog_name="bc"
-        type -P $prog_name &> /dev/null
-        if [ $? -ne 0 ] ; then
-            echo "$scriptname: Installing $prog_name package"
-            sudo apt-get install -y -q $prog_name
-        fi
-    fi
-fi
-
-seqnum=0
-
-# get sequence number
-if [ -e $SEQUENCE_FILE ] ; then
-   seqnum=`cat $SEQUENCE_FILE`
-else
-    echo "0" > $SEQUENCE_FILE
-fi
-
-dbgecho "=== test owner & group id of SEQUENCE_FILE"
-USER="$(whoami)"
-if [ "$(stat -c "%U" $SEQUENCE_FILE)" != "$USER" ] || [ "$(stat -c "%G" $SEQUENCE_FILE)" != "$USER" ] ; then
-    echo "Changing owner & group on file $SEQUENCE_FILE"
-    sudo chown $USER:$USER $SEQUENCE_FILE
-fi
-
-# Check if the callsign & ax25 port have been manually set
-if [ "$CALLSIGN" = "$NULL_CALLSIGN" ] || [ "$AX25PORT" = "NOPORT" ] ; then
-   callsign_axports
-fi
-callsign_verify
-
 # parse command line options
 # if there are no args default to out put a message beacon
 if [[ $# -eq 0 ]] ; then
@@ -301,6 +272,8 @@ while [[ $# -gt 0 ]] ; do
          ;;
       -v|--verbose)
          verbose="true"
+         DEBUG=1
+         dbgecho "Debug set to on."
          ;;
       *)
 	echo "Unknown option: $key"
@@ -311,6 +284,81 @@ while [[ $# -gt 0 ]] ; do
 shift # past argument or value
 done
 
+# does the AXPORTS file exist ie. is ax.25 installed?
+if [ ! -e $AXPORTS_FILE ] ; then
+    echo "$scriptname: Couldn't locate ax25/axports file, is AX.25 installed?"
+    exit 1
+fi
+
+# Check if AX.25 port ax0 exists & is up
+if ! is_ax25up ; then
+    echo "$scriptname: AX.25 port not found, is AX.25 configured?"
+    exit 1
+fi
+
+dbgecho "=== check if beacon program is installed"
+
+# Has the beacon program been installed?
+type -P $BEACON &>/dev/null
+if [ $? -ne 0 ] ; then
+   # Get here if beacon program NOT installed.
+   echo "$scriptname: ax25tools not installed."
+   exit 1
+fi
+
+gps_running=false
+
+# Check if a DRAWS card found & gpsd is installed
+# otherwise don't bother looking for gpspipe program
+if is_gpsd && is_draws ; then
+    dbgecho "Verify gpspipe is installed"
+    # Check if program to get lat/lon info is installed.
+    prog_name="gpspipe"
+    type -P $prog_name &> /dev/null
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Installing gpsd-clients package"
+        sudo apt-get install gpsd-clients
+    fi
+
+    # Verify gpsd is returning sentences
+    if [ $(is_gps_sentence) > 0 ] ; then
+        gps_running=true
+        # Choose between using gpsd sentences or nmea sentences
+        if $b_gpsdsentence ; then
+            prog_name="bc"
+            type -P $prog_name &> /dev/null
+            if [ $? -ne 0 ] ; then
+                echo "$scriptname: Installing $prog_name package"
+                sudo apt-get install -y -q $prog_name
+            fi
+        fi
+    else
+        dbgecho "gpsd is installed but not returning sentences."
+    fi
+fi
+
+dbgecho "=== get a sequence number"
+
+seqnum=0
+# get sequence number
+if [ -e $SEQUENCE_FILE ] ; then
+   seqnum=`cat $SEQUENCE_FILE`
+else
+    echo "0" > $SEQUENCE_FILE
+fi
+
+dbgecho "=== test owner & group id of SEQUENCE_FILE"
+USER="$(whoami)"
+if [ "$(stat -c "%U" $SEQUENCE_FILE)" != "$USER" ] || [ "$(stat -c "%G" $SEQUENCE_FILE)" != "$USER" ] ; then
+    echo "Changing owner & group on file $SEQUENCE_FILE"
+    sudo chown $USER:$USER $SEQUENCE_FILE
+fi
+
+# Check if the callsign & ax25 port have been manually set
+if [ "$CALLSIGN" = "$NULL_CALLSIGN" ] || [ "$AX25PORT" = "NOPORT" ] ; then
+   callsign_axports
+fi
+callsign_verify
 
 # pad aprs Message format addressee field to 9 characters
 if (( ${#CALLSIGN} == 9 )) ; then
@@ -341,7 +389,8 @@ else
     echo "Send a position beacon"
     # Check if gpsd is even running
 
-    if is_gpsd ; then
+    if $gps_running ; then
+        dbgecho "Read current location from gpsd"
         # read current location from gpsd
         get_lat_lon_nmeasentence
         if [ "$?" -ne 0 ] ; then
@@ -350,7 +399,7 @@ else
         fi
     else
         # gpsd not running
-        dbgecho "gpsd not running, using static lat/lon values"
+        dbgecho "gpsd not running or no DRAWS hat found, using static lat/lon values"
         set_canned_location
     fi
 

@@ -3,6 +3,7 @@
 # beacmin.sh
 #
 # Minimal APRS beacon of position data from GPS
+# If a GPS is not found then a canned position is beaconed.
 #
 # Uncomment this statement for debug echos
 #DEBUG=1
@@ -10,6 +11,7 @@
 SID=15
 AX25PORT=udr0
 
+scriptname="`basename $0`"
 BEACON="/usr/local/sbin/beacon"
 NULL_CALLSIGN="NOONE"
 CALLSIGN="$NULL_CALLSIGN"
@@ -29,11 +31,35 @@ londir="W"
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function is_draws
+# Determine if a NWDR DRAWS hat is installed
+function is_draws() {
+    retval=1
+    firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
+    UDRC_ID="$(tr -d '\0' < $firmware_prod_idfile)"
+    #get last character in product id file
+    UDRC_ID=${UDRC_ID: -1}
+    if [ "$UDRC_ID" -eq 4 ] ; then
+        retval=0
+    fi
+    return $retval
+}
+
 # ===== function is_gpsd
 # Check if gpsd has been installed
 function is_gpsd() {
+    dbgecho "is_gpsd"
     systemctl --no-pager status gpsd > /dev/null 2>&1
     return $?
+}
+
+# ===== function is_gps_sentence
+# Check if gpsd is returning sentences
+# Returns gps sentence count, should be 3
+function is_gps_sentence() {
+    dbgecho "is_gps_sentence"
+    retval=$(gpspipe -r -n 3 -x 2 | grep -ic "class")
+    return $retval
 }
 
 # ===== function set_canned_location
@@ -133,11 +159,27 @@ function callsign_axports () {
    fi
 }
 
+# ===== function is_ax25up
+function is_ax25up() {
+  ip a show ax0 up > /dev/null  2>&1
+}
+
+
 # ===== main
+
+if [[ $# -gt 0 ]] ; then
+    echo "$scriptname: does NOT take any arguments."
+fi
+
+# Check if AX.25 port ax0 exists & is up
+if ! is_ax25up ; then
+    echo "$scriptname: AX.25 port not found, is AX.25 configured?"
+    exit 1
+fi
 
 # Don't bother looking for gpspipe if gpsd is not installed
 
-if is_gpsd ; then
+if is_gpsd && is_draws ; then
     # Check if program to get lat/lon info is installed.
     prog_name="gpspipe"
     type -P $prog_name &> /dev/null
@@ -146,23 +188,32 @@ if is_gpsd ; then
         sudo apt-get install gpsd-clients
     fi
 
-    # Choose between using gpsd sentences or nmea sentences
-    if $b_gpsdsentence ; then
-        prog_name="bc"
-        type -P $prog_name &> /dev/null
-        if [ $? -ne 0 ] ; then
-            echo "$scriptname: Installing $prog_name package"
-            sudo apt-get install -y -q $prog_name
+    # Verify gpsd is returning sentences
+    if [ $(is_gps_sentence) > 0 ] ; then
+        gps_running=true
+        # Choose between using gpsd sentences or nmea sentences
+        if $b_gpsdsentence ; then
+            prog_name="bc"
+            type -P $prog_name &> /dev/null
+            if [ $? -ne 0 ] ; then
+                echo "$scriptname: Installing $prog_name package"
+                sudo apt-get install -y -q $prog_name
+            fi
+        else
+            # echo "nmea sentence"
+            get_lat_lon_nmeasentence
+            if [ "$?" -ne 0 ] ; then
+                echo "Read Invalid gps data read from gpsd, using canned values"
+                set_canned_location
+            fi
         fi
-
     else
-        # echo "nmea sentence"
-        get_lat_lon_nmeasentence
-        if [ "$?" -ne 0 ] ; then
-            echo "Read Invalid gps data read from gpsd, using canned values"
-            set_canned_location
-        fi
+        dbgecho "gpsd is installed but not returning sentences."
     fi
+else
+    # gpsd not running or no DRAWS hat found
+    echo "gpsd not running or no DRAWS hat found, using static lat/lon values"
+    set_canned_location
 fi
 
 timestamp=$(date "+%d %T %Z")
@@ -201,7 +252,7 @@ if [ -z "$DEBUG" ] ; then
         echo "Beacon command failed."
     fi
 else
-    echo "Debug set, beacon not actually sent."
+    echo "$scriptname: Debug set, beacon not actually sent."
 fi
 # increment sequence number
 ((seqnum++))
