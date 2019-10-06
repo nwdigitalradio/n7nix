@@ -96,7 +96,9 @@ sudo su
 * **Now reboot your RPi**
 
 * **You must set your ALSA configuration** for your particular radio at this time
-  * Also note which connector you are using as you can vary ALSA settings based which channel you are using left channel is left connector
+  * Also note which connector you are using as you can vary ALSA settings based which channel you are using
+    * On a DRAWS hat left connector is left channel
+    * On a UDRC II hat mDin6 connector is right channel
   * You also must route the AFOUT, compensated receive signal or the DISC, discriminator  receive signal with ALSA settings.
 
 *  [verify your installation is working properly](https://github.com/nwdigitalradio/n7nix/blob/master/docs/VERIFY_CONFIG.md)
