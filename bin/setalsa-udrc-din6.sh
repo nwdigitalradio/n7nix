@@ -31,19 +31,19 @@ sset 'PCM' 0.0dB
 #  Turn on AFOUT
 sset 'CM_L to Left Mixer Negative Resistor' '10 kOhm'
 sset 'IN1_L to Left Mixer Positive Resistor' '10 kOhm'
+sset 'IN2_L to Left Mixer Positive Resistor' 'Off'
 
 #  Turn on DISCOUT
 sset 'CM_R to Right Mixer Negative Resistor' '10 kOhm'
 sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
+sset 'IN2_R to Right Mixer Positive Resistor' 'Off'
 
 #  Turn off unnecessary pins
 sset 'IN1_L to Right Mixer Negative Resistor' 'Off'
 sset 'IN1_R to Left Mixer Positive Resistor' 'Off'
 
-sset 'IN2_L to Left Mixer Positive Resistor' 'Off'
 sset 'IN2_L to Right Mixer Positive Resistor' 'Off'
 sset 'IN2_R to Left Mixer Negative Resistor' 'Off'
-sset 'IN2_R to Right Mixer Positive Resistor' 'Off'
 
 sset 'IN3_L to Left Mixer Positive Resistor' 'Off'
 sset 'IN3_L to Right Mixer Negative Resistor' 'Off'
@@ -79,7 +79,8 @@ sset 'HPR Output Mixer IN1_R' off
 #  Turn on the LO DAC
 sset 'LO DAC' on
 
-#  Turn on AFIN
+# Turn on both left & right channels
+# Turn on AFIN
 sset 'LOL Output Mixer L_DAC' on
 
 #  Turn on TONEIN
