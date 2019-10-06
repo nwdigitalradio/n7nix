@@ -53,8 +53,19 @@ minutes on my machine.
 login: pi
 passwd: digiberry
 ```
-
 ### Initial Configuration
+
+#### Initial Config Summary
+
+- First boot: follow 'Welcome to Raspberry Pi' piwiz screens.
+- Second boot: run script: _app_config.sh core_
+- Third boot: Set your ALSA config
+- For packet turn on Direwolf & AX.25
+
+#### Initial Config Detail
+
+* If you are running with an attached monitor you should see the Raspbian 'Welcome to Raspberry Pi' piwiz splash screen
+  * Follow the screens as you would on any other Raspbian install.
 
 ##### Configure core functionality
 
@@ -82,8 +93,14 @@ sudo su
 
 ##### First Reboot After Initial Configuration
 
-* **Now reboot your RPi** & [verify your installation is working
-properly](https://github.com/nwdigitalradio/n7nix/blob/master/docs/VERIFY_CONFIG.md)
+* **Now reboot your RPi**
+
+* **You must set your ALSA configuration** for your particular radio at this time
+  * Also note which connector you are using as you can vary ALSA settings based which channel you are using left channel is left connector
+  * You also must route the AFOUT, compensated receive signal or the DISC, discriminator  receive signal with ALSA settings.
+
+*  [verify your installation is working properly](https://github.com/nwdigitalradio/n7nix/blob/master/docs/VERIFY_CONFIG.md)
+
 * **NOTE:** the default core config leaves AX.25 & _direwolf_ **NOT
 running** & **NOT enabled**
   * The default config is to run HF applications like js8call, wsjtx
