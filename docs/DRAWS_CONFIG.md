@@ -100,6 +100,7 @@ sudo su
     * On a UDRC II hat mDin6 connector is right channel
   * You also must route the AFOUT, compensated receive signal or the DISC, discriminator  receive signal with ALSA settings.
   * If you are using the setalsa_ scripts in your local bin directory run as root to save the configuration between reboots.
+  * Verify your ALSA settings by running ```alsa-show.sh```
 
 *  [verify your installation is working properly](https://github.com/nwdigitalradio/n7nix/blob/master/docs/VERIFY_CONFIG.md)
 
@@ -116,7 +117,7 @@ sudo su
 ./ax25-start
 ```
 
-##### Second Reboot to enable packet
+##### Reboot to enable packet
 
 * Now reboot and verify by running:
 ```
