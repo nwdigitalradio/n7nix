@@ -68,9 +68,8 @@ EOF
 fi
 
 amixer -c udrc -s << EOF
-#  Set default input and output levels
-
-# Everything after this is common to both audio channels
+# Set default input and output levels
+# Everything after this line is common to both audio channels
 
 sset 'CM_L to Left Mixer Negative Resistor' '10 kOhm'
 sset 'CM_R to Right Mixer Negative Resistor' '10 kOhm'
