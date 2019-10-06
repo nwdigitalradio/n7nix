@@ -66,6 +66,7 @@ passwd: digiberry
 
 * If you are running with an attached monitor you should see the Raspbian 'Welcome to Raspberry Pi' piwiz splash screen
   * Follow the screens as you would on any other Raspbian install.
+  * When prompted to restart the RPi please do so.
 
 ##### Configure core functionality
 
@@ -91,20 +92,18 @@ sudo su
   * direwolf
   * systemd
 
-##### First Reboot After Initial Configuration
-
 * **Now reboot your RPi**
 
 * **You must set your ALSA configuration** for your particular radio at this time
-  * Also note which connector you are using as you can vary ALSA settings based which channel you are using
+  * Also note which connector you are using as you can vary ALSA settings based on which channel you are using
     * On a DRAWS hat left connector is left channel
     * On a UDRC II hat mDin6 connector is right channel
   * You also must route the AFOUT, compensated receive signal or the DISC, discriminator  receive signal with ALSA settings.
+  * If you are using the setalsa_ scripts in your local bin directory run as root to save the configuration between reboots.
 
 *  [verify your installation is working properly](https://github.com/nwdigitalradio/n7nix/blob/master/docs/VERIFY_CONFIG.md)
 
-* **NOTE:** the default core config leaves AX.25 & _direwolf_ **NOT
-running** & **NOT enabled**
+* **NOTE:** the default core config leaves AX.25 & _direwolf_ **NOT running** & **NOT enabled**
   * The default config is to run HF applications like js8call, wsjtx
   and FLdigi
   * If you are **not** interested in packet and want to run an HF app then go ahead & do that now.
