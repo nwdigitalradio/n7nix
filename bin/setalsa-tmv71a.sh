@@ -36,7 +36,7 @@ if [ "$MODE_9600_ENABLE" = "true" ] ; then
     echo "debug: 9600 baud enable ie. DISCOUT"
     # For 9600 baud packet only
     # Turn AFOUT off & DISCOUT on
-    # ie. Receive audio off & discriminator output on
+    # ie. Receive audio off & discriminator input on
 
     amixer -c udrc -s << EOF
 sset 'PCM' 0.0dB,0.0dB
