@@ -31,6 +31,9 @@ fi
    echo "Command 'alsactl store' will not work unless you are root"
 fi
 
+# IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
+# IN2 Compensated receive audio (all radios, 1200 baud and slower packet)
+
 if [ "$MODE_9600_ENABLE" = "true" ] ; then
 
     echo "debug: 9600 baud enable ie. DISCOUT"
@@ -73,9 +76,6 @@ amixer -c udrc -s << EOF
 
 sset 'CM_L to Left Mixer Negative Resistor' '10 kOhm'
 sset 'CM_R to Right Mixer Negative Resistor' '10 kOhm'
-
-# IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
-# IN2 Receive audio (all radios, 1200 baud packet)
 
 #  Turn off unnecessary pins
 sset 'IN1_L to Right Mixer Negative Resistor' 'Off'
