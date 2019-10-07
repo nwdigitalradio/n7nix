@@ -1,3 +1,15 @@
+Mon Oct  7 09:00:21 PDT 2019  Basil Gunn <basil@pacabunga.com>
+
+  * Image NWDR14 release
+    * Use Raspbian Buster (Debian 10) with main line tlv320aic driver as image base
+      * Compass is deprecated
+    * Updated all HF programs
+    * Updated 'Getting Started' guide
+    * Fix permission problem when installing iptables
+    * Made beacon scripts independent of gps.
+    * Add script to easily switch between 1200 & 9600 baud packet.
+    * Add script to change RPi led trigger method
+
 Sun May  5 09:50:05 PDT 2019  Basil Gunn <basil@pacabunga.com>
 
   * Image BETA13 release

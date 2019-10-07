@@ -1,4 +1,4 @@
-## DRAWS Raspberry Pi image
+## UDRC / DRAWS Raspberry Pi image
 
 ### Provision the micro SD Card
 
@@ -53,6 +53,7 @@ minutes on my machine.
 login: pi
 passwd: digiberry
 ```
+
 ### Initial Configuration
 
 #### Initial Config Summary
@@ -157,36 +158,19 @@ sudo su
 ```
 * This will stop _direwolf_ & all the AX.25 services allowing another program to use the DRAWS sound card.
 
-#### To Enable the RPi on board audio device
+#### Enable the RPi on board audio device
 
-* As root uncomment the following line in _/boot/config.txt_
-  * ie. remove the hash character from the beginning of the line.
+* The default configuration enables the RPi on board bcm2835 sound device
+* If for some reason you want to disable the sound device then:
+  * As root comment the following line in _/boot/config.txt_
+  * ie. put a hash character at the beginning of the line.
 ```
 dtparam=audio=on
 ```
-* after a reboot verify the RPi sound device has been enumerated by
-listing all the sound playback hardware devices:
+* You need to reboot for any changes in _/boot/config.txt_ to take effect
+* after a reboot verify by listing all the sound playback hardware devices:
 ```
 aplay -l
-```
-* Look for a response that looks similar to this:
-```
-**** List of PLAYBACK Hardware Devices ****
-card 0: ALSA [bcm2835 ALSA], device 0: bcm2835 ALSA [bcm2835 ALSA]
-  Subdevices: 7/7
-  Subdevice #0: subdevice #0
-  Subdevice #1: subdevice #1
-  Subdevice #2: subdevice #2
-  Subdevice #3: subdevice #3
-  Subdevice #4: subdevice #4
-  Subdevice #5: subdevice #5
-  Subdevice #6: subdevice #6
-card 0: ALSA [bcm2835 ALSA], device 1: bcm2835 ALSA [bcm2835 IEC958/HDMI]
-  Subdevices: 1/1
-  Subdevice #0: subdevice #0
-card 1: udrc [udrc], device 0: Universal Digital Radio Controller tlv320aic32x4-hifi-0 []
-  Subdevices: 0/1
-  Subdevice #0: subdevice #0
 ```
 
 ### Make your own Raspberry Pi image
@@ -203,10 +187,9 @@ dtoverlay=
 dtoverlay=draws,alsaname=udrc
 force_turbo=1
 ```
-* If you want to ssh into your device then add an ssh file to the boot directory
+* If you want to ssh into your device then add an ssh file to the _/boot_ directory
 ```
 touch /boot/ssh
 ```
 
 * Boot the new micro SD card.
-
