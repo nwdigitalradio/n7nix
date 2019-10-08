@@ -53,14 +53,16 @@ touch /media/sd/ssh
 umount /media/sd
 ```
 #### After editing _/boot/config.txt_, test for a successful driver load
-* For a DRAWS hat add the following lines to the bottom of /boot/config.txt
+* For a DRAWS hat add the following lines to the bottom of
+_/boot/config.txt_
 ```
 dtoverlay=
 dtoverlay=draws,alsaname=udrc
 force_turbo=1
 ```
 
-* For a UDRC/UDRC II hat add the following lines to the bottom of /boot/config.txt
+* For a UDRC/UDRC II hat add the following lines to the bottom of
+_/boot/config.txt_
 ```
 dtoverlay=
 dtoverlay=udrc
@@ -111,7 +113,7 @@ ssh pi@<rpi_ip_address>
 # Become root
 sudo su
 apt-get update
-# Be patient, the following command will take some time
+# Be patient, the following command may take some time
 # Also you may get a (q to quit) prompt to continue after reading about sudoers
 # list. Just hit 'q'
 apt-get upgrade -y
@@ -189,7 +191,17 @@ sudo su
 # Execute from n7nix/config directory
 ./app_config.sh core
 ```
-###### See **Core Configuration** below
+* **You must set your ALSA configuration** for your particular radio
+at this time
+
+* **NOTE:** the default core config leaves AX.25 & _direwolf_ **NOT
+running** & **NOT enabled**
+* Please refer to [DRAWS
+CONFIG](https://github.com/nwdigitalradio/n7nix/blob/master/docs/DRAWS_CONFIG.md#initial-configuration)
+for more information.
+
+
+###### See [**Core Configuration**](#core-configuration) below
 
 **NOTE:** After ./app_config.sh core **you must reboot**
 
@@ -234,7 +246,7 @@ sudo su
   * see below: **Testing direwolf & the UDRC**
 
 
-###### See **Core Configuration** below
+###### See [**Core Configuration**](#core-configuration) below
 
 ```bash
 # If RMS Gateway is required then
@@ -312,7 +324,7 @@ following.
 ### How to Enable Serial console
 
 * To Enable a serial console on a Raspberry Pi 3 change 2 files
-  * Disable bluetooth in /boot/config.txt
+  * Disable bluetooth in _/boot/config.txt_
 ```
 dtoverlay=pi3-disable-bt
 ```
