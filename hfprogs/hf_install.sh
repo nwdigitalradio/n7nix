@@ -268,8 +268,12 @@ function swap_size_check() {
         swap_config=$(grep -i conf_swapsize /etc/dphys-swapfile | cut -d"=" -f2)
         sudo sed -i -e "/CONF_SWAPSIZE/ s/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=1024/" /etc/dphys-swapfile
 
-        echo "Swap size too small for builds, changed from $swap_config to 1024 ... need to reboot."
-        exit 1
+        echo "$(tput setaf 4)Swap size too small for source builds, changed from $swap_config to 1024 in config file"
+        echo " Restarting dphys-swapfile process.$(tput setaf 7)"
+        systemctl restart dphys-swapfile
+        # Verify swap file size change
+        swap_size=$(swapon -s | tail -n1 | expand -t 1 | tr -s '[[:space:]] ' | cut -d' ' -f3)
+        echo "Swap file size verification: $swap_size"
     fi
 }
 
