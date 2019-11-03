@@ -16,7 +16,7 @@
 
 #### [DRAWS AUX PORT](https://github.com/nwdigitalradio/n7nix/blob/master/docs/DRAWS_AUX_PORT.md)
 
-#### [DRAWS Image Updater]((https://github.com/nwdigitalradio/n7nix/blob/master/docs/DRAWS_IMAGE_UPDATER.md)
+#### [DRAWS Image Updater](https://github.com/nwdigitalradio/n7nix/blob/master/docs/DRAWS_IMAGE_UPDATER.md)
 
 #### [Radio App Notes](https://github.com/nwdigitalradio/n7nix/blob/master/docs/RADIO_APP_NOTES.md)
 

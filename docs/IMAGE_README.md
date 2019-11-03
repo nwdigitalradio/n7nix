@@ -28,7 +28,7 @@
 | mutt         |   1.7.2  |  yes  |  yes  |  yes    |
 | claws-mail   |   3.14.1 |  yes  |       |       |
 | rainloop     |   1.12.1 |  yes  |       |       |
-| FBB BBS      | 7.0.8-beta7 |    |  yes  |  yes  |
+| FBB BBS      | 7.0.8-beta8 |    |  yes  |  yes  |
 | Xastir       |   2.1.3     |    |  yes  |       |
 | YAAC           | 1.0-beta129  |      | yes  |
 | dstarrepeater  | 1.20180703-4 | yes |   |   |
