@@ -81,7 +81,7 @@ function get_lat_lon_nmeasentence() {
     ll_valid=$(echo $gpsdata | cut -d',' -f7)
     dbgecho "Status: $ll_valid"
     if [ "$ll_valid" != "A" ] ; then
-        echo "GPS data not valid"
+        echo "GPS data not valid: $ll_valid"
         echo "gps data: $gpsdata"
        return 1
     fi
@@ -180,6 +180,7 @@ fi
 # Don't bother looking for gpspipe if gpsd is not installed
 
 if is_gpsd && is_draws ; then
+    dbgecho "Verify gpspipe is installed"
     # Check if program to get lat/lon info is installed.
     prog_name="gpspipe"
     type -P $prog_name &> /dev/null
@@ -189,7 +190,7 @@ if is_gpsd && is_draws ; then
     fi
 
     # Verify gpsd is returning sentences
-    if [ $(is_gps_sentence) > 0 ] ; then
+    if [ is_gps_sentence > 0 ] ; then
         gps_running=true
         # Choose between using gpsd sentences or nmea sentences
         if $b_gpsdsentence ; then
@@ -200,7 +201,7 @@ if is_gpsd && is_draws ; then
                 sudo apt-get install -y -q $prog_name
             fi
         else
-            # echo "nmea sentence"
+            #echo "nmea sentence"
             get_lat_lon_nmeasentence
             if [ "$?" -ne 0 ] ; then
                 echo "Read Invalid gps data read from gpsd, using canned values"
@@ -208,12 +209,15 @@ if is_gpsd && is_draws ; then
             fi
         fi
     else
-        dbgecho "gpsd is installed but not returning sentences."
+        echo "gpsd is installed but not returning sentences."
     fi
+    # Get 12V supply voltage
+    batvoltage=$(sensors | grep -i "+12V:" | cut -d':' -f2 | sed -e 's/^[ \t]*//' | cut -d' ' -f1)
 else
     # gpsd not running or no DRAWS hat found
     echo "gpsd not running or no DRAWS hat found, using static lat/lon values"
     set_canned_location
+    batvoltage=0
 fi
 
 timestamp=$(date "+%d %T %Z")
@@ -242,7 +246,7 @@ fi
 # /j = jeep, /k = pickup truck, /> = car, /s = boat
 # /p = dog, /- = house, /i = tree on island
 
-beacon_msg="!${lat}${latdir}/${lon}${londir}p$timestamp, Seq: $seqnum"
+beacon_msg="!${lat}${latdir}/${lon}${londir}p$timestamp, bat: ${batvoltage}V Seq: $seqnum"
 
 echo " Sent: \
 $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}""

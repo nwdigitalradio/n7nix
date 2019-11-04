@@ -321,7 +321,7 @@ if is_gpsd && is_draws ; then
     fi
 
     # Verify gpsd is returning sentences
-    if [ $(is_gps_sentence) > 0 ] ; then
+    if [ is_gps_sentence > 0 ] ; then
         gps_running=true
         # Choose between using gpsd sentences or nmea sentences
         if $b_gpsdsentence ; then
@@ -331,10 +331,24 @@ if is_gpsd && is_draws ; then
                 echo "$scriptname: Installing $prog_name package"
                 sudo apt-get install -y -q $prog_name
             fi
+        else
+            # echo "nmea sentence"
+            get_lat_lon_nmeasentence
+            if [ "$?" -ne 0 ] ; then
+                echo "Read Invalid gps data read from gpsd, using canned values"
+                set_canned_location
+            fi
         fi
     else
         dbgecho "gpsd is installed but not returning sentences."
     fi
+    # Get 12V supply voltage
+    batvoltage=$(sensors | grep -i "+12V:" | cut -d':' -f2 | sed -e 's/^[ \t]*//' | cut -d' ' -f1)
+else
+    # gpsd not running or no DRAWS hat found
+    echo "gpsd not running or no DRAWS hat found, using static lat/lon values"
+    set_canned_location
+    batvoltage=0
 fi
 
 dbgecho "=== get a sequence number"
