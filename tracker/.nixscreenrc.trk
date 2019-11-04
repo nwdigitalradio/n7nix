@@ -1,5 +1,5 @@
 defscrollback 2000
 screen -t aprs sh -c '/usr/local/bin/aprs -c /etc/tracker/aprs_tracker.ini; exec bash'
-screen -t tracker sh -c '/usr/local/bin/node webapp/tracker-server.js /etc/tracker/aprs_tracker.ini; exec bash'
-screen -t paclink sh -c '/usr/local/bin/node webapp/plu-server.js; exec bash'
+screen -t tracker sh -c '/usr/bin/nodejs webapp/tracker-server.js /etc/tracker/aprs_tracker.ini; exec bash'
+screen -t paclink sh -c '/usr/bin/nodejs webapp/plu-server.js; exec bash'
 screen -t tlog sh -c 'tail -f /tmp/aprs_tracker.log; exec bash'
