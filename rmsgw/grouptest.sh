@@ -29,6 +29,6 @@ fi
     #usermod -a -G rmsgw rmsgw
 #fi
 
-DIR=" /usr/local/etc/rmsgw"
+DIR="/usr/local/etc/rmsgw"
 echo "Change owner:group of directory: $DIR"
 chown -R rmsgw:rmsgw $DIR
