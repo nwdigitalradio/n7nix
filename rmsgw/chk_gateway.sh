@@ -3,6 +3,7 @@
 # Verify Linux RMS Gatway configuration
 #
 # DEBUG=1
+CHECK_WINLINK_CHECKIN=1
 
 scriptname="`basename $0`"
 USER="pi"
@@ -52,9 +53,15 @@ echo "==== Check ax.25 status"
 /home/$USER/bin/ax25-status -d
 
 echo
+echo "==== Check ax.25 daemon config file"
+cat /etc/ax25/ax25d.conf
+
+echo
 echo "==== Check rmsgw configuration directory"
 ls -al /etc/rmsgw
 ls -al /usr/local/etc/rmsgw
+echo "==== Check stat directory"
+ls  -al /etc/rmsgw/stat
 
 if [ -e /etc/rmsgw/channels.xml ] ; then
     rmsgw_dir="/etc/rmsgw"
@@ -105,13 +112,21 @@ echo "=== ax25-status"
 /home/$USER/bin/ax25-status -d
 
 echo
-echo "==== Check rmsgw automatic check-in"
+echo "==== Check rmsgw automatic check-in at $(date)"
 # get the first port line after the last comment
 axports_line=$(tail -n3 $AXPORTS_FILE | grep -v "#" | head -n 1)
+
+echo "Using axports line: $axports_line"
 port=$(echo $axports_line | cut -d' ' -f1)
 callsign=$(echo $axports_line | tr -s '[[:space:]]' | cut -d' ' -f2)
-sudo -u rmsgw rmschanstat ax25 $port $callsign
-sudo -u rmsgw rmsgw_aci
+echo "Using port: $port, call sign: $callsign"
+
+if [ ! -z "$CHECK_WINLINK_CHECKIN" ] ; then
+    sudo -u rmsgw rmschanstat ax25 $port $callsign
+    sudo -u rmsgw rmsgw_aci
+else
+    echo "NO CHECK for Winlink automatic check-in"
+fi
 
 echo
 echo "==== Check rmsgw log file"
