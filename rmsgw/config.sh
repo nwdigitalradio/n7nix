@@ -221,9 +221,18 @@ get_callsign
 getent passwd rmsgw > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
    echo "user rmsgw does NOT exist, creating"
-   adduser --no-create-home --system rmsgw
+   adduser --no-create-home --system --ingroup rmsgw rmsgw
 else
    echo "user rmsgw exists"
+fi
+
+# Does rmsgw group exist?
+GROUP="rmsgw"
+grep -q -E "^$GROUP:" /etc/group
+if [ $? -ne 0 ] ; then
+    echo "rmsgw group does not exist ... creating"
+    group add rmsgw
+    usermod -a -G rmsgw rmsgw
 fi
 
 # Does user rmsgw have a crontab?
