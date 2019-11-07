@@ -6,6 +6,7 @@
 
 scriptname="`basename $0`"
 USER="pi"
+AXPORTS_FILE="/etc/ax25/axports"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -15,6 +16,11 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 if [[ $EUID != 0 ]] ; then
    echo "Must be root"
    exit 1
+fi
+
+if [ ! -d /home/$USER ] ; then
+    echo "user $USER does not exist"
+    exit 1
 fi
 
 echo "==== $scriptname start at $(date)"
@@ -73,7 +79,7 @@ cat $rmsgw_dir/gateway.conf
 
 echo
 echo "==== Check ax.25 axports file"
-tail -n2 /etc/ax25/axports
+tail -n3 $AXPORTS_FILE
 
 echo
 echo "==== Verify system version"
@@ -100,8 +106,10 @@ echo "=== ax25-status"
 
 echo
 echo "==== Check rmsgw automatic check-in"
-port=$(tail -n1 /etc/ax25/axports | cut -d' ' -f1)
-callsign=$(tail -n1 /etc/ax25/axports | tr -s '[[:space:]]' | cut -d' ' -f2)
+# get the first port line after the last comment
+axports_line=$(tail -n3 $AXPORTS_FILE | grep -v "#" | head -n 1)
+port=$(echo $axports_line | cut -d' ' -f1)
+callsign=$(echo $axports_line | tr -s '[[:space:]]' | cut -d' ' -f2)
 sudo -u rmsgw rmschanstat ax25 $port $callsign
 sudo -u rmsgw rmsgw_aci
 
