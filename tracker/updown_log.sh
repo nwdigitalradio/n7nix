@@ -83,14 +83,14 @@ function pad_callsign() {
 function beacon_now() {
 
     log_msg=":$CALLPAD:$timestamp $action, host $(hostname), port $AX25PORT, voltage: $voltage"
-#    echo "$log_msg" | tee -a $LOGFILE
+    echo "$log_msg" | tee -a $LOGFILE
     sid_nixtracker
 
-    if [ "$action" != "test" ] ; then
-        $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "$(printf "%s\0" "$log_msg")"
-    else
+    if [ "$action" == "test" ] ; then
         echo "Would send: \
 $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "$(printf "%s\0" "$log_msg")"" | tee -a $LOGFILE
+    else
+        $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "$(printf "%s\0" "$log_msg")"
     fi
 }
 
@@ -108,7 +108,7 @@ fi
 # get sensor voltage
 voltage=$(sensors | grep -i "+12V:" | cut -d':' -f2 | sed -e 's/^[ \t]*//' | cut -d' ' -f1)
 
-# get voltaage withOUT plus sign or decimal
+# get voltage withOUT plus sign or decimal
 volt_int=$(echo "${voltage//[^0-9]/}")
 
 # get a valid call sign
@@ -131,8 +131,8 @@ if [[ $# -gt 0 ]] ; then
 
             if (( volt_int < 1300 )) ; then
                 beacon_now
-                sleep $SHUTDOWN_WAIT
-                sudo shutdown -h now
+#               sleep $SHUTDOWN_WAIT
+                sudo /sbin/shutdown -h +1 "Shutting down in 1 minute"
             fi
         ;;
         -t|t)
