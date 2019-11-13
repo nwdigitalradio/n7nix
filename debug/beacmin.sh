@@ -6,7 +6,7 @@
 # If a GPS is not found then a canned position is beaconed.
 #
 # Uncomment this statement for debug echos
-#DEBUG=1
+# DEBUG=1
 
 SID=15
 AX25PORT=udr0
@@ -177,7 +177,11 @@ if ! is_ax25up ; then
     exit 1
 fi
 
-# Don't bother looking for gpspipe if gpsd is not installed
+gps_running=false
+gps_status="Fail"
+
+# Check if a DRAWS card found & gpsd is installed
+# otherwise don't bother looking for gpspipe program
 
 if is_gpsd && is_draws ; then
     dbgecho "Verify gpspipe is installed"
@@ -190,7 +194,11 @@ if is_gpsd && is_draws ; then
     fi
 
     # Verify gpsd is returning sentences
-    if [ is_gps_sentence > 0 ] ; then
+    is_gps_sentence
+    result=$?
+    dbgecho "Verify gpsd is returning sentences ret: $result"
+
+    if (( result > 0 )) ; then
         gps_running=true
         # Choose between using gpsd sentences or nmea sentences
         if $b_gpsdsentence ; then
@@ -201,18 +209,23 @@ if is_gpsd && is_draws ; then
                 sudo apt-get install -y -q $prog_name
             fi
         else
-            #echo "nmea sentence"
+            dbgecho "get nmea sentence"
             get_lat_lon_nmeasentence
             if [ "$?" -ne 0 ] ; then
                 echo "Read Invalid gps data read from gpsd, using canned values"
                 set_canned_location
+            else
+                gps_status="Ok"
             fi
         fi
     else
         echo "gpsd is installed but not returning sentences."
+        set_canned_location
     fi
     # Get 12V supply voltage
     batvoltage=$(sensors | grep -i "+12V:" | cut -d':' -f2 | sed -e 's/^[ \t]*//' | cut -d' ' -f1)
+    dbgecho "Get 12V supply voltage: $batvoltage"
+
 else
     # gpsd not running or no DRAWS hat found
     echo "gpsd not running or no DRAWS hat found, using static lat/lon values"
@@ -221,8 +234,7 @@ else
 fi
 
 timestamp=$(date "+%d %T %Z")
-
-seqnum=0
+dbgecho "Got time stamp: $timestamp"
 
 # Test if temporary directory for SEQUENCE_FILE exists
 if [ ! -d "$TMPDIR" ] ; then
@@ -230,14 +242,16 @@ if [ ! -d "$TMPDIR" ] ; then
    mkdir -p "$TMPDIR"
 fi
 
-# get sequence number
+dbgecho "=== get a sequence number"
+seqnum=0
+
 if [ -e $SEQUENCE_FILE ] ; then
    seqnum=`cat $SEQUENCE_FILE`
 else
    echo "0" > $SEQUENCE_FILE
 fi
 
-# Check if the callsign & ax25 port have been manually set
+dbgecho "Check if the callsign & ax25 port have been manually set"
 if [ "$CALLSIGN" = "$NULL_CALLSIGN" ] ; then
    callsign_axports
 fi
@@ -246,7 +260,7 @@ fi
 # /j = jeep, /k = pickup truck, /> = car, /s = boat
 # /p = dog, /- = house, /i = tree on island
 
-beacon_msg="!${lat}${latdir}/${lon}${londir}p$timestamp, bat: ${batvoltage}V Seq: $seqnum"
+beacon_msg="!${lat}${latdir}/${lon}${londir}p$timestamp, gps: $gps_status, bat: ${batvoltage}V Seq: $seqnum"
 
 echo " Sent: \
 $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}""
