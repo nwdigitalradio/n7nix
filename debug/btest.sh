@@ -262,13 +262,13 @@ while [[ $# -gt 0 ]] ; do
          # Verify gpsd is returning sentences
          is_gps_sentence
          result=$?
-         echo "Verify gpsd is returning sentences ret: $result"
+         echo "Verify gpsd is returning sentences: Sentence count: $result"
 
          if (( result > 0 )) ; then
              echo "Test nmea sentence"
              get_lat_lon_nmeasentence
              if [ "$?" -ne 0 ] ; then
-                 echo "Read Invalid gps data read from gpsd"
+                 echo "Invalid gps data read from gpsd"
             else
                  echo "GPS nmea sentences OK"
             fi
