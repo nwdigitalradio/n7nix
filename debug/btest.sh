@@ -25,8 +25,10 @@
 
 NULL_CALLSIGN="NOONE"
 CALLSIGN="$NULL_CALLSIGN"
-AX25PORT="NOPORT"
+#AX25PORT="NOPORT"
+AX25PORT="udr0"
 SID="11"
+
 verbose="false"
 # boolean for using gpsd sentence instead of nmea sentence
 b_gpsdsentence=false
@@ -228,6 +230,7 @@ function usage() {
    echo "   -s <num>      | --sid <num>  set sid in callsign, number 0-15"
    echo "   -p | --position  send a position beacon"
    echo "   -m | --message   send a message beacon (default)"
+   echo "   -g | --gps       verify gps is working"
    echo "   -v | --verbose   display verbose messages"
    echo "   -h | --help      display this message"
    echo
@@ -255,6 +258,25 @@ while [[ $# -gt 0 ]] ; do
       -m|--message)
 	 BEACON_TYPE="mesg_beacon"
 	 ;;
+      -g|--gps)
+         # Verify gpsd is returning sentences
+         is_gps_sentence
+         result=$?
+         echo "Verify gpsd is returning sentences ret: $result"
+
+         if (( result > 0 )) ; then
+             echo "Test nmea sentence"
+             get_lat_lon_nmeasentence
+             if [ "$?" -ne 0 ] ; then
+                 echo "Read Invalid gps data read from gpsd"
+            else
+                 echo "GPS nmea sentences OK"
+            fi
+         else
+             echo "gpsd is installed but not returning sentences."
+         fi
+         exit 0
+         ;;
       -P |--portname)
           AX25PORT="$2"
           shift  # past argument
@@ -307,9 +329,11 @@ if [ $? -ne 0 ] ; then
 fi
 
 gps_running=false
+gps_status="Fail"
 
 # Check if a DRAWS card found & gpsd is installed
 # otherwise don't bother looking for gpspipe program
+
 if is_gpsd && is_draws ; then
     dbgecho "Verify gpspipe is installed"
     # Check if program to get lat/lon info is installed.
@@ -321,7 +345,11 @@ if is_gpsd && is_draws ; then
     fi
 
     # Verify gpsd is returning sentences
-    if [ is_gps_sentence > 0 ] ; then
+    is_gps_sentence
+    result=$?
+    dbgecho "Verify gpsd is returning sentences ret: $result"
+
+    if (( result > 0 )) ; then
         gps_running=true
         # Choose between using gpsd sentences or nmea sentences
         if $b_gpsdsentence ; then
@@ -332,18 +360,23 @@ if is_gpsd && is_draws ; then
                 sudo apt-get install -y -q $prog_name
             fi
         else
-            # echo "nmea sentence"
+            dbgecho "get nmea sentence"
             get_lat_lon_nmeasentence
             if [ "$?" -ne 0 ] ; then
                 echo "Read Invalid gps data read from gpsd, using canned values"
                 set_canned_location
+            else
+                gps_status="Ok"
             fi
         fi
     else
-        dbgecho "gpsd is installed but not returning sentences."
+        echo "gpsd is installed but not returning sentences."
+        set_canned_location
     fi
     # Get 12V supply voltage
     batvoltage=$(sensors | grep -i "+12V:" | cut -d':' -f2 | sed -e 's/^[ \t]*//' | cut -d' ' -f1)
+    dbgecho "Get 12V supply voltage: $batvoltage"
+
 else
     # gpsd not running or no DRAWS hat found
     echo "gpsd not running or no DRAWS hat found, using static lat/lon values"
@@ -352,9 +385,8 @@ else
 fi
 
 dbgecho "=== get a sequence number"
-
 seqnum=0
-# get sequence number
+
 if [ -e $SEQUENCE_FILE ] ; then
    seqnum=`cat $SEQUENCE_FILE`
 else
