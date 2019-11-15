@@ -95,6 +95,7 @@ if [ $? -eq 0 ] ; then
 else
     cp -u /home/$USER/n7nix/ax25/icons/ax25-start.desktop /home/$USER/Desktop/ax25-startstop.desktop
 fi
+cp -u /home/$USER/n7nix/ax25/icons/*.desktop /home/$USER/bin
 sudo cp -u /home/$USER/n7nix/ax25/icons/*.png /usr/share/pixmaps/
 
 echo
