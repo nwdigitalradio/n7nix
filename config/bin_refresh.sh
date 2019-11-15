@@ -91,9 +91,9 @@ function CopyDesktopFiles() {
 pid=$(pidof direwolf)
 if [ $? -eq 0 ] ; then
     # Direwolf is running copy off icon
-    cp -u /home/$USER/n7nix/systemd/bin/ax25-stop.desktop /home/$USER/Desktop
+    cp -u /home/$USER/n7nix/systemd/bin/ax25-stop.desktop /home/$USER/Desktop/ax25-startstop.desktop
 else
-    cp -u /home/$USER/n7nix/systemd/bin/ax25-start.desktop /home/$USER/Desktop
+    cp -u /home/$USER/n7nix/systemd/bin/ax25-start.desktop /home/$USER/Desktop/ax25-startstop.desktop
 fi
 
 echo
