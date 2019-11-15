@@ -82,6 +82,26 @@ echo
 echo "FINISHED copying bin files"
 }
 
+# ===== function CopyDesktopFiles
+
+function CopyDesktopFiles() {
+
+
+# Check if direwolf is running.
+pid=$(pidof direwolf)
+if [ $? -eq 0 ] ; then
+    # Direwolf is running copy off icon
+    cp -u /home/$USER/n7nix/systemd/bin/ax25-stop.desktop /home/$USER/Desktop
+else
+    cp -u /home/$USER/n7nix/systemd/bin/ax25-start.desktop /home/$USER/Desktop
+fi
+
+echo
+echo "FINISHED copying desktop files"
+}
+
+# ===== main
+
 # Get list of users with home directories
 USERLIST="$(ls /home)"
 USERLIST="$(echo $USERLIST | tr '\n' ' ')"
@@ -89,6 +109,7 @@ USERLIST="$(echo $USERLIST | tr '\n' ' ')"
 get_user
 check_user
 
+CopyDesktopFiles
 userbindir="/home/$USER/bin"
 CopyBinFiles
 cd $userbindir
