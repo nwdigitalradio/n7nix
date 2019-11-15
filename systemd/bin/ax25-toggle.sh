@@ -120,7 +120,7 @@ if [ $? -eq 0 ] ; then
 
     # change icon to be on
     echo "changed icon to ON"
-    cp /home/pi/tmp/ax25-start.desktop /home/pi/Desktop/ax25-startstop.desktop
+    cp /home/pi/bin/ax25-start.desktop /home/pi/Desktop/ax25-startstop.desktop
     # sed leaves temporary file artifacts on desktop
 #    sed -i -e "/Icon=/ s/_off/_on/" "$DESKTOP_FILE" > /dev/null
 #    sed -i -e "/Name=/ s/25-stop/25-start/" "$DESKTOP_FILE" > /dev/null
@@ -135,7 +135,7 @@ else
 
     # change icon to be off
     echo "changed icon to OFF"
-    cp /home/pi/tmp/ax25-stop.desktop /home/pi/Desktop/ax25-startstop.desktop
+    cp /home/pi/bin/ax25-stop.desktop /home/pi/Desktop/ax25-startstop.desktop
     # sed leaves temporary file artifacts on desktop
 #    sed -i -e "/Icon=/ s/_on/_off/" "$DESKTOP_FILE" > /dev/null
 #    sed -i -e "/Name=/ s/25-start/25-stop/" "$DESKTOP_FILE" > /dev/null

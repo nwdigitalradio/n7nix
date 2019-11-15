@@ -91,10 +91,11 @@ function CopyDesktopFiles() {
 pid=$(pidof direwolf)
 if [ $? -eq 0 ] ; then
     # Direwolf is running copy off icon
-    cp -u /home/$USER/n7nix/systemd/bin/ax25-stop.desktop /home/$USER/Desktop/ax25-startstop.desktop
+    cp -u /home/$USER/n7nix/ax25/icons/ax25-stop.desktop /home/$USER/Desktop/ax25-startstop.desktop
 else
-    cp -u /home/$USER/n7nix/systemd/bin/ax25-start.desktop /home/$USER/Desktop/ax25-startstop.desktop
+    cp -u /home/$USER/n7nix/ax25/icons/ax25-start.desktop /home/$USER/Desktop/ax25-startstop.desktop
 fi
+sud cp -u /home/$USER/n7nix/ax25/icons/*.png /usr/share/pixmaps/
 
 echo
 echo "FINISHED copying desktop files"
