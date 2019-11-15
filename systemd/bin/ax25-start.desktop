@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=AX.25-control
-Comment=Start & Stop direwolf & ax.25
-Exec=/home/pi/bin/ax25-toggle.sh
-Type=Application
-Icon=ax25_on.png
-Terminal=False
-Categories=Network;HAM Radio;
