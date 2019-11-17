@@ -95,8 +95,11 @@ if [ $? -eq 0 ] ; then
 else
     cp -u /home/$USER/n7nix/ax25/icons/ax25-start.desktop /home/$USER/Desktop/ax25-startstop.desktop
 fi
+# Copy the desktop files to a common directory
 cp -u /home/$USER/n7nix/ax25/icons/*.desktop /home/$USER/bin
+# Copy both white back-ground & no back-ground icons
 sudo cp -u /home/$USER/n7nix/ax25/icons/*.png /usr/share/pixmaps/
+sudo cp -u /home/$USER/n7nix/ax25/icons/*.svg /usr/share/pixmaps/
 
 echo
 echo "FINISHED copying desktop files"
