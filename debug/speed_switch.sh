@@ -37,7 +37,7 @@ else
     echo "Creating speed 9600 baud switch file"
     echo
     sudo touch $SWITCH_FILE
-    echo "rm ret code: $?"
+    echo "touch ret code: $?"
 
     echo
     echo "=== set direwolf 9600 baud speed"
