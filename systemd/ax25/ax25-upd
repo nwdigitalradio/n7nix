@@ -6,6 +6,9 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
+bsplitchannel=false
+SPLIT_CHANNEL_FILE="/etc/ax25/split_channel"
+
 SBINDIR=/usr/local/sbin
 BINDIR=/usr/local/bin
 UDRCII=false
@@ -96,9 +99,46 @@ fi
 return $udrc_prod_id
 }
 
+
+# ===== function packet_1port
+# arg1 is port number, either 0 or 1
+function packet_1port() {
+   portnum=$1
+   pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx none | tail -1)
+   echo "using mkiss with UDRC and pseudo term=$pseudoterm on port $portnum"
+   PORTNAME="udr${portnum}"
+   $SBINDIR/kissattach  ${pseudoterm} $PORTNAME ${IPADDR_AX0} >/tmp/ax25-config.tmp
+   kissattach_ret=$?
+   dbgecho "kissattach return: $?"
+   /etc/ax25/ax25dev-parms ax0
+   echo " Port $PORTNAME attached to ax0"
+}
+
+# ===== function packet_2port
+function packet_2port() {
+   pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx /dev/ptmx | tail -1)
+   echo "$pseudoterm" > /tmp/ax25-config.tmp
+   pseudoterm_1=$(echo $pseudoterm | cut -d ' ' -f1)
+   pseudoterm_2=$(echo $pseudoterm | cut -d ' ' -f2)
+   echo "using mkiss with UDRC II and pseudo term_1: $pseudoterm_1 pseudo term_2: $pseudoterm_2"
+   $SBINDIR/kissattach  ${pseudoterm_1} ${PORTNAME_1} ${IPADDR_AX0} >/tmp/ax25-config_1.tmp
+   $SBINDIR/kissattach  ${pseudoterm_2} ${PORTNAME_2} ${IPADDR_AX1} >/tmp/ax25-config_2.tmp
+   kissattach_ret=$?
+   dbgecho "kissattach return: $?"
+   /etc/ax25/ax25dev-parms ax0
+   /etc/ax25/ax25dev-parms ax1
+   echo " Port ${PORTNAME_1} attached to ax0"
+   echo " Port ${PORTNAME_2} attached to ax1"
+}
+
 # ===== main =====
 
 echo "ax25-upd: Start Port ${PORTNAME_1} with device ${SERIALPORT_DIREWOLF}"
+
+if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
+    echo "Using split channel config"
+    bsplitchannel=true
+fi
 
 if [ -L $SERIALPORT_DIREWOLF ] ; then
     echo "Direwolf serial port ready"
@@ -121,30 +161,18 @@ case $id_check_ret in
 ;;
 2)
    echo "Original UDRC is installed."
-# use port 1 with mkiss
-   pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx none | tail -1)
-   echo "using mkiss with UDRC and pseudo term=$pseudoterm on port 1"
-   $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME_1} ${IPADDR_AX0} >/tmp/ax25-config.tmp
-   kissattach_ret=$?
-   dbgecho "kissattach return: $?"
-   /etc/ax25/ax25dev-parms ax0
+    # use port 1 with mkiss
+    packet_1port 1
 ;;
 3|4)
    echo "UDRC II or DRAWS installed"
-# use port 2 with mkiss
-   pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx /dev/ptmx | tail -1)
-   echo "$pseudoterm" > /tmp/ax25-config.tmp
-   pseudoterm_1=$(echo $pseudoterm | cut -d ' ' -f1)
-   pseudoterm_2=$(echo $pseudoterm | cut -d ' ' -f2)
-   echo "using mkiss with UDRC II and pseudo term_1: $pseudoterm_1 pseudo term_2: $pseudoterm_2"
-   $SBINDIR/kissattach  ${pseudoterm_1} ${PORTNAME_1} ${IPADDR_AX0} >/tmp/ax25-config_1.tmp
-   $SBINDIR/kissattach  ${pseudoterm_2} ${PORTNAME_2} ${IPADDR_AX1} >/tmp/ax25-config_2.tmp
-   kissattach_ret=$?
-   dbgecho "kissattach return: $?"
-   /etc/ax25/ax25dev-parms ax0
-   /etc/ax25/ax25dev-parms ax1
-   echo " Port ${PORTNAME_1} attached to ax0"
-   echo " Port ${PORTNAME_2} attached to ax1"
+   if $bsplitchannel ; then
+    # use port 0 with mkiss
+    packet_1port 0
+   else
+       # use both ports with mkiss
+       packet_2port
+   fi
 ;;
 5)
    echo "One Watt Spot installed"
