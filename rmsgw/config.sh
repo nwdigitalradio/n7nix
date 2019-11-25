@@ -217,22 +217,22 @@ fi
 # Check for a valid callsign
 get_callsign
 
-# Does the RMSGW user exist?
-getent passwd rmsgw > /dev/null 2>&1
-if [ $? -ne 0 ] ; then
-   echo "user rmsgw does NOT exist, creating"
-   adduser --no-create-home --system --ingroup rmsgw rmsgw
-else
-   echo "user rmsgw exists"
-fi
-
 # Does rmsgw group exist?
 GROUP="rmsgw"
 grep -q -E "^$GROUP:" /etc/group
 if [ $? -ne 0 ] ; then
     echo "rmsgw group does not exist ... creating"
-    group add rmsgw
-    usermod -a -G rmsgw rmsgw
+    groupadd rmsgw
+fi
+
+# Does the RMSGW user exist?
+getent passwd rmsgw > /dev/null 2>&1
+if [ $? -ne 0 ] ; then
+   echo "user rmsgw does NOT exist, creating"
+   adduser --no-create-home --system --ingroup rmsgw rmsgw
+#   usermod -a -G rmsgw rmsgw
+else
+   echo "user rmsgw exists"
 fi
 
 # Does user rmsgw have a crontab?
@@ -242,7 +242,7 @@ if [ $? -ne 0 ] ; then
    crontab -u rmsgw -l ;
    {
    echo "# m h  dom mon dow   command"
-   echo "17,46 * * * * /usr/local/bin/rmsgw_aci > /dev/null 2>&1"
+   echo "14,42 * * * * /usr/local/bin/rmsgw_aci > /dev/null 2>&1"
    } | crontab -u rmsgw -
 else
    echo "user rmsgw already has a crontab"
