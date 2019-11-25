@@ -16,11 +16,12 @@
 #*/2  *  *  *  *  /home/pi/tmp/updown_log.sh d
 #
 # Uncomment this statement for debug echos
-#DEBUG=1
+DEBUG=1
 
 USER="$(whoami)"
 TMPDIR="/home/$USER/tmp"
 LOGFILE="$TMPDIR/updown.log"
+INPROGRESS_FILE="/tmp/shutdown_inprogress"
 
 scriptname="`basename $0`"
 BEACON="/usr/local/sbin/beacon"
@@ -87,10 +88,12 @@ function beacon_now() {
     sid_nixtracker
 
     if [ "$action" == "test" ] ; then
+#$BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "$(printf "%s\0" "$log_msg")"" | tee -a $LOGFILE
         echo "Would send: \
-$BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "$(printf "%s\0" "$log_msg")"" | tee -a $LOGFILE
+$BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT $log_msg" | tee -a $LOGFILE
     else
-        $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "$(printf "%s\0" "$log_msg")"
+#        $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "$(printf "%s\0" "$log_msg")" >> $LOGFILE 2>&1
+        $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "$log_msg" >> $LOGFILE 2>&1
     fi
 }
 
@@ -120,24 +123,37 @@ if [[ $# -gt 0 ]] ; then
     arg1=$1
     case $arg1 in
         -u|u)
-            # log startup
             action="Startup"
+            dbgecho "action: $action"
+
             sleep $STARTUP_WAIT
             beacon_now
         ;;
         -d|d)
-            # log shutdown
             action="Shutdown"
+            dbgecho "action: $action"
 
+            # Has vehicle switched off & running on battery?
             if (( volt_int < 1300 )) ; then
-                beacon_now
-#               sleep $SHUTDOWN_WAIT
-                sudo /sbin/shutdown -h +1 "Shutting down in 1 minute"
+                # Getting multiple shut down beacons, create a flag file
+                if [ ! -e "$INPROGRESS_FILE" ] ; then
+                    beacon_now
+                    touch $INPROGRESS_FILE
+                    sleep $SHUTDOWN_WAIT
+# smallest ITS-12 resolution is 2 minutes
+# If ITS-12 is set to 1 then it will shut down in 15 minutes which is
+#  too long.
+# smallest shutdown resolution is 1 minute
+#                  sudo /sbin/shutdown -h +1 "Shutting down in 1 minute"
+                   sudo /sbin/shutdown -h now "Shutting down NOW"
+               fi
             fi
         ;;
         -t|t)
             # log beacon test, display what log entry would look like without beaconing
             action="test"
+            dbgecho "action: $action"
+
             beacon_now
         ;;
 
@@ -150,6 +166,8 @@ else
     # no arguments, display what log entry would look like without beaconing
     # Display voltage
     action="test"
+    dbgecho "No args: $action"
+
     beacon_now
 fi
 exit 0
