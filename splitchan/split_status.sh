@@ -48,16 +48,13 @@ echo
 
 if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
     echo " == Split channel is enabled, Direwolf controls 1 channel"
-    echo
     bsplitchannel=true
+    echo
     echo "pulseaudio daemon status"
     systemctl --no-pager status pulseaudio
-
-
 else
     echo " == Direwolf controls both channels, split-channels is off"
-    echo
-    bsplitchannel=true
+    bsplitchannel=false
 fi
 
 
@@ -66,15 +63,28 @@ echo
 echo " == Verify direwolf config"
 
 file="$DIREWOLF_CFGFILE"
-echo "First occurrence in $file"
+echo "First device config in $file"
 grep -m1 "^ADEVICE"   "$file"
 grep -m1 "^ACHANNELS" "$file"
 grep -m1 "^PTT "  "$file"
 
-echo "Second occurrence in $file"
-grep -m1 "^#ADEVICE"   "$file" | tail -n1
-grep -m1 "^#ACHANNELS" "$file" | tail -n1
-grep -m1 "^PTT "  "$file" | tail -n1
+echo "Second device config in $file"
+# -m NUM, stop reading file after NUM matching lines
+cnt=$(grep -c "^ADEVICE"   "$file")
+if (( cnt > 1 )) ; then
+    echo "There are $cnt active ADEVICE config lines."
+    grep -m2 "^ADEVICE"   "$file" | tail -n1
+fi
+cnt=$(grep -c "^ACHANNELS"   "$file")
+if (( cnt > 1 )) ; then
+    echo "There are $cnt active ACHANNELS config lines."
+    grep -m2 "^ACHANNELS"   "$file" | tail -n1
+fi
+cnt=$(grep -c "^PTT"   "$file")
+if (( cnt > 1 )) ; then
+    echo "There are $cnt active PTT config lines."
+    grep -m2 "^PTT"   "$file" | tail -n1
+fi
 
 echo
 echo " == check ax25d file"
@@ -99,5 +109,5 @@ tail -n3 $file | grep -v "#"
 # check ax25 status
 
 echo
-echo "ax25 status"
+echo " == ax25 status"
 ax25_status
