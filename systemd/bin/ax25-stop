@@ -3,6 +3,7 @@
 # Script to stop direwolf & AX.25 services
 # The script disables & stops the services
 
+SPEED_FILE="/etc/ax25/packet_9600baud"
 SERVICE_LIST="ax25dev.service ax25dev.path direwolf.service ax25-mheardd.service ax25d.service"
 
 # ===== function stop_service
@@ -32,6 +33,14 @@ if [[ $EUID != 0 ]] ; then
    echo "Must be root"
    exit 1
 fi
+
+MODEM_SPEED="1200"
+if [ -e "$SPEED_FILE" ] ; then
+    MODEM_SPEED="9600"
+fi
+echo
+echo "STOPPING AX.25/Direwolf as $MODEM_SPEED baud modem."
+
 
 for service in `echo ${SERVICE_LIST}` ; do
 #    echo "DEBUG: Stopping service: $service"

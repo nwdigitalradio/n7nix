@@ -3,6 +3,7 @@
 # Script to start up direwolf & AX.25 services
 # The script enables & starts the services
 
+SPEED_FILE="/etc/ax25/packet_9600baud"
 SERVICE_LIST="direwolf.service ax25dev.path ax25dev.service ax25-mheardd.service ax25d.service"
 
 # ===== function start_service
@@ -37,6 +38,13 @@ if [[ $EUID != 0 ]] ; then
    echo "Must be root"
    exit 1
 fi
+
+MODEM_SPEED="1200"
+if [ -e "$SPEED_FILE" ] ; then
+    MODEM_SPEED="9600"
+fi
+echo
+echo "STARTING AX.25/Direwolf as $MODEM_SPEED baud modem."
 
 for service in `echo ${SERVICE_LIST}` ; do
     echo "Starting: $service"
