@@ -260,7 +260,7 @@ fi
 # /j = jeep, /k = pickup truck, /> = car, /s = boat
 # /p = dog, /- = house, /i = tree on island
 
-beacon_msg="!${lat}${latdir}/${lon}${londir}p$timestamp, host: $(hostname),gps: $gps_status, bat: ${batvoltage}V Seq: $seqnum"
+beacon_msg="!${lat}${latdir}/${lon}${londir}p$timestamp, host: $(hostname), gps: $gps_status, bat: ${batvoltage}V Seq: $seqnum"
 
 echo " Sent: \
 $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT "${beacon_msg}""
