@@ -13,7 +13,6 @@
 MODE_9600_ENABLE=false
 
 asoundstate_file="/var/lib/alsa/asound.state"
-
 SWITCH_FILE="/etc/ax25/packet_9600baud"
 
 if [ -e "$SWITCH_FILE" ] ; then
