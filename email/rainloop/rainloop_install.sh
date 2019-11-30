@@ -73,7 +73,7 @@ EOT
     # back this file up until verified
     lighttpd_conf_avail_dir="/etc/lighttpd/conf-available"
     cp $lighttpd_conf_avail_dir/15-fastcgi-php.conf $lighttpd_conf_avail_dir/15-fastcgi-php.bak1.conf
-    cat << 'EOT' > $lighttpd_conf_avail_dir/15-fastcgi-php.conf
+    cat << EOT > $lighttpd_conf_avail_dir/15-fastcgi-php.conf
 # -*- depends: fastcgi -*-
 # /usr/share/doc/lighttpd/fastcgi.txt.gz
 # http://redmine.lighttpd.net/projects/lighttpd/wiki/Docs:ConfigurationOptions#mod_fastcgi-fastcgi
