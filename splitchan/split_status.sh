@@ -57,6 +57,15 @@ else
     bsplitchannel=false
 fi
 
+# Verify sound card device
+echo
+echo " == ALSA sound card device"
+aplay -l | grep udrc
+
+# Verify Pulse Audio devices
+echo
+echo " == Pulse Audio devices"
+pactl list sinks | grep -A3 "Sink #"
 
 # check direwolf config file
 echo
