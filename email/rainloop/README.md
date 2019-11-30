@@ -13,9 +13,11 @@
 ### Configuration
 ##### How to start rainloop in a browser
 * Start rainloop in admin mode
-````
+```
+# from a remote machine
 http://Your-IP-Address/rainloop/?admin
-# or
+
+# or from a local browser
 http://localhost/?admin
 User : admin
 Pass : 12345
