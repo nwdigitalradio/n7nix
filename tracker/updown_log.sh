@@ -11,8 +11,10 @@
 # arg1 = t - test log file entry
 # arg1 = <nothing> default: test log file entry
 #
-# crontab entry
-# @reboot /home/pi/tmp/updown_log.sh u
+# crontab entry follows:
+# @reboot /home/pi/tmp/updown_log.sh | at now + 1 minute
+#
+# @reboot sleep 120 && /home/pi/tmp/updown_log.sh u
 #*/2  *  *  *  *  /home/pi/tmp/updown_log.sh d
 #
 # Uncomment this statement for debug echos
