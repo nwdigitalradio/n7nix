@@ -110,7 +110,7 @@ if (( alsactrl_count >= 44 )) ; then
     CTRL_PTM_R="$CTRL_VAL"
     # Shorten control string for display
     control="DAC Playback PT"
-    printf "%s\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_PTM_L" "$CTRL_PTM_R"
+    printf "%s\tL:[%s]\t\tR:[%s]\n" "$control" "$CTRL_PTM_L" "$CTRL_PTM_R"
 
     control="LO Playback Common Mode"
     display_ctrl "$control"
