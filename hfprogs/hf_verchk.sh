@@ -324,7 +324,8 @@ fi
 if [ -z "$DEBUG1" ] ; then
 wsjtx_app="wsjtx"
 ver_url="http://physics.princeton.edu/pulsar/K1JT/$wsjtx_app.html"
-wsjtx_ver=$(curl -s $ver_url | grep -i "Availability (GA)" | cut -d '>' -f3 | cut -d '<' -f1)
+wsjtx_ver=$(curl -s $ver_url | grep -A 1 -i "Availability (GA)" | tail -n 1 | cut -d '<' -f1)
+# $(curl -s $ver_url | grep -i "Availability (GA)" | cut -d '>' -f3 | cut -d '<' -f1)
 # curl -s $ver_url | grep -i "Availability (GA)" | cut -d '>' -f3 | cut -d '<' -f1
 # Remove preceding white space
 wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])})
