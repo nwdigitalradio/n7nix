@@ -97,11 +97,14 @@ function swap_size_check() {
         swap_config=$(grep -i conf_swapsize /etc/dphys-swapfile | cut -d"=" -f2)
         sudo sed -i -e "/CONF_SWAPSIZE/ s/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=1000/" /etc/dphys-swapfile
 
-        echo "Swap size too small for builds, changed from $swap_config to 1000 ... need to reboot."
-        exit 1
+        echo "$(tput setaf 4)Swap size too small for source builds, changed from $swap_config to 1024 in config file"
+        echo " Restarting dphys-swapfile process.$(tput setaf 7)"
+        systemctl restart dphys-swapfile
+        # Verify swap file size change
+        swap_size=$(swapon -s | tail -n1 | expand -t 1 | tr -s '[[:space:]] ' | cut -d' ' -f3)
+        echo "Swap file size verification: $swap_size"
     fi
 }
-
 
 # ===== function fl_ver_get
 
@@ -291,33 +294,57 @@ if $UPDATE_FLAG ; then
 fi
 
 # js8call
-if [ -z "$DEBUG1" ] ; then
 js8_app="js8call"
 #ver_url="https://groups.io/g/js8call/wiki/Download-Links"
 #curl  "$ver_url" | grep -A3 -i "RaspberryPi"
 #curl "https://groups.io/g/js8call/wiki/Download-Links"
 
-ver_url="https://bitbucket.org/widefido/$js8_app/downloads/?tab=tags"
-js8_ver=$(curl -s $ver_url | grep -A1 -i "iterable-item" | head -2 | tail -1 | cut -d'>' -f2 | cut -d '<' -f1)
+# This url does not work with curl as of 12/2/2019
+#ver_url="https://bitbucket.org/widefido/$js8_app/downloads/?tab=tags"
+#js8ver=$(curl -s $ver_url | grep -A1 -i "iterable-item" | head -2 | tail -1 | cut -d'>' -f2 | cut -d '<' -f1)
 # Get rid of the leading v in string
-js8_ver="${js8_ver:1}"
+#js8ver="${js8ver:1}"
 
-# Need to fix: js8call_1.0.1-ga_armhf.deb
-# Get rid of the trailing -ga
-js8_ver=$(echo $js8_ver | cut -d'-' -f1)
 
-installed_prog_ver_get "$js8_app"
-echo "$js8_app: current version: $js8_ver, installed: $prog_ver"
-if $UPDATE_FLAG ; then
-    if [[ "$js8_ver" != "$prog_ver" ]] ; then
-        echo "         versions are different and WILL be updated."
-        /bin/bash ./hf_install.sh "$USER" js8call "$js8_ver"
-        UPDATE_EXEC_FLAG=true
-    else
-        echo "         version is current"
+# Get & save the js8call changelog file:
+wget -qt 3 -O /tmp/js8call_changelog.txt http://files.js8call.com/changelog.txt
+if [ $?  -ne 0 ] ; then
+    echo "Failed getting js8call changelog needed for version check."
+else
+
+    js8ver=$(grep "^- " /tmp/js8call_changelog.txt | cut -d' ' -f2 | head -n1)
+    # Even though this is the latest version number there may not be an armhf.deb file for this version
+    # Check if this package version file exists
+    curl --head --fail --silent http://files.js8call.com/$js8ver/js8call_$js8ver_armhf.deb >/dev/null;
+    if [ $? -ne 0 ] ; then
+        js8ver=$(grep "^- " /tmp/js8call_changelog.txt | cut -d' ' -f2 | head -n2 | tail -n1)
+        curl --head --fail --silent http://files.js8call.com/2.0.0/js8call_2.0.0_armhf.deb >/dev/null
+        if [ $? -ne 0 ] ; then
+            echo "js8call install of version $js8ver FAILED"
+       fi
+
     fi
-fi
 
+    # Need to fix: js8call_1.0.1-ga_armhf.deb
+    # Get rid of the trailing -ga
+    #js8ver=$(echo $js8ver | cut -d'-' -f1 | head -n1)
+
+    installed_prog_ver_get "$js8_app"
+    echo "$js8_app: current version: $js8ver, installed: $prog_ver"
+
+    if $UPDATE_FLAG ; then
+        if [[ "$js8ver" != "$prog_ver" ]] ; then
+            echo "         versions are different and WILL be updated."
+            /bin/bash ./hf_install.sh "$USER" js8call "$js8ver"
+            if [ $? -ne 0 ] ; then
+                echo "js8call install of version $js8ver FAILED"
+            else
+                UPDATE_EXEC_FLAG=true
+            fi
+        else
+            echo "         version is current"
+        fi
+    fi
 fi
 
 # wsjtx
