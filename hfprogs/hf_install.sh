@@ -16,7 +16,7 @@
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
-SRC_DIR="/usr/local/src/"
+SRC_DIR="/usr/local/src"
 USER=
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -79,24 +79,26 @@ download_filename="js8call_${js8call_ver}_armhf.deb"
 
 # This package does not exist in buster: libqgsttools-p1
 PKG_REQUIRE_JS8CALL="libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediaquick5 libqt5multimediawidgets5 libqt5qml5 libqt5quick5 libqt5serialport5 libgfortran3"
-echo "Install js8call ver: $js8call_ver"
+echo "Install js8call ver: $js8call_ver, start"
 cd "$SRC_DIR"
 sudo apt-get -qq install -y $PKG_REQUIRE_JS8CALL
+echo "Install js8call: Check for pkg file: $SRC_DIR/$download_filename"
 
 if [ ! -e "$SRC_DIR/$download_filename" ] ; then
 #    sudo wget https://s3.amazonaws.com/js8call/${js8call_rootver}/$download_filename
-    sudo wget -qt 3 http://files.js8call.com/${js8call_rootver}/$download_filename
+    sudo wget -qt 3 -O $SRC_DIR/$download_filename http://files.js8call.com/${js8call_rootver}/$download_filename
     if [ $? -ne 0 ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
         exit 1
     else
         echo "Successfully downloaded $download_filename"
-        sudo dpkg -i $download_filename
+        sudo dpkg -i $SRC_DIR/$download_filename
     fi
 else
-    sudo dpkg -i $download_filename
+    sudo dpkg -i $SRC_DIR/$download_filename
 fi
 
+echo "Install js8call ver: $js8call_ver, finished"
 }
 
 # ===== function build_wsjtx
