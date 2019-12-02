@@ -39,9 +39,9 @@ if [ "$MODE_9600_ENABLE" = "true" ] ; then
     # ie. Receive audio off & discriminator input on
 
     amixer -c udrc -s << EOF
-sset 'PCM' -65dB,0.0dB
+sset 'PCM' -26.5dB,0.0dB
 sset 'LO Driver Gain' -6.0dB,3.0dB
-sset 'ADC Level' -4.0dB,-4.0dB
+sset 'ADC Level' 8.0dB,-4.0dB
 
 sset 'IN1_L to Left Mixer Positive Resistor' 'Off'
 sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
@@ -56,9 +56,9 @@ else
     # ie. Receive audio on & discriminator off
 
     amixer -c udrc -s << EOF
-sset 'PCM' -65dB,-2.0dB
+sset 'PCM' -26.5dB,-2.0dB
 sset 'LO Driver Gain' -6.0dB,0.0dB
-sset 'ADC Level' 0.0dB,0.0dB
+sset 'ADC Level' 8.0dB,0.0dB
 
 sset 'IN1_L to Left Mixer Positive Resistor' 'Off'
 sset 'IN1_R to Right Mixer Positive Resistor' 'Off'
