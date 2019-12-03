@@ -1,5 +1,7 @@
 # CORE Functionality Install for UDRC
 
+  * Instructions for installing & configuring from a Raspbian image
+
 ## Components of CORE
 
 * direwolf
@@ -68,7 +70,7 @@ dtoverlay=
 dtoverlay=udrc
 force_turbo=1
 ```
-* Reboot & test for a successful driver load
+* **Reboot & test for a successful driver load**
 ```
 aplay -l
 ```
@@ -78,8 +80,9 @@ card 1: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi
   Subdevices: 0/1
   Subdevice #0: subdevice #0
 ```
-
 * If you do not see _udrc_ enumerated  **do not continue**
+  * Until the UDRC/DRAWS drivers are loaded the configuration scripts will not succeed.
+  * Run the _showudrc.sh_ script and [post the console output to the UDRC groups.io forum](https://nw-digital-radio.groups.io/g/udrc/topics)
 
 ## ssh into your new image
 

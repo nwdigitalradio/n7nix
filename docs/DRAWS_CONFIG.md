@@ -58,10 +58,27 @@ passwd: digiberry
 
 #### Initial Config Summary
 
-- First boot: follow 'Welcome to Raspberry Pi' piwiz screens.
-- Second boot: run script: _app_config.sh core_
-- Third boot: Set your ALSA config
-- For packet turn on Direwolf & AX.25
+- 1: First boot:
+  - Verify that required drivers for the DRAWS codec are loaded.
+  - Follow 'Welcome to Raspberry Pi' piwiz screens.
+- 2: Verify that codec drivers have loaded
+- 3: Second boot: run script: _app_config.sh core_
+- 4: Third boot: Set your ALSA config
+- 5For packet turn on Direwolf & AX.25
+
+#### Check for required drivers first
+* Open a console and type:
+```
+aplay -l
+```
+* You should see a line in the output that looks something like this:
+```
+card 0: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi-0 []
+```
+
+* If you do not see _udrc_ enumerated  **do not continue**
+  * Until the UDRC/DRAWS drivers are loaded the configuration scripts will not succeed.
+  * Run the _showudrc.sh_ script and [post the console output to the UDRC groups.io forum](https://nw-digital-radio.groups.io/g/udrc/topics)
 
 #### Initial Config Detail
 
