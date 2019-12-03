@@ -64,6 +64,10 @@ c03111)
    echo " Pi 4 Model B, Rev 1.1, 4GB mem, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
+c03112)
+   echo " Pi 4 Model B, Rev 1.2, 4GB mem, Mfg by Sony UK"
+   HAS_WIFI=true
+;;
 *)
    echo "Unknown pi version: $piver"
    echo "Model: $(tr -d '\0' </proc/device-tree/model)"
