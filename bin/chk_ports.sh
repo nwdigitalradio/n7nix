@@ -6,14 +6,27 @@
 DEBUG=
 EDIT_FLAG=0
 
-AXPORTS_FILE="/etc/ax25/axports"
-AX25D_FILE="/etc/ax25/ax25d.conf"
+scriptname="`basename $0`"
+
+AX25_CFGDIR="/usr/local/etc/ax25"
+AXPORTS_FILE="$AX25_CFGDIR/axports"
+AX25D_FILE="$AX25_CFGDIR/ax25d.conf"
 RMSGW_CHAN_FILE="/etc/rmsgw/channels.xml"
 PLU_CFG_FILE="/usr/local/etc/wl2k.conf"
 
 
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function usage
+function usage() {
+   echo "Usage: $scriptname [-d][-e][-h]" >&2
+   echo " No command line args, will display port files information"
+   echo "   -d        set debug flag"
+   echo "   -e        set edit files filag"
+   echo "   -h        no arg, display this message"
+   echo
+}
 
 # ===== function is_ax25up
 function is_ax25up() {
@@ -28,15 +41,28 @@ function get_axport_device() {
     device_axports=$(echo $dev_str | cut -d ' ' -f1)
     callsign_axports=$(echo $dev_str | cut -d ' ' -f2)
 
-#    dbgecho "DEBUG: get_axport: arg: $dev_str, $device_axports"
+    dbgecho "DEBUG: get_axport: arg: $dev_str, $device_axports"
 
     # Test if device string is not null
     if [ ! -z "$device_axports" ] ; then
         udr_device="$device_axports"
         echo "axport: found device: $udr_device, with call sign $callsign_axports"
     else
-        echo "axport: Found NO ax25 devices"
+        echo "axport: NO ax25 devices found"
     fi
+}
+
+# ===== function create_axports_file
+function create_axports_file() {
+    sudo tee "$AXPORTS_FILE" > /dev/null << EOT
+# $AXPORTS_FILE
+#
+# The format of this file is:
+#portname	callsign	speed	paclen	window	description
+${AX25PORT_BASE}0        $CALLSIGN-10       9600    255     2       Winlink port
+${AX25PORT_BASE}1        $CALLSIGN-$SSID        9600    255     2       Direwolf port
+EOT
+
 }
 
 # ===== function device_axports
@@ -44,14 +70,23 @@ function get_axport_device() {
 function axports_edit_check () {
     # Is edit flag set?
     if [ "$EDIT_FLAG" -eq "1" ] ; then
-        callsign_sid=$(echo $callsign_axports | cut -d'-' -f2)
+        # Get callsign, callsign sid & ax25 port name
+        SSID=$(echo $callsign_axports | cut -d'-' -f2)
+        CALLSIGN=$(echo $callsign_axports | cut -d'-' -f1)
+        # Delete all non alpha characters
+        AX25PORT_BASE=$(echo $device_axports | tr -cd '[:alpha:]')
+        dbgecho "axports_edit_check: device: $device_axports, callsign sid: $SSID"
 
-        dbgecho "axports_edit_check: device: $device_axports, callsign sid: $callsign_sid"
-
-        if [ "$device_axports" == "udr1" ] && [ "$callsign_sid" -eq "10" ] ; then
-            echo "axports edit file: $device_axports, $callsign_axports"
-        elif [ "$device_axports" == "udr0" ] && [ "$callsign_sid" -eq "1" ] ; then
-            echo "axports edit file: $device_axports, $callsign_axports"
+        if [ "$device_axports" == "udr1" ] && [ "$SSID" -eq "10" ] ; then
+            echo "axports edit file: port: $device_axports, port base: $AX25PORT_BASE, call:$callsign_axports, call base: $CALLSIGN"
+            SSID="1"
+            create_axports_file
+#            sudo sed -i -e "/^udr1/ s/1/0/" "$AXPORTS_FILE" > /dev/null
+        elif [ "$device_axports" == "udr0" ] && [ "$SSID" -eq "1" ] ; then
+            echo "axports edit file: port: $device_axports, port base: $AX25PORT_BASE, call:$callsign_axports, call base: $CALLSIGN"
+            SSID="10"
+            create_axports_file
+#            sudo sed -i -e "/^udr0/ s/0/1/" "$AXPORTS_FILE" > /dev/null
         else
             dbgecho "axports file ok"
         fi
@@ -78,6 +113,10 @@ function device_axports () {
         dev_string=$(head -n 1 <<< $getline)
         get_axport_device "$dev_string"
         axports_edit_check
+
+        # File may have changed from axports_edit_check
+        # Collapse all spaces on lines that do not begin with a comment
+        getline=$(grep -v '^#' $AXPORTS_FILE | tr -s '[[:space:]] ')
         dev_string=$(tail -n 1 <<< $getline)
         get_axport_device "$dev_string"
         axports_edit_check
@@ -151,15 +190,14 @@ function plu_chan () {
 function rmsgw_chan () {
     # Collapse all spaces on lines that do not begin with a comment
     getchan=$(grep -i "channel name=" $RMSGW_CHAN_FILE | tr -s '[[:space:]] ')
-    getcall=$(grep -i "callsign=" $RMSGW_CHAN_FILE | tr -s '[[:space:]] ')
+    getcall=$(grep -i "callsign" $RMSGW_CHAN_FILE | tr -s '[[:space:]] ')
+
     dbgecho "rmsgw_chan: $getchan, call sign: $getcall"
     chan_name=$(echo $getchan | cut -d'=' -f2 | cut -d ' ' -f1)
-    call_name=$(echo $getcall | cut -d'=' -f2 | cut -d ' ' -f1)
+    call_name=$(echo $getcall | cut -d'>' -f2 | cut -d '<' -f1)
     # Remove surrounding quotes
     chan_name=${chan_name%\"}
     chan_name=${chan_name#\"}
-    call_name=${call_name%\"}
-    call_name=${call_name#\"}
     echo "RMS gateway: chan_name: $chan_name, call sign: $call_name"
 }
 
@@ -194,6 +232,10 @@ while [[ $# -gt 0 ]] ; do
         -e)
             echo "$(tput setaf 6) Checking files for edit $(tput setaf 7)"
             EDIT_FLAG=1
+        ;;
+        -h)
+            usage
+            exit 1
         ;;
         *)
             echo "Undefined argument: $key"
