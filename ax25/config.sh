@@ -114,6 +114,7 @@ done
 # ===== function cfg_axports
 function cfg_axports() {
 
+   # Prompt for call sign & SSID
    prompt_read
    # udrc II has 2 ports
 {
