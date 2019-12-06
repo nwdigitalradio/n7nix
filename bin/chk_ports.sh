@@ -23,7 +23,8 @@ function usage() {
    echo "Usage: $scriptname [-d][-e][-h]" >&2
    echo " No command line args, will display port files information"
    echo "   -d        set debug flag"
-   echo "   -e        set edit files filag"
+   echo "   -e        set edit files flag"
+   echo "   -p        print files with port names."
    echo "   -h        no arg, display this message"
    echo
 }
@@ -232,6 +233,20 @@ while [[ $# -gt 0 ]] ; do
         -e)
             echo "$(tput setaf 6) Checking files for edit $(tput setaf 7)"
             EDIT_FLAG=1
+        ;;
+        -p)
+            echo "File: $AXPORTS_FILE"
+            cat "$AXPORTS_FILE"
+            echo
+            echo "File: $AX25D_FILE"
+            cat "$AX25D_FILE"
+            echo
+            echo "File: $RMSGW_CHAN_FILE"
+            grep -i "channel name=" "$RMSGW_CHAN_FILE"
+            echo
+            echo "File: $PLU_CFG_FILE"
+            grep  'ax25port=' "$PLU_CFG_FILE"
+            exit
         ;;
         -h)
             usage
