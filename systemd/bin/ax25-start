@@ -5,20 +5,23 @@
 
 SPEED_FILE="/etc/ax25/packet_9600baud"
 SERVICE_LIST="direwolf.service ax25dev.path ax25dev.service ax25-mheardd.service ax25d.service"
+SYSTEMCTL="systemctl"
 
 # ===== function start_service
 
 function start_service() {
     service="$1"
+    echo "Starting: $service"
+
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
         echo "ENABLING $service"
-        systemctl enable "$service"
+        $SYSTEMCTL enable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem ENABLING $service"
         fi
     fi
-    systemctl --no-pager start "$service"
+    $SYSTEMCTL --no-pager start "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem starting $service"
     fi
@@ -35,8 +38,8 @@ fi
 
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
-   echo "Must be root"
-   exit 1
+   echo "set sudo"
+   SYSTEMCTL="sudo systemctl"
 fi
 
 MODEM_SPEED="1200"
@@ -47,6 +50,5 @@ echo
 echo "STARTING AX.25/Direwolf as $MODEM_SPEED baud modem."
 
 for service in `echo ${SERVICE_LIST}` ; do
-    echo "Starting: $service"
     start_service $service
 done
