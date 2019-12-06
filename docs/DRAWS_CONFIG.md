@@ -86,6 +86,13 @@ card 0: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi
   * Follow the screens as you would on any other Raspbian install.
   * When prompted to restart the RPi please do so.
 
+##### Update configuration scripts
+```
+cd
+cd n7nix
+git pull
+```
+
 ##### Configure core functionality
 
 * Whether you want **direwolf for packet functionality** or run **HF
