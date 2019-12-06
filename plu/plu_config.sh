@@ -101,6 +101,12 @@ fi
 # Save current directory
 CUR_DIR=$(pwd)
 
+# Refresh paclink-unix source files.
+# Specically get the latest web server files.
+pushd $SRC_DIR/paclink-unix
+git pull
+popd > /dev/null
+
 # if there are any args on command line assume it's a callsign
 if (( $# != 0 )) ; then
    CALLSIGN="$1"
