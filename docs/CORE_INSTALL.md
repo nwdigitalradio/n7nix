@@ -110,7 +110,7 @@ ssh pi@<rpi_ip_address>
 ```
 
 * You are logging in as user __pi__, with password __raspberry__ and do the following:
-* If you have an attached monitor run through the piwiz screens then do the following:
+* If you have an attached monitor run through the piwiz screens otherwise do the following:
 
 ```bash
 # Become root
@@ -120,7 +120,6 @@ apt-get update
 # Also you may get a (q to quit) prompt to continue after reading about sudoers
 # list. Just hit 'q'
 apt-get upgrade -y
-apt-get install git
 # reboot
 shutdown -r now
 ```
