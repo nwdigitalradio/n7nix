@@ -126,6 +126,14 @@ function device_axports () {
     fi
 }
 
+# ===== function set_ax25d_device
+# change device name in file
+function set_ax25d_device() {
+    if [ "$EDIT_FLAG" -eq "1" ] ; then
+        sudo sed -i -e "/^udr1/ s/1/0/" "$AXPORTS_FILE" > /dev/null
+    fi
+}
+
 # ===== function get_ax25d_device
 # Pull device names from string
 function get_ax25d_device() {
@@ -156,17 +164,27 @@ function ax25d_chan () {
     if (( linecnt == 0 )) ; then
         echo "ax25d: No ports found in $AXPORTS_FILE"
         return
+    elif (( linecnt > 2 )) ; then
+        echo "ax25d: custom config file edit by hand."
+        return
     else
         dbgecho "ax25d: found $linecnt lines: $getline"
     fi
 
     if (( linecnt > 1 )) ; then
+        # First entry
         dev_string=$(head -n 1 <<< $getline)
         get_ax25d_device "$dev_string"
+
+        # Second entry
         dev_string=$(tail -n 1 <<< $getline)
         get_ax25d_device "$dev_string"
+        set_ax25d_device
+
     else
+        # Only one entry
         get_ax25d_device "$getline"
+        set_ax25d_device
     fi
 }
 
@@ -192,14 +210,20 @@ function rmsgw_chan () {
     # Collapse all spaces on lines that do not begin with a comment
     getchan=$(grep -i "channel name=" $RMSGW_CHAN_FILE | tr -s '[[:space:]] ')
     getcall=$(grep -i "callsign" $RMSGW_CHAN_FILE | tr -s '[[:space:]] ')
-
-    dbgecho "rmsgw_chan: $getchan, call sign: $getcall"
-    chan_name=$(echo $getchan | cut -d'=' -f2 | cut -d ' ' -f1)
     call_name=$(echo $getcall | cut -d'>' -f2 | cut -d '<' -f1)
-    # Remove surrounding quotes
-    chan_name=${chan_name%\"}
-    chan_name=${chan_name#\"}
-    echo "RMS gateway: chan_name: $chan_name, call sign: $call_name"
+    callbase=$(echo $call_name | cut -d'-' -f1)
+
+    if [ "$callbase" == "N0CALL" ] ; then
+        echo "RMS Gateway not configured."
+    else
+
+        dbgecho "rmsgw_chan: $getchan, call sign: $getcall, call base: $callbase"
+        chan_name=$(echo $getchan | cut -d'=' -f2 | cut -d ' ' -f1)
+        # Remove surrounding quotes
+        chan_name=${chan_name%\"}
+        chan_name=${chan_name#\"}
+        echo "RMS gateway: chan_name: $chan_name, call sign: $call_name"
+    fi
 }
 
 # ===== function network_ports
@@ -221,7 +245,6 @@ function network_ports() {
 
 # ===== main
 
-echo "$(tput setaf 1)Only run this script after an initial config$(tput setaf 7)"
 while [[ $# -gt 0 ]] ; do
 
     key="$1"
@@ -260,6 +283,10 @@ while [[ $# -gt 0 ]] ; do
     esac
     shift # past argument or value
 done
+
+if [ "$EDIT_FLAG" -eq "1" ] ; then
+    echo "$(tput setaf 1)Only run this script after an initial config$(tput setaf 7)"
+fi
 
 # Verify ax25 network devices are up
 echo "== AX.25 network ports check"
