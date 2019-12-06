@@ -83,6 +83,9 @@ read -t 1 -n 10000 discard
 echo -n "Enter ssid (0 - 15) for direwolf APRS, followed by [enter]"
 read -ep ": " SSID
 
+# Remove any leading zeros
+SSID=$((10#$SSID))
+
 if [ -z "${SSID##*[!0-9]*}" ] ; then
    echo "Input: $SSID, not a positive integer"
    return 0
