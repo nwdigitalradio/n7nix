@@ -37,13 +37,13 @@
 | ircccbgatewayd | 1.20180703-1 | yes |   |   |
 | ARDOP        |  2      |      |     |   |
 | ARIM         |  2.6    |      |     |   |
-| js8call      |  1.1.0  | yes  |     |   |
-| wsjt-x       |  2.0.1  | yes  |     |   |
+| js8call      |  2.0.0  | yes  |     |   |
+| wsjt-x       |  2.1.2  | yes  |     |   |
 | hamlib       |  3.3    |      |     |   |
 | flxmlrpc lib |  0.1.4  |      |     |   |
-| fldigi       |  4.1.03 |      |     |   |
+| fldigi       |  4.1.08 |      |     |   |
 | flrig        |  1.3.43 |      |     |   |
-| flmsg        |  4.0.8  |      |     |   |
-| flamp        |  2.2.04 |      |     |   |
+| flmsg        |  4.0.14 |      |     |   |
+| flamp        |  2.2.05 |      |     |   |
 | iptables     |  1.6.0  |  yes |     |   |
 | lm-sensors   |  3.4.0  |  yes |     |   |
