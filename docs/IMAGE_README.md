@@ -3,12 +3,12 @@
 * You should notice the first time the DRAWS image is booted it auto boots a second time.
   * This is to expand the compressed file system.
 
-* The initial file system image is found at http://archive.compasslinux.org/images/
-  * image_2018-11-18-compass.zip
-* The DRAWS RPi image which starts with the Compass image is currently residing here:
+* The initial file system image is found at https://www.raspberrypi.org/downloads/raspbian/
+  * Raspbian Buster with desktop
+* The DRAWS RPi image which uses the Raspbian with desktop image is currently residing here:
   * http://nwdig.net/downloads/
 
-* The programs in the following table are added to the compass image.
+* The programs in the following table are added to the Raspbian image.
 
 ### Table of Installed Programs
 
