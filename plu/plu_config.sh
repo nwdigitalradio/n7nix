@@ -101,12 +101,6 @@ fi
 # Save current directory
 CUR_DIR=$(pwd)
 
-# Refresh paclink-unix source files.
-# Specically get the latest web server files.
-pushd $SRC_DIR/paclink-unix
-git pull
-popd > /dev/null
-
 # if there are any args on command line assume it's a callsign
 if (( $# != 0 )) ; then
    CALLSIGN="$1"
@@ -129,6 +123,13 @@ if [ -z "$USER" ] ; then
 else
    echo "USER=$USER, OK"
 fi
+
+# Refresh paclink-unix source files.
+# Specically get the latest web server files.
+pushd $SRC_DIR/paclink-unix
+git pull
+chown -R $USER:$USER $SRC_DIR/paclink-unix
+popd > /dev/null
 
 MUTT_CFG_FILE="/home/$USER/.muttrc"
 CFG_FILES="$PLU_CFG_FILE $MUTT_CFG_FILE $POSTFIX_CFG_FILE"
