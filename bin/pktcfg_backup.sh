@@ -17,12 +17,20 @@ PLU_CFG_FILE="/usr/local/etc/wl2k.conf"
 
 FILE_LIST="$AXPORTS_FILE $AX25D_FILE $RMSGW_CHAN_FILE $PLU_CFG_FILE"
 
+CP="cp"
+# Running as root?
+if [[ $EUID != 0 ]] ; then
+   echo "set sudo"
+   CP="sudo cp"
+fi
+
+
 # If there are arguments on the command line then do a restore
 if [ "$#" -ne 0 ]; then
     echo "== Restore =="
     for filename in `echo ${FILE_LIST}` ; do
         echo "Copy from: $BACKUP_DIR/ref1/$(basename "$filename") to $filename"
-        sudo cp "$BACKUP_DIR/ref1/$(basename "$filename")" "$filename"
+        $CP "$BACKUP_DIR/ref1/$(basename "$filename")" "$filename"
     done
 
 else
