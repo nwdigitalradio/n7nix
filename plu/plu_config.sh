@@ -130,14 +130,6 @@ else
    echo "USER=$USER, OK"
 fi
 
-# verify user name is legit
-check_user
-
-if [ $user != $USER ] ; then
-   echo "Please login as $USER"
-   exit 1
-fi
-
 MUTT_CFG_FILE="/home/$USER/.muttrc"
 CFG_FILES="$PLU_CFG_FILE $MUTT_CFG_FILE $POSTFIX_CFG_FILE"
 
