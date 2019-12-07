@@ -14,6 +14,9 @@ AX25D_FILE="$AX25_CFGDIR/ax25d.conf"
 RMSGW_CHAN_FILE="/etc/rmsgw/channels.xml"
 PLU_CFG_FILE="/usr/local/etc/wl2k.conf"
 
+PRIMARY_DEVICE="udr0"
+ALTERNATE_DEVICE="udr1"
+
 
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -21,9 +24,11 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # ===== function usage
 function usage() {
    echo "Usage: $scriptname [-d][-e][-h]" >&2
-   echo " No command line args, will display port files information"
+   echo " Displays or edits: $(basename "$AXPORTS_FILE"), $(basename "$AX25D_FILE"), $(basename "$RMSGW_CHAN_FILE"), $(basename "$PLU_CFG_FILE")"
+   echo " No command line args, will display port names in above files."
    echo "   -d        set debug flag"
    echo "   -e        set edit files flag"
+   echo "   -n 0 or 1 set winlink device number, only used with -e option."
    echo "   -p        print files with port names."
    echo "   -h        no arg, display this message"
    echo
@@ -59,9 +64,9 @@ function create_axports_file() {
 # $AXPORTS_FILE
 #
 # The format of this file is:
-#portname	callsign	speed	paclen	window	description
-${AX25PORT_BASE}0        $CALLSIGN-10       9600    255     2       Winlink port
-${AX25PORT_BASE}1        $CALLSIGN-$SSID        9600    255     2       Direwolf port
+# portname  callsign      speed   paclen  window   description
+${PRIMARY_DEVICE}        $CALLSIGN-10       9600    255     2       Winlink port
+${ALTERNATE_DEVICE}        $CALLSIGN-$SSID        9600    255     2       Direwolf port
 EOT
 
 }
@@ -78,12 +83,12 @@ function axports_edit_check () {
         AX25PORT_BASE=$(echo $device_axports | tr -cd '[:alpha:]')
         dbgecho "axports_edit_check: device: $device_axports, callsign sid: $SSID"
 
-        if [ "$device_axports" == "udr1" ] && [ "$SSID" -eq "10" ] ; then
+        if [ "$device_axports" == "$ALTERNATE_DEVICE" ] && [ "$SSID" -eq "10" ] ; then
             echo "axports edit file: port: $device_axports, port base: $AX25PORT_BASE, call:$callsign_axports, call base: $CALLSIGN"
             SSID="1"
             create_axports_file
 #            sudo sed -i -e "/^udr1/ s/1/0/" "$AXPORTS_FILE" > /dev/null
-        elif [ "$device_axports" == "udr0" ] && [ "$SSID" -eq "1" ] ; then
+        elif [ "$device_axports" == "$PRIMARY_DEVICE" ] && [ "$SSID" -eq "1" ] ; then
             echo "axports edit file: port: $device_axports, port base: $AX25PORT_BASE, call:$callsign_axports, call base: $CALLSIGN"
             SSID="1"
             create_axports_file
@@ -129,9 +134,9 @@ function device_axports () {
 # ===== function set_ax25d_device
 # change device name in file
 function set_ax25d_device() {
-    if [ "$udr_device" == "udr1" ] && [ "$EDIT_FLAG" -eq "1" ] ; then
+    if [ "$udr_device" == "$ALTERNATE_DEVICE" ] && [ "$EDIT_FLAG" -eq "1" ] ; then
         echo "ax25d_chan: Edit file"
-        sudo sed -i -e "/udr1/ s/udr1/udr0/" "$AX25D_FILE" > /dev/null
+        sudo sed -i -e "/$ALTERNATE_DEVICE/ s/$ALTERNATE_DEVICE/$PRIMARY_DEVICE/" "$AX25D_FILE" > /dev/null
     fi
 }
 
@@ -199,9 +204,9 @@ function plu_chan () {
         echo "paclink-unix not configured"
     else
         echo "plu: ax25port: $dev_string, call sign: $call_string"
-        if [ "$dev_string" == "udr1" ] && [ "$EDIT_FLAG" -eq "1" ] ; then
+        if [ "$dev_string" == "$ALTERNATE_DEVICE" ] && [ "$EDIT_FLAG" -eq "1" ] ; then
             echo "plu_chan: edit file change: $dev_string to udr0"
-            sudo sed -i -e "/ax25port=/ s/ax25port=.*/ax25port=udr0/" "$PLU_CFG_FILE" > /dev/null
+            sudo sed -i -e "/ax25port=/ s/ax25port=.*/ax25port=$PRIMARY_DEVICE/" "$PLU_CFG_FILE" > /dev/null
         fi
     fi
 }
@@ -224,9 +229,9 @@ function rmsgw_chan () {
         # Remove surrounding quotes
         chan_name=${chan_name%\"}
         chan_name=${chan_name#\"}
-        if [ "$chan_name" == "udr1" ] && [ "$EDIT_FLAG" -eq "1" ] ; then
-            echo "rmsgw_chan: edit file change: $chan_name to udr0"
-            sudo sed -i -e "/channel name/ s/channel name=\"udr1\"/channel name=\"udr0\"/" "$RMSGW_CHAN_FILE" > /dev/null
+        if [ "$chan_name" == "$ALTERNATE_DEVICE" ] && [ "$EDIT_FLAG" -eq "1" ] ; then
+            echo "rmsgw_chan: edit file change: $chan_name to $PRIMARY_DEVICE"
+            sudo sed -i -e "/channel name/ s/channel name=\"$ALTERNATE_DEVICE\"/channel name=\"$PRIMARY_DEVICE\"/" "$RMSGW_CHAN_FILE" > /dev/null
         fi
         echo "RMS gateway: chan_name: $chan_name, call sign: $call_name"
     fi
@@ -262,6 +267,31 @@ while [[ $# -gt 0 ]] ; do
         -e)
             echo "$(tput setaf 6) Checking files for edit $(tput setaf 7)"
             EDIT_FLAG=1
+        ;;
+        -n)
+            PRIMARY_DEV_NUM=$2
+            re='^[0-9]+$'
+            if ! [[ $PRIMARY_DEV_NUM =~ $re ]] ; then
+                echo "$PRIMARY_DEV_NUM not a number"
+                echo
+                usage
+                exit 1
+            fi
+            if [ "$PRIMARY_DEV_NUM" -eq 0 ] ; then
+                PRIMARY_DEVICE="udr0"
+                ALTERNATE_DEVICE="udr1"
+            elif [ "$PRIMARY_DEV_NUM" -eq 1 ] ; then
+                PRIMARY_DEVICE="udr1"
+                ALTERNATE_DEVICE="udr0"
+            else
+                echo
+                echo "Device number must be either 0 or 1, found: $PRIMARY_DEV_NUM"
+                usage
+                exit 1
+            fi
+            echo "Set winlink device to $PRIMARY_DEVICE"
+
+            shift # past argument
         ;;
         -p)
             echo "File: $AXPORTS_FILE"
