@@ -85,7 +85,7 @@ function axports_edit_check () {
 #            sudo sed -i -e "/^udr1/ s/1/0/" "$AXPORTS_FILE" > /dev/null
         elif [ "$device_axports" == "udr0" ] && [ "$SSID" -eq "1" ] ; then
             echo "axports edit file: port: $device_axports, port base: $AX25PORT_BASE, call:$callsign_axports, call base: $CALLSIGN"
-            SSID="10"
+            SSID="1"
             create_axports_file
 #            sudo sed -i -e "/^udr0/ s/0/1/" "$AXPORTS_FILE" > /dev/null
         else
@@ -129,8 +129,9 @@ function device_axports () {
 # ===== function set_ax25d_device
 # change device name in file
 function set_ax25d_device() {
-    if [ "$EDIT_FLAG" -eq "1" ] ; then
-        sudo sed -i -e "/^udr1/ s/1/0/" "$AXPORTS_FILE" > /dev/null
+    if [ "$udr_device" == "udr1" ] && [ "$EDIT_FLAG" -eq "1" ] ; then
+        echo "ax25d_chan: Edit file"
+        sudo sed -i -e "/udr1/ s/udr1/udr0/" "$AX25D_FILE" > /dev/null
     fi
 }
 
@@ -138,6 +139,7 @@ function set_ax25d_device() {
 # Pull device names from string
 function get_ax25d_device() {
     dev_str="$1"
+    udr_device=
     device_ax25d=$(echo $dev_str | cut -d ' ' -f3 | tr -d "]")
     callsign_ax25d=$(echo $dev_str | cut -d ' ' -f1 | tr -d "[")
 
@@ -165,7 +167,7 @@ function ax25d_chan () {
         echo "ax25d: No ports found in $AXPORTS_FILE"
         return
     elif (( linecnt > 2 )) ; then
-        echo "ax25d: custom config file edit by hand."
+        echo "ax25d: custom config file, edit by hand."
         return
     else
         dbgecho "ax25d: found $linecnt lines: $getline"
@@ -222,6 +224,10 @@ function rmsgw_chan () {
         # Remove surrounding quotes
         chan_name=${chan_name%\"}
         chan_name=${chan_name#\"}
+        if [ "$chan_name" == "udr1" ] && [ "$EDIT_FLAG" -eq "1" ] ; then
+            echo "rmsgw_chan: edit file change: $chan_name to udr0"
+            sudo sed -i -e "/channel name/ s/channel name=\"udr1\"/channel name=\"udr0\"/" "$RMSGW_CHAN_FILE" > /dev/null
+        fi
         echo "RMS gateway: chan_name: $chan_name, call sign: $call_name"
     fi
 }
