@@ -14,7 +14,46 @@ AX25PORT="udr"
 SSID="15"
 AX25_CFGDIR="/usr/local/etc/ax25"
 
+PRIMARY_DEVICE="udr0"
+ALTERNATE_DEVICE="udr1"
+
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function get product id of HAT
+
+# Set PROD_ID:
+# 0 = no EEPROM or no device tree found
+# 1 = HAT found but not a UDRC
+# 2 = UDRC
+# 3 = UDRC II
+# 4 = DRAWS
+# 5 = 1WSpot
+
+function get_prod_id() {
+# Initialize product ID
+PROD_ID=
+prgram="udrcver.sh"
+
+which $prgram > /dev/null 2>&1
+if [ "$?" -eq 0 ] ; then
+   dbgecho "Found $prgram in path"
+   $prgram -
+   PROD_ID=$?
+else
+   currentdir=$(pwd)
+   # Get path one level down
+   pathdn1=$( echo ${currentdir%/*})
+   dbgecho "Test pwd: $currentdir, path: $pathdn1"
+   if [ -e "$pathdn1/bin/$prgram" ] ; then
+       dbgecho "Found $prgram here: $pathdn1/bin"
+       $pathdn1/bin/$prgram -1
+       PROD_ID=$?
+   else
+       echo "Could not locate $prgram default product ID to draws"
+       PROD_ID=4
+   fi
+fi
+}
 
 # ===== function get_callsign
 
@@ -125,8 +164,8 @@ echo "# $AX25_CFGDIR/axports"
 echo "#"
 echo "# The format of this file is:"
 echo "#portname	callsign	speed	paclen	window	description"
-echo "${AX25PORT}0        $CALLSIGN-$SSID         9600    255     2       Direwolf port"
-echo "${AX25PORT}1        $CALLSIGN-10            9600    255     2       Winlink port"
+echo "${PRIMARY_DEVICE}        $CALLSIGN-10            9600    255     2       Winlink port"
+echo "${ALTERNATE_DEVICE}        $CALLSIGN-$SSID             9600    255     2       Direwolf port"
 } > $AX25_CFGDIR/axports
 
 }
@@ -192,6 +231,23 @@ get_callsign
 # Check for a valid user name
 check_user
 
+# Get product ID of hat
+get_prod_id
+echo "HAT product id: $PROD_ID"
+
+# Test product ID for UDRC or UDRC II
+if [[ "$PROD_ID" -eq 2 ]] || [[ "$PROD_ID" -eq 3 ]] ; then
+    # UDRC or UDRC II hat
+    PRIMARY_DEVICE="udr1"
+    ALTERNATE_DEVICE="udr0"
+elif [ "$PROD_ID" -eq 4 ] ; then
+    # Draws hat
+    PRIMARY_DEVICE="udr0"
+    ALTERNATE_DEVICE="udr1"
+else
+    echo "Product ID test failed with: $PROD_ID"
+fi
+
 # Setup ax.25 axports file
 numports=$(grep -c "$AX25PORT" $AX25_CFGDIR/axports)
 if [ $? -ne 2 ] ; then
@@ -217,11 +273,11 @@ if [ $? -eq 0 ] ; then
    sed -n '1,16p' $AX25_CFGDIR/ax25d.conf-dist > $AX25_CFGDIR/ax25d.conf
 
 {
-echo "[$CALLSIGN-10 VIA ${AX25PORT}1]"
+echo "[$CALLSIGN-10 VIA ${PRIMARY_DEVICE}]"
 echo "NOCALL   * * * * * *  L"
 echo "default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -P %d %U"
 echo "#"
-echo "[$CALLSIGN VIA ${AX25PORT}1]"
+echo "[$CALLSIGN VIA ${PRIMARY_DEVICE}]"
 echo "NOCALL   * * * * * *  L"
 echo "default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d"
 } >> $AX25_CFGDIR/ax25d.conf
