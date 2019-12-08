@@ -111,9 +111,10 @@ if [ ! -d "$repo_name" ] ; then
    if [ "$?" -ne 0 ] ; then
       echo "$(tput setaf 1)Problem cloning repository $repo_name$(tput setaf 7)"
    fi
+else
+    cd split-channels
+    sudo git pull
 fi
-cd split-channels
-sudo git pull
 
 # refresh draws-manager repository
 echo "Update draws manager"
