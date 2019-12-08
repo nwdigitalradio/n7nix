@@ -175,13 +175,15 @@ function cfg_chan_xml() {
 # Check permissions of the rmsgw stat directory
 
 function chk_perm() {
-   # Verify permissions for /etc/rmwgw/stat directory
-   # Check user & group permissions for version & channels aging directory
-   #
    RMSGW_STAT_DIR="/etc/rmsgw/stat"
    USER="rmsgw"
    GROUP="rmsgw"
 
+   sudo chown -R $USER:$GROUP /usr/local/etc/rmsgw
+
+   # Verify permissions for /etc/rmwgw/stat directory
+   # Check user & group permissions for version & channels aging directory
+   #
    echo "=== test owner & group id of stat directory"
    if [ $(stat -c "%U" $RMSGW_STAT_DIR) != "$USER" ]  || [ $(stat -c "%G" $RMSGW_STAT_DIR) != "$GROUP" ] ; then
       echo "RMSGW stat dir has wrong permissions: $(stat -c "%U" $RMSGW_STAT_DIR):$(stat -c "%G" $RMSGW_STAT_DIR)"
