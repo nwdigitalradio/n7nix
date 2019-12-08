@@ -204,8 +204,8 @@ function plu_chan () {
         echo "paclink-unix not configured"
     else
         echo "plu: ax25port: $dev_string, call sign: $call_string"
-        if [ "$dev_string" == "$ALTERNATE_DEVICE" ] && [ "$EDIT_FLAG" -eq "1" ] ; then
-            echo "plu_chan: edit file change: $dev_string to udr0"
+        if [ "$EDIT_FLAG" -eq "1" ] && [ "$PRIMARY_DEVICE" != "$dev_string" ] ; then
+            echo "plu_chan: edit file change: $dev_string to $PRIMARY_DEVICE"
             sudo sed -i -e "/ax25port=/ s/ax25port=.*/ax25port=$PRIMARY_DEVICE/" "$PLU_CFG_FILE" > /dev/null
         fi
     fi
