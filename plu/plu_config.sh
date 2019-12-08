@@ -180,8 +180,9 @@ if [ $? -ne 0 ] ; then
 
    # Set ax25port=
    # Assume axports was set by a previous configuration script
-   # get first arg in last line
-   PORT=$(tail -1 /etc/ax25/axports | cut -d ' ' -f 1)
+   # get winlink line
+#   PORT=$(tail -1 /etc/ax25/axports | cut -d ' ' -f 1)
+   PORT=$(grep -i "winlink" /etc/ax25/axports | cut -d ' ' -f1)
    sed -i -e "s/^#ax25port=/ax25port=$PORT/" $PLU_CFG_FILE
 
 else
