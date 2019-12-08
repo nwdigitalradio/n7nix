@@ -14,11 +14,22 @@ AX25PORT="udr0"
 SSID="10"
 AX25_CFGDIR="/usr/local/etc/ax25"
 RMSGW_CFGDIR="/etc/rmsgw"
+RMSGW_GWCFGFILE=$RMSGW_CFGDIR/gateway.conf
+
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 RMSGW_CFG_FILES="gateway.conf channels.xml banner"
 REQUIRED_PRGMS="rmschanstat python rmsgw rmsgw_aci"
+
+# ===== function is_gateway_configured
+
+function is_gateway_configured() {
+    filename=$1
+    CHECK_CALL="N0CALL"
+    grep -i "$CHECK_CALL" $RMSGW_CFGDIR/$filename > /dev/null 2>&1
+    return $?
+}
 
 # ===== function get_callsign
 
@@ -148,16 +159,16 @@ echo "default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -l debug -P %d %U
 
 function cfg_chan_xml() {
 
-RMSGW_CHANFILE=$RMSGW_CFGDIR/channels.xml
-prompt_read_chanxml
+    RMSGW_CHANFILE=$RMSGW_CFGDIR/channels.xml
+    prompt_read_chanxml
 
-CHECK_CALL="N0CALL"
-sed -i -e "/$CHECK_CALL/ s/$CHECK_CALL/$CALLSIGN/g" $RMSGW_CHANFILE
-sed -i -e "/channel name=/ s/radio/$AX25PORT/" $RMSGW_CHANFILE
-# Replace the second occurance of "password"
-sed -i -e "/password/ s/password/$PASSWD/2" $RMSGW_CHANFILE
-sed -i -e "/AA00AA/ s/AA00AA/$GRIDSQUARE/" $RMSGW_CHANFILE
-sed -i -e "/144000000/ s/144000000/$FREQUENCY/" $RMSGW_CHANFILE
+    CHECK_CALL="N0CALL"
+    sed -i -e "/$CHECK_CALL/ s/$CHECK_CALL/$CALLSIGN/g" $RMSGW_CHANFILE
+    sed -i -e "/channel name=/ s/radio/$AX25PORT/" $RMSGW_CHANFILE
+    # Replace the second occurance of "password"
+    sed -i -e "/password/ s/password/$PASSWD/2" $RMSGW_CHANFILE
+    sed -i -e "/AA00AA/ s/AA00AA/$GRIDSQUARE/" $RMSGW_CHANFILE
+    sed -i -e "/144000000/ s/144000000/$FREQUENCY/" $RMSGW_CHANFILE
 }
 
 # ===== function chk_perm
@@ -255,13 +266,9 @@ echo
 
 # Edit gateway.conf
 # Need to set:
-# GWCALL, GRIDSQUARE, LOGFACILITY (should match syslog entry)
+#   GWCALL, GRIDSQUARE, LOGFACILITY (should match syslog entry)
 
-RMSGW_GWCFGFILE=$RMSGW_CFGDIR/gateway.conf
-CHECK_CALL="N0CALL"
-
-grep -i "$CHECK_CALL" $RMSGW_GWCFGFILE > /dev/null 2>&1
-
+is_gateway_configured "gateway.conf"
 if [ $? -eq 0 ] ; then
    echo "gateway.conf not configured, will set"
    mv $RMSGW_GWCFGFILE $RMSGW_CFGDIR/gateway.conf-dist
@@ -299,8 +306,8 @@ fi
 # Need to set:
 # channel name, basecall, callsign, password, gridsquare,
 # frequency
-CHECK_CALL="N0CALL"
-grep -i "$CHECK_CALL" $RMSGW_CFGDIR/channels.xml  > /dev/null 2>&1
+
+is_gateway_configured "channels.xml"
 if [ $? -eq 0 ] ; then
    echo "channels.xml not configured, will set"
    cfg_chan_xml
@@ -309,15 +316,18 @@ else
 fi
 
 # Edit banner
-CHECK_CALL="N0CALL"
-grep -i "$CHECK_CALL" $RMSGW_CFGDIR/banner  > /dev/null 2>&1
+
+is_gateway_configured "banner"
 if [ $? -eq 0 ] ; then
-   echo "banner not configured, will set"
-   echo "$CALLSIGN-$SSID Linux RMS Gateway 2.4, $CITY, $STATE" > $RMSGW_CFGDIR/banner
+    echo "banner not configured, will set"
+    # Get RMS Gateway verion number
+    RMSGW_VER=$(grep "LABEL" $RMSGW_CFGDIR/.version_info | cut -d"=" -f2)
+
+    echo "$CALLSIGN-$SSID Linux RMS Gateway $RMSGW_VER, $CITY, $STATE" > $RMSGW_CFGDIR/banner
 else
-   echo "$RMSGW_CFGDIR/banner already configured, looks like this:"
-   cat $RMSGW_CFGDIR/banner
-   echo
+    echo "$RMSGW_CFGDIR/banner already configured, looks like this:"
+    cat $RMSGW_CFGDIR/banner
+    echo
 fi
 
 # Check the 2 log config files
