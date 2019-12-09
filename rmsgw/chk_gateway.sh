@@ -122,7 +122,9 @@ callsign=$(echo $axports_line | tr -s '[[:space:]]' | cut -d' ' -f2)
 echo "Using port: $port, call sign: $callsign"
 
 if [ ! -z "$CHECK_WINLINK_CHECKIN" ] ; then
+    echo " Verify rmschanstat"
     sudo -u rmsgw rmschanstat ax25 $port $callsign
+    echo " Verify rmsgw_aci"
     sudo -u rmsgw rmsgw_aci
 else
     echo "NO CHECK for Winlink automatic check-in"
