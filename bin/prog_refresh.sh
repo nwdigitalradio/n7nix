@@ -103,9 +103,11 @@ cd config
 
 # refresh split-channels repository
 repo_name="split-channels"
+repo_dir="/home/$USER/dev/github"
 echo "Update $repo_name"
 # Does split-channels repository exist
 cd
+cd "$repo_dir"
 if [ ! -d "$repo_name" ] ; then
     git clone https://github.com/nwdigitalradio/split-channels
    if [ "$?" -ne 0 ] ; then
