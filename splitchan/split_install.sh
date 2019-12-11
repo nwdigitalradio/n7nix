@@ -45,6 +45,7 @@
 
 scriptname="`basename $0`"
 
+SPLIT_CHANNEL_FILE="/etc/ax25/split_channel"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 USER=
 SYSTEMCTL="sytemctl"
@@ -158,7 +159,6 @@ else
     echo "Found split-channels source directory: $SPLIT_DIR"
 fi
 
-
 # Copy files
 # Start from the split-channels repository directory
 cd "$SPLIT_DIR/etc"
@@ -185,10 +185,11 @@ fi
 #
 usage () {
 	(
-	echo "Usage: $scriptname [-u][-V][-h]"
-        echo "    No args will update all programs."
-        echo "    -V displays differences of required programs."
-        echo "    -h display this message."
+	echo "Usage: $scriptname [-c][-V][-h]"
+        echo "                  No args will update all programs."
+        echo "  -c right | left Specify either right or left mDin6 connector."
+        echo "  -V              displays differences of required programs."
+        echo "  -h              display this message."
         echo
 	) 1>&2
 	exit 1
@@ -226,6 +227,16 @@ while [[ $# -gt 0 ]] ; do
     case $key in
         -d)
             DEBUG=1
+        ;;
+        -c)
+            CONNECTOR="$2"
+            shift # past argument
+            if [ "$CONNECTOR" != "right" ] && [ "$CONNECTOR" != "left" ] ; then
+                echo "Connectory argument must either be left or right, found '$CONNECTOR'"
+                exit
+            fi
+            echo "Set connector to: $CONNECTOR"
+
         ;;
         -V)
             do_diff
@@ -320,6 +331,8 @@ if systemctl is-active --quiet "$service" ; then
 else
     start_service $service
 fi
+
+sudo touch $SPLIT_CHANNEL_FILE
 
 # may need to do the following:
 # chmod 000 /usr/bin/start-pulseaudio-x11
