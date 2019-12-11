@@ -47,8 +47,11 @@ function ax25_status() {
 echo
 
 if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
-    echo " == Split channel is enabled, Direwolf controls 1 channel"
+    # Get 'left' or 'right' channel (get last word in ADEVICE string)
+    chan_lr=$(grep "^ADEVICE " $DIREWOLF_CFGFILE | grep -oE '[^-]+$')
+    echo " == Split channel is enabled, Direwolf controls 1 channel ($chan_lr)"
     bsplitchannel=true
+
     echo
     echo "pulseaudio daemon status"
     systemctl --no-pager status pulseaudio
