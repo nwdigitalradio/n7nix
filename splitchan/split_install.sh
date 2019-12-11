@@ -28,6 +28,18 @@
 # For the headphone jack on the Pi:
 # amixer -D hw:CARD=ALSA cset numid=3 1
 #
+# This script adds these files:
+#  /etc/asound.conf
+#  /etc/pulse/client.conf
+#  /etc/pulse/daemon.conf
+#  /etc/pulse/default.pa
+#  /etc/pulse/sytem.pa
+#  /etc/systemd/system/pulseaudio.service
+#
+#
+# This script modifys this file:
+# /etc/direwolf.conf
+#
 # Uncomment this statement for debug echos
 #DEBUG=1
 
@@ -35,8 +47,13 @@ scriptname="`basename $0`"
 
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 USER=
+SYSTEMCTL="sytemctl"
+
 # Set connector to be either left or right
-# This selects which mini din 6 connector to use on the DRAWS card.
+# This selects which mini Din 6 connector to use on the DRAWS card.
+# Default: direwolf controls channel 0 for the left mini din connector.
+# Note: if you choose "right", then direwolf channel 0 moves to the right connector
+
 CONNECTOR="left"
 
 
@@ -81,6 +98,24 @@ function check_user() {
    dbgecho "using USER: $USER"
 }
 
+# ===== function get_user_name
+function get_user_name() {
+
+    # Verify user name
+    # Get list of users with home directories
+    USERLIST="$(ls /home)"
+    USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+    # Check if user name was supplied on command line
+    if [ -z "$USER" ] ; then
+        # prompt for call sign & user name
+        # Check if there is only a single user on this system
+        get_user
+    fi
+    # Verify user name
+    check_user
+}
+
 # ===== function start_service
 
 function start_service() {
@@ -101,40 +136,124 @@ function start_service() {
     fi
 }
 
+# ===== function do_diff
+# Diff installed files with repo files
+function do_diff() {
+
+# Is pulse audio installed?
+packagename="pulseaudio"
+is_pkg_installed $packagename
+if [ $? -ne 0 ] ; then
+    echo "$scriptname: No package: $packagename found"
+else
+    # Found package, will continue
+    echo "$scriptname: Detected $packagename package."
+fi
+
+# Check for split-channels source directory
+if [ ! -e "$SPLIT_DIR" ] ; then
+    echo "No split-channels source directory found ($SPLIT_DIR), exiting"
+    exit 1
+else
+    echo "Found split-channels source directory: $SPLIT_DIR"
+fi
+
+
+# Copy files
+# Start from the split-channels repository directory
+cd "$SPLIT_DIR/etc"
+
+echo "Diff asound config"
+diff asound.conf /etc/asound.conf
+echo "Diff pulse config"
+diff -bwBr --brief pulse /etc/pulse
+
+echo "Diff pulse audio systemd start service"
+diff systemd/system/pulseaudio.service /etc/systemd/system
+
+# Diff direwolf configuration
+echo "Diff direwolf config file"
+if [ -e /home/$USER/tmp/direwolf.conf ] ; then
+    diff /home/$USER/tmp/direwolf.conf /etc/direwolf.conf
+else
+    echo "Save a copy of direwolf configuration file."
+    cp /etc/direwolf.conf /home/$USER/tmp/
+fi
+}
+
+# ===== Display program help info
+#
+usage () {
+	(
+	echo "Usage: $scriptname [-u][-V][-h]"
+        echo "    No args will update all programs."
+        echo "    -V displays differences of required programs."
+        echo "    -h display this message."
+        echo
+	) 1>&2
+	exit 1
+}
+
 # ===== main
 
 # Check if we're running as root
 if [[ $EUID != 0 ]] ; then
-   echo "Not running as root, will use sudo"
+   USER=$(whoami)
+   SYSTEMCTL="sudo systemctl"
+   echo "Running as user: $USER"
+else
+    # Running as root
+    get_user_name
 fi
+
+TMPDIR=/home/$USER/tmp
+
+# Setup tmp directory
+if [ ! -d "$TMPDIR" ] ; then
+  mkdir "$TMPDIR"
+fi
+
+REPO_DIR="/home/$USER/dev/github"
+SPLIT_DIR="$REPO_DIR/split-channels"
+
+# Check for any command line arguments
+# Command line args are passed with a dash & single letter
+#  See usage function
+
+while [[ $# -gt 0 ]] ; do
+
+    key="$1"
+    case $key in
+        -d)
+            DEBUG=1
+        ;;
+        -V)
+            do_diff
+            exit
+        ;;
+        -h)
+            usage
+            exit 0
+        ;;
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+    shift # past argument or value
+done
 
 # Is pulse audio installed?
 packagename="pulseaudio"
 is_pkg_installed $packagename
 if [ $? -ne 0 ] ; then
     echo "$scriptname: No package found: Installing $packagename"
-    apt-get install $packagename
+    sudo apt-get install -y -q $packagename
 else
     # Found package, will continue
     echo "$scriptname: Detected $packagename package."
 fi
-
-# Verify user name
-# Get list of users with home directories
-USERLIST="$(ls /home)"
-USERLIST="$(echo $USERLIST | tr '\n' ' ')"
-
-# Check if user name was supplied on command line
-if [ -z "$USER" ] ; then
-    # prompt for call sign & user name
-    # Check if there is only a single user on this system
-    get_user
-fi
-# Verify user name
-check_user
-
-REPO_DIR="/home/$USER/dev/github"
-SPLIT_DIR="$REPO_DIR/split-channels"
 
 # Check for repository directory
 if [ ! -e "$REPO_DIR" ] ; then
@@ -142,14 +261,18 @@ if [ ! -e "$REPO_DIR" ] ; then
 fi
 
 # Check for split-channels source directory
+echo "Check if directory: $SPLIT_DIR exists"
 if [ ! -e "$SPLIT_DIR" ] ; then
+    cd "$REPO_DIR"
     git clone "https://github.com/nwdigitalradio/split-channels"
     if [ "$?" -ne 0 ] ; then
-      echo "$(tput setaf 1)Problem cloning repository $repo_name$(tput setaf 7)"
-      exit 1
+        echo "$(tput setaf 1)Problem cloning repository $repo_name$(tput setaf 7)"
+        exit 1
+    fi
 else
+    echo "Updating split-channels repo"
     cd "$SPLIT_DIR"
-    sudo git pull
+    git pull
 fi
 
 # Copy files
@@ -157,34 +280,46 @@ fi
 cd "$SPLIT_DIR/etc"
 
 echo "Copy asound config"
-sudo cp asound.conf
+sudo cp -u asound.conf /etc/asound.conf
 echo "Copy pulse config"
-sudo rsync -av pulse /etc/
+sudo rsync -av pulse/ /etc/pulse
 echo "Copy pulse audio systemd start service"
-sudo cp systemd/system/pulseaudio.service /etc/systemd/system
+sudo cp -u systemd/system/pulseaudio.service /etc/systemd/system
 
 # Modify direwolf configuration
 echo "Edit direwolf config file"
+
 #  - only CHANNEL 0 is used
 # Change ACHANNELS from 2 to 1
-dbgecho "ACHANNELS"
-sed -i -e '/^ACHANNELS 2/ s/1/2/' $DIREWOLF_CFGFILE
+dbgecho "ACHANNELS set to 1"
+sudo sed -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
 
 # Define ARATE 48000
 dbgecho "Add ARATE"
 grep "^ARATE 4800" $DIREWOLF_CFGFILE
 if [ $? -ne 0 ] ; then
-    sed -i -e '/^ACHANNELS 1.*/a ARATE 4800' $DIREWOLF_CFGFILE
-    echo "ARATE parameter addedt to $DIRWOLF_CFGFILE"
+    sudo sed -i -e '/^ACHANNELS 1.*/a ARATE 4800' $DIREWOLF_CFGFILE
+    echo "ARATE parameter added to $DIREWOLF_CFGFILE"
+else
+    echo "ARATE parameter already set in direwolf config file."
 fi
+
 
 # Change ADEVICE:
 #   was: ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0
 #   now: ADEVICE draws-capture-left draws-playback-left
 dbgecho "ADEVICE"
-sed -i -e '/^ADEVICE  plughw:CARD=/ s/ADEVICE plughw:card=.*/ADEVICE draws-capture-left draws-playback-left/' $DIREWOLF_CFGFILE
+sudo sed -i -e "/^ADEVICE plughw:CARD=/ s/^ADEVICE plughw:CARD=.*/ADEVICE draws-capture-$CONNECTOR draws-playback-$CONNECTOR/" $DIREWOLF_CFGFILE
 
-start_service pulseaudio
+echo "DEBUG follows:"
+grep -i "^ADEVICE" $DIREWOLF_CFGFILE
+
+service="pulseaudio"
+if systemctl is-active --quiet "$service" ; then
+    echo "Service: $service is already running"
+else
+    start_service $service
+fi
 
 # may need to do the following:
 # chmod 000 /usr/bin/start-pulseaudio-x11
