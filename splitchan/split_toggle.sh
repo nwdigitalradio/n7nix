@@ -56,7 +56,7 @@ function stop_service() {
 }
 
 # ===== function config_both_channels
-# Edit direwolf.conf to used both channels of a DRAWS HAT
+# Edit direwolf.conf to use both channels (channel 0 & 1) of a DRAWS HAT
 function config_both_channels() {
 
     sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/"  $DIREWOLF_CFGFILE
@@ -77,7 +77,7 @@ function config_single_channel() {
 # ===== main
 
 if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
-    echo "Toggle to direwolf controls both channels"
+    echo "Toggle so direwolf controls both channels"
     bsplitchannel=false
     sudo rm "$SPLIT_CHANNEL_FILE"
     echo "rm ret code: $?"
@@ -95,7 +95,7 @@ fi
 if $bsplitchannel ; then
     # Setup split channel
     start_service pulseaudio
-    config_both_channels
+    config_single_channel
 
 # ===== Edit ax25d.conf
 # Change RMS Gateway & paclink-unix p2p to use correct udr port name
@@ -109,7 +109,5 @@ if $bsplitchannel ; then
 else
     # Setup direwolf controls both ports
     stop_service pulseaudio
-    config_single_channel
-
-
+    config_both_channels
 fi
