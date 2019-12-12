@@ -13,9 +13,18 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
+scriptname="`basename $0`"
+
 bsplitchannel=false
 SPLIT_CHANNEL_FILE="/etc/ax25/split_channel"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
+
+# Set connector to be either left or right
+# This selects which mini Din 6 connector DIREWOLF will use on the DRAWS card.
+# Default: direwolf controls channel 0 for the left mini din connector.
+# Note: if you choose "right", then direwolf channel 0 moves to the right connector
+
+CONNECTOR="left"
 
 # ===== function start_service
 
@@ -74,7 +83,54 @@ function config_single_channel() {
     sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 23/" $DIREWOLF_CFGFILE
 }
 
+# ===== Display program help info
+#
+usage () {
+	(
+	echo "Usage: $scriptname [-c][-d][-h]"
+        echo "                  No args will update all programs."
+        echo "  -c right | left Specify either right or left mDin6 connector."
+        echo "  -d              Set DEBUG flag"
+        echo "  -h              Display this message."
+        echo
+	) 1>&2
+	exit 1
+}
+
 # ===== main
+
+# Check for any command line arguments
+# Command line args are passed with a dash & single letter
+#  See usage function
+
+while [[ $# -gt 0 ]] ; do
+
+    key="$1"
+    case $key in
+        -d)
+            DEBUG=1
+        ;;
+        -c)
+            CONNECTOR="$2"
+            shift # past argument
+            if [ "$CONNECTOR" != "right" ] && [ "$CONNECTOR" != "left" ] ; then
+                echo "Connectory argument must either be left or right, found '$CONNECTOR'"
+                exit
+            fi
+            echo "Set connector to: $CONNECTOR"
+        ;;
+        -h)
+            usage
+            exit 0
+        ;;
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+    shift # past argument or value
+done
 
 if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
     echo "Toggle so direwolf controls both channels"
@@ -86,7 +142,7 @@ if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
         exit 1
     fi
 else
-    echo "Toggle to split channels, Direwolf has 1 channel, HF has 1 channel"
+    echo "Toggle for split channels, Direwolf has 1 channel, HF has 1 channel"
     bsplitchannel=true
     sudo touch $SPLIT_CHANNEL_FILE
     echo "touch ret code: $?"
