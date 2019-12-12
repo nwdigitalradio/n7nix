@@ -102,7 +102,6 @@ function check_user() {
 # ===== function get_user_name
 function get_user_name() {
 
-    # Verify user name
     # Get list of users with home directories
     USERLIST="$(ls /home)"
     USERLIST="$(echo $USERLIST | tr '\n' ' ')"
@@ -198,7 +197,7 @@ usage () {
 
 # ===== main
 
-# Check if we're running as root
+# Check if running as root
 if [[ $EUID != 0 ]] ; then
    USER=$(whoami)
    SYSTEMCTL="sudo systemctl"
