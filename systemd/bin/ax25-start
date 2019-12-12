@@ -36,7 +36,7 @@ if [ $? -eq 0 ] ; then
     exit 1
 fi
 
-# Be sure we're running as root
+# Check if running as root
 if [[ $EUID != 0 ]] ; then
    echo "set sudo"
    SYSTEMCTL="sudo systemctl"
