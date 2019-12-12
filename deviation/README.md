@@ -42,7 +42,7 @@ apt-get install alsa-utils sox wiringpi
 * The script will run as long as the wavefile is playing.
 * You can stop the script at any time by hitting _ctrl-c_
 
-* You should be able to run the script without being root
+* You do **NOT** need to be root to run the _measure_deviate.sh_ script.
   * Make sure you are in groups gpio & audio
 
 ```bash

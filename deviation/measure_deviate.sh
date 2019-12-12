@@ -57,6 +57,56 @@ function ctrl_c() {
 	exit
 }
 
+# ===== function get_user
+
+function get_user() {
+   # Check if there is only a single user on this system
+   if (( `ls /home | wc -l` == 1 )) ; then
+      USER=$(ls /home)
+   else
+      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+      read -e USER
+   fi
+}
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
+
+# ===== function get_user_name
+function get_user_name() {
+
+    # Verify user name
+    # Get list of users with home directories
+    USERLIST="$(ls /home)"
+    USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+    # Check if user name was supplied on command line
+    if [ -z "$USER" ] ; then
+        # prompt for call sign & user name
+        # Check if there is only a single user on this system
+        get_user
+    fi
+    # Verify user name
+    check_user
+}
+
 # ===== function EEPROM id_check
 
 # Return code:
@@ -132,6 +182,16 @@ return $udrc_prod_id
 
 PROGLIST="gpio sox aplay"
 NEEDPKG_FLAG=false
+
+# Check if running as root
+if [[ $EUID != 0 ]] ; then
+   USER=$(whoami)
+   echo "Running as user: $USER"
+else
+    # Running as root, get a user name
+    get_user_name
+    echo "Not required to be root to run this script."
+fi
 
 dbgecho "Verify required programs"
 # Verify required programs are installed
@@ -235,8 +295,9 @@ case $connector in
    ;;
 esac
 
-USER=$(whoami)
-# Won't work if direwolf or any other sound card program is running
+# Need path to ax25-stop script
+# - $USER variable should be set
+# Sox will NOT work if direwolf or any other sound card program is running
 pid=$(pidof direwolf)
 if [ $? -eq 0 ] ; then
    echo "Direwolf is running, with a pid of $pid"
