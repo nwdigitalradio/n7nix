@@ -51,7 +51,7 @@ USER=
 SYSTEMCTL="sytemctl"
 
 # Set connector to be either left or right
-# This selects which mini Din 6 connector to use on the DRAWS card.
+# This selects which mini Din 6 connector DIREWOLF will use on the DRAWS card.
 # Default: direwolf controls channel 0 for the left mini din connector.
 # Note: if you choose "right", then direwolf channel 0 moves to the right connector
 
@@ -185,11 +185,12 @@ fi
 #
 usage () {
 	(
-	echo "Usage: $scriptname [-c][-V][-h]"
+	echo "Usage: $scriptname [-c][-V][-d][-h]"
         echo "                  No args will update all programs."
         echo "  -c right | left Specify either right or left mDin6 connector."
-        echo "  -V              displays differences of required programs."
-        echo "  -h              display this message."
+        echo "  -V              Displays differences of required programs."
+        echo "  -d              Set DEBUG flag"
+        echo "  -h              Display this message."
         echo
 	) 1>&2
 	exit 1
