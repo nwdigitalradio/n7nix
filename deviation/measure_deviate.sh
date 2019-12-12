@@ -14,6 +14,7 @@
 #
 
 scriptname="`basename $0`"
+USER=
 
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
@@ -186,11 +187,13 @@ NEEDPKG_FLAG=false
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
    USER=$(whoami)
-   echo "Running as user: $USER"
+   dbgecho "Running as user: $USER"
 else
     # Running as root, get a user name
     get_user_name
+    echo
     echo "Not required to be root to run this script."
+    echo
 fi
 
 dbgecho "Verify required programs"
