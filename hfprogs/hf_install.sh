@@ -8,7 +8,7 @@
 #     user app version - builds a single HF application
 #
 # App names used in argument:
-#  js8call, wsjtx, hamlib, fldigi, flrig, flmsg, flamp
+#  js8call, wsjtx, hamlib, fldigi, flrig, flmsg, flamp, fllog
 #
 # Uncomment this statement for debug echos
 # DEBUG=1
@@ -28,7 +28,7 @@ usage () {
 	echo "Usage: $scriptname user_name [hfprog_name][hfprog_version]"
         echo "    login user name"
         echo "    hfprog_name needs to be one of:"
-        echo "      js8call wsjtx hamlib fldigi flrig flmsg flamp"
+        echo "      js8call wsjtx hamlib fldigi flrig flmsg flamp fllog"
         echo "    hfprog_version needs to be a valid program version number"
         echo
 	) 1>&2
@@ -229,7 +229,7 @@ function build_flapp_src() {
     sudo ldconfig
 }
 
-# ===== function build any of flxmlrpc flrig, flmsg, flamp
+# ===== function build any of flxmlrpc flrig, flmsg, flamp, fllog
 
 function build_flapp() {
 
@@ -333,6 +333,7 @@ if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     build_flapp "1.3.48" flrig
     build_flapp "4.0.14" flmsg
     build_flapp "2.2.05" flamp
+    build_fllog "1.2.5" fllog
 else
 
     if [[ $# -ne 3 ]] ; then
@@ -363,6 +364,9 @@ else
         ;;
         flamp)
             build_flapp "$3" "flamp"
+        ;;
+        fllog)
+            build_flapp "$3" "fllog"
         ;;
         flxmlrpc)
             build_flapp "$3" "flxmlrpc"
