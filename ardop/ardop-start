@@ -1,0 +1,190 @@
+#!/bin/bash
+#
+# Uncomment this statement for debug echos
+# DEBUG=1
+
+ARDOP_PROTOCOL_VER=2
+SYSTEMCTL="sytemctl"
+
+# Set connector to be either left or right
+# This selects which mini Din 6 connector ardop will use on the DRAWS card.
+# Default: ardop controls channel 1 for the right mini din connector.
+
+CONNECTOR="right"
+GPIO_PIN=23
+
+# ===== function is_direwolf
+# Determine if direwolf is running
+
+function is_direwolf() {
+    # Ardop will NOT work if direwolf or any other sound card program is running
+    pid=$(pidof direwolf)
+    retcode="$?"
+    return $retcode
+}
+
+# ===== function is_pulseaudio
+# Determine if pulse audio is running
+
+function is_pulseaudio() {
+    pid=$(pidof pulseaudio)
+    retcode="$?"
+    return $retcode
+}
+
+# ===== function start_service
+
+function start_service() {
+    service="$1"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        echo "ENABLING $service"
+        $SYSTEMCTL enable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem ENABLING $service"
+        fi
+    fi
+    $SYSTEMCTL --no-pager start "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem starting $service"
+    fi
+}
+
+# ===== Display program help info
+#
+usage () {
+	(
+	echo "Usage: $scriptname [-c <left | right>][-d][-h]"
+        echo "                  No args will update all programs."
+        echo "  -c right | left Specify either right or left mDin6 connector."
+        echo "  -d              Set DEBUG flag"
+        echo "  -h              Display this message."
+        echo
+	) 1>&2
+	exit 1
+}
+
+# ===== main
+
+# Check for any command line arguments
+# Command line args are passed with a dash & single letter
+#  See usage function
+
+while [[ $# -gt 0 ]] ; do
+
+    key="$1"
+    case $key in
+        -d)
+            DEBUG=1
+        ;;
+        -c)
+            CONNECTOR="$2"
+            shift # past argument
+            if [ "$CONNECTOR" != "right" ] && [ "$CONNECTOR" != "left" ] ; then
+                echo "Connectory argument must either be left or right, found '$CONNECTOR'"
+                exit
+            fi
+            echo "Set connector to: $CONNECTOR"
+        ;;
+        -h)
+            usage
+            exit 0
+        ;;
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+    shift # past argument or value
+done
+
+# Determine if ardop v1 or ardop v2 is running
+progname="piardopc"
+pid=$(pidof $progname)
+if [ "$?" -eq 0 ] ; then
+    echo "$progname is already running"
+    exit 0
+fi
+
+progname="piardop2"
+pid=$(pidof $progname)
+if [ "$?" -eq 0 ] ; then
+    echo "$progname is already running"
+    exit 0
+fi
+
+# Check if running as root
+if [[ $EUID != 0 ]] ; then
+   USER=$(whoami)
+   SYSTEMCTL="sudo systemctl"
+   echo "Running as user: $USER"
+else
+    # Running as root
+    #  get_user_name
+    echo "Do not run as root"
+    exit
+fi
+
+is_direwolf
+if [ "$?" -eq 0 ] ; then
+    # Direwolf is running, check for split channels
+    if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
+        # Get 'left' or 'right' channel from direwolf config (last word in ADEVICE string)
+        chan_lr=$(grep "^ADEVICE " $DIREWOLF_CFGFILE | grep -oE '[^-]+$')
+        echo " == Direwolf is running with pid: $pid, Split channel is enabled, Direwolf controls $chan_lr channel only"
+    else
+        echo "== Direwolf is running with pid: $pid and controls both channels"
+    fi
+else
+    echo "Direwolf is NOT running"
+fi
+
+# Verify that aplay enumerates udrc sound card
+
+CARDNO=$(aplay -l | grep -i udrc)
+
+if [ ! -z "$CARDNO" ] ; then
+   echo "udrc card number line: $CARDNO"
+   CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
+   echo "udrc is sound card #$CARDNO"
+else
+   echo "No udrc sound card found."
+fi
+
+
+if [ "$ARDOP_PROTOCOL_VER" -eq 1 ] ; then
+    ARDOP="/home/$USER/bin/piardopc"
+elif [ "$ARDOP_PROTOCOL_VER" -eq 2 ] ; then
+    ARDOP="/home/$USER/bin/piardop2"
+else
+    echo "Invalid ardop protocol version"
+    exit
+fi
+
+if [ "$CONNECTOR" == "right" ] ; then
+    GPIO_PIN=23
+elif [ "$CONNECTOR" != "left" ] ; then
+    GPIO_PIN=12
+else
+    echo "Undefined connector name: $CONNECTOR, can not set GPIO for PTT"
+fi
+
+service="pulseaudio.service"
+# Is service running?
+if ! systemctl is-active --quiet "$service" ; then
+    echo "Pulse audio is not running ...  starting now"
+    # Check if unit file for pulse audio exists
+    if [ ! -e "/etc/systemd/system/$service" ] ; then
+        # Install split channel
+        # This will copy a valid systemd unit file for pulse audio
+        /home/$USER/n7nix/splitchan/split_install.sh
+    fi
+    start_service pulseaudio
+fi
+
+# ardopc port [capture device playbackdevice] [Options]
+#$ARDOP 8515 plughw:$CARDNO,0 plughw:$CARDNO,0 -p GPIO=12
+# $ARDOP 8515 plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0 -p GPIO=12
+echo "Using ardop protocol version: $ARDOP_PROTOCOL_VER, on $CONNECTOR connector with gpio $GPIO_PIN"
+$ARDOP 8515 draws-capture-$CONNECTOR draws-playback-$CONNECTOR -p GPIO=$GPIO_PIN
