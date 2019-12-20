@@ -307,9 +307,9 @@ sudo sed -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
 
 # Define ARATE 48000
 dbgecho "Add ARATE"
-grep "^ARATE 4800" $DIREWOLF_CFGFILE
+grep "^ARATE 48000" $DIREWOLF_CFGFILE
 if [ $? -ne 0 ] ; then
-    sudo sed -i -e '/^ACHANNELS 1.*/a ARATE 4800' $DIREWOLF_CFGFILE
+    sudo sed -i -e '/^ACHANNELS 1.*/a ARATE 48000' $DIREWOLF_CFGFILE
     echo "ARATE parameter added to $DIREWOLF_CFGFILE"
 else
     echo "ARATE parameter already set in direwolf config file."
