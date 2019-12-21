@@ -18,7 +18,8 @@
 #  GatewayListing -> ListingType
 #  GatewayProximity
 #
-DEBUG=1
+DEBUG=
+
 # paclink-unix web services key
 PL_KEY="43137F63FDBA4F3FBEEBA007EB1ED348"
 
@@ -32,14 +33,15 @@ myname="`basename $0`"
 #TMPDIR="/tmp"
 TMPDIR="$HOME/tmp/ardop"
 
-ARDOP_FILE_RAW="$TMPDIR/ardopprox.json"
-#ARDOP_FILE_RAW="$TMPDIR/ardoplist.json"
-#ARDOP_FILE_RAW="$TMPDIR/ardopstatus.json"
-
+WINLINK_SERVICE="proximity"
+ARDOP_FILE_RAW=
 ARDOP_PROXIMITY_FILE_OUT="$TMPDIR/ardopprox.txt"
+ARDOP_STATUS_FILE_OUT="$TMPDIR/ardopstatus.txt"
+ARDOP_LIST_FILE_OUT="$TMPDIR/ardoplist.txt"
+
 PKG_REQUIRE="jq curl"
 
-max_distance=30        # default max distance of RMS Gateways
+max_distance=140        # default max distance of ARDOP RMS Gateways
 include_history=48     # default number of history hours
 grid_square="cn88nl"   # default grid square location or origin
 
@@ -50,7 +52,8 @@ grid_square="cn88nl"   # default grid square location or origin
 ## ============ functions ============
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
-#
+
+# ===== function usage
 # Display program help info
 #
 usage () {
@@ -61,28 +64,26 @@ usage () {
 	exit 2
 }
 
-# is_pkg_installed
+# ===== function is_pkg_installed
 
 function is_pkg_installed() {
    return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
 }
 
-#
-## function generate post data for curl call
-#
+# ===== function generate post data for curl call
+
 function generate_post_data() {
 cat <<EOF
 {"GridSquare":"$grid_square","HistoryHours": $include_history,"MaxDistance": $max_distance}
 EOF
 }
 
+# ===== function parse_status
+# parse json data returned from a /gateway/status Winlink service call
 
-## function parse_proximity /gateway/proximity
-## All output goes to file so that nothing runs in a subshell & the
-# counters work.
-function parse_proximity() {
+function parse_status() {
 
-dbgecho "Function parse_proximity"
+dbgecho "Function parse_status"
 
 callsign_cnt=0
 freq_cnt=0
@@ -143,80 +144,144 @@ else
         # Count number of unique call signs
         ((callsign_cnt++))
 
+    done > >(tee $ARDOP_STATUS_FILE_OUT) 2>&1
 
-#    done 2>&1 | tee $ARDOP_PROXIMITY_FILE_OUT
-    done 2>&1> $ARDOP_PROXIMITY_FILE_OUT
+    sleep .5 # to let tee catch up
     echo "Total ardop gateways: $callsign_cnt, frequency count: $freq_cnt"
-
 fi
 }
 
-## function parse_status /gateway/status
+# ===== function parse_proximity
+# parse json data returned from a /gateway/proximity Winlink service call
+## All output goes to file so that nothing runs in a subshell & the
+# counters work.
 
+## function parse_proximity /gateway/proximity
 
-function parse_status() {
+function parse_proximity() {
 
     # Initialize output line count
     linecnt=0
-    ardopcnt=0
-    dbgecho "Function parse_status"
-    # Print the table header
-    echo "  Callsign       Mode  Distance    Baud"
+    dbgecho " "
+    dbgecho "Function parse_proximity with input file $ARDOP_FILE_RAW"
 
-    # iterate through the JSON parsed file
-    for k in $(jq '.Gateways | keys | .[]' $ARDOP_FILE_RAW); do
-        value=$(jq -r ".Gateways[$k]" $ARDOP_FILE_RAW);
-        echo "Value: $value"
+    # Print the table header
+    echo " Callsign        Frequency  Distance    Baud"
+
+    last_callsign="N0ONE"
+    callsign_cnt=0
+    # iterate through the JSON input file
+
+#    gateway_list=$(jq '.GatewayList[] | keys | .[]' $ARDOP_FILE_RAW)
+#    for k in $(echo "$gateway_list"); do
+
+    for k in $(jq '.GatewayList | keys | .[]' $ARDOP_FILE_RAW); do
+        value=$(jq -r ".GatewayList[$k]" $ARDOP_FILE_RAW);
 
         callsign=$(jq -r '.Callsign' <<< $value);
         callsign=$(echo "$callsign" | tr -d ' ')
-#        frequency=$(jq -r '.Frequency' <<< $value);
-#        mode=$(jq -r '.RequestedMode' <<< $value);
-#        baud=$(jq -r '.Baud' <<< $value);
+
+
+        frequency=$(jq -r '.Frequency' <<< $value);
+        mode=$(jq -r '.RequestedMode' <<< $value);
+        baud=$(jq -r '.Baud' <<< $value);
         distance=$(jq -r '.Distance' <<< $value);
 
-#            array=$(jq -c -r ".GatewayChannels[] | to_entries " <<< $value);
-            array=$(jq -c -r ".GatewayChannels[]" <<< $value);
-            echo "array: $array"
-            echo "$(jq -r '.GatewayChannels[0] | "\(.SupportedModes) , \(.Frequency)"' <<< $value)"
-            echo "$(jq -r '.GatewayChannels[] | "\(.SupportedModes) , \(.Frequency)"' <<< $value)"
+        if [ "$last_callsign" != "$callsign" ] ; then
+            # Count number of unique call signs
+            ((callsign_cnt++))
+            last_callsign="$callsign"
+        fi
+        ((linecnt++))
 
-#         for row in $(echo "${sample}" | jq -r '.[] | @base64'); do
-         for radio in $(jq -r -c '.GatewayChannels[]' <<< $value); do
-             echo "radio: $radio"
-#             echo "$(jq -r '.[] | "\(.SupportedModes) , \(.Frequency)"' <<< $array)"
-             echo "$(jq -r '.[] | "\(.SupportedModes))"' <<< $array)"
+        printf ' %-10s\t%10s\t%s\t%4s\n' "$callsign" "$frequency" "$distance" "$baud"
 
+    done > >(tee $ARDOP_PROXIMITY_FILE_OUT) 2>&1
 
-#             mode=$(jq -r '.SupportedModes' <<< $array);
-#            baud=$(jq -r '.Baud' <<< $array);
-#             frequency=$(jq -r '.Frequency' <<< $array);
+    sleep .5 # to let tee catch up
+    echo "Total gateways: $linecnt, total call signs: $callsign_cnt"
+}
 
-            echo "Mode: $mode, Frequency: $frequency, line: $linecnt"
-            ((linecnt++))
+## function parse_listing /gateway/listing
 
-            exit
+function parse_listing() {
+    dbgecho " "
+    dbgecho "Function parse_proximity with input file $ARDOP_FILE_RAW"
+    echo "Not implemented"
+}
 
-if [ 1 -eq 0 ] ; then
-            if (( linecnt < 5 )) ; then
-#                printf ' %-10s\t%10s\t%s\t%4s\n' "$callsign" "$mode" "$distance" "$baud"
-                 printf ' %-10s\n' "$frequency"
-            else
-                break;
-            fi
-            if [ "$mode" != "Packet" ] ; then
-                ((ardopcnt++))
-            fi
-fi
-        done
-        exit
-    done 2>&1
-    echo "Total gateways: $linecnt, NOT packet: $ardopcnt"
+# ===== Display program help info
+#
+usage () {
+	(
+	echo "Usage: $scriptname [-s <winlink_service_name][-d][-f][-h]"
+        echo "                  Default to display winlink proximity service."
+        echo "  -s status proximity listing Specify Winlink service"
+        echo "  -f              Force update of service file"
+        echo "  -d              Set DEBUG flag"
+        echo "  -h              Display this message."
+        echo
+	) 1>&2
+	exit 1
 }
 
 
-
 ## =============== main ===============
+
+# Get command line arguments
+while [[ $# -gt 0 ]] ; do
+
+    key="$1"
+    case $key in
+        -d)
+            DEBUG=1
+        ;;
+        -D)
+            # Set maximum distance for proximity service
+            max_distance="$2"
+            shift # past argument
+            do_it_flag=true
+        ;;
+        -f)
+            do_it_flag=true
+        ;;
+        -g)
+            # Set Grid Square
+            if [[ "$2" =~ [^a-zA-Z0-9] ]]; then
+                echo "Invalid grid square ($2) using default $grid_square"
+            else
+                grid_square=$2
+                # Convert grid square to upper case
+                grid_square=$(echo "$grid_square" | tr '[a-z]' '[A-Z]')
+
+                do_it_flag=true
+           fi
+           shift # past argument
+        ;;
+        -s)
+            # Get winlink service
+
+            WINLINK_SERVICE="$2"
+            shift # past argument
+
+            if [ "$WINLINK_SERVICE" != "status" ] && [ "$WINLINK_SERVICE" != "proximity" ] && [ "$WINLINK_SERVICE" != "listing" ] ; then
+                echo "Service argument must be status, proximity or listing, found '$WINLINK_SERVICE"
+                exit
+            fi
+            echo "Set service to: $WINLINK_SERVICE"
+        ;;
+        -h)
+            usage
+            exit 0
+        ;;
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+    shift # past argument or value
+done
 
 # Are required programs installed?
 
@@ -250,48 +315,30 @@ if [ "$needs_pkg" = "true" ] ; then
    fi
 fi
 
-# Check for any command line arguments
 
-if (( $# > 0 )) && [ -n "$1" ] ; then
+if [ "$WINLINK_SERVICE" == "proximity" ] ; then
+    ARDOP_FILE_RAW="$TMPDIR/ardopprox.json"
+    svc_url="https://api.winlink.org/gateway/proximity?&Key=$PL_KEY&OperatingMode=ardop&Gridsquare=CN88nl&MaxDistance=$max_distance&format=json"
 
-  # Have an argument, check if it's numeric
-  if (( $1 > 0 )) ; then
-    max_distance=$1
-    do_it_flag=true
+elif [ "$WINLINK_SERVICE" == "status" ] ; then
+    ARDOP_FILE_RAW="$TMPDIR/ardopstatus.json"
+    svc_url="https://api.winlink.org/gateway/status?&Mode=ardop&Key=$PL_KEY&format=json"
 
-  else
-    echo "$0: arg ($1) invalid distance"
-    usage
-  fi
+elif [ "$WINLINK_SERVICE" == "listing" ] ; then
+    ARDOP_FILE_RAW="$TMPDIR/ardoplist.json"
+    svc_url="https://api.winlink.org/gateway/listing?&Key=$PL_KEY&format=json"
+else
+    echo "Winlink service $WINLINK_SERVICE not recognized."
+    exit
 fi
 
-
-# check for a second command line argument - grid square
-
-if (( $# >= 2 )) ; then
-  if [[ "$2" =~ [^a-zA-Z0-9] ]]; then
-     echo "Invalid grid square ($2) using default $grid_square"
-  else
-     grid_square=$2
-     do_it_flag=true
-  fi
-fi
-
-# check for a third command line argument - be silent
-if (( $# >= 3 )) ; then
-    silent=true
-fi
-
-
-# Convert grid square to upper case
-grid_square=$(echo "$grid_square" | tr '[a-z]' '[A-Z]')
 
 #  Test if temporary proximity file already exists
 if [ ! -e "$ARDOP_FILE_RAW" ] ; then
     dbgecho "Set do_it flag"
     do_it_flag=true
 
-else # Do this, proximity file exists
+else # Do this, output file exists
 
     # Determine how old the tmp file is
     dbgecho "Determine how old current file is, stale criteria: $STALE_HOURS hours"
@@ -302,8 +349,7 @@ else # Do this, proximity file exists
   elapsed_hours=$((elapsed_time / 3600))
 
 if ! $silent ; then
-    #echo "File: $ARDOP_FILE_RAW is $elapsed_time seconds old"
-    echo "Proximity file is: $elapsed_hours hours $((($elapsed_time % 3600)/60)) minute(s), $((elapsed_time % 60)) seconds old"
+    echo "$ARDOP_FILE_RAW file is: $elapsed_hours hours $((($elapsed_time % 3600)/60)) minute(s), $((elapsed_time % 60)) seconds old"
 fi
 
 # Only refresh the proximity file every day or so
@@ -323,49 +369,17 @@ if $do_it_flag ; then
         echo "Using distance of $max_distance miles & grid square $grid_square"
         echo
     fi
-#    generate_post_data
-#    echo "early exit"
-#    exit 1
-
-# URLS that work
-#
-#  /gateway/proximity:
-#
-# {"GridSquare":"String","ServiceCodes":"String","HistoryHours":0,"MaxDistance":0,"OperatingMode":"AnyAll","Key":"String"}
-#    Returns a list of gateways corresponding to the request parameters.
-#    The list is sorted by distance from the supplied grid square.
-#    Check 'OperatingMode' for ardop, file tmp/ardop/ardopprox.txt
-#
-#
-# svc_url="https://api.winlink.org/gateway/proximity?&Key=43137F63FDBA4F3FBEEBA007EB1ED348&Gridsquare=CN88nl&format=json"
-# svc_url="https://api.winlink.org/gateway/proximity?&Key=$PL_KEY&Gridsquare=CN88nl&format=json"
-#
-#  /gateway/listing:
-#
-# {"ServiceCodes":"String","HistoryHours":0,"ListingType":"Packet","Key":"String"}
-#    Returns a formatted gateway listing (to be saved as a text file)
-#    Check ?, file tmp/ardop/ardoplist.txt
-#          https://api.winlink.org/gateway/listing?&Key=43137F63FDBA4F3FBEEBA007EB1ED348&format=json
-
-#svc_url="https://api.winlink.org/gateway/listing?&Key=$PL_KEY&format=json"
-#
-#  /gateway/status:
-#
-# {"HistoryHours":0,"ServiceCodes":"String","Mode":"AnyAll","Key":"String"}
-#    Check ?, file tmp/ardop/ardopstatus.txt
-# https://api.winlink.org/gateway/status?&Key=43137F63FDBA4F3FBEEBA007EB1ED348&Gridsquare=CN88nl&format=json
-svc_url="https://api.winlink.org/gateway/status?&Mode=ardop&Key=$PL_KEY&format=json"
-
     dbgecho "Using URL: $svc_url"
 
     curl -s -d "$(generate_post_data)" "$svc_url" > $ARDOP_FILE_RAW
-#    curl "$svc_url" > $ARDOP_FILE_RAW
     curlret="$?"
-    echo "Created new $ARDOP_FILE_RAW file"
+
+    echo "Generated new $ARDOP_FILE_RAW file"
+    echo
 
 else
     # Display the information in the previously created proximity file
-    echo "Using existing proximity file with unknown grid_square"
+    echo "Using existing proximity file"
     echo
 fi
 
@@ -399,7 +413,17 @@ dbgecho "Have good request json"
 # Parse the JSON file
 # cat $ARDOP_FILE_RAW | jq '.GatewayList[] | {Callsign, Frequency, Distance}' > $ARDOP_PROXIMITY_FILE_PARSE
 
-parse_proximity
-#parse_status
+if [ "$WINLINK_SERVICE" == "proximity" ] ; then
+    parse_proximity
+
+elif [ "$WINLINK_SERVICE" == "status" ] ; then
+    parse_status
+
+elif [ "$WINLINK_SERVICE" == "listing" ] ; then
+    parse_listing
+else
+    echo "Winlink service $WINLINK_SERVICE not recognized."
+    exit
+fi
 
 exit 0
