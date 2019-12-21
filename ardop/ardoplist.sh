@@ -202,7 +202,7 @@ function parse_proximity() {
     echo "Total gateways: $linecnt, total call signs: $callsign_cnt"
 }
 
-## function parse_listing /gateway/listing
+# ==== function parse_listing /gateway/listing
 
 function parse_listing() {
     dbgecho " "
@@ -326,12 +326,16 @@ elif [ "$WINLINK_SERVICE" == "status" ] ; then
 
 elif [ "$WINLINK_SERVICE" == "listing" ] ; then
     ARDOP_FILE_RAW="$TMPDIR/ardoplist.json"
-    svc_url="https://api.winlink.org/gateway/listing?&Key=$PL_KEY&format=json"
+    svc_url="https://api.winlink.org/gateway/listing?&ListingType=ardop&Key=$PL_KEY&format=json"
 else
     echo "Winlink service $WINLINK_SERVICE not recognized."
     exit
 fi
 
+# Test if temporary directory exists
+if [ ! -d "$TMPDIR" ] ; then
+    mkdir -p "$TMPDIR"
+fi
 
 #  Test if temporary proximity file already exists
 if [ ! -e "$ARDOP_FILE_RAW" ] ; then
