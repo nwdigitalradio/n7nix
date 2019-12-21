@@ -88,8 +88,8 @@ function config_single_channel() {
 usage () {
 	(
 	echo "Usage: $scriptname [-c][-d][-h]"
-        echo "                  No args will update all programs."
-        echo "  -c right | left Specify either right or left mDin6 connector."
+        echo "                  No args will toggle split channel state."
+        echo "  -c right | left Specify either right or left connector for Direwolf."
         echo "  -d              Set DEBUG flag"
         echo "  -h              Display this message."
         echo
