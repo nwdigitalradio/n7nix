@@ -315,10 +315,11 @@ else
     js8ver=$(grep "^- " /tmp/js8call_changelog.txt | cut -d' ' -f2 | head -n1)
     # Even though this is the latest version number there may not be an armhf.deb file for this version
     # Check if this package version file exists
-    curl --head --fail --silent http://files.js8call.com/$js8ver/js8call_$js8ver_armhf.deb >/dev/null;
+    curl --head --fail --silent http://files.js8call.com/${js8ver}/js8call_${js8ver}_armhf.deb >/dev/null;
     if [ $? -ne 0 ] ; then
+        echo "Could not locate js8call version: $js8ver"
         js8ver=$(grep "^- " /tmp/js8call_changelog.txt | cut -d' ' -f2 | head -n2 | tail -n1)
-        curl --head --fail --silent http://files.js8call.com/2.0.0/js8call_2.0.0_armhf.deb >/dev/null
+        curl --head --fail --silent http://files.js8call.com/$js8ver/js8call_$js8ver_armhf.deb >/dev/null
         if [ $? -ne 0 ] ; then
             echo "js8call install of version $js8ver FAILED"
        fi
