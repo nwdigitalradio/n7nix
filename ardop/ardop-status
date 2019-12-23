@@ -82,14 +82,14 @@ fi
 progname="piardopc"
 pid=$(pidof $progname)
 if [ "$?" -eq 0 ] ; then
-    echo "$progname is running"
+    echo "$progname is running with pid: $(pidof $progname)"
     bardopc_running=true
 fi
 
 progname="piardop2"
 pid=$(pidof $progname)
 if [ "$?" -eq 0 ] ; then
-    echo "$progname is running"
+    echo "$progname is running with pid: $(pidof $progname)"
     bardop2_running=true
 fi
 
