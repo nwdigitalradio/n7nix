@@ -17,8 +17,16 @@ user=$(whoami)
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 SRC_DIR="/usr/local/src/"
+BUILD_PKG_REQUIRE="build-essential ncurses-dev zlib1g-dev"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function is_pkg_installed
+
+function is_pkg_installed() {
+
+return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
+}
 
 # ===== function get_user
 
@@ -136,6 +144,32 @@ pcm.ARDOP {
 EOT
 else
     echo -e "\n\t$(tput setaf 4)File: $mod_file NOT modified $(tput setaf 7)\n"
+fi
+
+# check if build packages are installed
+dbgecho "Check build packages: $BUILD_PKG_REQUIRE"
+needs_pkg=false
+
+for pkg_name in `echo ${BUILD_PKG_REQUIRE}` ; do
+
+   is_pkg_installed $pkg_name
+   if [ $? -ne 0 ] ; then
+      echo "$scriptname: Will Install $pkg_name package"
+      needs_pkg=true
+      break
+   fi
+done
+
+if [ "$needs_pkg" = "true" ] ; then
+   echo
+   echo -e "=== Installing build tools"
+
+   apt-get install -y -q $BUILD_PKG_REQUIRE
+   if [ "$?" -ne 0 ] ; then
+      echo "Build tool install failed. Please try this command manually:"
+      echo "apt-get -y $BUILD_PKG_REQUIRE"
+      exit 1
+   fi
 fi
 
 arim_ver="2.7"
