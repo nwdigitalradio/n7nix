@@ -18,7 +18,9 @@ CALLSIGN="$NULL_CALLSIGN"
 USER="$(whoami)"
 TMPDIR="/home/$USER/tmp"
 SEQUENCE_FILE="$TMPDIR/sequence.tmp"
+LOGFILE="$TMPDIR/beacmin.log"
 AXPORTS_FILE="/etc/ax25/axports"
+GPSPIPE="/usr/local/bin/gpspipe"
 
 # boolean for using gpsd sentence instead of nmea sentence
 b_gpsdsentence=false
@@ -57,8 +59,10 @@ function is_gpsd() {
 # Check if gpsd is returning sentences
 # Returns gps sentence count, should be 3
 function is_gps_sentence() {
+
     dbgecho "is_gps_sentence"
-    retval=$(gpspipe -r -n 3 -x 2 | grep -ic "class")
+    retval=$($GPSPIPE -r -n 3 -x 2 | grep -ic "class")
+    dbgecho "retval: $retval"
     return $retval
 }
 
@@ -74,8 +78,13 @@ function set_canned_location() {
 # Much easier to parse a nmea sentence &
 # convert to aprs format than a gpsd sentence
 function get_lat_lon_nmeasentence() {
+
     # Read data from gps device, nmea sentences
-    gpsdata=$(gpspipe -r -n 15 | grep -m 1 -i gngll)
+    dbgecho "get_lat_lon_nmeasentence"
+
+    gpsdata=$($GPSPIPE -r -n 15 | grep -m 1 -i gngll)
+
+    dbgecho "gpsdata: $gpsdata"
 
     # Get geographic gps position status
     ll_valid=$(echo $gpsdata | cut -d',' -f7)
@@ -108,8 +117,11 @@ function get_lat_lon_nmeasentence() {
 # Only for reference, not used
 # See get_lat_lon_nmeasentence
 function get_lat_lon_gpsdsentence() {
+
     # Read data from gps device, gpsd sentences
-    gpsdata=$(gpspipe -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
+    dbgecho "get_lat_lon_gpsdsentence"
+
+    gpsdata=$($GPSPIPE -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
 
     dbgecho "gpsdata: $gpsdata"
 
@@ -186,10 +198,12 @@ gps_status="Fail"
 if is_gpsd && is_draws ; then
     dbgecho "Verify gpspipe is installed"
     # Check if program to get lat/lon info is installed.
-    prog_name="gpspipe"
+    prog_name="$GPSPIPE"
     type -P $prog_name &> /dev/null
     if [ $? -ne 0 ] ; then
         echo "$scriptname: Installing gpsd-clients package"
+        # Don't do this as it will install a down rev version of /usr/bin/gpspipe
+        # Need at least /usr/local/bin/gpspipe: 3.19 (revision 3.19)
         sudo apt-get install gpsd-clients
     fi
 
