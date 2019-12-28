@@ -17,8 +17,6 @@ dkmsdir="/lib/modules/$(uname -r)/updates/dkms"
 echo
 if [ -d "$dkmsdir" ] ; then
    ls -o $dkmsdir/udrc.ko $dkmsdir/tlv320aic32x4*.ko
-else
-   echo "Command 'apt-get install udrc-dkms' failed or was not run."
 fi
 echo "---- kernel"
 dpkg -l "*kernel" | tail -n 3
