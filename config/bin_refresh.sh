@@ -76,6 +76,9 @@ cp -u /home/$USER/n7nix/debug/ax25-reset.sh $userbindir
 cp -u /home/$USER/n7nix/iptables/iptable-*.sh $userbindir
 cp -u /usr/local/src/paclink-unix/test_scripts/chk_perm.sh $userbindir
 cp -u /home/$USER/n7nix/hostap/ap-*.sh $userbindir
+cp -u /home/$USER/n7nix/ardop/ardop-* $userbindir
+cp -u /home/$USER/n7nix/ardop/ardop/ardoplist.sh $userbindir
+
 cp -u /home/$USER/n7nix/config/bin_refresh.sh $userbindir
 
 sudo chown -R $USER:$USER $userbindir
