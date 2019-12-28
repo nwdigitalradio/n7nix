@@ -38,6 +38,7 @@ BEACON="/usr/local/sbin/beacon"
 
 SEQUENCE_FILE="/tmp/sequence.tmp"
 AXPORTS_FILE="/etc/ax25/axports"
+GPSPIPE="/usr/local/bin/gpspipe"
 DIREWOLF_CFG_FILE="/etc/direwolf.conf"
 
 # BEACON_TYPE choices:
@@ -129,9 +130,23 @@ function is_draws() {
 }
 
 # ===== function is_gpsd
-# Check if gpsd has been installed
 function is_gpsd() {
-    dbgecho "is_gpsd"
+
+    retval=0
+    # Verify gpsd is running
+    journalctl --no-pager -u gpsd | tail -n 1 | grep -i error
+    retcode="$?"
+    if [ "$retcode" -eq 0 ] ; then
+        echo "gpsd daemon is not running without errors."
+        retval=1
+    fi
+    return $retval
+}
+
+# ===== function gpsd_status
+# Check if gpsd has been installed
+function gpsd_status() {
+    dbgecho "gpsd_status"
     systemctl --no-pager status gpsd > /dev/null 2>&1
     return $?
 }
@@ -141,7 +156,7 @@ function is_gpsd() {
 # Returns gps sentence count, should be 3
 function is_gps_sentence() {
     dbgecho "is_gps_sentence"
-    retval=$(gpspipe -r -n 3 -x 2 | grep -ic "class")
+    retval=$($GPSPIPE -r -n 3 -x 2 | grep -ic "class")
     return $retval
 }
 
@@ -158,7 +173,7 @@ function set_canned_location() {
 # convert to aprs format than a gpsd sentence
 function get_lat_lon_nmeasentence() {
     # Read data from gps device, nmea sentences
-    gpsdata=$(gpspipe -r -n 15 | grep -m 1 -i gngll)
+    gpsdata=$($GPSPIPE -r -n 15 | grep -m 1 -i gngll)
 
     # Get geographic gps position status
     ll_valid=$(echo $gpsdata | cut -d',' -f7)
@@ -192,7 +207,7 @@ function get_lat_lon_nmeasentence() {
 # See get_lat_lon_nmeasentence
 function get_lat_lon_gpsdsentence() {
     # Read data from gps device, gpsd sentences
-    gpsdata=$(gpspipe -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
+    gpsdata=$($GPSPIPE -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
 
     dbgecho "gpsdata: $gpsdata"
 
@@ -259,13 +274,18 @@ while [[ $# -gt 0 ]] ; do
 	 BEACON_TYPE="mesg_beacon"
 	 ;;
       -g|--gps)
+         # Verify gpsd is running OK
+         is_gpsd
+         if [ "$?" -ne 0 ] ; then
+             exit 1
+         fi
          # Verify gpsd is returning sentences
          is_gps_sentence
          result=$?
          echo "Verify gpsd is returning sentences: Sentence count: $result"
 
          if (( result > 0 )) ; then
-             echo "Test nmea sentence"
+             echo -n "Test nmea sentence: "
              get_lat_lon_nmeasentence
              if [ "$?" -ne 0 ] ; then
                  echo "Invalid gps data read from gpsd"
@@ -334,14 +354,20 @@ gps_status="Fail"
 # Check if a DRAWS card found & gpsd is installed
 # otherwise don't bother looking for gpspipe program
 
-if is_gpsd && is_draws ; then
+if is_draws && is_gpsd && gpsd_status ; then
     dbgecho "Verify gpspipe is installed"
     # Check if program to get lat/lon info is installed.
-    prog_name="gpspipe"
+    prog_name="$GPSPIPE"
     type -P $prog_name &> /dev/null
     if [ $? -ne 0 ] ; then
-        echo "$scriptname: Installing gpsd-clients package"
-        sudo apt-get install gpsd-clients
+
+        # Don't do this as it will install a down rev version of /usr/bin/gpspipe
+        # Need at least /usr/local/bin/gpspipe: 3.19 (revision 3.19)
+        # echo "$scriptname: Installing gpsd-clients package"
+        # sudo apt-get install gpsd-clients
+
+        echo "Could not locate $prog_name ... exiting"
+        exit 1
     fi
 
     # Verify gpsd is returning sentences

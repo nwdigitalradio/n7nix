@@ -55,6 +55,14 @@ function is_gpsd() {
     return $?
 }
 
+# ===== function gpsd_status
+# Check if gpsd has been installed
+function gpsd_status() {
+    dbgecho "gpsd_status"
+    systemctl --no-pager status gpsd > /dev/null 2>&1
+    return $?
+}
+
 # ===== function is_gps_sentence
 # Check if gpsd is returning sentences
 # Returns gps sentence count, should be 3
@@ -195,16 +203,20 @@ gps_status="Fail"
 # Check if a DRAWS card found & gpsd is installed
 # otherwise don't bother looking for gpspipe program
 
-if is_gpsd && is_draws ; then
+if is_draws && is_gpsd && gpsd_status ; then
     dbgecho "Verify gpspipe is installed"
     # Check if program to get lat/lon info is installed.
     prog_name="$GPSPIPE"
     type -P $prog_name &> /dev/null
     if [ $? -ne 0 ] ; then
-        echo "$scriptname: Installing gpsd-clients package"
+
         # Don't do this as it will install a down rev version of /usr/bin/gpspipe
         # Need at least /usr/local/bin/gpspipe: 3.19 (revision 3.19)
-        sudo apt-get install gpsd-clients
+        # echo "$scriptname: Installing gpsd-clients package"
+        # sudo apt-get install gpsd-clients
+
+        echo "Could not locate $prog_name ... exiting"
+        exit 1
     fi
 
     # Verify gpsd is returning sentences
