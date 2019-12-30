@@ -1,0 +1,9 @@
+Package: ax25tools
+Version: 1.0.5-1
+Section: hamradio
+Priority: optional
+Architecture: armhf
+Depends: libncursesw5-dev, libax25 (>= 1.0.0)
+Maintainer: Lee Woldanski <ve7fet@tparc.org>
+Description: Tools used to configure an ax.25 enabled computer
+ User tools for AX.25 Amateur Radio applications.

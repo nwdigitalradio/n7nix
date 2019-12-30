@@ -1,0 +1,9 @@
+Package: ax25apps
+Version: 2.0.1-1
+Section: hamradio
+Priority: optional
+Architecture: armhf
+Depends: libncursesw5-dev, libax25 (>= 1.0.0)
+Maintainer: Lee Woldanski <ve7fet@tparc.org>
+Description: AX.25 ham radio applications
+ User tools for AX.25 Amateur Radio applications.
