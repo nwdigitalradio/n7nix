@@ -7,6 +7,17 @@
 DEBUG=1
 
 scriptname="`basename $0`"
+SRC_DIR="/usr/local/src"
+
+# There are 2 sources for the "unofficial" libax25/tools/apps
+#  One is from the github source directory
+#  The other is from the github archive directory
+#  They produce different destination source directories
+
+#AX25_SRCDIR=$SRC_DIR/linuxax25-master
+# Assumes git clone https://github.com/ve7fet/linuxax25
+AX25_SRCDIR=$SRC_DIR/linuxax25
+
 
 BUILDTOOLS_PKG_LIST="checkinstall rsync build-essential autoconf dh-autoreconf automake libtool git libncurses5-dev libncursesw5-dev"
 
@@ -150,7 +161,6 @@ echo " === Install libax25, ax25apps & ax25tools"
 echo "Begin building libax25, ax25apps & ax25tools "
 
 # Does source directory for ax25 utils exist?
-SRC_DIR="/usr/local/src/ax25"
 
 if [ ! -d $SRC_DIR ] ; then
    mkdir -p $SRC_DIR
@@ -163,13 +173,6 @@ else
 fi
 
 cd $SRC_DIR
-# There are 2 sources for the "unofficial" libax25/tools/apps
-#  One is from the github source directory
-#  The other is from the github archive directory
-#  They produce different source directories
-
-AX25_SRCDIR=$SRC_DIR/linuxax25-master
-#AX25_SRCDIR=$SRC_DIR/linuxax25
 
 if [ ! -d $AX25_SRCDIR/libax25 ] || [ ! -d $AX25_SRCDIR/ax25tools ] || [ ! -d $AX25_SRCDIR/ax25apps ] ; then
 
@@ -179,7 +182,12 @@ if [ ! -d $AX25_SRCDIR/libax25 ] || [ ! -d $AX25_SRCDIR/ax25tools ] || [ ! -d $A
    wget https://github.com/ve7fet/linuxax25/archive/master.zip
    unzip -q master.zip
 #   git clone https://www.github.com/ve7fet/linuxax25/
+else
+   echo "Directories exist :$AX25_SRCDIR/libax25, $AX25_SRCDIR/ax25tools, $AX25_SRCDIR/ax25apps"
 fi
+
+# ==== CHANGE =====================
+if [ 1 -eq 0 ] ; then
 
 if [ ! -e "$AX25_SRCDIR/updAX25.sh" ] ; then
    echo "Getting AX.25 update script failed, can NOT locate: $AX25_SRCDIR/updAX25.sh."
@@ -195,6 +203,7 @@ fi
 # Finally run the AX.25 update script
 cd $AX25_SRCDIR
 ./updAX25.sh
+fi # end ==== CHANGE  =====================
 
 # libraries are installed in /usr/local/lib
 ldconfig
