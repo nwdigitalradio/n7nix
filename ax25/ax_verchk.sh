@@ -2,8 +2,9 @@
 #
 # Display debian source versions for libax25, ax25apps, ax25tools
 #
-# Program from ax25tools: nrparms
-# Program from ax25apps: call
+# Check version numbers with installed programs
+# Program from ax25tools: nrparms -v
+# Program from ax25apps: call -v
 # library version number:
 # use ldconfig -v | grep libraryname , also command has option command -V or binaryfile --version
 # libax25io.la
@@ -23,10 +24,24 @@ declare -A fetrepo
 declare -A nixrepo
 declare -A install
 bupgrade=false
+binstallupdate=false
 
 # ===== function dbgecho
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== Display program help info
+#
+usage () {
+	(
+	echo "Usage: $scriptname [-u][-h]"
+        echo "    No arguments displays current & installed versions."
+        echo "    -u Set application update flag. Intall packages"
+        echo "    -h display this message."
+        echo
+	) 1>&2
+	exit 1
+}
 
 # ===== function version_gt
 
@@ -49,6 +64,38 @@ function display_ax25pkgver() {
 }
 
 # ===== main
+
+# Check for any command line arguments
+# Command line args are passed with a dash & single letter
+#  See usage function
+
+while [[ $# -gt 0 ]] ; do
+
+    key="$1"
+    case $key in
+        -l)
+            dbgecho "Display installed versions only."
+            display_ax25pkgver
+            exit
+        ;;
+        -u)
+            echo "Update AX.25 packages after checking version numbers."
+            echo
+            binstallupdate=true
+            bupgrade=true
+        ;;
+        -h)
+            usage
+            exit 0
+        ;;
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+    shift # past argument or value
+done
 
 fetrepo_libver=$(curl -s https://raw.githubusercontent.com/ve7fet/linuxax25/master/libax25/configure.ac | grep "AC_INIT(")
 fetrepo[lib]=$(echo $fetrepo_libver | cut -f2 -d ' ' | cut -f1 -d',')
@@ -96,7 +143,6 @@ fi
 
 
 # Check if installed version up-to-date
-binstallupdate=false
 for prog in $PROGLIST ; do
     first_version="${fetrepo[$prog]}"
     second_version="${install[$prog]}"
