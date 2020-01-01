@@ -20,6 +20,9 @@
 # Uncomment this statement for debug echos
 #DEBUG=1
 
+TMP_DIR="$HOME/ax25cfg"
+SRC_DIR="/usr/local/etc/ax25"
+
 declare -A fetrepo
 declare -A nixrepo
 declare -A install
@@ -41,6 +44,49 @@ usage () {
         echo
 	) 1>&2
 	exit 1
+}
+
+# ===== function get_tmp_fname
+
+function get_tmp_fname() {
+
+   fnameroot="$1"
+   number=0
+   suffix="$( printf -- '-%02d' "$number" )"
+
+   while test -e "$fnameroot$suffix"; do
+      (( ++number ))
+      suffix="$( printf -- '-%02d' "$number" )"
+   done
+
+   fname="$fnameroot$suffix"
+   echo "$fname"
+}
+
+# ===== function bup_config
+# Backup config files before doing a package install
+function bup_config() {
+    if [ ! -d $TMP_DIR ] ; then
+        mkdir -p $TMP_DIR
+    fi
+
+    # Test if backed up config file already exists
+    FILES="$SRC_DIR/*.conf $SRC_DIR/axports"
+    DST_DIR="$TMP_DIR"
+
+    for fname in $FILES ; do
+        destname="$DST_DIR/$(basename $fname)"
+
+        if [ -f "$destname" ] ; then
+            echo "file: $destname exists"
+            basedest=$(basename $destname)
+            newname=$(get_tmp_fname $basedest)
+            echo "new: $newname, old: $fname"
+            destname=$DST_DIR/$newname
+        fi
+        cp $fname $destname
+        ls $fname $destname
+    done
 }
 
 # ===== function version_gt
@@ -159,6 +205,14 @@ if $binstallupdate ; then
 
     if $bupgrade ; then
         echo "AX.25 packages will be updated"
+        # Check if backup dir for config files exists
+        if [ ! -d $TMP_DIR ] ; then
+            mkdir -p $TMP_DIR
+        fi
+
+        # Save any config files
+        bup_config
+
         sudo dpkg -i $HOME/n7nix/ax25/debpkg/libax25_${nixrepo[lib]}-1_armhf.deb
         sudo dpkg -i $HOME/n7nix/ax25/debpkg/ax25apps_${nixrepo[app]}-1_armhf.deb
         sudo dpkg -i $HOME/n7nix/ax25/debpkg/ax25tools_${nixrepo[tool]}-1_armhf.deb
