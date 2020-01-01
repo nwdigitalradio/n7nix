@@ -81,7 +81,6 @@ while [[ $# -gt 0 ]] ; do
         -u)
             echo "Update AX.25 packages after checking version numbers."
             echo
-            binstallupdate=true
             bupgrade=true
         ;;
         -h)
@@ -143,6 +142,7 @@ fi
 
 
 # Check if installed version up-to-date
+binstallupdate=false
 for prog in $PROGLIST ; do
     first_version="${fetrepo[$prog]}"
     second_version="${install[$prog]}"
@@ -169,6 +169,8 @@ if $binstallupdate ; then
     else
         echo "AX.25 packages would have been updated"
     fi
+else
+    echo "AX.25 packages are up-to-date."
 fi
 
 
