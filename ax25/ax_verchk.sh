@@ -47,6 +47,7 @@ usage () {
 }
 
 # ===== function get_tmp_fname
+# Make a unique file name so that no files are over written
 
 function get_tmp_fname() {
 
