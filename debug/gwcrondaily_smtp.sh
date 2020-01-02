@@ -2,17 +2,17 @@
 #
 # File : gwcrondaily_smtp.sh
 #
-# Example crontab emails report at 1AM
-#
+# Example crontab entry
+# Sends report message @ 1 AM
+
 # 0  1  * * * /home/gunn/bin/gwcrondaily_smtp.sh
 
 station=$(uname -n)
-user=$(whoami)
 
 SENDTO="gunn@beeble.localnet"
-tmpdir="/home/${user}/tmp"
+tmpdir="$HOME/tmp"
 outfile="${tmpdir}/dailycron.txt"
-bindir="/home/${user}/bin"
+bindir="$HOME/bin"
 
 # ===== Main
 

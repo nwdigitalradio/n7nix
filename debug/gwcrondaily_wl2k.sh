@@ -2,21 +2,31 @@
 #
 # File : gwcrondaily_wl2k.sh
 #
-# Example crontab sends
+# Example crontab entry
+# Sends report message @ 1 AM
+# 0  1  * * * /home/pi/bin/gwcrondaily_wl2k.sh
 
-# 0  1  * * * /home/gunn/bin/gwcrondaily_wl2k.sh
+scriptname="`basename $0`"
 
-CALLSIGN="n7nix"
+# default telnet transport
+wl2ktransport="/usr/local/bin/wl2ktelnet -s"
+
+# Example RMS Gateway transport
+#  Need to edit <RMSGW> to be an RMS Gateway callsign
+# wl2ktransport="/usr/local/bin/wl2kax25 -s -c <RMSGW>-10"
+
+callsignfile="/usr/local/etc/wl2k.conf"
+CALLSIGN=$(grep -i "mycall=" $callsignfile | grep -v "#" | awk -F = '{print $2} ')
+SENDTO="$CALLSIGN@winlink.org"
+
 station=$(uname -n)
-user=$(whoami)
 
 WAIT_TIME=15
 outboxdir="/usr/local/var/wl2k/outbox"
 
-SENDTO="$CALLSIGN@winlink.org"
-tmpdir="/home/${user}/tmp"
-outfile="${tmpdir}/dailycron.txt"
-bindir="/home/${user}/bin"
+TMPDIR="$HOME/tmp"
+outfile="$TMPDIR/dailycron.txt"
+bindir="$HOME/bin"
 
 #
 # === function outbox_check() =================
@@ -75,10 +85,11 @@ return $filecount_diff
 # ===== Main
 
 # Check if tmp directory exists.
-if [ ! -d "$tmpdir" ] ; then
-   mkdir $tmpdir
+if [ ! -d "$TMPDIR" ] ; then
+   mkdir -p $TMPDIR
 fi
 
+# === Generate body of email
 $bindir/gwcron.sh > $outfile
 
 # get the connection quality
@@ -98,8 +109,18 @@ else
 	subject=$(echo "//wl2k ##* no logins on $station for $now")
 fi
 
-# === Generate a Winlink mail message
+# === Generate a Winlink mail message & send via a Winlink transport
 
 outbox_check
+if [ "$?" -gt 0 ] ; then
+    $wl2ktransport
+    retcode=$?
+    if [ $retcode -ne 0 ]; then
+        echo "$scriptname: $(date): $(basename $wl2ktransport)  returned $retcode" >> $TMPDIR/dailyerror.txt
+        exit 1
+    fi
+else
+   echo "$scriptname: $(date): No mail found in winlink outbox"
+fi
 
 exit 0

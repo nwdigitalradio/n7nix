@@ -6,8 +6,7 @@
 # $LastChangedDate: 2013-12-01 14:33:42 -0800 (Sun, 01 Dec 2013) $
 #
 
-# Name of this script
-myname="`basename $0`"
+scriptname="`basename $0`"
 
 LOGFILE="/var/log/rms.debug"
 TMPLOGFILE="/tmp/rms.tmp"
@@ -24,7 +23,7 @@ echo "### $(date) Test Message from $CALLSIGN-10"
 
 # Since using logrotate aggregate all the entries for DATE
 if [ -f $LOGFILE.1 ] ; then
-  echo "$myname: Found rotated log file!"
+  echo "$scriptname: Found rotated log file!"
 # remove all non-printable ascii chars
 # tr -cd '\11\12\40-\176'
   grep -i "${XDATE}" $LOGFILE.1 | tr -cd '\11\12\40-\176' > $TMPLOGFILE
@@ -58,8 +57,14 @@ if [ $LGINCNT -gt 0 ]; then
 fi
 
 echo
-echo Uptime: $(uptime)
+echo "CPU temperature & throttle check"
+vcgencmd measure_temp
+vcgencmd get_throttled
+
 echo
+echo "Uptime: $(uptime)"
+echo
+# Report file system disk space usage
 echo $(df -h | grep -i root)
 echo
 
