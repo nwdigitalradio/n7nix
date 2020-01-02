@@ -87,3 +87,4 @@ local ip addr: 10.0.42.85
   * Use the wl2ktelnet transport in _gwcroncrondaily_wl2k.sh_ as that is the easiest to set up.
   * Look in mail log file _/var/log/mail.log_ for proper _relay=_ entry.
 * To verify crontab also look in file _/var/log/mail.log_ for the log time that you set in your crontab entry, ie. 1 AM.
+* If you find __Permission denied__ in the _/var/log/mail.log_ file, run _chk_perm.sh_ which will set the proper read/write permissions on the email outbox directory.
