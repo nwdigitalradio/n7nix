@@ -9,6 +9,11 @@ script or transport.
 
 #### Setup
 
+* Winlink transports require paclink-unix to be installed.
+  * ie. if you use SMTP transport gwcrondaily_smtp.sh you do not require paclink-unix
+* Both Winlink & SMTP transports require a command line mail utility called mutt
+  * Mutt is installed & configured wit paclink-unix.
+
 ##### Copy files
 Copy the required scripts to your local bin directory
 ```
@@ -18,7 +23,7 @@ cp n7nix/debug/gwcron* ~/bin
 ##### Configure a transport
 
 * This will determine what the crontab entry looks like.
-* You have 3 choices for a transport, the Winlink transports require paclink-unix to be installed.
+* You have 3 choices for a transport
   * Winlink via telenet
     * Default, uses wl2ktelnet in _gwcrondaily_wl2k.sh_ script
   * Winlink via RMS Gateway using a radio
@@ -85,7 +90,7 @@ local ip addr: 10.0.42.85
 
 #### Testing
 
-* From a console run _gwcron.sh_ script to verify daily log output
+* From a console run _gwcron.sh_ script to verify daily log output.
 * From a console run ```gwcroncrondaily_<transport>.sh``` script to verify that email is working
   * Use the wl2ktelnet transport in _gwcroncrondaily_wl2k.sh_ as that is the easiest to set up.
   * Look in mail log file _/var/log/mail.log_ for proper _relay=_ entry.
