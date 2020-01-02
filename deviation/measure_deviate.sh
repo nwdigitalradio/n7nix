@@ -208,7 +208,10 @@ done
 if [ "$NEEDPKG_FLAG" = "true" ] ; then
    echo "Installing required packages"
    dbgecho "Debian packages: for aplay install alsa-utils, for sox install sox, for gpio install wiringpi"
-   sudo apt-get -y -q install alsa-utils sox wiringpi
+   sudo apt-get -y -q install alsa-utils sox
+   # Need wiringPi version 2.52 for Raspberry Pi 4 which is not yet in Debian repos.
+   wget -P /usr/local/src https://project-downloads.drogon.net/wiringpi-latest.deb
+   sudo dpkg -i /usr/local/src/wiringpi-latest.deb
 fi
 
 dbgecho "Parse command line args"
