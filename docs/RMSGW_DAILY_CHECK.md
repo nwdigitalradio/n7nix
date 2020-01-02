@@ -2,7 +2,10 @@
 
 #### Operation
 
-The RMS Gateway Daily log has 2 components, a report generater script & and an email sending script.
+Send a daily email to verify a Linux RMS Gateway is operational &
+report call signs that have used the gateway.  The RMS Gateway Daily
+Log has 2 components, a report generater script & and an email sending
+script or transport.
 
 #### Setup
 
@@ -15,7 +18,7 @@ cp n7nix/debug/gwcron* ~/bin
 ##### Configure a transport
 
 * This will determine what the crontab entry looks like.
-* You have 3 choices for a transport:
+* You have 3 choices for a transport, the Winlink transports require paclink-unix to be installed.
   * Winlink via telenet
     * Default, uses wl2ktelnet in _gwcrondaily_wl2k.sh_ script
   * Winlink via RMS Gateway using a radio
@@ -83,8 +86,16 @@ local ip addr: 10.0.42.85
 #### Testing
 
 * From a console run _gwcron.sh_ script to verify daily log output
-* From a console run ```_gwcroncrondaily_<transport>.sh_``` script to verify that email is working
+* From a console run ```gwcroncrondaily_<transport>.sh``` script to verify that email is working
   * Use the wl2ktelnet transport in _gwcroncrondaily_wl2k.sh_ as that is the easiest to set up.
   * Look in mail log file _/var/log/mail.log_ for proper _relay=_ entry.
 * To verify crontab also look in file _/var/log/mail.log_ for the log time that you set in your crontab entry, ie. 1 AM.
 * If you find __Permission denied__ in the _/var/log/mail.log_ file, run _chk_perm.sh_ which will set the proper read/write permissions on the email outbox directory.
+
+__Note__ the Winklink transport scripts use paclink-unix with a __-s__
+option (-s --send-only Send a message without receiving any) what this does is force an early termination of the mail transfer protocol
+which isn't supported by Winlink. If you see the following on your console this is the expected result.
+```
+<*** [1] Unexpected response to proposal - Disconnecting (207.32.162.17) [71]
+wl2ktelnet: unrecognized command (len 71): /*** [1] Unexpected response to proposal - Disconnecting (207.32.162.17)/
+```
