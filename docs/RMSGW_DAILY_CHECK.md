@@ -12,7 +12,7 @@ script or transport.
 * Winlink transports require paclink-unix to be installed.
   * ie. if you use SMTP transport gwcrondaily_smtp.sh you do not require paclink-unix
 * Both Winlink & SMTP transports require a command line mail utility called mutt
-  * Mutt is installed & configured wit paclink-unix.
+  * Mutt is installed & configured with paclink-unix.
 
 ##### Copy files
 Copy the required scripts to your local bin directory
