@@ -20,8 +20,9 @@
 # Uncomment this statement for debug echos
 #DEBUG=1
 
-TMP_DIR="$HOME/ax25cfg"
+TMP_DIR="$HOME/tmp/ax25cfg"
 SRC_DIR="/usr/local/etc/ax25"
+CFGFILES="$SRC_DIR/*.conf $SRC_DIR/axports"
 
 declare -A fetrepo
 declare -A nixrepo
@@ -37,10 +38,11 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 #
 usage () {
 	(
-	echo "Usage: $scriptname [-u][-h]"
-        echo "    No arguments displays current & installed versions."
-        echo "    -u Set application update flag. Intall packages"
-        echo "    -h display this message."
+	echo "Usage: $scriptname [-d][-u][-h]"
+        echo "   No arguments displays current & installed versions."
+        echo "   -d Turn on debug output"
+        echo "   -u Set application update flag. Intall packages"
+        echo "   -h display this message."
         echo
 	) 1>&2
 	exit 1
@@ -72,10 +74,9 @@ function bup_config() {
     fi
 
     # Test if backed up config file already exists
-    FILES="$SRC_DIR/*.conf $SRC_DIR/axports"
     DST_DIR="$TMP_DIR"
 
-    for fname in $FILES ; do
+    for fname in $CFGFILES ; do
         destname="$DST_DIR/$(basename $fname)"
 
         if [ -f "$destname" ] ; then
@@ -90,6 +91,31 @@ function bup_config() {
     done
 }
 
+# ===== function verify_cfgchange
+function verify_cfgchange() {
+    filecnt=0
+    diffcnt=0
+    DST_DIR="$TMP_DIR"
+
+    dbgecho "Config tmp dir: $TMP_DIR"
+
+    for fname in $CFGFILES ; do
+        destname="$DST_DIR/$(basename $fname)"
+        destname=$(ls -1a $destname* | tail -n 1)
+        dbgecho "Diffing: $fname and $destname"
+        if [ -f "$destname" ] ; then
+            diff -b -U 0 $fname $destname
+            retval="$?"
+            # Count files that are different
+            if [ "$retval" -eq 1 ] ; then
+                (( ++diffcnt ))
+            fi
+            # Count all the config files
+            (( ++filecnt ))
+        fi
+    done
+    echo "verify_cfgchange: found $filecnt config files, $diffcnt are different."
+}
 # ===== function version_gt
 
 # Determine if first argument $1 is greater than second argument
@@ -120,9 +146,18 @@ while [[ $# -gt 0 ]] ; do
 
     key="$1"
     case $key in
+        -d)
+            echo "Turn on debug"
+            DEBUG=1
+        ;;
         -l)
             dbgecho "Display installed versions only."
             display_ax25pkgver
+            exit
+        ;;
+        -c)
+            echo "Test config file backup"
+                verify_cfgchange
             exit
         ;;
         -u)
@@ -187,7 +222,6 @@ if $bnixupdate ; then
     exit 1
 fi
 
-
 # Check if installed version up-to-date
 binstallupdate=false
 for prog in $PROGLIST ; do
@@ -221,6 +255,7 @@ if $binstallupdate ; then
         # Verify installation of installed AX.25 packages
         # Display installed AX.25 package versions
         display_ax25pkgver
+        verify_cfgchange
     else
         echo "AX.25 packages would have been updated"
     fi
