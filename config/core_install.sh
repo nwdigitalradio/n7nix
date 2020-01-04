@@ -348,9 +348,17 @@ cd $START_DIR
 cd ..
 echo "Installing from this directory $(pwd)"
 
-dpkg -i ./ax25/debpkg/libax25_1.1.3-1_armhf.deb
-dpkg -i ./ax25/debpkg/ax25apps_2.0.1-1_armhf.deb
-dpkg -i ./ax25/debpkg/ax25tools_1.0.5-1_armhf.deb
+# Install library first
+libname=$(ls ./ax25/debpkg/libax25*.deb | tail -n1 )
+appsname=$(ls ./ax25/debpkg/x25apps*.deb | tail -n 1)
+toolsname=$(ls ./ax25/debpkg/ax25tools*.deb | tail -n 1)
+
+echo "Installing package: $libname"
+dpkg -i $libname
+echo "Installing package: $appsname"
+dpkg -i $appsname
+echo "Installing package: $toolsname"
+dpkg -i $toolsname
 
 ax25_config_dirs
 ax25_lib
