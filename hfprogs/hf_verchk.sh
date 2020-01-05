@@ -235,6 +235,9 @@ while [[ $# -gt 0 ]] ; do
 
     key="$1"
     case $key in
+        -d)
+            DEBUG=1
+        ;;
         -l)
             dbgecho "Display local versions only."
             installed_version_display
