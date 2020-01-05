@@ -35,7 +35,7 @@ DRAWS hat humming along.
 * Load the RPi image from NW Digital Radio found [here](http://nwdig.net/downloads/)
   * current_image.zip and nwdrxx.zip __ARE__ the same file.
   * A lot of work went into installing software on the NWDR image and that is what is supported.
-  * I will not support your effort to install software starting from a Raspbian image.
+  * There is NO support to install software starting from a Raspbian image since that has already been done in the NWDR image.
 
 After successfully following the instructions
 [here](https://nw-digital-radio.groups.io/g/udrc/wiki/DRAWS%3A-Getting-Started)
