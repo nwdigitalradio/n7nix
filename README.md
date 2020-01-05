@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This repo contains scripts & notes for taking a new COMPASS image and
+This repo contains scripts & notes for taking a new Raspbian image and
 creating a working image that will boot up & run the following configurations:
 * Core only
   * This includes [direwolf](https://github.com/wb2osz/direwolf/blob/master/README.md) & [AX.25](http://www.linux-ax25.org/wiki/Main_Page) with no other application
@@ -17,10 +17,11 @@ creating a working image that will boot up & run the following configurations:
 process.
 Files in _vnc_ & uronode are also currently not used for core install.
 
-Compass is a file system image for the Raspberry Pi that contains a
-kernel with the driver for the Texas Instruments tlv320aic32x4 DSP
-sound chip. Other than this codec driver the Compass image mimics the
-[Raspbian image](https://www.raspberrypi.org/downloads/raspbian/).
+As of around August 2019 main line Linux has a kernel with the driver
+for the Texas Instruments tlv320aic32x4 DSP sound chip that the
+UDRC/DRAWS hat can use.
+
+* [Raspbian image](https://www.raspberrypi.org/downloads/raspbian/).
 
 The NW Digital Radio [UDRC
 II](http://nwdigitalradio.com/wp-content/uploads/2012/04/UDRC-IIDS.pdf) is a
