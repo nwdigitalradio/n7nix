@@ -48,7 +48,7 @@ scriptname="`basename $0`"
 SPLIT_CHANNEL_FILE="/etc/ax25/split_channel"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 USER=
-SYSTEMCTL="sytemctl"
+SYSTEMCTL="systemctl"
 
 # Set connector to be either left or right
 # This selects which mini Din 6 connector DIREWOLF will use on the DRAWS card.
