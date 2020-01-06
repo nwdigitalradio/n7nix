@@ -350,8 +350,20 @@ echo "Installing from this directory $(pwd)"
 
 # Install library first
 libname=$(ls ./ax25/debpkg/libax25*.deb | tail -n1 )
-appsname=$(ls ./ax25/debpkg/x25apps*.deb | tail -n 1)
+if [ -z "$libname" ] ; then
+    echo "Fatal error, no libname found ... exiting."
+    exit 1
+fi
+appsname=$(ls ./ax25/debpkg/ax25apps*.deb | tail -n 1)
+if [ -z "$appsname" ] ; then
+    echo "Fatal error, no appsname found ... exiting."
+    exit 1
+fi
 toolsname=$(ls ./ax25/debpkg/ax25tools*.deb | tail -n 1)
+if [ -z "$toolsname" ] ; then
+    echo "Fatal error, no toolsname found ... exiting."
+    exit 1
+fi
 
 echo "Installing package: $libname"
 dpkg -i $libname
