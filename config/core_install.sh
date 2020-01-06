@@ -149,7 +149,7 @@ function install_direwolf_source() {
     echo "=== Install direwolf version $DW_VER from source using $num_cores cores"
 
 #   apt-get install gpsd
-    apt-get install -y -q libgps-dev
+    apt-get install -y -q libgps-dev cmake
 
    SRC_DIR="/usr/local/src/"
    cd "$SRC_DIR"
@@ -163,6 +163,8 @@ function install_direwolf_source() {
    unzip $DW_VER.zip
    cd direwolf-$DW_VER
 
+   mkdir build && cd build
+   cmake ..
    make -j$num_cores
    make install
    make install-conf
