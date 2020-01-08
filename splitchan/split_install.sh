@@ -37,7 +37,7 @@
 #  /etc/systemd/system/pulseaudio.service
 #
 #
-# This script modifys this file:
+# This script will modify the direwolf config file:
 # /etc/direwolf.conf
 #
 # Uncomment this statement for debug echos
@@ -332,7 +332,8 @@ else
     start_service $service
 fi
 
-sudo touch $SPLIT_CHANNEL_FILE
+# And finally set up the split channel indicator file
+sudo tee "$SPLIT_CHANNEL_FILE" > /dev/null <<< "split_chan $CONNECTOR"
 
 # may need to do the following:
 # chmod 000 /usr/bin/start-pulseaudio-x11
