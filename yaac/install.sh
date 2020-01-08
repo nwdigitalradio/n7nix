@@ -5,7 +5,7 @@
 
 SRC_DIR="/usr/local/src/"
 YAAC_SRC_DIR=$SRC_DIR/yaac
-YAAC_DST_DIR=$HOME/YAAC 
+YAAC_DST_DIR=$HOME/YAAC
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 USER=
@@ -144,7 +144,7 @@ else
 fi
 
 sudo chown -R $USER:$USER $YAAC_SRC_DIR
-# Does destionation directory exist?
+# Does destination directory exist?
 if [ ! -d $YAAC_DST_DIR ] ; then
    sudo mkdir -p $YAAC_DST_DIR
    if [ "$?" -ne 0 ] ; then
@@ -170,7 +170,7 @@ else
    gotsha256=1
 fi
 
-if [ $gotsha256 -ne 0 ] ; then 
+if [ $gotsha256 -ne 0 ] ; then
    shasum -c $download_shaname
    if [ $? -ne 0 ] ; then
      echo "$(tput setaf 1)shasum not exist or not ok renaming file  $(tput setaf 7)"
