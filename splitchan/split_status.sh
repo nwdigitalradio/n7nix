@@ -53,7 +53,7 @@ function is_direwolf() {
     return $retcode
 }
 
-# ==== function is_splitchan
+# ===== function is_splitchan
 
 function is_splitchan() {
 
@@ -78,6 +78,23 @@ function is_splitchan() {
         retcode=1
     fi
     return $retcode
+}
+
+# ===== function display_service_status
+function display_service_status() {
+    service="$1"
+    if systemctl is-enabled --quiet "$service" ; then
+        enabled_str="enabled"
+    else
+        enabled_str="NOT enabled"
+    fi
+
+    if systemctl is-active --quiet "$service" ; then
+        active_str="running"
+    else
+        active_str="NOT running"
+    fi
+    echo "Service: $service is $enabled_str and $active_str"
 }
 
 # ===== split_debugstatus
@@ -179,19 +196,7 @@ function split_status() {
     fi
 
     # ==== verify pulse audio service
-    service="pulseaudio"
-    if systemctl is-enabled --quiet "$service" ; then
-        pa_enabled_str="enabled"
-    else
-        pa_enabled_str="NOT enabled"
-    fi
-
-    if systemctl is-active --quiet "$service" ; then
-        pa_active_str="running"
-    else
-        pa_active_str="NOT running"
-    fi
-    echo "Service: $service is $pa_enabled_str and $pa_active_str"
+    display_service_status "pulseaudio"
 
     # ==== verify direwolf config
 
