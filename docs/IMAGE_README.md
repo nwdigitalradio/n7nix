@@ -30,7 +30,7 @@
 | rainloop     |   1.12.1 |  yes  |       |       |
 | FBB BBS      | 7.0.8-beta8 |    |  yes  |  yes  |
 | Xastir       |   2.1.5     |    |  yes  |       |
-| YAAC           | 1.0-beta129  |      | yes  |
+| YAAC           | 1.0-beta145  |      | yes  |
 | dstarrepeater  | 1.20180703-4 | yes |   |   |
 | dstarrepeaterd | 1.20180703-4 | yes |   |   |
 | ircddbgateway  | 1.20180703-1 | yes |   |   |
