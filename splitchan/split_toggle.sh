@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Use with DRAWS hat to toggle between having direwolf control both
-# channels or just one channel and an HF app use on the other
+# channels or just one channel and an HF app use the other.
 
 # In this example when configured for split channels:
 #  - HF programs use the right mDin6 connector (GPIO 23)
@@ -12,7 +12,7 @@
 #
 # Split channel is enabled by having a file (split_channel) in
 # directory /etc/ax25 with a single entry of either:
-# split_chan left or split_chan right
+# "split_chan left" or "split_chan right"
 
 # Uncomment this statement for debug echos
 #DEBUG=1
@@ -35,7 +35,6 @@ CONNECTOR="left"
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function start_service
-
 function start_service() {
     service="$1"
     systemctl is-enabled "$service" > /dev/null 2>&1
@@ -53,7 +52,6 @@ function start_service() {
 }
 
 # ===== function stop_service
-
 function stop_service() {
     service="$1"
     systemctl is-enabled "$service" > /dev/null 2>&1
@@ -107,7 +105,6 @@ function split_chan_on() {
 }
 
 # ===== function split_chan_toggle
-
 function split_chan_toggle() {
     # Test if split channel indicator file exists
     if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
@@ -140,8 +137,24 @@ function split_chan_toggle() {
     fi
 }
 
+# ===== function display_service_status
+function display_service_status() {
+    service="$1"
+    if systemctl is-enabled --quiet "$service" ; then
+        enabled_str="enabled"
+    else
+        enabled_str="NOT enabled"
+    fi
+
+    if systemctl is-active --quiet "$service" ; then
+        active_str="running"
+    else
+        active_str="NOT running"
+    fi
+    echo "Service: $service is $enabled_str and $active_str"
+}
+
 # ===== Display program help info
-#
 usage () {
 	(
 	echo "Usage: $scriptname [-c][-d][-h]"
@@ -216,6 +229,12 @@ else
     # Setup direwolf controls both ports
     stop_service pulseaudio
     config_both_channels
-    ax25-stop
-    ax25-start
 fi
+
+# restart direwolf
+ax25-stop
+ax25-start
+
+# ==== verify direwolf service
+display_service_status "direwolf"
+
