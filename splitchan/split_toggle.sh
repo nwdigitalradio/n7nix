@@ -1,23 +1,28 @@
 #!/bin/bash
 #
-# Mainly for use with DRAWS hat to toggle between having direwolf
-# control both channels or just one for HF use on the other
+# Use with DRAWS hat to toggle between having direwolf control both
+# channels or just one channel and an HF app use on the other
 
 # In this example when configured for split channels:
-#  - HF programs use the left mDin6 connector (GPIO 12)
-#  - packet programs will use the right connector (GPIO 23)
-
+#  - HF programs use the right mDin6 connector (GPIO 23)
+#  - packet programs direwolf/ax.25 will use the left connector (GPIO 12)
+#
+# To make direwolf NOT control any channels toggle split channel off
+# and run ax25-stop
+#
 # Split channel is enabled by having a file (split_channel) in
-# directory /etc/ax25
+# directory /etc/ax25 with a single entry of either:
+# split_chan left or split_chan right
 
 # Uncomment this statement for debug echos
-DEBUG=1
+#DEBUG=1
 
 scriptname="`basename $0`"
 
 bsplitchannel=false
 SPLIT_CHANNEL_FILE="/etc/ax25/split_channel"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
+SYSTEMCTL="systemctl"
 
 # Set connector to be either left or right
 # This selects which mini Din 6 connector DIREWOLF will use on the DRAWS card.
@@ -26,6 +31,9 @@ DIREWOLF_CFGFILE="/etc/direwolf.conf"
 
 CONNECTOR="left"
 
+# ===== function dbgecho
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
 # ===== function start_service
 
 function start_service() {
@@ -33,12 +41,12 @@ function start_service() {
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
         echo "ENABLING $service"
-        systemctl enable "$service"
+        $SYSTEMCTL enable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem ENABLING $service"
         fi
     fi
-    systemctl --no-pager start "$service"
+    $SYSTEMCTL --no-pager start "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem starting $service"
     fi
@@ -51,14 +59,14 @@ function stop_service() {
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -eq 0 ] ; then
         echo "DISABLING $service"
-        systemctl disable "$service"
+        $SYSTEMCTL disable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem DISABLING $service"
         fi
     else
         echo "Service: $service already disabled."
     fi
-    systemctl stop "$service"
+    $SYSTEMCTL stop "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem STOPPING $service"
     fi
@@ -68,19 +76,68 @@ function stop_service() {
 # Edit direwolf.conf to use both channels (channel 0 & 1) of a DRAWS HAT
 function config_both_channels() {
 
-    sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/"  $DIREWOLF_CFGFILE
-    sed -i -e '/^ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
+    sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/"  $DIREWOLF_CFGFILE
+    sudo sed -i -e '/^ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
 
     # Assume direwolf config was previously set up for 2 channels
-    sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 12/" $DIREWOLF_CFGFILE
+    sudo sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 12/" $DIREWOLF_CFGFILE
 }
 
 # ===== function config_single_channel
 # Edit direwolf.conf to use right mDin6 connector only
 function config_single_channel() {
-    sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE draws-capture-right draws-playback-right/"  $DIREWOLF_CFGFILE
-    sed -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
-    sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 23/" $DIREWOLF_CFGFILE
+    sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE draws-capture-$CONNECTOR draws-playback-$CONNECTOR/"  $DIREWOLF_CFGFILE
+    sudo sed -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
+#    sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 23/" $DIREWOLF_CFGFILE
+}
+
+# ===== function turn split channel off
+function split_chan_off() {
+    sudo tee "$SPLIT_CHANNEL_FILE" > /dev/null <<< "split_chan off"
+    bsplitchannel=false
+}
+
+# ===== function turn split channel on
+function split_chan_on() {
+    # Current config is set for both channels used by direwolf
+    echo "Toggle for split channels, Direwolf has left channel, HF has right channel"
+    sudo tee "$SPLIT_CHANNEL_FILE" > /dev/null <<< "split_chan left"
+
+    bsplitchannel=true
+}
+
+# ===== function split_chan_toggle
+
+function split_chan_toggle() {
+    # Test if split channel indicator file exists
+    if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
+        # Current config is set for split channel
+        echo "Toggle so direwolf controls both channels"
+        # Check if there is any config in the file
+        if [ -s "$SPLIT_CHANNEL_FILE" ] ; then
+            chan_state=$(grep -i split_chan "$SPLIT_CHANNEL_FILE" | cut -f2 -d' ')
+            retcode="$?"
+            dbgecho "Retcode from grep splitchan: $retcode, state: $chan_state"
+            if [ "$retcode" -eq 0 ] ; then
+                if [ "$chan_state" == "left" ] || [ "$chan_state" == "right" ] ; then
+                    dbgecho "split_chan_off 1"
+                    split_chan_off
+                else
+                    dbgecho "split_chan_on 1"
+                    split_chan_on
+                fi
+            fi
+        else
+            dbgecho "split_chan_off 2"
+            split_chan_off
+        fi
+
+
+    else
+       dbgecho "split_chan_on 2"
+       # Get here if split channel file does not exist
+       split_chan_on
+    fi
 }
 
 # ===== Display program help info
@@ -98,6 +155,12 @@ usage () {
 }
 
 # ===== main
+
+# Check if running as root
+if [[ $EUID != 0 ]] ; then
+   echo "set sudo"
+   SYSTEMCTL="sudo systemctl"
+fi
 
 # Check for any command line arguments
 # Command line args are passed with a dash & single letter
@@ -132,38 +195,27 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument or value
 done
 
-if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
-    echo "Toggle so direwolf controls both channels"
-    bsplitchannel=false
-    sudo rm "$SPLIT_CHANNEL_FILE"
-    echo "rm ret code: $?"
-    if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
-        echo "Toggle failed, $SPLIT_CHANNEL_FILE still exists"
-        exit 1
-    fi
-else
-    echo "Toggle for split channels, Direwolf has 1 channel, HF has 1 channel"
-    bsplitchannel=true
-    sudo touch $SPLIT_CHANNEL_FILE
-    echo "touch ret code: $?"
-fi
+split_chan_toggle
+
+dbgecho "bsplitchannel is $bsplitchannel"
 
 if $bsplitchannel ; then
     # Setup split channel
     start_service pulseaudio
     config_single_channel
 
-# ===== Edit ax25d.conf
-# Change RMS Gateway & paclink-unix p2p to use correct udr port name
-# For split channel needs to be udr0
+    # ===== Edit ax25d.conf
+    # Change RMS Gateway & paclink-unix p2p to use correct udr port name
+    # For split channel needs to be udr0
 
-
-# ===== Edit axports
-# make sure axports port names match ax25d.conf port names
-# Only define 1 port
+    # ===== Edit axports
+    # make sure axports port names match ax25d.conf port names
+    # Only define 1 port
 
 else
     # Setup direwolf controls both ports
     stop_service pulseaudio
     config_both_channels
+    ax25-stop
+    ax25-start
 fi
