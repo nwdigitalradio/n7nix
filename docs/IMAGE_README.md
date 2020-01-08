@@ -42,7 +42,7 @@
 | hamlib       |  3.3    |      |     |   |
 | flxmlrpc lib |  0.1.4  |      |     |   |
 | fldigi       |  4.1.08 |      |     |   |
-| flrig        |  1.3.43 |      |     |   |
+| flrig        |  1.3.48 |      |     |   |
 | flmsg        |  4.0.14 |      |     |   |
 | flamp        |  2.2.05 |      |     |   |
 | fllog        |  1.2.6  |      |     |   |
