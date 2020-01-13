@@ -5,7 +5,7 @@
 # Example crontab entry
 # Sends report message @ 1 AM
 
-# 0  1  * * * /home/gunn/bin/gwcrondaily_smtp.sh
+# 0  1  * * * /home/pi/bin/gwcrondaily_smtp.sh
 
 station=$(uname -n)
 
