@@ -2,7 +2,7 @@
 #
 # Expects an argument for which app to install
 # Arg can be one of the following:
-#	core, rmsgw, plu, pluimap
+#	core, rmsgw, plu, plumin
 #
 # Uncomment this statement for debug echos
 # DEBUG=1
@@ -195,7 +195,8 @@ case $APP_SELECT in
       source ../rmsgw/config.sh $CALLSIGN
    ;;
    plu)
-      # Configure paclink-unix basic
+      # Config paclink-unix with 3 email apps, mutt claws & rainloop
+      #  Also install postfix, dovecot, lighttpd
       # This configures mutt & postfix
       echo "$scriptname: Config paclink-unix with claws, dovecot & rainloop install"
       pushd ../plu
@@ -222,22 +223,19 @@ case $APP_SELECT in
       sudo -u "$USER" ./claws_install.sh $USER $CALLSIGN
       popd > /dev/null
    ;;
-# Take out option pluimap should all now be done in default plu install
-#   pluimap)
-#      echo "$scriptname: Config paclink-unix with imap"
-#      echo  "$scriptname: pluimap is under development, just use 'plu'"
-#      pushd ../plu
-#      source ./pluimap_config.sh
-#     source ./plu_config.sh $USER $CALLSIGN
-
-#      popd > /dev/null
-#   ;;
-   messanger)
-      echo "$scriptname: Config messanger appliance"
+    # Just install paclink-unix, postfix & mutt for headless apps like rms gateway
+   plumin)
+      echo "$scriptname: Config minimum paclink-unix"
       pushd ../plu
-      source ./pluimap_config.sh -
+      source ./plu_config.sh $USER $CALLSIGN
       popd > /dev/null
    ;;
+#   messanger)
+#      echo "$scriptname: Config messanger appliance"
+#      pushd ../plu
+#      source ./pluimap_config.sh -
+#      popd > /dev/null
+#   ;;
    test)
       echo
       echo " ===== $scriptname: Test setting up AX.25 IP Address"
