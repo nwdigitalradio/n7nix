@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # File : gwcron.sh
 #
@@ -26,20 +26,20 @@ if [ -f $LOGFILE.1 ] ; then
   echo "$scriptname: Found rotated log file!"
 # remove all non-printable ascii chars
 # tr -cd '\11\12\40-\176'
-  grep -i "${XDATE}" $LOGFILE.1 | tr -cd '\11\12\40-\176' > $TMPLOGFILE
+  grep --binary-files=text -i "${XDATE}" $LOGFILE.1 | tr -cd '\11\12\40-\176' > $TMPLOGFILE
 fi
 
 # remove all non-printable ascii chars
 # tr -cd '\11\12\40-\176'
-grep -i "${XDATE}" $LOGFILE | tr -cd '\11\12\40-\176' >> $TMPLOGFILE
+grep --binary-files=text -i "${XDATE}" $LOGFILE | tr -cd '\11\12\40-\176' >> $TMPLOGFILE
 
 #LOGINCNT=$(grep -i "${XDATE}" $LOGFILE | grep -i login | wc -l)
-LGINCNT=$(grep -i "${XDATE}" $TMPLOGFILE | grep -ic Login)
-LGOUTCNT=$(grep -i "${XDATE}" $TMPLOGFILE | grep -ic Logout)
+LGINCNT=$(grep -i "${XDATE}" $TMPLOGFILE | grep -iv "failed\|error" |  grep -c "Login")
+LGOUTCNT=$(grep -i "${XDATE}" $TMPLOGFILE | grep -iv "failed\|error" | grep -c "Logout")
 
 # Capture the logout error count which will happen when the internet is
 #  down or all the CMS are down.
-LGOUTERRCNT=$(grep -i "${XDATE}" $TMPLOGFILE | grep -ic "logout ERROR:")
+LGOUTERRCNT=$(grep -i "${XDATE}" $TMPLOGFILE | grep -ic "logout ERROR:\|failed")
 
 # Are there any logout errors?
 if [ $LGOUTERRCNT -ne 0 ] && [ $LGOUTCNT -gt $LGOUTERRCNT ]; then
@@ -52,8 +52,12 @@ echo "$LGINCNT logins and $LGOUTCNT logouts on ${XDATE}"
 if [ $LGINCNT -gt 0 ]; then
    echo "`expr $LGOUTCNT  \* 100 / $LGINCNT`% connection success."
    echo
-   echo "List of Stations that logged in:"
-   grep -i "$XDATE" $TMPLOGFILE | grep "Login" | cut -d':' -f4 | cut -d' ' -f3 | sort | uniq
+   echo "Stations & count of log ins:"
+   allcallsigns=$(grep -i "$XDATE" $TMPLOGFILE | grep -iv "failed\|error" | grep "Login" | cut -d':' -f4 | cut -d' ' -f3 | sort | uniq)
+   for callsign in $allcallsigns ; do
+       callcnt=$(grep "Login $callsign" $TMPLOGFILE | grep -c $callsign)
+       printf "  %-8s\t%2d\n" $callsign $callcnt
+   done
 fi
 
 echo
