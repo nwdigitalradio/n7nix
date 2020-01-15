@@ -178,6 +178,11 @@ if [ $? -ne 0 ] ; then
    read -e PASSWD
    sed -i -e "s/^#wl2k-password=/wl2k-password=$PASSWD/" $PLU_CFG_FILE
 
+   # Set gridsquare=
+   echo "Enter grid square, up to 6 characters, followed by [enter]:"
+   read -e GRIDSQUARE
+   sed -i -e "s/^#gridsquare=/gridsquare=$GRIDSQUARE/" $PLU_CFG_FILE
+
    # Set ax25port=
    # Assume axports was set by a previous configuration script
    # get winlink line
