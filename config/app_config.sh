@@ -90,6 +90,9 @@ function check_user() {
 
 echo "$scriptname: script start"
 
+# Get current working directory
+START_DIR=$(pwd)
+
 # Be sure we're running as root
 if [[ $EUID != 0 ]] ; then
    echo "$scriptname: Must be root"
@@ -251,6 +254,10 @@ esac
 
 shift # past argument or value
 done
+
+echo "Update the local bin directory."
+cd "$START_DIR"
+./bin_refresh.sh
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: app config ($APP_SELECT) script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
