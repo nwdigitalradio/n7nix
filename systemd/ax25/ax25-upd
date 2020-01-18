@@ -135,9 +135,21 @@ function packet_2port() {
 
 echo "ax25-upd: Start Port ${PORTNAME_1} with device ${SERIALPORT_DIREWOLF}"
 
+# Check if split channel is enabled
 if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
-    echo "Using split channel config"
-    bsplitchannel=true
+    # Anything in the file?
+    if [ -s "$SPLIT_CHANNEL_FILE" ] ; then
+        # Check for left, right, off
+        schan=$(cat $SPLIT_CHANNEL_FILE | cut -f2 -d' ')
+        if [ "$schan" != "off" ] ; then
+            echo "Using split channel config"
+            bsplitchannel=true
+        fi
+    else
+        # File is empty, enable split channel
+        echo "Using split channel config"
+        bsplitchannel=true
+    fi
 fi
 
 if [ -L $SERIALPORT_DIREWOLF ] ; then
@@ -167,8 +179,8 @@ case $id_check_ret in
 3|4)
    echo "UDRC II or DRAWS installed"
    if $bsplitchannel ; then
-    # use port 0 with mkiss
-    packet_1port 0
+       # use port 0 only with mkiss
+       packet_1port 0
    else
        # use both ports with mkiss
        packet_2port
