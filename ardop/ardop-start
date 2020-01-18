@@ -126,13 +126,29 @@ else
     exit
 fi
 
+bsplitchannel=false
+split_status="disabled"
 is_direwolf
 if [ "$?" -eq 0 ] ; then
     # Direwolf is running, check for split channels
     if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
+        # Check for file contents
+        if [ -s "$SPLIT_CHANNEL_FILE" ] ; then
+            # Check for left, right, off
+            schan=$(cat $SPLIT_CHANNEL_FILE | cut -f2 -d' ')
+            if [ "$schan" != "off" ] ; then
+                echo "Using split channel config"
+                bsplitchannel=true
+                split_status="enabled"
+            fi
+        else
+            # File is empty, enable split channel
+            bsplitchannel=true
+            split_status="enabled"
+        fi
         # Get 'left' or 'right' channel from direwolf config (last word in ADEVICE string)
         chan_lr=$(grep "^ADEVICE " $DIREWOLF_CFGFILE | grep -oE '[^-]+$')
-        echo " == Direwolf is running with pid: $pid, Split channel is enabled, Direwolf controls $chan_lr channel only"
+        echo " == Direwolf is running with pid: $pid, Split channel is $split_status, Direwolf controls $chan_lr channel only"
     else
         echo "== Direwolf is running with pid: $pid and controls both channels"
     fi
