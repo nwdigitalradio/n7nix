@@ -6,10 +6,11 @@ AX25IPD_KISSOUT_FILE="/tmp/ax25ipd-config.tmp"
 AX25IPD_DEVICE_FILE="/tmp/ax25ipd-config-tmp"
 
 echo "Installing ax25ipd Unix98 master pseudo tty"
+# specify config file path & log level
 AXUDP=$($SBINDIR/ax25ipd -c /etc/ax25/ax25ipd.conf -l3 | tail -1)
 # Get process id of ax25ipd
 echo $! > /var/run/ax25ipd.pid
-export AXUDP
+export AXUDP=$AXUDP
 #
 echo "Installing a KISS link with pseudo term: $AXUDP on ethernet port"
 $SBINDIR/kissattach  $AXUDP axudp  > $AX25IPD_KISSOUT_FILE
