@@ -183,17 +183,28 @@ function split_debugstatus() {
 function split_status() {
 
     # ==== verify split channel file
+    bsplitchannel=false
+    split_status="disabled"
+
     if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
         echo -n "split channel file exists "
         if [ -s "$SPLIT_CHANNEL_FILE" ] ; then
             echo "and contains:"
+            schan=$(cat $SPLIT_CHANNEL_FILE | cut -f2 -d' ')
+            if [ "$schan" != "off" ] ; then
+                bsplitchannel=true
+                split_status="enabled"
+            fi
         else
             echo "and is empty"
+            bsplitchannel=true
+            split_status="enabled"
         fi
         cat "$SPLIT_CHANNEL_FILE"
     else
         echo "split channel file does NOT exist"
     fi
+    echo "split channel is $split_status"
 
     # ==== verify pulse audio service
     display_service_status "pulseaudio"
