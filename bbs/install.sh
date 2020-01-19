@@ -84,7 +84,13 @@ apt-get install -y -q $PKG_REQUIRE
 echo "=== Install fbb version $BBS_VER from source using $num_cores cores"
 
 cd "$SRC_DIR"
-sudo wget https://sourceforge.net/projects/linfbb/files/latest/download/fbb-$BBS_VER.tar.bz2
+
+# Get released version
+sudo wget https://sourceforge.net/projects/linfbb/files/fbb-$BBS_VER.tar.bz2
+
+# Get development version
+#sudo wget https://sourceforge.net/projects/linfbb/files/latest/download/fbb-$BBS_VER.tar.bz2
+
 echo "wget ret: $?"
 sudo tar xjvf fbb-$BBS_VER.tar.bz2
 echo "wget ret: $?"
