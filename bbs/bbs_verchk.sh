@@ -22,12 +22,12 @@ if [ "$?" -eq 0 ] ; then
     local_srcdir="/usr/local/src/fbb*"
     SRCDIR=$(ls -td $local_srcdir | head -n1)
     if [ ! -z $SRCDIR ] ; then
-        local_ver=$(grep "AC_INIT(" $SRCDIR/configure.ac | cut -f2 -d ' ' | cut -f1 -d',')
+        source_ver=$(grep "AC_INIT(" $SRCDIR/configure.ac | cut -f2 -d ' ' | cut -f1 -d',')
     else
         echo "Could not find source directory: $local_srcdir"
     fi
-
-echo "fbb: current version: $bbs_latest_ver, installed: $local_ver"
+    installed_ver=$(grep -i ver /usr/local/sbin/fbb | head -n 1 | cut -f2 -d'=')
+    echo "fbb: current version: $bbs_latest_ver, source: $source_ver, installed: $installed_ver"
 
 else
     echo "Failed to get linfbb files web page."
