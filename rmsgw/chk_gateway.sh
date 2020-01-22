@@ -112,9 +112,6 @@ echo
 echo "==== Verify system version"
 /home/$USER/bin/sysver.sh
 
-
-if [ 1 -eq 0 ] ; then
-
 echo
 echo "==== Verify start & stop ax.25"
 echo
@@ -128,8 +125,6 @@ echo
 echo "=== ax25-start at $(date)"
 
 /home/$USER/bin/ax25-start
-
-fi
 
 echo
 echo "=== ax25-status"
