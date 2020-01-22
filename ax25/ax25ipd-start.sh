@@ -17,7 +17,8 @@ ax25ipd_pid=$(pidof ax25ipd)
 dbgecho "DEBUG: ax25ipd ret: $retcode, pid: $ax25ipd_pid"
 if [ "$retcode" -ne 0 ] ; then
     echo "Failed to run ax25ipd"
-    if [ -z "$ax25ipd_pid" ] ; then
+    # If there is an ax25ipd pid kill it now
+    if [ ! -z "$ax25ipd_pid" ] ; then
         kill "$ax25ipd_pid"
     fi
     exit
@@ -27,6 +28,7 @@ else
     echo "$ax25ipd_pid" > /var/run/ax25ipd.pid
 fi
 
+# Get pseudo term device name
 AXUDP=$(cat $AX25IPD_TMP_FILE | tail -n1)
 dbgecho "DEBUG: AXUDP: $AXUDP"
 export AXUDP=$AXUDP
@@ -38,10 +40,11 @@ if [ "$?" -ne 0 ] ; then
     exit
 fi
 
+# Get ax25 device name
 awk '/device/ { print $7 }' $AX25IPD_KISSOUT_FILE > $AX25IPD_TMP_FILE
 read Device < $AX25IPD_TMP_FILE
 
-# Check for Device
+# Check for ax25 Device
 if [ -d /proc/sys/net/ax25/$Device ] ; then
     echo "Port axudp attached to $Device"
 else
