@@ -7,9 +7,29 @@ CHECK_WINLINK_CHECKIN=1
 
 scriptname="`basename $0`"
 USER="pi"
-AXPORTS_FILE="/etc/ax25/axports"
+
+AX25_CFGDIR="/usr/local/etc/ax25"
+AXPORTS_FILE="$AX25_CFGDIR/axports"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function get_axport_device
+# Pull device names from string
+function get_axport_device() {
+    dev_str="$1"
+    device_axports=$(echo $dev_str | cut -d ' ' -f1)
+    callsign_axports=$(echo $dev_str | cut -d ' ' -f2)
+
+    dbgecho "DEBUG: get_axport: arg: $dev_str, $device_axports"
+
+    # Test if device string is not null
+    if [ ! -z "$device_axports" ] ; then
+        udr_device="$device_axports"
+        echo "axport: found device: $udr_device, with call sign $callsign_axports"
+    else
+        echo "axport: NO ax25 devices found"
+    fi
+}
 
 # ===== main
 
@@ -92,6 +112,9 @@ echo
 echo "==== Verify system version"
 /home/$USER/bin/sysver.sh
 
+
+if [ 1 -eq 0 ] ; then
+
 echo
 echo "==== Verify start & stop ax.25"
 echo
@@ -106,13 +129,33 @@ echo "=== ax25-start at $(date)"
 
 /home/$USER/bin/ax25-start
 
+fi
+
 echo
 echo "=== ax25-status"
 
 /home/$USER/bin/ax25-status -d
 
 echo
-echo "==== Check rmsgw automatic check-in at $(date)"
+echo "=== ax25 axports file"
+
+# Collapse all spaces on lines that do not begin with a comment
+getline=$(grep -v '^#' $AXPORTS_FILE | tr -s '[[:space:]] ')
+
+linecnt=$(wc -l <<< $getline)
+if (( linecnt == 0 )) ; then
+    echo "No axports found in $AXPORTS_FILE"
+    return
+else
+    echo "axports: found $linecnt lines:"
+    dbgecho "$getline"
+    dbgecho
+fi
+
+while IFS= read -r line ; do
+    get_axport_device "$line"
+done <<< $getline
+
 # get the first port line after the last comment
 axports_line=$(tail -n3 $AXPORTS_FILE | grep -v "#" | head -n 1)
 
@@ -120,6 +163,9 @@ echo "Using axports line: $axports_line"
 port=$(echo $axports_line | cut -d' ' -f1)
 callsign=$(echo $axports_line | tr -s '[[:space:]]' | cut -d' ' -f2)
 echo "Using port: $port, call sign: $callsign"
+
+echo
+echo "==== Check rmsgw automatic check-in at $(date)"
 
 if [ ! -z "$CHECK_WINLINK_CHECKIN" ] ; then
     echo " Verify rmschanstat"
