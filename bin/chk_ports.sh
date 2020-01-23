@@ -103,32 +103,22 @@ function axports_edit_check () {
 # ===== function device_axports
 # Pull device names from the /etc/ax25/axports file
 function device_axports () {
+
     # Collapse all spaces on lines that do not begin with a comment
     getline=$(grep -v '^#' $AXPORTS_FILE | tr -s '[[:space:]] ')
-#    getline=$(grep -v '^#' $AXPORTS_FILE )
-    linecnt=$(grep -c "udr" <<< $getline)
-
+    linecnt=$(wc -l <<< $getline)
     if (( linecnt == 0 )) ; then
         echo "No axports found in $AXPORTS_FILE"
         return
     else
-        dbgecho "axports: found $linecnt lines: $getline"
+        echo "axports: found $linecnt lines:"
+        dbgecho "$getline"
+        dbgecho
     fi
 
-    if (( linecnt > 1 )) ; then
-        dev_string=$(head -n 1 <<< $getline)
-        get_axport_device "$dev_string"
-        axports_edit_check
-
-        # File may have changed from axports_edit_check
-        # Collapse all spaces on lines that do not begin with a comment
-        getline=$(grep -v '^#' $AXPORTS_FILE | tr -s '[[:space:]] ')
-        dev_string=$(tail -n 1 <<< $getline)
-        get_axport_device "$dev_string"
-        axports_edit_check
-    else
-        get_axport_device "$getline"
-    fi
+    while IFS= read -r line ; do
+        get_axport_device "$line"
+    done <<< $getline
 }
 
 # ===== function set_ax25d_device
