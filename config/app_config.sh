@@ -90,16 +90,19 @@ function check_user() {
 
 function CopyDesktopFiles() {
 
+    ax25_desktop_file="/home/$USER/Desktop/ax25-startstop.desktop"
+
     # Check if direwolf is running.
     pid=$(pidof direwolf)
     if [ $? -eq 0 ] ; then
-        # Direwolf is running copy off icon
-        cp -u /home/$USER/n7nix/ax25/icons/ax25-stop.desktop /home/$USER/Desktop/ax25-startstop.desktop
+        # Direwolf IS running copy off icon
+        sudo -u $USER cp -u /home/$USER/n7nix/ax25/icons/ax25-stop.desktop "$ax25_desktop_file"
     else
-        cp -u /home/$USER/n7nix/ax25/icons/ax25-start.desktop /home/$USER/Desktop/ax25-startstop.desktop
+        # Direwolf is NOT running copy on icon
+        sudo -u $USER cp -u /home/$USER/n7nix/ax25/icons/ax25-start.desktop "$ax25_desktop_file"
     fi
     # Copy the desktop files to a common directory
-    cp -u /home/$USER/n7nix/ax25/icons/*.desktop /home/$USER/bin
+    sudo -u $USER cp -u /home/$USER/n7nix/ax25/icons/*.desktop /home/$USER/bin
     # Copy both white back-ground & no back-ground icons
     sudo cp -u /home/$USER/n7nix/ax25/icons/*.png /usr/share/pixmaps/
     sudo cp -u /home/$USER/n7nix/ax25/icons/*.svg /usr/share/pixmaps/
