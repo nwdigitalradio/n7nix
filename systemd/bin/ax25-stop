@@ -3,9 +3,13 @@
 # Script to stop direwolf & AX.25 services
 # The script disables & stops the services
 
+scriptname="`basename $0`"
+
 SPEED_FILE="/etc/ax25/packet_9600baud"
 SERVICE_LIST="ax25dev.service ax25dev.path direwolf.service ax25-mheardd.service ax25d.service"
 SYSTEMCTL="systemctl"
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function stop_service
 
@@ -26,6 +30,58 @@ function stop_service() {
         echo "Problem STOPPING $service"
     fi
 }
+# ===== function get_user
+
+function get_user() {
+   # Check if there is only a single user on this system
+   if (( `ls /home | wc -l` == 1 )) ; then
+      USER=$(ls /home)
+   else
+      echo -n "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]"
+      read -ep ": " USER
+   fi
+}
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
+
+# ===== function change_icon
+# If an icon is present change it
+function change_icon() {
+
+    ax25_desktop_file="/home/$USER/Desktop/ax25-startstop.desktop"
+
+    if [ -e "$ax25_desktop_file" ] ; then
+        icon_action="start"
+        if [ "$1" == "off" ] ; then
+            icon_action="stop"
+        fi
+        # change icon
+        if [ "$(stat -c "%U" $ax25_desktop_file)" != "$USER" ] ; then
+            sudo chown $USER:$USER "$ax25_desktop_file"
+        fi
+
+        cp /home/$USER/bin/ax25-${icon_action}.desktop "$ax25_desktop_file"
+        echo "changed icon to $1"
+    fi
+}
 
 # ===== main
 
@@ -33,6 +89,10 @@ function stop_service() {
 if [[ $EUID != 0 ]] ; then
    echo "set sudo"
    SYSTEMCTL="sudo systemctl"
+    USER=$(whoami)
+else
+    get_user
+    check_user
 fi
 
 MODEM_SPEED="1200"
@@ -47,6 +107,8 @@ for service in `echo ${SERVICE_LIST}` ; do
 #    echo "DEBUG: Stopping service: $service"
     stop_service $service
 done
+
+change_icon "on"
 
 if [ -e "/tmp/kisstnc" ] ; then
     rm -f /tmp/kisstnc
