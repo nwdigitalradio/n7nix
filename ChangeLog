@@ -12,9 +12,9 @@ Thu Jan 23 08:48:40 PST 2020  Basil Gunn <basil@pacabunga.com>
       * Updated FBB BBS to 7.0.9
       * Add speed switch script
     * HF:
-      * Updated hf_install.sh script for maintaining lastest versions of HF programs
+      * Updated hf_install.sh script for maintaining latest versions of HF programs
     * Both HF & packet
-      * Desktop icons for starting & stoping AX.25/direwolf, appear after initial config
+      * Desktop icons for starting & stopping AX.25/direwolf, appear after initial config
       * Added split channel maintenance scripts for running HF & packet (direwolf) at same time
 
 Mon Oct  7 09:00:21 PDT 2019  Basil Gunn <basil@pacabunga.com>
