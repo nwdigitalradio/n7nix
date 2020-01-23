@@ -86,6 +86,28 @@ function check_user() {
    dbgecho "using USER: $USER"
 }
 
+# ===== function CopyDesktopFiles
+
+function CopyDesktopFiles() {
+
+    # Check if direwolf is running.
+    pid=$(pidof direwolf)
+    if [ $? -eq 0 ] ; then
+        # Direwolf is running copy off icon
+        cp -u /home/$USER/n7nix/ax25/icons/ax25-stop.desktop /home/$USER/Desktop/ax25-startstop.desktop
+    else
+        cp -u /home/$USER/n7nix/ax25/icons/ax25-start.desktop /home/$USER/Desktop/ax25-startstop.desktop
+    fi
+    # Copy the desktop files to a common directory
+    cp -u /home/$USER/n7nix/ax25/icons/*.desktop /home/$USER/bin
+    # Copy both white back-ground & no back-ground icons
+    sudo cp -u /home/$USER/n7nix/ax25/icons/*.png /usr/share/pixmaps/
+    sudo cp -u /home/$USER/n7nix/ax25/icons/*.svg /usr/share/pixmaps/
+
+    echo
+    echo "copying desktop files FINISHED"
+}
+
 # ===== main
 
 echo "$scriptname: script start"
@@ -189,6 +211,8 @@ case $APP_SELECT in
       /bin/bash ./iptable_install.sh $USER
       popd > /dev/null
 
+      # copy desktop icon files
+      CopyDesktopFiles
       echo "core configuration FINISHED"
    ;;
    rmsgw)
