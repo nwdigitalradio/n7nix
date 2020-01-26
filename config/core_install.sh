@@ -382,6 +382,8 @@ echo " === libax25, ax25apps & ax25tools install FINISHED"
 cd $START_DIR
 
 # gps required before direwolf build
+# Install latest gpsd version from source
+#  BEFORE building direwolf from source
 pushd ../gps
 echo "=== $scriptname: Install DRAWS gps programs"
 ./gp_install.sh
