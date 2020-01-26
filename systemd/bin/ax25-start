@@ -97,6 +97,10 @@ if [ $? -eq 0 ] ; then
     exit 1
 fi
 
+# Get list of users with home directories
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
     echo "set sudo"
