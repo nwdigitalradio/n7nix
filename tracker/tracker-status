@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# Verify tracker configuration file
+
+scriptname="`basename $0`"
+
+TRACKER_CFG_DIR="/etc/tracker"
+TRACKER_CFG_FILE="$TRACKER_CFG_DIR/aprs_tracker.ini"
+SERVICE_NAME="tracker.service"
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# Get call sign
+# grep -i "^mycall" "$TRACKER_CFG_FILE"
+callsign=$(grep -i "^mycall" "$TRACKER_CFG_FILE" | cut -f3 -d' ')
+#echo "Call sign: $callsign"
+if [ "$callsign" == "NOCALL" ] ; then
+    echo "Tracker not configured, call sign: $callsign"
+else
+    echo "Using call sign: $callsign"
+fi
+
+# Get gps type
+# grep -i "^type" "$TRACKER_CFG_FILE"
+#gpstype=$(grep -A8 "^\[gps\]"  "$TRACKER_CFG_FILE" | grep -i "^type =" | cut -f3 -d' ')
+# reference sed -n '/\[gps\]/,/\[/p' /etc/tracker/aprs_tracker.ini
+gpstype=$(sed -n '/\[gps\]/,/\[/p'  "$TRACKER_CFG_FILE" | grep -i "^type =" | cut -f3 -d' ')
+
+#echo "gps type: $gpstype"
+if [ "$gpstype" != "gpsd" ] ; then
+    echo "gps type needs to be gpsd, currently: $gpstype"
+    echo "comment all type lines in [gps] section"
+    sudo sed -e '/\[gps\]/,/\[/s/^\(^type =.*\)/#\1/g'  "$TRACKER_CFG_FILE"
+    echo "uncomment gpsd line"
+    # reference: sed -i '/^#.* 2001 /s/^#//' file
+    sudo sed -ie '/\[gps\]/,/\[/s/^#type = gpsd/type = gpsd/g' "$TRACKER_CFG_FILE"
+else
+    echo "gps type: $gpstype OK"
+fi
+
+systemctl status $SERVICE_NAME
+
+echo "$scriptname: finished"
