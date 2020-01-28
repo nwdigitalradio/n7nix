@@ -55,6 +55,29 @@ function is_pkg_installed() {
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
 }
 
+# ===== function get_callsign
+# Default callsign in config template is 'NOCALL'
+
+function get_callsign() {
+
+if [ "$CALLSIGN" == "NOCALL" ] ; then
+   echo "Enter call sign, followed by [enter]:"
+   read -e CALLSIGN
+
+   sizecallstr=${#CALLSIGN}
+
+   if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
+      echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
+      exit 1
+   fi
+
+   # Convert callsign to upper case
+   CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
+fi
+
+dbgecho "Using CALL SIGN: $CALLSIGN"
+}
+
 # ===== function get_user
 function get_user() {
 
@@ -120,6 +143,9 @@ fi
 sudo apt-get install -y -q $PKGLIST
 
 node_file_name="node-v$NODEJS_VER-linux-armv7l.tar.xz"
+echo
+echo "== get node modules"
+sudo npm -g install ctype iniparser websocket connect serve-static finalhandler uid-number
 
 #
 # Do not do this!
@@ -135,9 +161,6 @@ if $GET_NODEJS ; then
         sudo tar --strip-components 1 -xvf $current_dir/$node_file_name
         echo "node version: $(/usr/local/bin/node -v)"
         echo "npm version: $(/usr/local/bin/npm -v)"
-        echo
-        echo "== get node modules"
-        sudo npm -g install ctype iniparser websocket connect serve-static finalhandler uid-number
         cd
     else
         echo "** already have nodejs source"
@@ -274,6 +297,9 @@ else
    sudo cp $TRACKER_N7NIX_DIR/aprs_tracker.ini $TRACKER_CFG_FILE
 fi
 
+echo
+echo "== setup systemd service"
+
 # Need to set a user in config file
 CFG_USER=$(grep -i "user" $TRACKER_CFG_FILE | cut -d"=" -f2 | tr -d ' ')
 if [ -z $CFG_USER ] ; then
@@ -281,7 +307,24 @@ if [ -z $CFG_USER ] ; then
 fi
 
 # Need to set a CALLSIGN in config file
-echo "Set callsign TBD"
+dbgecho "MYCALL"
+sed -i -e "/^mycall = N0CALL/ s/NOCALL/$CALLSIGN/" $TRACKER_CFG_FILE
+
+# Confirm gps type
+# look at 'type =' argument in [gps] section
+gpstype=$(sed -n '/\[gps\]/,/\[/p'  "$TRACKER_CFG_FILE" | grep -i "^type =" | cut -f3 -d' ')
+
+#echo "gps type: $gpstype"
+if [ "$gpstype" != "gpsd" ] ; then
+    echo "gps type needs to be gpsd, currently: $gpstype"
+    echo "comment all type lines in [gps] section"
+    sudo sed -e '/\[gps\]/,/\[/s/^\(^type =.*\)/#\1/g'  "$TRACKER_CFG_FILE"
+    echo "uncomment gpsd line"
+    # reference: sed -i '/^#.* 2001 /s/^#//' file
+    sudo sed -ie '/\[gps\]/,/\[/s/^#type = gpsd/type = gpsd/g' "$TRACKER_CFG_FILE"
+else
+    echo "gps type: $gpstype OK"
+fi
 
 # Need to set a lat/long
 echo "Set static lat/lon TBD"
@@ -297,6 +340,14 @@ if [ -f /etc/systemd/system/$SERVICE_NAME ] ; then
    sudo systemctl disable $SERVICE_NAME
    sudo rm /etc/systemd/system/$SERVICE_NAME
 fi
+
+
+# ===== Problem
+# == setup systemd service
+# Replacing pluweb.service
+# Removed /etc/systemd/system/multi-user.target.wants/pluweb.service.
+# Created symlink /etc/systemd/system/multi-user.target.wants/tracker.service  /etc/systemd/system/tracker.service.
+# A dependency job for tracker.service failed. See 'journalctl -xe' for details.
 
 # Check if systemd service has already been installed
 SERVICE_NAME="tracker.service"
