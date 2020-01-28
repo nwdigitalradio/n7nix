@@ -78,6 +78,7 @@ cp -u /usr/local/src/paclink-unix/test_scripts/chk_perm.sh $userbindir
 cp -u /home/$USER/n7nix/hostap/ap-*.sh $userbindir
 cp -u /home/$USER/n7nix/ardop/ardop-* $userbindir
 cp -u /home/$USER/n7nix/ardop/ardoplist.sh $userbindir
+cp -u /home/$USER/n7nix/tracker/tracker-* $userbindir
 
 cp -u /home/$USER/n7nix/config/bin_refresh.sh $userbindir
 
