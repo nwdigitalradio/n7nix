@@ -5,7 +5,7 @@
 # Test voltage read from sensors to determine when running on battery
 # only.
 #
-# Usage: log_updown.sh arg1
+# Usage: updown_log.sh arg1
 # arg1 = u - log startup
 # arg1 = d - log shutdown
 # arg1 = t - test log file entry
@@ -14,11 +14,11 @@
 # crontab entry follows:
 # @reboot /home/pi/tmp/updown_log.sh | at now + 1 minute
 #
-# @reboot sleep 120 && /home/pi/tmp/updown_log.sh u
-#*/2  *  *  *  *  /home/pi/tmp/updown_log.sh d
+# @reboot sleep 120 && /home/pi/bin/updown_log.sh u
+#*/2  *  *  *  *  /home/pi/bin/updown_log.sh d
 #
 # Uncomment this statement for debug echos
-DEBUG=1
+# DEBUG=1
 
 USER="$(whoami)"
 TMPDIR="/home/$USER/tmp"
@@ -99,6 +99,20 @@ $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT $log_msg" | te
     fi
 }
 
+# ===== Display program help info
+usage () {
+	(
+	echo "Usage: $scriptname [-u][-d][-t][-h]"
+        echo "            No args will just display beacon"
+        echo "  -u        Log & beacon a start up event"
+        echo "  -d        Log & beacon a shut down event"
+        echo "  -t        Test, no beacon just display beacon"
+        echo "  -h        Display this message"
+        echo
+	) 1>&2
+	exit 1
+}
+
 # ===== main
 
 timestamp=$(date "+%Y %m %d %T %Z")
@@ -157,6 +171,10 @@ if [[ $# -gt 0 ]] ; then
             dbgecho "action: $action"
 
             beacon_now
+        ;;
+        -h)
+            usage
+            exit 0
         ;;
 
         *)
