@@ -1,12 +1,34 @@
 #!/bin/bash
 #
-# Download aprx to /usr/local/src
-DEBUG=1
-scriptname="`basename $0`"
+#  aprx_install.sh
+#
+# This script:
+#    - downloads lastest source of aprx app. to /usr/local/src
+#    - verifys gpsd returns valid sentences
+#    - verify version number of installed aprx app
+#    - uses here doc to make systemd service file
+#    - uses here doc to make aprx configuration file
+#
+# Written for DRAWS hat running on an RPi but will work with most GPS
+#  setups including no GPS
+#
+# If not running with any GPS device set lat/lon in function
+#  set_canned_location()
+#
+# Debug flag can be set below or from command line
+DEBUG=
+
+# This variable will force
 bFORCE_INSTALL=true
 
+# Script prompts for input to set the following variables
+CITYNAME=
+EMAIL=
 USER=
 CALLSIGN="N0ONE"
+
+scriptname="`basename $0`"
+bFORCE_INSTALL=true
 
 aprx_ver="2.9.0"
 SRC_DIR="/usr/local/src/"
@@ -21,25 +43,67 @@ LOG_DIR="/var/log/aprx"
 
 download_filename="aprx-$aprx_ver.tar.gz"
 GPSPIPE="/usr/local/bin/gpspipe"
-# boolean for using gpsd sentence instead of nmea sentence
-b_gpsdsentence=false
 lat=
 lon=
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function set_canned_location
+
 function set_canned_location() {
-    lat="4830.00"
+
+# Set gps lat/lon in degrees, decimal minutes
+# Lat/Lon ddmm.mm/dddmm.mm format
+
+    lat="4829.07"
     latdir="N"
-    lon="12250.00"
+    lon="12254.11"
     londir="W"
+
+# Set gps lat/lon data in decimal degrees ie:
+# Lat/Lon dd.ddd/(sign)ddd.ddd
+
+    latdd="48.484"
+    londd="-122.902"
 }
+
+# ===== function get_lat_lon_gpsdsentence
+
+# Get gps lat/lon data in decimal degrees ie:
+# Lat/Lon dd.ddd/(sign)ddd.ddd
+# Used for aprx filters
+
+function get_lat_lon_gpsdsentence() {
+    # Read data from gps device, native gpsd sentences
+    # Lat/Lon decimal degrees
+    gpsdata=$($GPSPIPE -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
+
+    # Separate lat & lon, store as decimal degrees
+    latdd=$(echo $gpsdata | cut -d' ' -f1)
+    londd=$(echo $gpsdata | cut -d' ' -f2)
+
+    dbgecho "Decimal degrees: lat: $latdd, lon: $londd"
+
+    # Convert to DD.DDD/(sign)DDD.DD (for APRX filters)
+
+    latdd=$(printf "%05.3f" $latdd)
+    londd=$(printf "%06.3f" $londd)
+
+    dbgecho "Dec degrees: lat: $latdd, lon: $londd"
+    return 0
+}
+
 # ===== function get_lat_lon_nmeasentence
-# Much easier to parse a nmea sentence &
-# convert to aprs format than a gpsd sentence
+
+# Get a GLL nmea sentence & convert to aprs format
+# Get gps lat/lon in degrees, decimal minutes
+# Lat/Lon ddmm.mm/dddmm.mm format
+# Used for aprx beacon
+
 function get_lat_lon_nmeasentence() {
     # Read data from gps device, nmea sentences
+    # Latitude in ddmm.mmmm format.
+    # Longitude in dddmm.mmmm format.
     gpsdata=$($GPSPIPE -r -n 15 | grep -m 1 -i gngll)
 
     # Get geographic gps position status
@@ -61,10 +125,15 @@ function get_lat_lon_nmeasentence() {
 
     dbgecho "lat: $lat$latdir, lon: $lon$londir"
 
-    # Convert to legit APRS format
-    lat=$(printf "%07.2f" $lat)
-    lon=$(printf "%08.2f" $lon)
+    # Convert lat/lon to DDMM.MM/DDDMM.MM (APRS format)
 
+    lat=$(printf "%06.2f" $lat)
+    lon=$(printf "%07.2f" $lon)
+
+    # The syntax of the coordinates is APRS truncated form on NMEA
+    # lat/lon form:
+    # lat ddmm.mmN
+    # lon dddmm.mmW
     dbgecho "lat: $lat$latdir, lon: $lon$londir"
     return 0
 }
@@ -114,34 +183,6 @@ function is_gps_sentence() {
     return $retval
 }
 
-# ===== function get_ssid
-
-function get_ssid() {
-
-read -t 1 -n 10000 discard
-echo -n "Enter ssid (0 - 15) for APRS beacon, followed by [enter]"
-read -ep ": " SSID
-
-# Remove any leading zeros
-SSID=$((10#$SSID))
-
-if [ -z "${SSID##*[!0-9]*}" ] ; then
-   echo "Input: $SSID, not a positive integer"
-   return 0
-fi
-
-sizessidstr=${#SSID}
-
-if (( sizessidstr > 2 )) || ((sizessidstr < 0 )) ; then
-   echo "Invalid ssid: $SSID, length = $sizessidstr, should be 1 or 2 numbers"
-   return 0
-fi
-
-dbgecho "Using SSID: $SSID"
-return 1
-}
-
-
 # ===== function get_user
 
 function get_user() {
@@ -156,7 +197,6 @@ function get_user() {
 }
 
 # ==== function check_user
-
 # verify user name is legit
 
 function check_user() {
@@ -228,6 +268,28 @@ function get_callsign() {
     return 1
 }
 
+# ===== function get_location
+
+function get_location() {
+
+    read -t 1 -n 10000 discard
+    echo -n "Enter location (City name) followed by [enter]"
+    read -ep ": " CITYNAME
+
+    dbgecho "Using Location: $CITYNAME"
+}
+
+# ===== function get_email
+
+function get_email() {
+
+    read -t 1 -n 10000 discard
+    echo -n "Enter email address followed by [enter]"
+    read -ep ": " EMAIL
+
+    dbgecho "Using email address: $EMAIL"
+}
+
 # ===== function prompt_read
 
 function prompt_read() {
@@ -254,17 +316,17 @@ progname="aprx"
 
 }
 
-# ===== function installed_version_display
-function remote_version_display() {
+# ===== function released_version_display
+function released_version_display() {
 
     tarname=$(curl -s https://thelifeofkenneth.com/aprx/release/ | grep -i "aprx-" | tail -n 1 | cut -f2 -d'>' | cut -f1 -d'<')
     if [ $? -ne 0 ] ; then
-       echo "Could not parse remote release directory"
+       echo "Could not parse release directory"
     else
-       remote_ver=$(echo $tarname | cut -f2 -d'-')
-       echo "remote_ver 1: $remote_ver"
-       remote_ver=$(basename $remote_ver .tar.gz)
-       echo "Download file name: $tarname, remote version: $remote_ver"
+       released_ver=$(echo $tarname | cut -f2 -d'-')
+       echo "released_ver 1: $released_ver"
+       released_ver=$(basename $released_ver .tar.gz)
+       echo "Download file name: $tarname, released version: $released_ver"
     fi
 }
 
@@ -304,8 +366,9 @@ EOT
 }
 
 # ===== function get_aprs_server_passcode
+
 function get_aprs_server_passcode() {
-    CALLPASS_DIR="/home/pi/n7nix/direwolf"
+    CALLPASS_DIR="/home/$USER/n7nix/direwolf"
     type -P $CALLPASS_DIR/callpass  &>/dev/null
     if [ $? -ne 0 ] ; then
         echo "Pass code generator does NOT exist"
@@ -360,14 +423,14 @@ mycall $CALLSIGN-$SSID
   login $CALLSIGN
   passcode $passcode
   server noam.aprs2.net 14580
-  filter "r/47.534/-122.173/120 t/m"
+  filter "r/${latdd}/${londd}/130 t/m"
 </aprsis>
 
 <beacon>
   beaconmode both
   cycle-size 10m
   beacon interface ${low_callsign}-$SSID srccall $CALLSIGN-$SSID symbol "I#" lat "$lat$latdir" lon "$lon$londir" \
-    comment "Lopez 2m IGate $CALLSIGN-$SSID - basil@pacabunga.com - stuff"
+    comment "$CITYNAME 2m IGate $CALLSIGN-$SSID - $EMAIL - stuff"
 </beacon>
 
 <digipeater>
@@ -378,7 +441,7 @@ mycall $CALLSIGN-$SSID
   <source>
 	source 		APRSIS
 	relay-type 	third-party
-        filter		"r/47.534/-122.173/120 t/m"
+        filter		"r/${latdd}/${londd}/130 t/m"
 	via-path 	WIDE2-2
 	msg-path	WIDE1-1
 	viscous-delay 	3
@@ -393,7 +456,16 @@ mycall $CALLSIGN-$SSID
 EOT
 
 }
+
 # ===== function set_coordinates
+
+# Get lat/lon co-ordinates in both:
+#   - decimal degrees format
+#   - degrees with decimal minutes
+#
+# If gps is not installed or not working co-ordinates are obtained from
+# the set_canned_location() routine at top of script
+
 function set_coordinates() {
     gps_running=false
     gps_status="Fail"
@@ -425,24 +497,24 @@ function set_coordinates() {
 
     if (( result > 0 )) ; then
         gps_running=true
-        # Choose between using gpsd sentences or nmea sentences
-        if $b_gpsdsentence ; then
-            prog_name="bc"
-            type -P $prog_name &> /dev/null
-            if [ $? -ne 0 ] ; then
-                echo "$scriptname: Installing $prog_name package"
-                sudo apt-get install -y -q $prog_name
-            fi
+        # Get lat/lon in degrees with decimal minutes
+        dbgecho "get nmea sentence"
+        # Uses xxGLL
+        # Latitude in DDmm.mmm format.
+        # Longitude in DDDmm.mmm format.
+        get_lat_lon_nmeasentence
+        if [ "$?" -ne 0 ] ; then
+            echo "Read Invalid gps data read from gpsd, using canned values"
+            set_canned_location
         else
-            dbgecho "get nmea sentence"
-            get_lat_lon_nmeasentence
-            if [ "$?" -ne 0 ] ; then
-                echo "Read Invalid gps data read from gpsd, using canned values"
-                set_canned_location
-            else
-                gps_status="Ok"
-            fi
+            gps_status="Ok"
         fi
+        # Get lat/lon in decimal degrees
+        dbgecho "get gpsd sentence"
+        # Latitude in DD.DDD format.
+        # Longitude in (sign)DDD.DDD format.
+
+        get_lat_lon_gpsdsentence
     else
         echo "gpsd is installed but not returning sentences  ($result)."
         set_canned_location
@@ -457,6 +529,20 @@ else
     set_canned_location
     batvoltage=0
 fi
+
+}
+
+# ===== function usage
+
+function usage() {
+   echo "Usage: $scriptname [-d][-l][-c][-d][-g][-h]" >&2
+   echo "   -l       Display local version of aprx"
+   echo "   -c       Display latest release version of aprx"
+   echo "   -d       Set DEBUG flag"
+   echo "   -g | --gps     verify gps is working"
+   echo "   -h | --help    Display this message"
+   echo
+
 }
 
 # ===== main
@@ -479,12 +565,12 @@ while [[ $# -gt 0 ]] ; do
         ;;
 
         -c)
-            echo "Check remote version number"
-            remote_version_display
+            echo "Check released version number"
+            released_version_display
             exit
         ;;
         -u)
-            echo "Update HF apps after checking version numbers."
+            echo "Update aprx after checking version numbers."
             echo
             UPDATE_FLAG=true
         ;;
@@ -507,12 +593,20 @@ while [[ $# -gt 0 ]] ; do
                 else
                     echo "GPS nmea sentences OK"
                 fi
+                echo
+                echo -n "Test gpsd sentence: "
+                get_lat_lon_gpsdsentence
+                if [ "$?" -ne 0 ] ; then
+                    echo "Invalid gps data read from gpsd"
+                else
+                    echo "GPS gpsd sentences OK"
+                fi
             else
                 echo "gpsd is installed but not returning sentences."
             fi
             exit 0
          ;;
-        -h)
+        -h|--help)
             usage
             exit 0
         ;;
@@ -566,6 +660,10 @@ fi
 
 # Prompt for call sign & SSID
 prompt_read
+
+# Prompt for location & email address
+get_location
+get_email
 
 echo " == Install aprx systemd file"
 make_aprx_service_file
