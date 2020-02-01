@@ -169,8 +169,13 @@ function set_canned_location() {
 }
 
 # ===== function get_lat_lon_nmeasentence
-# Much easier to parse a nmea sentence &
-# convert to aprs format than a gpsd sentence
+
+# Get a GLL nmea sentence & convert to aprs format
+#
+# Get gps lat/lon in degrees, decimal minutes
+# Lat/Lon ddmm.mm/dddmm.mm format
+# Used for aprs beacon
+
 function get_lat_lon_nmeasentence() {
     # Read data from gps device, nmea sentences
     gpsdata=$($GPSPIPE -r -n 15 | grep -m 1 -i gngll)
@@ -203,10 +208,16 @@ function get_lat_lon_nmeasentence() {
 }
 
 # ===== function get_lat_lon_gpsdsentence
+
+# Get gps lat/lon data in decimal degrees ie:
+# Lat/Lon dd.ddd/(sign)ddd.ddd
+#
 # Only for reference, not used
 # See get_lat_lon_nmeasentence
+
 function get_lat_lon_gpsdsentence() {
-    # Read data from gps device, gpsd sentences
+    # Read data from gps device, native gpsd sentences
+    # Lat/Lon decimal degrees
     gpsdata=$($GPSPIPE -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
 
     dbgecho "gpsdata: $gpsdata"
