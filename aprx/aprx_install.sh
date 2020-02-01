@@ -15,10 +15,13 @@
 # If not running with any GPS device set lat/lon in function
 #  set_canned_location()
 #
+# Requires jq package
+#
 # Debug flag can be set below or from command line
 DEBUG=
 
-# This variable will force
+# The following variable if set to 'true' will force systemd service
+# file creation even if it already exists.
 bFORCE_INSTALL=true
 
 # Script prompts for input to set the following variables
@@ -28,7 +31,6 @@ USER=
 CALLSIGN="N0ONE"
 
 scriptname="`basename $0`"
-bFORCE_INSTALL=true
 
 aprx_ver="2.9.0"
 SRC_DIR="/usr/local/src/"
@@ -40,6 +42,7 @@ SERVICE_NAME="aprx.service"
 CONFIG_DIR="/etc"
 CONFIG_NAME="aprx.conf"
 LOG_DIR="/var/log/aprx"
+UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 download_filename="aprx-$aprx_ver.tar.gz"
 GPSPIPE="/usr/local/bin/gpspipe"
@@ -52,7 +55,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 function set_canned_location() {
 
-# Set gps lat/lon in degrees, decimal minutes
+# Set lat/lon in degrees, decimal minutes
 # Lat/Lon ddmm.mm/dddmm.mm format
 
     lat="4829.07"
@@ -60,7 +63,7 @@ function set_canned_location() {
     lon="12254.11"
     londir="W"
 
-# Set gps lat/lon data in decimal degrees ie:
+# Set lat/lon data in decimal degrees
 # Lat/Lon dd.ddd/(sign)ddd.ddd
 
     latdd="48.484"
@@ -70,12 +73,15 @@ function set_canned_location() {
 # ===== function get_lat_lon_gpsdsentence
 
 # Get gps lat/lon data in decimal degrees ie:
-# Lat/Lon dd.ddd/(sign)ddd.ddd
+# Lat/Lon dd.ddd/(sign)ddd.dd format
 # Used for aprx filters
 
 function get_lat_lon_gpsdsentence() {
     # Read data from gps device, native gpsd sentences
     # Lat/Lon decimal degrees
+    #  Latitude in dd.ddd format
+    #  Longitude in (sign)ddd.ddd format
+
     gpsdata=$($GPSPIPE -w -n 10 | grep -m 1 lat | jq '.lat, .lon')
 
     # Separate lat & lon, store as decimal degrees
@@ -132,8 +138,8 @@ function get_lat_lon_nmeasentence() {
 
     # The syntax of the coordinates is APRS truncated form on NMEA
     # lat/lon form:
-    # lat ddmm.mmN
-    # lon dddmm.mmW
+    #   lat ddmm.mmN
+    #   lon dddmm.mmW
     dbgecho "lat: $lat$latdir, lon: $lon$londir"
     return 0
 }
@@ -214,6 +220,23 @@ function check_user() {
    fi
 
    dbgecho "using USER: $USER"
+}
+
+# ===== function get_user_name
+function get_user_name() {
+
+    # Get list of users with home directories
+    USERLIST="$(ls /home)"
+    USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+    # Check if user name was supplied on command line
+    if [ -z "$USER" ] ; then
+        # prompt for call sign & user name
+        # Check if there is only a single user on this system
+        get_user
+    fi
+    # Verify user name
+    check_user
 }
 
 # ===== function get_ssid
@@ -493,46 +516,44 @@ function set_coordinates() {
             return 1
         fi
 
-    # Verify gpsd is returning sentences
-    is_gps_sentence
-    result=$?
-    dbgecho "Verify gpsd is returning sentences ret: $result"
+        # Verify gpsd is returning sentences
+        is_gps_sentence
+        result=$?
+        dbgecho "Verify gpsd is returning sentences ret: $result"
 
-    if (( result > 0 )) ; then
-        gps_running=true
-        # Get lat/lon in degrees with decimal minutes
-        dbgecho "get nmea sentence"
-        # Uses xxGLL
-        # Latitude in DDmm.mmm format.
-        # Longitude in DDDmm.mmm format.
-        get_lat_lon_nmeasentence
-        if [ "$?" -ne 0 ] ; then
-            echo "Read Invalid gps data read from gpsd, using canned values"
-            set_canned_location
+        if (( result > 0 )) ; then
+            gps_running=true
+            # Get lat/lon in degrees with decimal minutes
+            dbgecho "get nmea sentence"
+            # Uses xxGLL
+            # Latitude in DDmm.mmm format.
+            # Longitude in DDDmm.mmm format.
+            get_lat_lon_nmeasentence
+            if [ "$?" -ne 0 ] ; then
+                echo "Read Invalid gps data read from gpsd, using canned values"
+                set_canned_location
+            else
+                gps_status="Ok"
+            fi
+            # Get lat/lon in decimal degrees
+            dbgecho "get gpsd sentence"
+            # Latitude in DD.DDD format.
+            # Longitude in (sign)DDD.DDD format.
+
+            get_lat_lon_gpsdsentence
         else
-            gps_status="Ok"
+            echo "gpsd is installed but not returning sentences  ($result)."
+            set_canned_location
         fi
-        # Get lat/lon in decimal degrees
-        dbgecho "get gpsd sentence"
-        # Latitude in DD.DDD format.
-        # Longitude in (sign)DDD.DDD format.
-
-        get_lat_lon_gpsdsentence
+        # Get 12V supply voltage
+        batvoltage=$(sensors | grep -i "+12V:" | cut -d':' -f2 | sed -e 's/^[ \t]*//' | cut -d' ' -f1)
+        dbgecho "Get 12V supply voltage: $batvoltage"
     else
-        echo "gpsd is installed but not returning sentences  ($result)."
+        # gpsd not running or no DRAWS hat found
+        echo "gpsd not running or no DRAWS hat found, using static lat/lon values"
         set_canned_location
+        batvoltage=0
     fi
-    # Get 12V supply voltage
-    batvoltage=$(sensors | grep -i "+12V:" | cut -d':' -f2 | sed -e 's/^[ \t]*//' | cut -d' ' -f1)
-    dbgecho "Get 12V supply voltage: $batvoltage"
-
-else
-    # gpsd not running or no DRAWS hat found
-    echo "gpsd not running or no DRAWS hat found, using static lat/lon values"
-    set_canned_location
-    batvoltage=0
-fi
-
 }
 
 # ===== function usage
@@ -577,7 +598,7 @@ while [[ $# -gt 0 ]] ; do
             echo
             UPDATE_FLAG=true
         ;;
-      -g|--gps)
+        -g|--gps)
             # Verify gpsd is running OK
             is_gpsd
             if [ "$?" -ne 0 ] ; then
@@ -608,7 +629,7 @@ while [[ $# -gt 0 ]] ; do
                 echo "gpsd is installed but not returning sentences."
             fi
             exit 0
-         ;;
+        ;;
         -h|--help)
             usage
             exit 0
@@ -622,18 +643,8 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument or value
 done
 
-# Get list of users with home directories
-USERLIST="$(ls /home)"
-USERLIST="$(echo $USERLIST | tr '\n' ' ')"
-
-# Check if user name was supplied on command line
-if [ -z "$USER" ] ; then
-    # prompt for call sign & user name
-    # Check if there is only a single user on this system
-    get_user
-fi
-# Verify user name
-check_user
+# What it says
+get_user_name
 
 # Check for already installed aprx source tree
 if [ ! -d "$APRX_SRC_DIR" ] ; then
@@ -641,22 +652,22 @@ if [ ! -d "$APRX_SRC_DIR" ] ; then
     sudo chown $USER:$USER .
 
     sudo wget https://thelifeofkenneth.com/aprx/release/$download_filename
+    if [ $? -ne 0 ] ; then
+        echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
+    else
+        sudo tar xzvf $download_filename
         if [ $? -ne 0 ] ; then
-            echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
+            echo "$(tput setaf 1)FAILED to untar file: $download_filname $(tput setaf 7)"
         else
-            sudo tar xzvf $download_filename
-            if [ $? -ne 0 ] ; then
-                echo "$(tput setaf 1)FAILED to untar file: $download_filname $(tput setaf 7)"
-            else
-                sudo chown -R $USER:$USER $APRX_SRC_DIR
-                cd $APRX_SRC_DIR
-                ./configure
-                echo -e "\n$(tput setaf 4)Starting aprx build $(tput setaf 7)\n"
-                make
-                echo -e "\n$(tput setaf 4)Starting aprx install $(tput setaf 7)\n"
-                sudo make install
-            fi
+            sudo chown -R $USER:$USER $APRX_SRC_DIR
+            cd $APRX_SRC_DIR
+            ./configure
+            echo -e "\n$(tput setaf 4)Starting aprx build $(tput setaf 7)\n"
+            make
+            echo -e "\n$(tput setaf 4)Starting aprx install $(tput setaf 7)\n"
+            sudo make install
         fi
+    fi
 else
     echo "Using previously built aprx-$aprx_ver"
     echo
@@ -678,3 +689,7 @@ make_aprx_config_file
 
 echo " == Install aprx systemd file, restart daemon"
 make_aprx_service_file
+
+echo
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: aprx install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
+echo
