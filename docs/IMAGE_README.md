@@ -23,6 +23,7 @@
 | libax25      |   1.1.3  |  yes  |  yes  |  yes  |
 | ax25apps     |   2.0.1  |  yes  |  yes  |  yes  |
 | ax25tools    |   1.0.5  |  yes  |  yes  |  yes  |
+| aprx         |   2.9.0  |       |  yes  |  yes  |
 | rmsgw        |   2.5.1  |       |  yes  |  yes  |
 | paclink-unix |    0.10  |       |  yes  |  yes  |
 | mutt         |   1.10.1  |  yes  |  yes  |  yes    |
