@@ -324,7 +324,6 @@ function released_version_display() {
        echo "Could not parse release directory"
     else
        released_ver=$(echo $tarname | cut -f2 -d'-')
-       echo "released_ver 1: $released_ver"
        released_ver=$(basename $released_ver .tar.gz)
        echo "Download file name: $tarname, released version: $released_ver"
     fi
@@ -362,7 +361,10 @@ EOT
 
     sudo systemctl enable $SERVICE_NAME
     sudo systemctl daemon-reload
-    sudo systemctl start $SERVICE_NAME
+    sudo systemctl restart $SERVICE_NAME
+    if [ ! -z "$DEBUG" ] ; then
+        systemctl status $SERVICE_NAME
+    fi
 }
 
 # ===== function get_aprs_server_passcode
@@ -402,6 +404,7 @@ function make_aprx_config_file() {
     fi
 
     get_aprs_server_passcode
+    # Convert callsign to lower case
     low_callsign=$(echo "$CALLSIGN" | tr '[A-Z]' '[a-z]')
 
     sudo tee $CONFIG_DIR/$CONFIG_NAME > /dev/null << EOT
@@ -536,11 +539,11 @@ fi
 
 function usage() {
    echo "Usage: $scriptname [-d][-l][-c][-d][-g][-h]" >&2
-   echo "   -l       Display local version of aprx"
-   echo "   -c       Display latest release version of aprx"
-   echo "   -d       Set DEBUG flag"
-   echo "   -g | --gps     verify gps is working"
-   echo "   -h | --help    Display this message"
+   echo "   -l            Display local version of aprx"
+   echo "   -c            Display latest release version of aprx"
+   echo "   -d            Set DEBUG flag"
+   echo "   -g | --gps    verify gps is working"
+   echo "   -h | --help   Display this message"
    echo
 
 }
@@ -632,6 +635,7 @@ fi
 # Verify user name
 check_user
 
+# Check for already installed aprx source tree
 if [ ! -d "$APRX_SRC_DIR" ] ; then
     cd "$SRC_DIR"
     sudo chown $USER:$USER .
@@ -665,12 +669,12 @@ prompt_read
 get_location
 get_email
 
-echo " == Install aprx systemd file"
-make_aprx_service_file
-
-echo " == Set co-oridinates from GPS"
+echo " == Set co-ordinates from GPS"
 set_coordinates
 
 echo " == Install aprx config file"
 # Needs a valid callsign
 make_aprx_config_file
+
+echo " == Install aprx systemd file, restart daemon"
+make_aprx_service_file
