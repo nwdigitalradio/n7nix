@@ -217,6 +217,10 @@ case $APP_SELECT in
       # copy desktop icon files
       CopyDesktopFiles
       echo "core configuration FINISHED"
+
+      # Fix for 'file Manager instantly closes when opened' bug
+      echo "Update file manager pcmanfm"
+      apt-get install -y -q --reinstall pcmanfm
    ;;
    rmsgw)
       # Configure rmsgw
