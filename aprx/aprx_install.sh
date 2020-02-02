@@ -523,6 +523,7 @@ function set_coordinates() {
 
         if (( result > 0 )) ; then
             gps_running=true
+
             # Get lat/lon in degrees with decimal minutes
             dbgecho "get nmea sentence"
             # Uses xxGLL
@@ -535,11 +536,11 @@ function set_coordinates() {
             else
                 gps_status="Ok"
             fi
+
             # Get lat/lon in decimal degrees
             dbgecho "get gpsd sentence"
             # Latitude in DD.DDD format.
             # Longitude in (sign)DDD.DDD format.
-
             get_lat_lon_gpsdsentence
         else
             echo "gpsd is installed but not returning sentences  ($result)."
@@ -566,7 +567,6 @@ function usage() {
    echo "   -g | --gps    verify gps is working"
    echo "   -h | --help   Display this message"
    echo
-
 }
 
 # ===== main
@@ -587,7 +587,6 @@ while [[ $# -gt 0 ]] ; do
             installed_version_display
             exit
         ;;
-
         -c)
             echo "Check released version number"
             released_version_display
