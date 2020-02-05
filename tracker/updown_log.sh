@@ -11,11 +11,19 @@
 # arg1 = t - test log file entry
 # arg1 = <nothing> default: test log file entry
 #
-# crontab entry follows:
-# @reboot /home/pi/tmp/updown_log.sh | at now + 1 minute
+# example crontab entries follows:
 #
+# First beacon after power up
+# @reboot /home/pi/tmp/updown_log.sh -u | at now + 1 minute
+#
+# First beacon after power up
 # @reboot sleep 120 && /home/pi/bin/updown_log.sh u
+#
+# Test down
 #*/2  *  *  *  *  /home/pi/bin/updown_log.sh d
+#
+# Test gps
+# */10  *  *  *  *  /home/pi/bin/updown_log.sh -g
 #
 # Uncomment this statement for debug echos
 # DEBUG=1
@@ -24,9 +32,11 @@ USER="$(whoami)"
 TMPDIR="/home/$USER/tmp"
 LOGFILE="$TMPDIR/updown.log"
 INPROGRESS_FILE="/tmp/shutdown_inprogress"
+TRACKER_CONF_FILE="/etc/tracker/aprs_tracker.ini"
 
 scriptname="`basename $0`"
 BEACON="/usr/local/sbin/beacon"
+GPSPIPE="/usr/local/bin/gpspipe"
 NULL_CALLSIGN="NOONE"
 CALLSIGN="$NULL_CALLSIGN"
 STARTUP_WAIT=5
@@ -35,6 +45,8 @@ SHUTDOWN_WAIT=20
 AXPORTS_FILE="/etc/ax25/axports"
 SID=14
 AX25PORT=udr0
+sat_cnt=0
+voltage=0
 
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -42,7 +54,9 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # ===== function sid_nixtracker
 # Pull SSID from nixtracker /etc/tracker/aprs_tracker.ini file
 function sid_nixtracker() {
-    SID=$(grep -i "mycall = " /etc/tracker/aprs_tracker.ini | cut -f2 -d '=' | cut -d'-' -f2)
+    if [ -f "$TRACKER_CONF_FILE" ] ; then
+        SID=$(grep -i "mycall = " "$TRACKER_CONF_FILE" | cut -f2 -d '=' | cut -d'-' -f2)
+    fi
 }
 
 # ===== function callsign_axports
@@ -85,7 +99,7 @@ function pad_callsign() {
 # ===== function beacon_now
 function beacon_now() {
 
-    log_msg=":$CALLPAD:$timestamp $action, host $(hostname), port $AX25PORT, voltage: $voltage"
+    log_msg=":$CALLPAD:$timestamp $action, host $(hostname), port $AX25PORT, voltage: $voltage, sats: $sat_cnt"
     echo "$log_msg" | tee -a $LOGFILE
     sid_nixtracker
 
@@ -99,6 +113,17 @@ $BEACON -c $CALLSIGN-$SID -d 'APUDR1 via WIDE1-1' -l -s $AX25PORT $log_msg" | te
     fi
 }
 
+# ===== function gga_satcount
+# Get count of number of satelites in use
+# The number returned here matches the number viewed when using cgps /Used
+# Use this in the crontab beacon
+
+function gga_satcount() {
+    sat_cnt=$($GPSPIPE -r -n 30 | grep -m 1 -i gngga | cut -f8 -d',')
+    # Remove any leading zeros
+    sat_cnt=$((10#$sat_cnt))
+}
+
 # ===== Display program help info
 usage () {
 	(
@@ -106,6 +131,7 @@ usage () {
         echo "            No args will just display beacon"
         echo "  -u        Log & beacon a start up event"
         echo "  -d        Log & beacon a shut down event"
+        echo "  -g        Log & beacon a gps test event"
         echo "  -t        Test, no beacon just display beacon"
         echo "  -h        Display this message"
         echo
@@ -143,6 +169,7 @@ if [[ $# -gt 0 ]] ; then
             dbgecho "action: $action"
 
             sleep $STARTUP_WAIT
+            gga_satcount
             beacon_now
         ;;
         -d|d)
@@ -153,6 +180,7 @@ if [[ $# -gt 0 ]] ; then
             if (( volt_int < 1300 )) ; then
                 # Getting multiple shut down beacons, create a flag file
                 if [ ! -e "$INPROGRESS_FILE" ] ; then
+                    gga_satcount
                     beacon_now
                     touch $INPROGRESS_FILE
                     sleep $SHUTDOWN_WAIT
@@ -165,11 +193,18 @@ if [[ $# -gt 0 ]] ; then
                fi
             fi
         ;;
+        -g|g)
+            action="GPS_test"
+            gga_satcount
+            echo "action: $action, sats: $sat_cnt"
+
+            beacon_now
+        ;;
         -t|t)
             # log beacon test, display what log entry would look like without beaconing
             action="test"
             dbgecho "action: $action"
-
+            gga_satcount
             beacon_now
         ;;
         -h)
@@ -187,7 +222,7 @@ else
     # Display voltage
     action="test"
     dbgecho "No args: $action"
-
+    gga_satcount
     beacon_now
 fi
 exit 0
