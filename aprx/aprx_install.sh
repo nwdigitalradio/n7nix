@@ -430,12 +430,15 @@ function make_aprx_config_file() {
     # Convert callsign to lower case
     low_callsign=$(echo "$CALLSIGN" | tr '[A-Z]' '[a-z]')
 
+    # NOTE: If you are using "ax25-device" instead of "serial-device" in 'interface' section,
+    #  the /etc/ax25/axports file needs to be configured.
+
     sudo tee $CONFIG_DIR/$CONFIG_NAME > /dev/null << EOT
 mycall $CALLSIGN-$SSID
 
 <interface>
   callsign $CALLSIGN-$SSID
-  ax25-device ${low_callsign}-$SSID
+  ax25-device \$mycall
   tx-ok true
 </interface>
 
