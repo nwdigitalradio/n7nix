@@ -20,15 +20,21 @@ function is_integer() {
 
 # ===== main
 
+# Ended up having to build gpsd from source like below
+# The following is from notes & not tested in a script
+
 # Install files for the NW Digital Radio DRAWS HAT
-# sudo apt-get install gpsd gpsd-clients python-gps pps-tools libgps-dev chrony
-sudo apt-get install -y -q gpsd gpsd-clients python-gps pps-tools libgps-dev chrony
+# DO NOT install gpsd package
+# sudo apt-get install -y -q gpsd gpsd-clients python-gps pps-tools
+# libgps-dev chrony
+echo " == Install gpsd support packages"
+# This may install gpsd package as a dependency
+sudo apt-get install -y -q gpsd-clients python-gps pps-tools libgps-dev chrony
 
-# Ended up have to build gpsd from source like this
-# The following is from notes & not tested in a scrit
-
-echo "Build gpsd from source"
-#gpsd_ver="3.18.1"
+echo
+echo " == Build gpsd from source"
+# gpsd_ver="3.18.1" is first version that supports nwdr gps draws
+#  device.
 gpsd_ver="$(curl -s http://download-mirror.savannah.gnu.org/releases/gpsd/?C=M | tail -n 2 | head -n 1 | cut -d'-' -f2 |cut -d '.' -f1,2,3)"
 
 # Verify last version digit is numeric & not tar
@@ -38,7 +44,7 @@ if [ ! $(is_integer $prog_ver_3rd_dig) ] ; then
 fi
 
 echo
-echo "Downloading gpsd version: $gpsd_ver"
+echo " Downloading gpsd version: $gpsd_ver"
 echo
 
 # Download tarball
@@ -57,7 +63,7 @@ sudo scons
 sudo scons check
 sudo scons udev-install
 
-echo "Setup default gpsd file"
+echo " == Setup default gpsd file"
 
 sudo  tee /etc/default/gpsd > /dev/null << EOT
 # Configure gpsd
@@ -66,7 +72,8 @@ DEVICES="/dev/ttySC0 /dev/pps0"
 GPSD_OPTIONS="-n"
 EOT
 
-echo "Setup default chrony.conf file"
+
+echo " == Setup default chrony.conf file"
 
 sudo tee /etc/chrony/chrony.conf > /dev/null << EOT
 # Welcome to the chrony configuration file. See chrony.conf(5) for more
@@ -117,6 +124,7 @@ refclock SHM 2 refid PPS precision 1e-9 poll 3 trust
 #allow 44.0.0.0/8
 EOT
 
+echo " == enable & start gpsd & chrony using systemd"
 sudo systemctl unmask gpsd
 
 sudo systemctl enable gpsd
