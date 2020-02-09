@@ -160,6 +160,13 @@ echo "Running install"
 sudo make install
 sudo strip $ROOT_DST/bin/xastir
 
+# To use Linux AX.25, the xastir run time file must be setuid.
+# See Xastir INSTALL file and their FAQ
+cd $ROOT_DIST/bin
+sudo chmod u+s xastir
+# Verify
+ls -al $ROOT_DIST/bin/xastir
+
 # create local xastir sound repo off of local home dir
 cd
 if [ ! -d /home/$USER/xastir-sounds/ ] ; then
