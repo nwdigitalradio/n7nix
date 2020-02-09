@@ -20,16 +20,14 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 user=$(whoami)
 
 SRC_DIR="/home/$user/dev"
-BIN_DIR="/home/$user/bin"
-BIN_DIR_1="/usr/local/bin"
+LOCAL_BIN_DIR="/home/$user/bin"
+GLOBAL_BIN_DIR="/usr/local/bin"
 
 # tracker type can be either dan or nix
 # nixtracker adds Winlink ability
 tracker_type="nix"
 #tracker_type="dan"
 
-TRACKER_DEST_DIR="$BIN_DIR"
-TRACKER_DEST_DIR_1="$BIN_DIR_1"
 TRACKER_CFG_DIR="/etc/tracker"
 TRACKER_CFG_FILE="$TRACKER_CFG_DIR/aprs_tracker.ini"
 TRACKER_SRC_DIR="$SRC_DIR/${tracker_type}tracker"
@@ -245,45 +243,49 @@ else
 fi
 
 # Check if /home/$user/bin is a file
-if [ -f $TRACKER_DEST_DIR ] ; then
-   rm $TRACKER_DEST_DIR
+if [ -f $LOCAL_BIN_DIR ] ; then
+   rm $LOCAL_BIN_DIR
 fi
 
-if [ ! -d $TRACKER_DEST_DIR ] ; then
-   mkdir -p $TRACKER_DEST_DIR
+# Verify local bin dir
+if [ ! -d $LOCAL_BIN_DIR ] ; then
+   mkdir -p $LOCAL_BIN_DIR
 fi
 
 echo
 echo "== install ${tracker_type}tracker"
 
    cd $TRACKER_SRC_DIR
-   cp scripts/* $TRACKER_DEST_DIR
-   cp aprs  $TRACKER_DEST_DIR
-   sudo cp aprs  $TRACKER_DEST_DIR_1
-   rsync -av $TRACKER_SRC_DIR/webapp $TRACKER_DEST_DIR
-   rsync -av $TRACKER_SRC_DIR/images $TRACKER_DEST_DIR/webapp
-   if [ ! -d $TRACKER_DEST_DIR/webapp/jQuery ] ; then
-      mkdir -p $TRACKER_DEST_DIR/webapp/jQuery
+   cp scripts/* $LOCAL_BIN_DIR
+
+   # Fix this
+   cp aprs  $LOCAL_BIN_DIR
+   sudo cp aprs  $GLOBAL_BIN_DIR
+
+   # Copy webapp files
+   rsync -av $TRACKER_SRC_DIR/webapp $LOCAL_BIN_DIR
+   rsync -av $TRACKER_SRC_DIR/images $LOCAL_BIN_DIR/webapp
+   if [ ! -d $LOCAL_BIN_DIR/webapp/jQuery ] ; then
+      mkdir -p $LOCAL_BIN_DIR/webapp/jQuery
    fi
-   cd $TRACKER_DEST_DIR/webapp/jQuery
+
+   # Requirement that jquery directory is relative to web app location??
+   cd $LOCAL_BIN_DIR/webapp/jQuery
    wget https://code.jquery.com/jquery-3.2.1.min.js
    mv jquery-3.2.1.min.js jquery.js
 
 # This overwrites some of the ${tracker_type}tracker scripts from the n7nix repo
 echo
 echo "== setup bin dir"
-if [ ! -d $BIN_DIR ] ; then
-   mkdir -p $BIN_DIR
-fi
 
 cp $TRACKER_N7NIX_DIR/.${tracker_type}screenrc.trk $TRACKER_N7NIX_DIR/.screenrc.trk
 
 for filename in `echo ${BIN_FILES}` ; do
-   cp $TRACKER_N7NIX_DIR/$filename $BIN_DIR
+   cp $TRACKER_N7NIX_DIR/$filename $LOCAL_BIN_DIR
 done
 
-sed -i -e "s/\$user/$user/" $BIN_DIR/tracker-up
-sed -i -e "s/\$user/$user/" $BIN_DIR/tracker-restart
+sed -i -e "s/\$user/$user/" $LOCAL_BIN_DIR/tracker-up
+sed -i -e "s/\$user/$user/" $LOCAL_BIN_DIR/tracker-restart
 
 if [ ! -d $TRACKER_CFG_DIR ] ; then
    sudo mkdir -p $TRACKER_CFG_DIR
