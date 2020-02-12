@@ -2,7 +2,7 @@
 #
 scriptname="`basename $0`"
 
-# ===== function start_service
+# ===== function status_service
 
 function status_service() {
     service="$1"
