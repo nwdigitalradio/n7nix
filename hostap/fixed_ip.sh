@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Set a fixed lan ip address
+# Set a fixed lan ip address for old style ip handling
 #  Usage: $scriptname [-l][-s][-w][-d][-h] last_ip_octet or complete ip address
 #
 # Edit file:
@@ -8,15 +8,20 @@
 # Check file:
 #  /etc/network/interfaces
 #
-DEBUG=
-DEBUG_MODE="false"
+DEBUG=1
+# When set to true no files are written
+DEBUG_MODE="true"
+
 DEBUG_RESET_NETWORKING="false"
 SET_WIFI_IPADDR="false"
+SYSTEMCTL="systemctl"
 
 scriptname="`basename $0`"
 lanif="eth0"
 #lanif="enp3s0"
 if_file="/etc/network/interfaces"
+NETPLAN_CFG_DIR="/etc/netplan"
+NETPLAN_CFG_FILE="$NETPLAN_CFG_DIR/01-netcfg.yaml"
 
 # WiFi ip address Should be on a different subnet than Lan ip address
 wan_ipaddr="10.0.44.1"
@@ -144,8 +149,52 @@ iface wlan0 inet static
 EOT
 
 else
-   echo "$scriptname: file $if_file already config'ed edit manually"
+   echo "$scriptname: file $if_file already config'ed, edit manually"
 fi
+}
+
+# ===== function display_eth_addrlink
+
+function display_eth_addrlink() {
+    echo "Iterate through all Ethernet devices"
+    netdevice_list=$(grep "^en\|^eth" <<< $(ls /sys/class/net))
+#    dbgecho "netdevice list: $netdevice_list"
+
+    for ethdev in $(echo ${netdevice_list}) ; do
+        ipaddr=$(ip -4 -o addr show dev $ethdev | awk '!/^[0-9]*: ?lo|link\/ether/ {gsub("/", " "); print $2" "$4}')
+        ipaddr=$(echo $ipaddr | cut -f2 -d' ')
+        ip_root=${ipaddr%.*}
+        linkstat=$(ip -o link show dev $ethdev | awk '{print $2,$9}' | cut -f2 -d' ')
+
+        if [ -z "$ipaddr" ] ; then
+            echo "No ip adddress found on Interface: $ethdev"
+        else
+            echo "$ethdev: $ipaddr, root ip: $ip_root, Link: $linkstat"
+        fi
+    done
+}
+
+# ===== function status_service
+
+function status_service() {
+
+    service="$1"
+    retcode=0
+
+    IS_ENABLED="ENABLED"
+    IS_RUNNING="RUNNING"
+    # echo "Checking service: $service"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        IS_ENABLED="NOT ENABLED"
+        retcode=1
+    fi
+    systemctl is-active "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        IS_RUNNING="NOT RUNNING"
+        retcode=1
+    fi
+    return $retcode
 }
 
 # ===== function usage
@@ -162,6 +211,54 @@ function usage() {
 
 # ===== main
 
+# What's running:
+
+service="networking"
+status_service $service
+bnetworking_status="$?"
+echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
+
+service="systemd-networkd"
+status_service $service
+bsystemd_networkd_status="$?"
+echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
+
+service="network-manager"
+status_service $service
+bnetwork_manager_status="$?"
+echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
+
+if [ -d $NETPLAN_CFG_DIR ] ; then
+    echo "Netplan configuration directory found."
+    if [ ${bsystemd_networkd_status} = 0 ] || [ ${bnetwork_manager} = 0 ] ; then
+        echo "Configuring network interfaces with systemd-networkd + netplan"
+    else
+        echo "Have netplan configuration file but systemd-networkd or network-manager not running."
+    fi
+else
+    echo "Configuring Network interfaces with ifupdown."
+fi
+
+echo
+
+# Find name of Ethernet device(s)
+# look at /sys/class/net for enx or ethx device names
+device_list=$(ls /sys/class/net | tr '\n' ' ' |tr -s '[[:space:]] ')
+#dbgecho "device list: $device_list"
+device_cnt=$(ls -1 /sys/class/net | wc -l)
+netdevice_cnt=$(grep -c "^en\|^eth" <<< $(ls /sys/class/net))
+echo "Found $device_cnt network devices. $netdevice_cnt Ethernet devices"
+
+if [ "$netdevice_cnt" -gt 0 ] ; then
+    display_eth_addrlink
+    echo
+else
+    echo "No Ethernet devices found."
+    exit
+fi
+
+if [ 1 -eq 0 ] ; then
+
 # Check if $lanif network interface is already up
 ifcheck=$(grep -i $lanif $if_file)
 retcode=$?
@@ -172,8 +269,13 @@ if [ $retcode -eq 0 ] ; then
 else
    echo "Lan interface: $lanif, does not exist in $if_file"
 fi
-ip_current=$(ip addr show $lanif | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
-ip_root=${ip_current%.*}
+
+fi
+
+netplan_dir="/etc/netplan"
+if [ -d "$netplan_dir" ] ; then
+    echo "Found $netplan_dir"
+fi
 
 # parse any args on command line
 if (( $# != 0 )) ; then
@@ -210,10 +312,10 @@ if (( $# != 0 )) ; then
 done
 fi
 
-# Be sure we're running as root
+# setup systemctl command run as root
 if [[ "$DEBUG_MODE" = "false" ]] && [[ $EUID != 0 ]] ; then
-   echo "Must be root."
-   exit 1
+   SYSTEMCTL="sudo systemctl"
+   echo "Running as user $(whoami)"
 fi
 
 if [[ -z $ip_parse ]] ; then
@@ -239,6 +341,7 @@ case $count_dots in
    ;;
 esac
 
+ip_current="$ipaddr"
 dbgecho "ip current: $ip_current, ip root: $ip_root"
 
 valid_ip $ip_addr
@@ -276,11 +379,11 @@ if [ "$DEBUG_RESET_NETWORKING" = "true" ] ; then
    systemctl is-enabled NetworkManager.service
    if [ $? -eq 0 ] ; then
       echo "Disabling Network Manager"
-      systemctl disable NetworkManager.service
+      $SYSTEMCTL disable NetworkManager.service
    fi
-   systemctl daemon-reload
-   systemctl --no-pager restart dhcpcd.service
-   service networking restart
+   $SYSTEMCTL daemon-reload
+   $SYSTEMCTL --no-pager restart dhcpcd.service
+   sudo service networking restart
 fi
 
 echo
