@@ -41,6 +41,8 @@ alsa-show.sh
 
 echo
 echo "===== direwolf"
+# Assume there are ONLY 2 modems configured
+# in direwolf configuration file
 udr0_baud=$(grep -i "^MODEM " /etc/direwolf.conf | cut -d ' ' -f2 | head -n 1)
 udr1_baud=$(grep -i "^MODEM " /etc/direwolf.conf | cut -d ' ' -f2 | tail -n 1)
 echo "udr0 speed: $udr0_baud"
