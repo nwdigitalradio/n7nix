@@ -99,7 +99,7 @@ new setting for Menu #39
   * Use IN1_L IN1_R for 9600 baud (DISCOUT)
   * Use IN2_L IN2_R for 1200 baud or less (AFOUT)
 
-## ALSA settings for IC-7000
+## ALSA settings for ICOM IC-7000
 
 #### From the IC-7000 manual page 116
 *  adjust the TX audio level (data in level) from the TNC as follows.
@@ -109,6 +109,13 @@ new setting for Menu #39
   * Select IN1 (L & R) 10 kOhm (or 20 & 40 kOhm) in alsamixer
 * While testing with FLdigi it was noticed that the tones where cleaner when routing through the discriminator.
 * The IC-7000 presents the received signal on both pin 4 DISCOUT & pin 5 AFOUT
+
+#### From Winlink Programs group
+### IC-7100, keys but no power out
+
+  * Are you in USB-D?
+  * How are the Connectors set on the 7100 menus?
+  * And what are the Playback and Record levels for the 7100?
 
 ### RPi - ALSA Configuration
 * Run _setalsa-ic7000.sh_ which sets alsa config to the following:
