@@ -7,7 +7,76 @@ USER=$(whoami)
 BIN_PATH="/home/$USER/bin"
 
 SWITCH_FILE="/etc/ax25/packet_9600baud"
+SPEED_CFG_FILE="/etc/ax25/baudrate.conf"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
+
+# ===== function speed_status
+function speed_status() {
+    if [ -e "$SWITCH_FILE" ] ; then
+        echo "Switch file exists"
+        # Anything in the file?
+        if [ -s "$SPEED_CFG_FILE" ] ; then
+            # Check for speed_chan
+            echo "File: $SPEED_CFG_FILE NOT empty"
+        else
+            echo "Nothing in file: $SPEED_CFG_FILE"
+        fi
+    else
+        echo "Switch file does NOT exist"
+    fi
+    echo "Display ax25dev-parms"
+    echo
+    echo "Display kissparms"
+    for devname in `echo "ax0 ax1"` ; do
+        PARMDIR="/proc/sys/net/ax25/$devname"
+        if [ -d "$PARMDIR" ] ; then
+            echo "Parameters for device $devname"
+
+            echo -n "T1 Timeout: "
+            cat $PARMDIR/t1_timeout
+
+            echo -n "T2 Timeout: "
+            cat $PARMDIR/t2_timeout
+        else
+            echo "Device: $devname does NOT exist"
+        fi
+    done
+
+}
+
+# ===== function usage
+
+function usage() {
+   echo "Usage: $scriptname [-s]" >&2
+   echo "   -s      Display current status of speed."
+   echo "   -h      Display this message"
+   echo
+}
+# ===== main
+
+while [[ $# -gt 0 ]] ; do
+APP_ARG="$1"
+
+case $APP_ARG in
+
+   -s)
+      echo "Display status"
+      speed_status
+      exit 0
+   ;;
+   -h|--help|?)
+      usage
+      exit 0
+   ;;
+   *)
+      break;
+   ;;
+
+esac
+
+shift # past argument
+done
+
 
 
 if [ -e "$SWITCH_FILE" ] ; then
