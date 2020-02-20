@@ -181,7 +181,7 @@ if [ $? -ne 0 ] ; then
    # Set gridsquare=
    echo "Enter grid square, up to 6 characters, followed by [enter]:"
    read -e GRIDSQUARE
-   sed -i -e "s/^#gridsquare=/gridsquare=$GRIDSQUARE/" $PLU_CFG_FILE
+   sed -i -e "s/^#gridsquare=.*/gridsquare=$GRIDSQUARE/" $PLU_CFG_FILE
 
    # Set ax25port=
    # Assume axports was set by a previous configuration script
