@@ -175,5 +175,10 @@ echo
 echo "==== Check rmsgw log file"
 tail /var/log/rms
 
+echo
+echo "==== Check rmsgw crontab entry"
+sudo -u rmsgw crontab -l
+echo
+
 echo "==== $scriptname finished at $(date)"
 
