@@ -6,11 +6,13 @@
 # Uncomment this statement for debug echos
 DEBUG=1
 
+SBINDIR=/usr/local/sbin
+BINDIR=/usr/local/bin
+KISSPARMS="$SBINDIR/kissparms"
+
 bsplitchannel=false
 SPLIT_CHANNEL_FILE="/etc/ax25/split_channel"
 
-SBINDIR=/usr/local/sbin
-BINDIR=/usr/local/bin
 UDRCII=false
 
 # portname set in /etc/ax25/axports
@@ -135,6 +137,23 @@ function packet_2port() {
 
 echo "ax25-upd: Start Port ${PORTNAME_1} with device ${SERIALPORT_DIREWOLF}"
 
+# Install KISS Parameter: P=32, W=$SLOTTIME, TXDelay=$TXDELAY
+#  -l txtail   Sets the TX Tail time in milliseconds, in steps of ten milliseconds only
+#  -r persist  Sets the persist value. range 0 to 255.
+#  -s slottime Sets  the slottime in milliseconds, in steps of ten milliseconds only
+#  -t txdelay  Sets the TX Delay in milliseconds, in steps of ten milliseconds only
+
+# For 1200 baud packet
+SLOTTIME="200"
+TXDELAY="500"
+
+# For 9600 baud packet
+if [ -e "/etc/ax25/packet_9600baud" ] ; then
+    SLOTTIME="10"
+    TXDELAY="150"
+
+fi
+
 # Check if split channel is enabled
 if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
     # Anything in the file?
@@ -167,62 +186,46 @@ id_check_ret="$?"
 kissattach_ret=-1
 
 case $id_check_ret in
-0|1)
-   echo "No UDRC found, exiting"
-   exit 1
-;;
-2)
-   echo "Original UDRC is installed."
-    # use port 1 with mkiss
-    packet_1port 1
-;;
-3|4)
-   echo "UDRC II or DRAWS installed"
-   if $bsplitchannel ; then
-       # use port 0 only with mkiss
-       packet_1port 0
-   else
-       # use both ports with mkiss
-       packet_2port
-   fi
-;;
-5)
-   echo "One Watt Spot installed"
-# use port 1 with mkiss
-   pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx none | tail -1)
-   echo "using mkiss with UDRC and pseudo term=$pseudoterm on port 1"
-   $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME_1} ${IPADDR_AX0} >/tmp/ax25-config.tmp
-   kissattach_ret=$?
-   dbgecho "kissattach return: $?"
-   /etc/ax25/ax25dev-parms ax0
-;;
-*)
-   echo "Invalid udrc id ... exiting"
-   exit 1
-;;
+    0|1)
+        echo "No UDRC found, exiting"
+        exit 1
+    ;;
+    2)
+        echo "Original UDRC is installed."
+        # use port 1 with mkiss
+        packet_1port 1
+        $KISSPARMS -p ${PORTNAME_1} -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
+    ;;
+    3|4)
+        echo "UDRC II or DRAWS installed"
+        if $bsplitchannel ; then
+            # use port 0 only with mkiss
+            packet_1port 0
+            $KISSPARMS -p ${PORTNAME_1} -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
+
+        else
+            # use both ports with mkiss
+            packet_2port
+            $KISSPARMS -p ${PORTNAME_1} -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
+            $KISSPARMS -p ${PORTNAME_2} -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
+        fi
+    ;;
+    5)
+        echo "One Watt Spot installed"
+        # use port 1 with mkiss
+        pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx none | tail -1)
+        echo "using mkiss with UDRC and pseudo term=$pseudoterm on port 1"
+        $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME_1} ${IPADDR_AX0} >/tmp/ax25-config.tmp
+        kissattach_ret=$?
+        dbgecho "kissattach return: $?"
+        /etc/ax25/ax25dev-parms ax0
+        $KISSPARMS -p ${PORTNAME_1} -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
+    ;;
+    *)
+        echo "Invalid udrc id ... exiting"
+        exit 1
+    ;;
 esac
-
-# For 1200 baud packet
-SLOTTIME="200"
-TXDELAY="500"
-
-# For 9600 baud packet
-if [ -e "/etc/ax25/packet_9600baud" ] ; then
-    SLOTTIME="10"
-    TXDELAY="150"
-
-fi
-
-#
-# Install KISS Parameter: P=32, W=200, TX-Delay=500
-#  -l txtail   Sets the TX Tail time in milliseconds, in steps of ten milliseconds only
-#  -r persist  Sets the persist value. range 0 to 255.
-#  -s slottime Sets  the slottime in milliseconds, in steps of ten milliseconds only
-#  -t txdelay  Sets the TX Delay in milliseconds, in steps of ten milliseconds only
-
-/usr/local/sbin/kissparms -p udr0 -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
-/usr/local/sbin/kissparms -p udr1 -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
-
 
 # configure netrom
 # Needs a callsign
