@@ -1,7 +1,14 @@
 #!/bin/bash
 #
 # Test Winlink connection to a single station or gateway
-DEBUG=1
+#
+# Use like this:
+#  psp-check.sh <some_callsign>
+#
+# Logfile stored in $HOME/tmp/baudrate_test.log
+# Useful for 9600 baud test to a station or gateway.
+
+#DEBUG=
 
 scriptname="`basename $0`"
 
@@ -28,6 +35,11 @@ fi
 # First & only argument is call sign
 callsign="$1"
 
+# If logfile directory does not exist, create it.
+if [ ! -d $TMP_DIR ] ; then
+    mkdir -p $TMP_DIR
+fi
+
 # Log file will not exist until after first run
 if [ -e "$SPEED_LOGFILE" ] ; then
     # Get current counts from log file
@@ -43,7 +55,9 @@ fi
     dbgecho "Counts: connect: $connect_count, attempts: $connect_attempts"
 
 start_sec=$SECONDS
+
 $WL2KAX25 -c "$callsign"
+
 retcode="$?"
 duration=$((SECONDS-start_sec))
 
