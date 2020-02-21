@@ -1,47 +1,118 @@
 #!/bin/bash
 #
 # Switch for 1200 baud and 9600 baud packet speed
+#
+DEBUG=
 
 USER=$(whoami)
 #BIN_PATH="/home/$USER/n7nix/debug"
 BIN_PATH="/home/$USER/bin"
 
 SWITCH_FILE="/etc/ax25/packet_9600baud"
-SPEED_CFG_FILE="/etc/ax25/baudrate.conf"
+PORT_CFG_FILE="/etc/ax25/port.conf"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 
-# ===== function speed_status
-function speed_status() {
+# ===== function dbgecho
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+
+# ===== function check_port_file
+# Needs arg of port number, either 0 or 1
+
+function get_port_cfg() {
+    retcode=0
+    if [ -e $PORT_CFG_FILE ] ; then
+        dbgecho " ax25 port file exists"
+        portnumber=$1
+        if [ -z $portnumber ] ; then
+            echo "Need to supply a port number in get_port_cfg"
+            return 1
+        fi
+
+        portname="udr$portnumber"
+        portcfg="port$portnumber"
+
+#        echo "Debug: portname=$portname, portcfg=$portcfg"
+
+        PORTSPEED=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+        dbgecho "AX.25: $portname speed: $PORTSPEED"
+
+        case $PORTSPEED in
+            1200)
+                dbgecho "parse baud_1200 section for $portname"
+            ;;
+            9600)
+                dbgecho "parse baud_9600 section for $portname"
+            ;;
+            none)
+                echo "Using split channel, port: $portname is off"
+            ;;
+            *)
+                echo "Invalid speed parameter: $PORTSPEED, found in $PORT_CFG_FILE"
+                retcode=1
+            ;;
+        esac
+    else
+        echo "ax25 port file: $PORT_CFG_FILE does not exist"
+        retcode=1
+    fi
+    return $retcode
+}
+
+# ===== function check_switch_file
+
+function check_switch_file() {
     if [ -e "$SWITCH_FILE" ] ; then
-        echo "Switch file exists"
+        echo "Baudrate Switch file exists"
         # Anything in the file?
-        if [ -s "$SPEED_CFG_FILE" ] ; then
+        if [ -s "$SWITCH_FILE" ] ; then
             # Check for speed_chan
-            echo "File: $SPEED_CFG_FILE NOT empty"
+            echo "File: $SWITCH_FILE NOT empty"
         else
-            echo "Nothing in file: $SPEED_CFG_FILE"
+            echo "Nothing in file: $SWITCH_FILE"
         fi
     else
-        echo "Switch file does NOT exist"
+        echo "Baudrate Switch file does NOT exist"
     fi
-    echo "Display ax25dev-parms"
+}
+
+# ===== function speed_status
+
+function speed_status() {
+
+    SLOTTIME=
+    TXDELAY=
+    T1_TIMEOUT=
+    T2_TIMEOUT=
+
+    check_switch_file
+
     echo
-    echo "Display kissparms"
-    for devname in `echo "ax0 ax1"` ; do
+    echo " === Display ax25dev-parms"
+
+    for devnum in 0 1 ; do
+        # Set variables: portname, portcfg, PORTSPEED
+        get_port_cfg $devnum
+        baudrate_parm="baud_$PORTSPEED"
+        if [ "$PORTSPEED" != "none" ] && [ ! -z "$PORTSPEED" ] ; then
+            SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
+            TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
+        fi
+
+        devname="ax$devnum"
         PARMDIR="/proc/sys/net/ax25/$devname"
         if [ -d "$PARMDIR" ] ; then
-            echo "Parameters for device $devname"
+            dbgecho "Parameters for device $devname"
 
-            echo -n "T1 Timeout: "
-            cat $PARMDIR/t1_timeout
-
-            echo -n "T2 Timeout: "
-            cat $PARMDIR/t2_timeout
+            T1_TIMEOUT=$(cat $PARMDIR/t1_timeout)
+            T2_TIMEOUT=$(cat $PARMDIR/t2_timeout)
         else
             echo "Device: $devname does NOT exist"
         fi
-    done
+        echo "port: $devnum, speed: $PORTSPEED, slottime: $SLOTTIME, txdelay: $TXDELAY, t1 timeout: $T1_TIMEOUT, t2 timeout: $T2_TIMEOUT"
 
+    done
 }
 
 # ===== function usage
@@ -49,9 +120,11 @@ function speed_status() {
 function usage() {
    echo "Usage: $scriptname [-s]" >&2
    echo "   -s      Display current status of speed."
+   echo "   -d      Set flag for verbose output"
    echo "   -h      Display this message"
    echo
 }
+
 # ===== main
 
 while [[ $# -gt 0 ]] ; do
@@ -60,9 +133,13 @@ APP_ARG="$1"
 case $APP_ARG in
 
    -s)
-      echo "Display status"
+      echo " === AX.25 parameter status"
       speed_status
       exit 0
+   ;;
+   -d)
+      echo "Verbose output"
+      DEBUG=1
    ;;
    -h|--help|?)
       usage
@@ -119,7 +196,12 @@ fi
 
 echo
 echo "=== set alsa config"
-sudo $BIN_PATH/setalsa-tmv71a.sh > /dev/null 2>&1
+if [ -z "$DEBUG" ] ; then
+    sudo $BIN_PATH/setalsa-tmv71a.sh > /dev/null 2>&1
+else
+    # Verbose output
+    sudo $BIN_PATH/setalsa-tmv71a.sh
+fi
 
 echo
 echo "=== reset direwolf & ax25 parms"
