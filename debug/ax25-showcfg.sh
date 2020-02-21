@@ -3,6 +3,7 @@
 AX25_DEVICE_DIR="/proc/sys/net/ax25"
 # AX25_KISS_CFG="/etc/systemd/system/ax25dev.service"
 AX25_KISS_CFG="/etc/ax25/ax25-upd"
+PORT_CFG_FILE="/etc/ax25/port.conf"
 
 echo " ===== packet baud rate"
 # For 9600 baud packet
@@ -43,10 +44,17 @@ echo
 echo "===== direwolf"
 # Assume there are ONLY 2 modems configured
 # in direwolf configuration file
-udr0_baud=$(grep -i "^MODEM " /etc/direwolf.conf | cut -d ' ' -f2 | head -n 1)
-udr1_baud=$(grep -i "^MODEM " /etc/direwolf.conf | cut -d ' ' -f2 | tail -n 1)
-echo "udr0 speed: $udr0_baud"
-echo "udr1 speed: $udr1_baud"
+dire_udr0_baud=$(grep -i "^MODEM " /etc/direwolf.conf | cut -d ' ' -f2 | head -n 1)
+dire_udr1_baud=$(grep -i "^MODEM " /etc/direwolf.conf | cut -d ' ' -f2 | tail -n 1)
+echo "DireWolf: udr0 speed: $dire_udr0_baud, udr1 speed: $dire_udr1_baud"
+
+if [ -e $PORT_CFG_FILE ] ; then
+    echo
+    echo "===== ax25"
+    ax25_udr0_baud=$(sed -n '/\[port0\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    ax25_udr1_baud=$(sed -n '/\[port1\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    echo "AX.25: udr0 speed: $ax25_udr0_baud, udr1 speed: $ax25_udr1_baud"
+fi
 
 # display axports
 echo
