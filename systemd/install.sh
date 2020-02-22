@@ -157,7 +157,7 @@ fi
 cp logcfg/01-direwolf.conf /etc/rsyslog.d/
 cp logcfg/direwolf /etc/logrotate.d/
 
-echo "restart syslog"
+echo "restart rsyslog"
 service rsyslog restart
 
 echo "test log rotate for direwolf, view status before ..."
