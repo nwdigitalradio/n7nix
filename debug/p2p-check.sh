@@ -5,6 +5,7 @@
 # Use like this:
 #  psp-check.sh <some_callsign>
 #
+# Requires paclink-unix
 # Logfile stored in $HOME/tmp/baudrate_test.log
 # Useful for 9600 baud test to a station or gateway.
 
