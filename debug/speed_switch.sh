@@ -5,7 +5,6 @@
 DEBUG=
 
 USER=$(whoami)
-#BIN_PATH="/home/$USER/n7nix/debug"
 BIN_PATH="/home/$USER/bin"
 
 SWITCH_FILE="/etc/ax25/packet_9600baud"
