@@ -560,6 +560,52 @@ function set_coordinates() {
     fi
 }
 
+# ===== function log_rotate
+
+# Setup & test log rotate for aprx
+
+function log_rotate() {
+    filename="/etc/logrotate.d/aprx"
+    # Check if file exists.
+    if [  -f "$filename" ] ; then
+        echo "logrotate file: $filename already configured"
+        return
+   else
+       echo "file $filename does NOT exist, will install"
+       sudo tee $filename << EOT
+/var/log/aprx/aprx-rf.log {
+	rotate 7
+	daily
+	missingok
+	compress
+	delaycompress
+	notifempty
+	create 640 root adm
+	postrotate
+		invoke-rc.d rsyslog rotate > /dev/null
+	endscript
+}
+EOT
+
+        sudo tee /etc/rsyslog.d/01-aprx.conf << EOT
+if $programname == 'aprx' then /var/log/aprx/aprx-rf.log
+if $programname == 'aprx' then ~
+EOT
+
+   fi
+
+    echo "restart rsyslog"
+    sudo service rsyslog restart
+
+    echo "test log rotate for aprx, view status before ..."
+    grep aprx /var/lib/logrotate/status
+
+    sudo logrotate -v -f $filename
+
+    echo "test log rotate, view status after ..."
+    grep aprx /var/lib/logrotate/status
+}
+
 # ===== function usage
 
 function usage() {
@@ -688,6 +734,9 @@ set_coordinates
 echo " == Install aprx config file"
 # Needs a valid callsign
 make_aprx_config_file
+
+echo " == Configure log rotate"
+log_rotate
 
 echo " == Install aprx systemd file, restart daemon"
 make_aprx_service_file
