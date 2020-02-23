@@ -54,6 +54,8 @@ if [ -e $PORT_CFG_FILE ] ; then
     ax25_udr0_baud=$(sed -n '/\[port0\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
     ax25_udr1_baud=$(sed -n '/\[port1\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
     echo "AX.25: udr0 speed: $ax25_udr0_baud, udr1 speed: $ax25_udr1_baud"
+else
+    echo "Port config file: $PORT_CFG_FILE NOT found."
 fi
 
 # display axports
