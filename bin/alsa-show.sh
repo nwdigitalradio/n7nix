@@ -3,6 +3,7 @@
 # Display alsa controls that are interesting
 # Uncomment this statement for debug echos
 # DEBUG=1
+bverbose=false
 
 scriptname="`basename $0`"
 
@@ -46,7 +47,8 @@ function usage () {
 	(
 	echo "Usage: $scriptname [-c card_name][-d][-h]"
         echo "    -c card_name, default=udrc"
-        echo "    -d switch to turn on verbose debug display"
+        echo "    -v turn on verbose display"
+        echo "    -d turn on debug display"
         echo "    -h display this message."
         echo
 	) 1>&2
@@ -67,6 +69,10 @@ while [[ $# -gt 0 ]] ; do
         -d)
             echo "Turning on debug"
             DEBUG=1
+        ;;
+        -v)
+            echo "Turning on verbose"
+            bverbose=true
         ;;
         -c)
 
@@ -170,6 +176,41 @@ if ((strlen < 4)) ; then
     printf "%s\t\tL:[%s]\t\tR:[%s]\n" "$control" "$CTRL_IN2_L" "$CTRL_IN2_R"
 else
     printf "%s\t\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_IN2_L" "$CTRL_IN2_R"
+fi
+
+if [ "$bverbose" == true ] ; then
+
+    control="IN1_L to Right Mixer Negative Resistor"
+    display_ctrl "$control"
+    CTRL_IN1_L_RNEG="$CTRL_VAL"
+
+    control="IN1_R to Left Mixer Positive Resistor"
+    display_ctrl "$control"
+    CTRL_IN1_R_LPOS="$CTRL_VAL"
+
+    control="IN2_L to Right Mixer Positive Resistor"
+    display_ctrl "$control"
+    CTRL_IN2_L_RPOS="$CTRL_VAL"
+
+    control="IN2_R to Left Mixer Negative Resistor"
+    display_ctrl "$control"
+    CTRL_IN2_R_LNEG="$CTRL_VAL"
+
+    control="IN1 to Neg"
+    strlen=${#CTRL_IN1_L_RNEG}
+    if ((strlen < 4)) ; then
+        printf "%s\tL:[%s]\t\tR:[%s]\n" "$control" "$CTRL_IN1_L_RNEG" "$CTRL_IN1_R_LPOS"
+    else
+        printf "%s\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_IN1_L_RNEG" "$CTRL_IN1_R_LPOS"
+    fi
+
+    control="IN2 to Neg"
+    strlen=${#CTRL_IN2_L_RNEG}
+    if ((strlen < 4)) ; then
+        printf "%s\tL:[%s]\t\tR:[%s]\n" "$control" "$CTRL_IN2_L_RPOS" "$CTRL_IN2_R_LNEG"
+    else
+        printf "%s\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_IN2_L_RPOS" "$CTRL_IN2_R_LNEG"
+    fi
 fi
 
 control="CM"
