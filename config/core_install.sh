@@ -308,7 +308,7 @@ if [ "$NONESSENTIAL_PKG" = "true" ] ; then
       apt-get install -y -q $NONESSENTIAL_PKG_LIST
       if [ "$?" -ne 0 ] ; then
          echo "Non essential packages install failed. Please try this command manually:"
-         echo "apt-get install -y $NONESSENTIAL_PKG_LIIST"
+         echo "apt-get install -y $NONESSENTIAL_PKG_LIST"
       fi
    fi
 
