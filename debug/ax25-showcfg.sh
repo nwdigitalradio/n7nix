@@ -1,27 +1,83 @@
 #!/bin/bash
+#
+# Display entire AX.25 configuration
+#
+# Uncomment this statement for debug echos
+#DEBUG=1
 
 AX25_DEVICE_DIR="/proc/sys/net/ax25"
 # AX25_KISS_CFG="/etc/systemd/system/ax25dev.service"
 AX25_KISS_CFG="/etc/ax25/ax25-upd"
 PORT_CFG_FILE="/etc/ax25/port.conf"
+PORT_SPEED="1200"
 
-echo " ===== packet baud rate"
-# For 9600 baud packet
-if [ -e "/etc/ax25/packet_9600baud" ] ; then
-    CFG_BAUDRATE="9600"
-else
-    CFG_BAUDRATE="1200"
+# ===== function dbgecho
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function get_port_speed
+
+# Needs arg of port number, either 0 or 1
+# Uses port.conf file for port speed, kissattach parms & ax.25 parms
+
+function get_port_speed() {
+    retcode=0
+    portnumber=$1
+    if [ -z $portnumber ] ; then
+        echo "Need to supply a port number in get_port_cfg"
+        return 1
+    fi
+
+    portname="udr$portnumber"
+    portcfg="port$portnumber"
+    dbgecho "Debug: portname=$portname, portcfg=$portcfg"
+
+    PORTSPEED=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    dbgecho "AX.25: $portname speed: $PORTSPEED"
+
+    case $PORTSPEED in
+        1200 | 9600)
+            dbgecho "parse baud_$PORTSPEED section for $portname"
+        ;;
+        off)
+            echo "Using split channel, port: $portname is off"
+        ;;
+        *)
+            echo "Invalid speed parameter: $PORTSPEED, found in $PORT_CFG_FILE"
+            retcode=1
+        ;;
+    esac
+}
+
+# ===== main
+
+# If no port config file found create one
+if [ ! -f $PORT_CFG_FILE ] ; then
+    echo "No port config file: $PORT_CFG_FILE found, copying from repo."
+    sudo cp $HOME/n7nix/ax25/port.conf $PORT_CFG_FILE
+    if [ "$?" -ne 0 ] ; then
+        echo "Error copying file: port.conf ..."
+    fi
 fi
-echo "Configured for $CFG_BAUDRATE baud"
 
 echo
-echo " ===== kissparms"
-MATCHLINE=2
-if [ "$CFG_BAUDRATE" == "1200" ] ; then
-    MATCHLINE=1
-fi
+echo " === Display kissparms & ax25dev-parms"
 
-grep -m $MATCHLINE -A 1 -i slottime $AX25_KISS_CFG | tail -n 2
+for devnum in 0 1 ; do
+    # Set variables: portname, portcfg, PORTSPEED
+    get_port_speed $devnum
+    baudrate_parm="baud_$PORTSPEED"
+    if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
+        SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
+        TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
+        T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
+        T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
+    else
+        echo "Use split channel config, HF on channel udr$devnum"
+    fi
+    printf "port: %d, speed: %d, slottime: %3d, txdelay: %d, t1 timeout: %d, t2 timeout: %4d\n" "$devnum" "$PORTSPEED" "$SLOTTIME" "$TXDELAY" "$T1_TIMEOUT" "$T2_TIMEOUT"
+done
+echo " == kissparms from $AX25_KISS_CFG"
 grep -i "kissparms" $AX25_KISS_CFG
 
 echo
@@ -41,7 +97,7 @@ echo
 alsa-show.sh
 
 echo
-echo "===== direwolf"
+echo "===== Port baudrate"
 # Assume there are ONLY 2 modems configured
 # in direwolf configuration file
 dire_udr0_baud=$(grep -i "^MODEM " /etc/direwolf.conf | cut -d ' ' -f2 | head -n 1)
@@ -49,11 +105,9 @@ dire_udr1_baud=$(grep -i "^MODEM " /etc/direwolf.conf | cut -d ' ' -f2 | tail -n
 echo "DireWolf: udr0 speed: $dire_udr0_baud, udr1 speed: $dire_udr1_baud"
 
 if [ -e $PORT_CFG_FILE ] ; then
-    echo
-    echo "===== ax25"
     ax25_udr0_baud=$(sed -n '/\[port0\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
     ax25_udr1_baud=$(sed -n '/\[port1\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
-    echo "AX.25: udr0 speed: $ax25_udr0_baud, udr1 speed: $ax25_udr1_baud"
+    echo "AX.25:    udr0 speed: $ax25_udr0_baud, udr1 speed: $ax25_udr1_baud"
 else
     echo "Port config file: $PORT_CFG_FILE NOT found."
 fi
@@ -72,5 +126,9 @@ grep -A 25 -i "$CALLSIGN" /etc/ax25/ax25d.conf
 # display port in wl2k.conf
 echo
 echo " ===== wl2k.conf"
-grep "ax25port=" /usr/local/etc/wl2k.conf
-echo
+pluax25_port=$(grep "ax25port=" /usr/local/etc/wl2k.conf)
+if [[ "$pluax25_port" =~ ^#.* ]] ; then
+    echo "paclink-unix not configured."
+else
+    echo "paclink-unix ax25 port: $pluax25_port"
+fi
