@@ -4,6 +4,7 @@
 #
 # Uncomment this statement for debug echos
 #DEBUG=1
+scriptname="`basename $0`"
 
 AX25_DEVICE_DIR="/proc/sys/net/ax25"
 # AX25_KISS_CFG="/etc/systemd/system/ax25dev.service"
@@ -49,6 +50,41 @@ function get_port_speed() {
     esac
 }
 
+# ===== function display_kissparms
+
+function display_kissparms() {
+
+    echo
+    echo " === Display kissparms & ax25dev-parms"
+
+    for devnum in 0 1 ; do
+        # Set variables: portname, portcfg, PORTSPEED
+        get_port_speed $devnum
+        baudrate_parm="baud_$PORTSPEED"
+        if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
+            SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
+            TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
+            T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
+            T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
+        else
+            echo "Use split channel config, HF on channel udr$devnum"
+        fi
+        printf "port: %d, speed: %d, slottime: %3d, txdelay: %d, t1 timeout: %d, t2 timeout: %4d\n" "$devnum" "$PORTSPEED" "$SLOTTIME" "$TXDELAY" "$T1_TIMEOUT" "$T2_TIMEOUT"
+    done
+    echo " == kissparms from $AX25_KISS_CFG"
+    grep -i "kissparms" $AX25_KISS_CFG
+}
+
+# ===== function usage
+
+function usage() {
+   echo "Usage: $scriptname [-d][-k][-h]" >&2
+   echo "   -d        set debug flag"
+   echo "   -k        Display kissparms only"
+   echo "   -h        no arg, display this message"
+   echo
+}
+
 # ===== main
 
 # If no port config file found create one
@@ -60,25 +96,34 @@ if [ ! -f $PORT_CFG_FILE ] ; then
     fi
 fi
 
-echo
-echo " === Display kissparms & ax25dev-parms"
+while [[ $# -gt 0 ]] ; do
+APP_ARG="$1"
 
-for devnum in 0 1 ; do
-    # Set variables: portname, portcfg, PORTSPEED
-    get_port_speed $devnum
-    baudrate_parm="baud_$PORTSPEED"
-    if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
-        SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
-        TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
-        T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
-        T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
-    else
-        echo "Use split channel config, HF on channel udr$devnum"
-    fi
-    printf "port: %d, speed: %d, slottime: %3d, txdelay: %d, t1 timeout: %d, t2 timeout: %4d\n" "$devnum" "$PORTSPEED" "$SLOTTIME" "$TXDELAY" "$T1_TIMEOUT" "$T2_TIMEOUT"
+case $APP_ARG in
+
+   -d|--debug)
+      DEBUG=1
+      echo "Debug mode on"
+   ;;
+   -k)
+      display_kissparms
+      exit 0
+   ;;
+   -h|--help|?)
+      usage
+      exit 0
+   ;;
+   *)
+      break;
+   ;;
+
+esac
+
+shift # past argument
 done
-echo " == kissparms from $AX25_KISS_CFG"
-grep -i "kissparms" $AX25_KISS_CFG
+
+
+display_kissparms
 
 echo
 echo " ===== ax.25 config"
