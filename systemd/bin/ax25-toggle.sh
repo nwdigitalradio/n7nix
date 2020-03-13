@@ -3,8 +3,11 @@
 DEBUG=
 scriptname="`basename $0`"
 
-SYSTEMCTL="sudo systemctl"
 DESKTOP_FILE="/home/pi/Desktop/ax25-startstop.desktop"
+ICON_START_FILE="/home/pi/bin/ax25-start.desktop"
+ICON_STOP_FILE="/home/pi/bin/ax25-stop.desktop"
+
+SYSTEMCTL="sudo systemctl"
 SERVICE_LIST="direwolf.service ax25dev.path ax25dev.service ax25-mheardd.service ax25d.service"
 LOG_DIR="/home/pi/log"
 LOG_FILE="$LOG_DIR/ax25-startstop.log"
@@ -120,7 +123,7 @@ if [ $? -eq 0 ] ; then
 
     # change icon to be on
     echo "changed icon to ON"
-    cp /home/pi/bin/ax25-start.desktop /home/pi/Desktop/ax25-startstop.desktop
+    cp $ICON_START_FILE $DESKTOP_FILE
     # sed leaves temporary file artifacts on desktop
 #    sed -i -e "/Icon=/ s/_off/_on/" "$DESKTOP_FILE" > /dev/null
 #    sed -i -e "/Name=/ s/25-stop/25-start/" "$DESKTOP_FILE" > /dev/null
@@ -135,7 +138,7 @@ else
 
     # change icon to be off
     echo "changed icon to OFF"
-    cp /home/pi/bin/ax25-stop.desktop /home/pi/Desktop/ax25-startstop.desktop
+    cp $ICON_STOP_FILE $DESKTOP_FILE
     # sed leaves temporary file artifacts on desktop
 #    sed -i -e "/Icon=/ s/_on/_off/" "$DESKTOP_FILE" > /dev/null
 #    sed -i -e "/Name=/ s/25-start/25-stop/" "$DESKTOP_FILE" > /dev/null
@@ -145,5 +148,5 @@ fi
 
 if [ ! -z "$DEBUG" ] ; then
     echo -n "Verify icon name: "
-    grep "Icon" /home/pi/Desktop/ax25-startstop.desktop
+    grep "Icon" $DESKTOP_FILE
 fi
