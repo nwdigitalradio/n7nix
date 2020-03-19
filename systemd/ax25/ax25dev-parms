@@ -6,6 +6,7 @@
 #  - arg1 = ax25 device name, either ax0 or ax1
 #  - arg2 = ax25 device speed, either 1200 or 9600 baud
 
+scriptname="`basename $0`"
 PORT_CFG_FILE="/etc/ax25/port.conf"
 
 # Set defaults for 1200 baud packet
@@ -16,19 +17,20 @@ T2_TIMEOUT="1000"
 # Check command line arguments
 if [[ $# -gt 0 ]] ; then
    Device=$1
+   if [[ $# -gt 1 ]] ; then
+       PORTSPEED=$2
+   fi
 else
    awk '/device/ { print $7 }' /tmp/ax25-config.tmp > /tmp/ax25-config-tmp
    read Device < /tmp/ax25-config-tmp
 
    if [[ -z "$Device" ]] ; then
        Device="ax0"
-       echo "Set Device to default: $Device"
-   fi
-
-   if [[ $# -gt 1 ]] ; then
-       PORTSPEED=$2
+       echo "$scriptname: Set Device to default: $Device"
    fi
 fi
+
+echo "$scriptname: baudrate: $PORTSPEED"
 
 # Get device parameters from config file
 # Build baud rate section string
@@ -39,7 +41,9 @@ if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
     T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
 fi
 
-echo "Using Device = $Device"
+echo "debug: using T1_TIMEOUT: $T1_TIMEOUT, T2_TIMEOUT: $T2_TIMEOUT"
+
+echo "$scriptname: Using Device = $Device, baudrate: $PORTSPEED"
 if [ -d /proc/sys/net/ax25/$Device ] ; then
  PARMDIR="/proc/sys/net/ax25/$Device"
 # Parms for a USER Port
@@ -60,7 +64,7 @@ echo 0       > $PARMDIR/protocol
 
         ifconfig $Device netmask 255.255.255.255
 else
-        echo "** Error setting Device: $Device parms**"
+        echo "$scriptname: ** Error setting Device: $Device parms**"
 fi
-echo "ax25dev-parms finished"
+echo "$scriptname: finished"
 exit 0
