@@ -8,7 +8,9 @@
 # mDin6 connector on left channel,  direwolf chan 0
 # mDin6 connector on right channel, direwolf chan 1
 #
+DEBUG=
 
+scriptname="`basename $0`"
 asoundstate_file="/var/lib/alsa/asound.state"
 AX25_CFGDIR="/usr/local/etc/ax25"
 PORT_CFG_FILE="$AX25_CFGDIR/port.conf"
@@ -29,7 +31,7 @@ IN2_R="10 kOhm"
 
 # Check if no port config file found
 if [ ! -f $PORT_CFG_FILE ] ; then
-    echo "No port config file: $PORT_CFG_FILE found, using defaults."
+    echo "$script_name: No port config file: $PORT_CFG_FILE found, using defaults."
 
     if [[ $EUID == 0 ]] ; then
         echo "Must NOT be root"
@@ -42,7 +44,7 @@ else
     portcfg="port0"
     PORTSPEED_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
     RECVSIG_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
-    if [ "$RECVSIG" == "disc" ] ; then
+    if [ "$RECVSIG_LEFT" == "disc" ] ; then
         # Set variables for discriminator signal
         PCM_LEFT="0.0"
         LO_DRIVER_LEFT="3.0"
@@ -55,7 +57,7 @@ else
     portcfg="port1"
     PORTSPEED_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
     RECVSIG_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
-    if [ "$RECVSIG" == "disc" ] ; then
+    if [ "$RECVSIG_RIGHT" == "disc" ] ; then
         # Set variables for discriminatior signal
         PCM_RIGHT="0.0"
         LO_DRIVER_RIGHT="3.0"
@@ -67,23 +69,26 @@ fi
 
 stateowner=$(stat -c %U $asoundstate_file)
 if [ $? -ne 0 ] ; then
-   "Command 'alsactl store' will not work, file: $asoundstate_file does not exist"
+   "$scriptname: Command 'alsactl store' will not work, file: $asoundstate_file does not exist"
    exit
 fi
 
 # IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
 # IN2 Compensated receive audio (all radios, 1200 baud and slower packet)
 
-# Test new method!
-echo "== DEBUG =="
-echo "PCM: $PCM_LEFT, $PCM_RIGHT"
-echo "LO Driver Gain: ${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
-echo "ADC Level: ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB"
-echo "IN1: $IN1_L, $IN1_R"
-echo "IN2: $IN2_L, $IN2_R"
-echo
+if [ ! -z "$DEBUG" ] ; then
+    # Test new method
+    echo "== DEBUG: $scriptname: Port Speed: $PORTSPEED_LEFT, $PORTSPEED_RIGHT  =="
+    echo "RECVSIG: $RECVSIG_LEFT, $RECVSIG_RIGHT"
+    echo "PCM: $PCM_LEFT, $PCM_RIGHT"
+    echo "LO Driver Gain: ${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
+    echo "ADC Level: ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB"
+    echo "IN1: $IN1_L, $IN1_R"
+    echo "IN2: $IN2_L, $IN2_R"
+    echo
+fi
 
-    amixer -c udrc -s << EOF
+amixer -c udrc -s << EOF
 sset 'PCM' "${PCM_LEFT}dB,${PCM_RIGHT}dB"
 sset 'LO Driver Gain' "${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
 sset 'ADC Level' ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB
