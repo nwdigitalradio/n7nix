@@ -5,7 +5,7 @@
 # Ax25, rose, & mkiss - are pre-loaded via /etc/modules or built into kernel
 #
 # Uncomment this statement for debug echos
-DEBUG=1
+#DEBUG=1
 
 SBINDIR=/usr/local/sbin
 BINDIR=/usr/local/bin
