@@ -74,9 +74,6 @@ function speed_status() {
     T1_TIMEOUT=
     T2_TIMEOUT=
 
-    echo
-    echo " === Display kissparms & ax25dev-parms"
-
     for devnum in 0 1 ; do
         # Set variables: portname, portcfg, PORTSPEED
         get_port_speed $devnum
@@ -190,7 +187,7 @@ while [[ $# -gt 0 ]] ; do
 
     case $APP_ARG in
         -s)
-            echo " === AX.25 parameter status"
+            echo " === AX.25 baudrate status"
             speed_status
             exit 0
         ;;
