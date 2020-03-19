@@ -1,4 +1,5 @@
 #!/bin/bash
+# version: 1.1
 #
 # Display entire AX.25 configuration
 #
@@ -72,7 +73,7 @@ function display_kissparms() {
         printf "port: %d, speed: %d, slottime: %3d, txdelay: %d, t1 timeout: %d, t2 timeout: %4d\n" "$devnum" "$PORTSPEED" "$SLOTTIME" "$TXDELAY" "$T1_TIMEOUT" "$T2_TIMEOUT"
     done
     echo " == kissparms from $AX25_KISS_CFG"
-    grep -i "kissparms" $AX25_KISS_CFG
+    grep "KISSPARMS -p" $AX25_KISS_CFG
 }
 
 # ===== function usage

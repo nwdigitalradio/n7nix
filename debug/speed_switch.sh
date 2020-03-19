@@ -1,4 +1,5 @@
 #!/bin/bash
+# version: 1.1
 #
 # Switch for 1200 baud and 9600 baud packet speed
 #
@@ -7,7 +8,6 @@ DEBUG=
 USER=$(whoami)
 BIN_PATH="/home/$USER/bin"
 
-SWITCH_FILE="/etc/ax25/packet_9600baud"
 PORT_CFG_FILE="/etc/ax25/port.conf"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 
@@ -16,16 +16,20 @@ DIREWOLF_CFGFILE="/etc/direwolf.conf"
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 
-# ===== function check_port_file
-# Needs arg of port number, either 0 or 1
+# ===== function get_port_speed
 
-function get_port_cfg() {
+# Needs arg of port number, either 0 or 1
+# Uses port.conf file for:
+#  - port speed, kissattach parms & ax.25 parms
+#  - enabling split channel
+
+function get_port_speed() {
     retcode=0
     if [ -e $PORT_CFG_FILE ] ; then
         dbgecho " ax25 port file exists"
         portnumber=$1
         if [ -z $portnumber ] ; then
-            echo "Need to supply a port number in get_port_cfg"
+            echo "Need to supply a port number in get_port_speed"
             return 1
         fi
 
@@ -44,7 +48,7 @@ function get_port_cfg() {
             9600)
                 dbgecho "parse baud_9600 section for $portname"
             ;;
-            none)
+            off)
                 echo "Using split channel, port: $portname is off"
             ;;
             *)
@@ -59,24 +63,9 @@ function get_port_cfg() {
     return $retcode
 }
 
-# ===== function check_switch_file
-
-function check_switch_file() {
-    if [ -e "$SWITCH_FILE" ] ; then
-        echo "Baudrate Switch file exists"
-        # Anything in the file?
-        if [ -s "$SWITCH_FILE" ] ; then
-            # Check for speed_chan
-            echo "File: $SWITCH_FILE NOT empty"
-        else
-            echo "Nothing in file: $SWITCH_FILE"
-        fi
-    else
-        echo "Baudrate Switch file does NOT exist"
-    fi
-}
-
 # ===== function speed_status
+
+# Display parameters used for kissattach & AX.25 device
 
 function speed_status() {
 
@@ -85,16 +74,14 @@ function speed_status() {
     T1_TIMEOUT=
     T2_TIMEOUT=
 
-    check_switch_file
-
     echo
-    echo " === Display ax25dev-parms"
+    echo " === Display kissparms & ax25dev-parms"
 
     for devnum in 0 1 ; do
         # Set variables: portname, portcfg, PORTSPEED
-        get_port_cfg $devnum
+        get_port_speed $devnum
         baudrate_parm="baud_$PORTSPEED"
-        if [ "$PORTSPEED" != "none" ] && [ ! -z "$PORTSPEED" ] ; then
+        if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
             SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
             TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
         fi
@@ -114,6 +101,65 @@ function speed_status() {
     done
 }
 
+# ===== function direwolf_set_baud
+
+# Set baud rate on MODEM line for the first modem channel
+
+function direwolf_set_baud() {
+
+    modem_speed="$1"
+
+    echo
+    echo "=== set direwolf $modem_speed baud speed"
+
+    # Modify first occurrence of MODEM configuration line
+    sudo sed -i "0,/^MODEM/ s/^MODEM .*/MODEM $modem_speed/" $DIREWOLF_CFGFILE
+
+    # Modify second occurrence of MODEM configuration line
+    # sudo sed -i -e "0,/^MODEM /! {/^MODEM/ s/^MODEM .*/MODEM $modem_speed/}" $DIREWOLF_CFGFILE
+
+    # Modify both occurrences of MODEM configuration line
+    # sudo sed -i "/^MODEM/ s/^MODEM .*/MODEM $modem_speed/" $DIREWOLF_CFGFILE
+}
+
+# ===== function switch_config
+
+# Switch a single port based upon config file setting.
+# NOTE: only switches port 0
+
+function switch_config() {
+    if [ -e $PORT_CFG_FILE ] ; then
+        ax25_udr0_baud=$(sed -n '/\[port0\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+        ax25_udr1_baud=$(sed -n '/\[port1\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+        dbgecho "AX.25: udr0 speed: $ax25_udr0_baud, udr1 speed: $ax25_udr1_baud"
+    else
+        echo "Port config file: $PORT_CFG_FILE NOT found."
+        return;
+    fi
+
+    case "$ax25_udr0_baud" in
+        1200)
+            newspeed_port0=9600
+        ;;
+        9600)
+            newspeed_port0=1200
+        ;;
+        off)
+            newspeed=off
+        ;;
+        *)
+            echo "Invalid speed parameter: $ax25_udr0_baud"
+            return;
+        ;;
+    esac
+
+    echo "=== set port.conf $newspeed_port0 baud rate"
+    # Switch speeds in config file
+    sudo sed -i -e "/\[port0\]/,/\[/ s/^speed=.*/speed=$newspeed_port0/" $PORT_CFG_FILE
+    direwolf_set_baud $newspeed_port0
+}
+
+
 # ===== function usage
 
 function usage() {
@@ -126,72 +172,52 @@ function usage() {
 
 # ===== main
 
+# Be sure NOT running as root
+if [[ $EUID == 0 ]] ; then
+   echo "Must NOT be root"
+   exit 1
+fi
+
+
+# If no port config file found create one
+if [ ! -f $PORT_CFG_FILE ] ; then
+    echo "No port config file: $PORT_CFG_FILE found, copying from repo."
+    sudo cp $HOME/n7nix/ax25/port.conf $PORT_CFG_FILE
+fi
+
 while [[ $# -gt 0 ]] ; do
-APP_ARG="$1"
+    APP_ARG="$1"
 
-case $APP_ARG in
+    case $APP_ARG in
+        -s)
+            echo " === AX.25 parameter status"
+            speed_status
+            exit 0
+        ;;
+        -d)
+            echo "Verbose output"
+            DEBUG=1
+       ;;
+       -h|--help|?)
+            usage
+            exit 0
+       ;;
+       *)
+            break;
+       ;;
+    esac
 
-   -s)
-      echo " === AX.25 parameter status"
-      speed_status
-      exit 0
-   ;;
-   -d)
-      echo "Verbose output"
-      DEBUG=1
-   ;;
-   -h|--help|?)
-      usage
-      exit 0
-   ;;
-   *)
-      break;
-   ;;
-
-esac
-
-shift # past argument
+    shift # past argument
 done
 
+switch_config
 
-
-if [ -e "$SWITCH_FILE" ] ; then
-    # For 1200 baud packet
-    echo
-    echo "Removing 9600 baud speed switch file"
-    echo
-    sudo rm $SWITCH_FILE
-    echo "rm ret code: $?"
-    if [ -e "$SWITCH_FILE" ] ; then
-        echo "switch failed, $SWITCH_FILE still exists"
-        exit 1
-    fi
-
-    echo
-    echo "=== set direwolf 1200 baud speed"
-
-    # uncomment 1200 baud line
-    sudo sed -i '/^#MODEM 1200/ s/^#//' $DIREWOLF_CFGFILE
-
-    # Comment out any 9600 lines
-    sudo sed -i -e "/^MODEM 9600/ s/^/#/" $DIREWOLF_CFGFILE
-
-else
-    # For 9600 baud packet
-    echo
-    echo "Creating speed 9600 baud switch file"
-    echo
-    sudo touch $SWITCH_FILE
-    echo "touch ret code: $?"
-
-    echo
-    echo "=== set direwolf 9600 baud speed"
-    # uncomment 9600 baud line
-    sudo sed -i '/^#MODEM 9600/ s/^#//' $DIREWOLF_CFGFILE
-
-    # Comment out any 1200 lines
-    sudo sed -i -e "/^MODEM 1200/ s/^/#/" $DIREWOLF_CFGFILE
-fi
+# DEBUG ONLY
+echo "Verify port.conf"
+grep -i "speed" $PORT_CFG_FILE
+echo
+echo "Verify direwolf.conf"
+grep -i "^MODEM" /etc/direwolf.conf
 
 echo
 echo "=== set alsa config"

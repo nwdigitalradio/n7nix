@@ -15,7 +15,8 @@ DEBUG=1
 scriptname="`basename $0`"
 
 bsplitchannel=false
-SPLIT_CHANNEL_FILE="/etc/ax25/split_channel"
+
+PORT_CFG_FILE="/etc/ax25/port.conf"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 AX25_CFGDIR="/usr/local/etc/ax25"
 AX25PORT="udr"
@@ -57,25 +58,32 @@ function is_direwolf() {
 
 function is_splitchan() {
 
-   retcode=1
+    retcode=1
 
-    # ==== verify split channel file
-    if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
-        # split channel file exists, anything in it
-        if [ -s "$SPLIT_CHANNEL_FILE" ] ; then
-            chan_state=$(grep -i split_chan "$SPLIT_CHANNEL_FILE" | cut -f2 -d' ')
-            if [ "$chan_state" == "left" ] || [ "$chan_state" == "right" ] ; then
+    # ==== verify port config file
+    if [ -e "$PORT_CFG_FILE" ] ; then
+        portcfg=port1
+        PORTSPEED=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+
+        case $PORTSPEED in
+            1200 | 9600)
+                dbgecho "parse baud_$PORTSPEED section for $portname"
                 retcode=0
-            else
+            ;;
+            off)
+                echo "Using split channel, port: $portname is off"
                 retcode=1
-            fi
-        else
-            # split_channel_file exists but is empty
-            retcode=0
-        fi
+            ;;
+            *)
+                echo "Invalid speed parameter: $PORTSPEED, found in $PORT_CFG_FILE"
+                retcode=2
+            ;;
+        esac
+
     else
-        # split channel file does NOT exist
-        retcode=1
+        # port config file does NOT exist
+        echo "Port config file: $PORT_CFG_FILE NOT found."
+        retcode=3
     fi
     return $retcode
 }
@@ -101,7 +109,9 @@ function display_service_status() {
 
 function split_debugstatus() {
 
-    if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
+    is_splitchan
+    splitchan_result=$?
+    if [ "$splitchan_result" -eq "1" ] ; then
         # Get 'left' or 'right' channel (get last word in ADEVICE string)
         chan_lr=$(grep "^ADEVICE " $DIREWOLF_CFGFILE | grep -oE '[^-]+$')
         echo " == Split channel is enabled, Direwolf controls 1 channel ($chan_lr)"
@@ -186,25 +196,25 @@ function split_status() {
     bsplitchannel=false
     split_status="disabled"
 
-    if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
-        echo -n "split channel file exists "
-        if [ -s "$SPLIT_CHANNEL_FILE" ] ; then
-            echo "and contains:"
-            schan=$(cat $SPLIT_CHANNEL_FILE | cut -f2 -d' ')
-            if [ "$schan" != "off" ] ; then
+    if [ -e "$PORT_CFG_FILE" ] ; then
+        echo -n "Port config file exists "
+        portcfg=port1
+        PORTSPEED=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+        if [ "$PORTSPEED" == "off" ] ; then
+            # Current config is set for split channel
                 bsplitchannel=true
                 split_status="enabled"
-            fi
         else
-            echo "and is empty"
-            bsplitchannel=true
-            split_status="enabled"
-        fi
-        cat "$SPLIT_CHANNEL_FILE"
+            # Current config is set for packet on both channels
+                bsplitchannel=false
+                split_status="DISabled"
+       fi
+
+       echo "split channel is $split_status"
     else
-        echo "split channel file does NOT exist"
+       # Get here if cfg port file does not exist
+       echo "No port config file: $PORT_CFG_FILE found!!"
     fi
-    echo "split channel is $split_status"
 
     # ==== verify pulse audio service
     display_service_status "pulseaudio"

@@ -13,6 +13,7 @@ USER=
 AX25PORT="udr"
 SSID="15"
 AX25_CFGDIR="/usr/local/etc/ax25"
+PORT_CFG_FILE="$AX25_CFGDIR/port.conf"
 
 PRIMARY_DEVICE="udr0"
 ALTERNATE_DEVICE="udr1"
@@ -246,6 +247,14 @@ elif [ "$PROD_ID" -eq 4 ] ; then
     ALTERNATE_DEVICE="udr1"
 else
     echo "Product ID test failed with: $PROD_ID"
+fi
+
+# Setup port config file
+# If no port config file found, create one
+LOCAL_REPO="/home/$USER/n7nix"
+if [ ! -f $PORT_CFG_FILE ] ; then
+    echo "No port config file: $PORT_CFG_FILE found, copying from repo."
+    sudo cp $LOCAL_REPO/ax25/port.conf $PORT_CFG_FILE
 fi
 
 # Setup ax.25 axports file

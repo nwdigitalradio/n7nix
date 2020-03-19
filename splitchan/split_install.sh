@@ -180,6 +180,17 @@ else
 fi
 }
 
+# ===== function turn split channel on
+function split_chan_on() {
+
+    echo "Enable split channels, Direwolf has left channel, HF has right channel"
+
+    sudo sed -i -e "/\[port1\]/,/\[/ s/^speed=.*/speed=off/" $PORT_CFG_FILE
+
+    bsplitchannel=true
+}
+
+
 # ===== Display program help info
 #
 usage () {
@@ -332,8 +343,13 @@ else
     start_service $service
 fi
 
-# And finally set up the split channel indicator file
+# And finally set up the port configuration file
 sudo tee "$SPLIT_CHANNEL_FILE" > /dev/null <<< "split_chan $CONNECTOR"
+if [ ! -e "$PORT_CFG_FILE" ] ; then
+    echo "No port config file: $PORT_CFG_FILE found, copying from repo."
+    sudo cp /home/$USER//n7nix/ax25/port.conf $PORT_CFG_FILE
+fi
+split_chan_on
 
 # may need to do the following:
 # chmod 000 /usr/bin/start-pulseaudio-x11

@@ -9,14 +9,60 @@
 # mDin6 connector on right channel, direwolf chan 1
 #
 
-
-MODE_9600_ENABLE=false
-
 asoundstate_file="/var/lib/alsa/asound.state"
-SWITCH_FILE="/etc/ax25/packet_9600baud"
+AX25_CFGDIR="/usr/local/etc/ax25"
+PORT_CFG_FILE="$AX25_CFGDIR/port.conf"
 
-if [ -e "$SWITCH_FILE" ] ; then
-    MODE_9600_ENABLE=true
+# Default to 1200 baud settings for both channels
+PCM_LEFT="-2.0"
+PCM_RIGHT="-2.0"
+LO_DRIVER_LEFT="0.0"
+LO_DRIVER_RIGHT="0.0"
+ADC_LEVEL_LEFT="0.0"
+ADC_LEVEL_RIGHT="0.0"
+
+IN1_L='Off'
+IN1_R='Off'
+IN2_L="10 kOhm"
+IN2_R="10 kOhm"
+
+
+# Check if no port config file found
+if [ ! -f $PORT_CFG_FILE ] ; then
+    echo "No port config file: $PORT_CFG_FILE found, using defaults."
+
+    if [[ $EUID == 0 ]] ; then
+        echo "Must NOT be root"
+        exit 1
+    fi
+    # This will not work when run as root
+    sudo cp $HOME/n7nix/ax25/port.conf $PORT_CFG_FILE
+else
+    # Set left channel parameters
+    portcfg="port0"
+    PORTSPEED_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    RECVSIG_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
+    if [ "$RECVSIG" == "disc" ] ; then
+        # Set variables for discriminator signal
+        PCM_LEFT="0.0"
+        LO_DRIVER_LEFT="3.0"
+        ADC_LEVEL_LEFT="-4.0"
+        IN1_L='10 kOhm'
+        IN2_L="Off"
+    fi
+
+    # Set right channel parameters
+    portcfg="port1"
+    PORTSPEED_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    RECVSIG_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
+    if [ "$RECVSIG" == "disc" ] ; then
+        # Set variables for discriminatior signal
+        PCM_RIGHT="0.0"
+        LO_DRIVER_RIGHT="3.0"
+        ADC_LEVEL_RIGHT="-4.0"
+        IN1_R='10 kOhm'
+        IN2_R="Off"
+    fi
 fi
 
 stateowner=$(stat -c %U $asoundstate_file)
@@ -25,51 +71,28 @@ if [ $? -ne 0 ] ; then
    exit
 fi
 
-# Be sure we're running as root
- if [[ $EUID != 0 ]] ; then
-   echo "Command 'alsactl store' will not work unless you are root"
-fi
-
 # IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
 # IN2 Compensated receive audio (all radios, 1200 baud and slower packet)
 
-if [ "$MODE_9600_ENABLE" = "true" ] ; then
-
-    echo "debug: 9600 baud enable ie. DISCOUT"
-    # For 9600 baud packet only
-    # Turn AFOUT off & DISCOUT on
-    # ie. Receive audio off & discriminator input on
-
-    amixer -c udrc -s << EOF
-sset 'PCM' 0.0dB,0.0dB
-sset 'LO Driver Gain' 3.0dB,3.0dB
-sset 'ADC Level' -4.0dB,-4.0dB
-
-sset 'IN1_L to Left Mixer Positive Resistor' '10 kOhm'
-sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
-sset 'IN2_L to Left Mixer Positive Resistor' 'Off'
-sset 'IN2_R to Right Mixer Positive Resistor' 'Off'
-EOF
-
-else
-    echo "debug: 1200 baud enable ie. AFOUT"
-    # Default mode, for HF & 1200 baud packet
-    # Turn AFOUT on & DISCOUT off
-    # ie. Receive audio on & discriminator off
+# Test new method!
+echo "== DEBUG =="
+echo "PCM: $PCM_LEFT, $PCM_RIGHT"
+echo "LO Driver Gain: ${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
+echo "ADC Level: ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB"
+echo "IN1: $IN1_L, $IN1_R"
+echo "IN2: $IN2_L, $IN2_R"
+echo
 
     amixer -c udrc -s << EOF
-sset 'PCM' -2.0dB,-2.0dB
-sset 'LO Driver Gain' 0.0dB,0.0dB
-sset 'ADC Level' 0.0dB,0.0dB
+sset 'PCM' "${PCM_LEFT}dB,${PCM_RIGHT}dB"
+sset 'LO Driver Gain' "${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
+sset 'ADC Level' ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB
 
-sset 'IN1_L to Left Mixer Positive Resistor' 'Off'
-sset 'IN1_R to Right Mixer Positive Resistor' 'Off'
-sset 'IN2_L to Left Mixer Positive Resistor' '10 kOhm'
-sset 'IN2_R to Right Mixer Positive Resistor' '10 kOhm'
-EOF
-fi
+sset 'IN1_L to Left Mixer Positive Resistor' "$IN1_L"
+sset 'IN1_R to Right Mixer Positive Resistor' "$IN1_R"
+sset 'IN2_L to Left Mixer Positive Resistor' "$IN2_L"
+sset 'IN2_R to Right Mixer Positive Resistor' "$IN2_R"
 
-amixer -c udrc -s << EOF
 # Set default input and output levels
 # Everything after this line is common to both audio channels
 
@@ -124,4 +147,10 @@ sset 'LOL Output Mixer L_DAC' on
 # Turn on TONEIN
 sset 'LOR Output Mixer R_DAC' on
 EOF
-alsactl store
+
+ALSACTL="alsactl"
+if [[ $EUID != 0 ]] ; then
+   ALSACTL="sudo alsactl"
+fi
+
+$ALSACTL store

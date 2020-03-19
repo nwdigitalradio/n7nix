@@ -1,5 +1,19 @@
 #!/bin/bash
+# version: 1.1
+#
+# Sets AX.25 device parameters
+# Requires two arguments:
+#  - arg1 = ax25 device name, either ax0 or ax1
+#  - arg2 = ax25 device speed, either 1200 or 9600 baud
 
+PORT_CFG_FILE="/etc/ax25/port.conf"
+
+# Set defaults for 1200 baud packet
+PORTSPEED="1200"
+T1_TIMEOUT="3000"
+T2_TIMEOUT="1000"
+
+# Check command line arguments
 if [[ $# -gt 0 ]] ; then
    Device=$1
 else
@@ -7,24 +21,25 @@ else
    read Device < /tmp/ax25-config-tmp
 
    if [[ -z "$Device" ]] ; then
-      Device="ax0"
-      echo "Set Device to default: $Device"
+       Device="ax0"
+       echo "Set Device to default: $Device"
+   fi
+
+   if [[ $# -gt 1 ]] ; then
+       PORTSPEED=$2
    fi
 fi
 
-echo "Using Device = $Device"
+# Get device parameters from config file
+# Build baud rate section string
+baudrate_parm="baud_$PORTSPEED"
 
-# For 1200 baud packet
-T1_TIMEOUT="3000"
-T2_TIMEOUT="1000"
-
-# For 9600 baud packet
-if [ -e "/etc/ax25/packet_9600baud" ] ; then
-    T1_TIMEOUT="2000"
-    T2_TIMEOUT="100"
-
+if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
+    T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
+    T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
 fi
 
+echo "Using Device = $Device"
 if [ -d /proc/sys/net/ax25/$Device ] ; then
  PARMDIR="/proc/sys/net/ax25/$Device"
 # Parms for a USER Port

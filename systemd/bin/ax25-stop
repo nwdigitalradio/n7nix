@@ -5,7 +5,7 @@
 
 scriptname="`basename $0`"
 
-SPEED_FILE="/etc/ax25/packet_9600baud"
+PORT_CFG_FILE="/etc/ax25/port.conf"
 SERVICE_LIST="ax25dev.service ax25dev.path direwolf.service ax25-mheardd.service ax25d.service"
 SYSTEMCTL="systemctl"
 
@@ -99,12 +99,19 @@ else
     check_user
 fi
 
-MODEM_SPEED="1200"
-if [ -e "$SPEED_FILE" ] ; then
-    MODEM_SPEED="9600"
+ax25_udr0_baud="not configured"
+ax25_udr1_baud="not configured"
+
+if [ -e $PORT_CFG_FILE ] ; then
+    ax25_udr0_baud=$(sed -n '/\[port0\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    ax25_udr1_baud=$(sed -n '/\[port1\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    dbgecho "AX.25: udr0 speed: $ax25_udr0_baud, udr1 speed: $ax25_udr1_baud"
+else
+    echo "Port config file: $PORT_CFG_FILE NOT found."
 fi
+
 echo
-echo "STOPPING AX.25/Direwolf as $MODEM_SPEED baud modem."
+echo "STOPPING AX.25/Direwolf: port 0: $ax25_udr0_baud & port1: $ax25_udr1_baud baud modems."
 
 
 for service in `echo ${SERVICE_LIST}` ; do

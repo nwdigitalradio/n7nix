@@ -10,9 +10,8 @@
 # To make direwolf NOT control any channels toggle split channel off
 # and run ax25-stop
 #
-# Split channel is enabled by having a file (split_channel) in
-# directory /etc/ax25 with a single entry of either:
-# "split_chan left" or "split_chan right"
+# Split channel is enabled in /etc/ax25/port.conf in
+# with a speed= entry for port1: speed=off
 
 # Uncomment this statement for debug echos
 #DEBUG=1
@@ -20,7 +19,8 @@
 scriptname="`basename $0`"
 
 bsplitchannel=false
-SPLIT_CHANNEL_FILE="/etc/ax25/split_channel"
+
+PORT_CFG_FILE="/etc/ax25/port.conf"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 SYSTEMCTL="systemctl"
 
@@ -82,7 +82,10 @@ function config_both_channels() {
 }
 
 # ===== function config_single_channel
-# Edit direwolf.conf to use right mDin6 connector only
+
+# Configure direwolf to use only one mDin6 connector
+# - defaults to using left mDin6 connector
+
 function config_single_channel() {
     sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE draws-capture-$CONNECTOR draws-playback-$CONNECTOR/"  $DIREWOLF_CFGFILE
     sudo sed -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
@@ -91,15 +94,22 @@ function config_single_channel() {
 
 # ===== function turn split channel off
 function split_chan_off() {
-    sudo tee "$SPLIT_CHANNEL_FILE" > /dev/null <<< "split_chan off"
+
+    newspeed_port1=1200
+##11    sudo tee "$SPLIT_CHANNEL_FILE" > /dev/null <<< "split_chan off"
+    sudo sed -i -e "/\[port1\]/,/\[/ s/^speed=.*/speed=$newspeed_port1/" $PORT_CFG_FILE
     bsplitchannel=false
 }
 
 # ===== function turn split channel on
 function split_chan_on() {
+
     # Current config is set for both channels used by direwolf
     echo "Toggle for split channels, Direwolf has left channel, HF has right channel"
-    sudo tee "$SPLIT_CHANNEL_FILE" > /dev/null <<< "split_chan left"
+
+    sudo sed -i -e "/\[port1\]/,/\[/ s/^speed=.*/speed=off/" $PORT_CFG_FILE
+
+##11  sudo tee "$SPLIT_CHANNEL_FILE" > /dev/null <<< "split_chan left"
 
     bsplitchannel=true
 }
@@ -107,33 +117,23 @@ function split_chan_on() {
 # ===== function split_chan_toggle
 function split_chan_toggle() {
     # Test if split channel indicator file exists
-    if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
-        # Current config is set for split channel
-        echo "Toggle so direwolf controls both channels"
-        # Check if there is any config in the file
-        if [ -s "$SPLIT_CHANNEL_FILE" ] ; then
-            chan_state=$(grep -i split_chan "$SPLIT_CHANNEL_FILE" | cut -f2 -d' ')
-            retcode="$?"
-            dbgecho "Retcode from grep splitchan: $retcode, state: $chan_state"
-            if [ "$retcode" -eq 0 ] ; then
-                if [ "$chan_state" == "left" ] || [ "$chan_state" == "right" ] ; then
-                    dbgecho "split_chan_off 1"
-                    split_chan_off
-                else
-                    dbgecho "split_chan_on 1"
-                    split_chan_on
-                fi
-            fi
+    if [ -e "$PORT_CFG_FILE" ] ; then
+        portcfg=port1
+        PORTSPEED=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+        if [ "$PORTSPEED" == "off" ] ; then
+            # Current config is set for split channel
+            echo "Toggle so direwolf controls both channels"
+            dbgecho "split_chan_on 1"
+            split_chan_on
         else
-            dbgecho "split_chan_off 2"
+            dbgecho "split_chan_off 1"
             split_chan_off
         fi
-
-
     else
        dbgecho "split_chan_on 2"
-       # Get here if split channel file does not exist
-       split_chan_on
+       # Get here if cfg port file does not exist
+       echo "No port config file: $PORT_CFG_FILE found, copying from repo."
+       sudo cp $HOME/n7nix/ax25/port.conf $PORT_CFG_FILE
     fi
 }
 
@@ -173,6 +173,13 @@ usage () {
 if [[ $EUID != 0 ]] ; then
    echo "set sudo"
    SYSTEMCTL="sudo systemctl"
+else
+    if [ -e "$PORT_CFG_FILE" ] ; then
+        echo "Running as root"
+    else
+        echo "Running as root and no port config file found ... exiting"
+        exit 1
+    fi
 fi
 
 # Check for any command line arguments

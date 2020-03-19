@@ -5,7 +5,9 @@
 
 scriptname="`basename $0`"
 
-SPEED_FILE="/etc/ax25/packet_9600baud"
+USER=
+AX25_CFGDIR="/usr/local/etc/ax25"
+PORT_CFG_FILE="$AX25_CFGDIR/port.conf"
 SERVICE_LIST="direwolf.service ax25dev.path ax25dev.service ax25-mheardd.service ax25d.service"
 SYSTEMCTL="systemctl"
 
@@ -111,12 +113,25 @@ else
     check_user
 fi
 
-MODEM_SPEED="1200"
-if [ -e "$SPEED_FILE" ] ; then
-    MODEM_SPEED="9600"
+# If no port config file found create one
+if [ ! -f $PORT_CFG_FILE ] ; then
+    echo "No port config file: $PORT_CFG_FILE found, copying from repo."
+    sudo cp $HOME/n7nix/ax25/port.conf $PORT_CFG_FILE
 fi
+
+ax25_udr0_baud="not configured"
+ax25_udr1_baud="not configured"
+
+if [ -e $PORT_CFG_FILE ] ; then
+    ax25_udr0_baud=$(sed -n '/\[port0\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    ax25_udr1_baud=$(sed -n '/\[port1\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    dbgecho "AX.25: udr0 speed: $ax25_udr0_baud, udr1 speed: $ax25_udr1_baud"
+else
+    echo "Port config file: $PORT_CFG_FILE NOT found."
+fi
+
 echo
-echo "STARTING AX.25/Direwolf as $MODEM_SPEED baud modem."
+echo "STARTING AX.25/Direwolf: port 0: $ax25_udr0_baud & port1: $ax25_udr1_baud baud modems."
 
 for service in `echo ${SERVICE_LIST}` ; do
     start_service $service

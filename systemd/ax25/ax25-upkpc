@@ -32,7 +32,8 @@ $SBINDIR/kissparms -p ${PORTNAME} -f no  -r 63 -s 50 -t 800
  echo "Checking for Device ${Device}"
  if [ -d /proc/sys/net/ax25/$Device ]
     then cd /proc/sys/net/ax25/$Device/
-       /etc/ax25/ax25dev-parms $Device
+       # ax25dev-parms requires device name & baud rate
+       /etc/ax25/ax25dev-parms $Device 1200
        ifconfig $Device netmask 255.255.255.255
        echo "ifconfig retcode: $?"
 

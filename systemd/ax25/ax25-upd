@@ -1,4 +1,5 @@
 #!/bin/bash
+# version: 1.1
 #
 # ax25-upd for use with systemd & direwolf
 # Ax25, rose, & mkiss - are pre-loaded via /etc/modules or built into kernel
@@ -10,8 +11,7 @@ SBINDIR=/usr/local/sbin
 BINDIR=/usr/local/bin
 KISSPARMS="$SBINDIR/kissparms"
 
-bsplitchannel=false
-SPLIT_CHANNEL_FILE="/etc/ax25/split_channel"
+PORT_CFG_FILE="/etc/ax25/port.conf"
 
 UDRCII=false
 
@@ -19,8 +19,9 @@ UDRCII=false
 PORTNAME_1="udr0"
 PORTNAME_2="udr1"
 SERIALPORT_DIREWOLF="/tmp/kisstnc"
-IPADDR_AX0="192.168.255.2"
-IPADDR_AX1="192.168.255.3"
+declare -A ax25_ipaddr
+ax25_ipaddr[0]="192.168.255.2"
+ax25_ipaddr[1]="192.168.255.3"
 
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
@@ -101,18 +102,128 @@ fi
 return $udrc_prod_id
 }
 
+# ===== function get_port_speed
+
+# Needs arg of device number, either 0 or 1
+# Uses port.conf file for port speed, kissattach parms & ax.25 parms
+
+function get_port_speed() {
+    retcode=0
+
+    portnumber=$1
+    if [ -z $portnumber ] ; then
+        echo "Need to supply a port number in get_port_cfg"
+        return 1
+    fi
+
+    portname="udr$portnumber"
+    portcfg="port$portnumber"
+    dbgecho "Debug: portname=$portname, portcfg=$portcfg"
+
+    PORTSPEED=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    dbgecho "AX.25: $portname speed: $PORTSPEED"
+
+    case $PORTSPEED in
+        1200 | 9600)
+            dbgecho "parse baud_$PORTSPEED section for $portname"
+        ;;
+        off)
+            echo "Using split channel, port: $portname is off"
+            bsplitchannel=true
+        ;;
+        *)
+            echo "Invalid speed parameter: $PORTSPEED, found in $PORT_CFG_FILE"
+            retcode=1
+        ;;
+    esac
+
+    return $retcode
+}
+
+# ==== function default_kissparms
+# set defaults for 1200 baud packet
+
+function default_kissparms() {
+
+    PORTSPEED="1200"
+    SLOTTIME="200"
+    TXDELAY="500"
+}
+
+# ===== function get_kissparms
+# arg1 = device number 0 or 1
+# Sets varibles:
+#  PORTSPEED, SLOTTIME, TXDELAY, T1_TIMEOUT, T2_TIMEOUT
+
+function get_kissparms() {
+
+    devnum=$1
+    if [ -z $devnum ] ; then
+        echo "Need to supply a device number in get_kjissparms"
+        return 1
+    fi
+
+    # Check for no port config file found
+    if [ ! -f $PORT_CFG_FILE ] ; then
+        echo "Port config file: $PORT_CFG_FILE NOT found, using 1200 baud default config"
+        default_kissparms
+    else
+        # Set variables: portname, portcfg, PORTSPEED
+        get_port_speed $devnum
+
+        baudrate_parm="baud_$PORTSPEED"
+        if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
+            SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
+            TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
+            T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
+            T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
+        else
+            echo "Use split channel config, HF on channel udr$devnum"
+        fi
+    fi
+    dbgecho "port: $devnum, speed: $PORTSPEED, slottime: $SLOTTIME, txdelay: $TXDELAY, t1 timeout: $T1_TIMEOUT, t2 timeout: $T2_TIMEOUT"
+}
+
+# ===== function get_ipaddr
+# arg1 = device number 0 or 1
+# Sets varible: IPADDR
+
+function get_ipaddr() {
+
+    portnumber=$1
+    if [ -z $portnumber ] ; then
+        echo "Need to supply a device number in get_kjissparms"
+        return 1
+    fi
+
+    # Check for no port config file found
+    if [ ! -f $PORT_CFG_FILE ] ; then
+        echo "Port config file: $PORT_CFG_FILE NOT found, using default ip address"
+        IPADDR=${ax25_ipaddr[$portnumber]}
+    else
+        portcfg="port$portnumber"
+        IPADDR=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^ip_address" | cut -f2 -d'=')
+        # Remove surrounding quotes
+        IPADDR=${IPADDR%\"}
+        IPADDR=${IPADDR#\"}
+    fi
+    dbgecho "port: $portnumber, ip address: $IPADDR"
+}
 
 # ===== function packet_1port
 # arg1 is port number, either 0 or 1
+
 function packet_1port() {
    portnum=$1
    pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx none | tail -1)
    echo "using mkiss with UDRC and pseudo term=$pseudoterm on port $portnum"
+   get_ipaddr $portnum
    PORTNAME="udr${portnum}"
-   $SBINDIR/kissattach  ${pseudoterm} $PORTNAME ${IPADDR_AX0} >/tmp/ax25-config.tmp
+   $SBINDIR/kissattach  ${pseudoterm} $PORTNAME ${IPADDR} >/tmp/ax25-config.tmp
    kissattach_ret=$?
    dbgecho "kissattach return: $?"
-   /etc/ax25/ax25dev-parms ax0
+   get_port_speed $portnum
+   /etc/ax25/ax25dev-parms ax0 $PORTSPEED
    echo " Port $PORTNAME attached to ax0"
 }
 
@@ -123,13 +234,18 @@ function packet_2port() {
    pseudoterm_1=$(echo $pseudoterm | cut -d ' ' -f1)
    pseudoterm_2=$(echo $pseudoterm | cut -d ' ' -f2)
    echo "using mkiss with UDRC II and pseudo term_1: $pseudoterm_1 pseudo term_2: $pseudoterm_2"
-   $SBINDIR/kissattach  ${pseudoterm_1} ${PORTNAME_1} ${IPADDR_AX0} >/tmp/ax25-config_1.tmp
-   $SBINDIR/kissattach  ${pseudoterm_2} ${PORTNAME_2} ${IPADDR_AX1} >/tmp/ax25-config_2.tmp
+
+   get_ipaddr 0
+   $SBINDIR/kissattach  ${pseudoterm_1} ${PORTNAME_1} ${IPADDR} >/tmp/ax25-config_1.tmp
+   get_ipaddr 1
+   $SBINDIR/kissattach  ${pseudoterm_2} ${PORTNAME_2} ${IPADDR} >/tmp/ax25-config_2.tmp
    kissattach_ret=$?
    dbgecho "kissattach return: $?"
-   /etc/ax25/ax25dev-parms ax0
-   /etc/ax25/ax25dev-parms ax1
+   get_port_speed 0
+   /etc/ax25/ax25dev-parms ax0 $PORTSPEED
    echo " Port ${PORTNAME_1} attached to ax0"
+   get_port_speed 1
+   /etc/ax25/ax25dev-parms ax1 $PORTSPEED
    echo " Port ${PORTNAME_2} attached to ax1"
 }
 
@@ -137,39 +253,18 @@ function packet_2port() {
 
 echo "ax25-upd: Start Port ${PORTNAME_1} with device ${SERIALPORT_DIREWOLF}"
 
-# Install KISS Parameter: P=32, W=$SLOTTIME, TXDelay=$TXDELAY
-#  -l txtail   Sets the TX Tail time in milliseconds, in steps of ten milliseconds only
-#  -r persist  Sets the persist value. range 0 to 255.
-#  -s slottime Sets  the slottime in milliseconds, in steps of ten milliseconds only
-#  -t txdelay  Sets the TX Delay in milliseconds, in steps of ten milliseconds only
 
-# For 1200 baud packet
-SLOTTIME="200"
-TXDELAY="500"
+# Determine if running split channel
+#  direwolf on one channel & HF on the other
 
-# For 9600 baud packet
-if [ -e "/etc/ax25/packet_9600baud" ] ; then
-    SLOTTIME="10"
-    TXDELAY="150"
-
-fi
-
-# Check if split channel is enabled
-if [ -e "$SPLIT_CHANNEL_FILE" ] ; then
-    # Anything in the file?
-    if [ -s "$SPLIT_CHANNEL_FILE" ] ; then
-        # Check for left, right, off
-        schan=$(cat $SPLIT_CHANNEL_FILE | cut -f2 -d' ')
-        if [ "$schan" != "off" ] ; then
-            echo "Using split channel config"
-            bsplitchannel=true
-        fi
-    else
-        # File is empty, enable split channel
-        echo "Using split channel config"
+bsplitchannel=false
+for devnum in 0 1 ; do
+    # Set variables: portname, portcfg, PORTSPEED
+    get_port_speed $devnum
+    if [ "$PORTSPEED" == "off" ] ; then
         bsplitchannel=true
     fi
-fi
+done
 
 if [ -L $SERIALPORT_DIREWOLF ] ; then
     echo "Direwolf serial port ready"
@@ -181,6 +276,12 @@ fi
 # Check which UDRC product is found
 id_check
 id_check_ret="$?"
+
+# Install KISS Parameter: P=32, W=$SLOTTIME, TXDelay=$TXDELAY
+#  -l txtail   Sets the TX Tail time in milliseconds, in steps of ten milliseconds only
+#  -r persist  Sets the persist value. range 0 to 255.
+#  -s slottime Sets  the slottime in milliseconds, in steps of ten milliseconds only
+#  -t txdelay  Sets the TX Delay in milliseconds, in steps of ten milliseconds only
 
 # Initialize kissattach return code
 kissattach_ret=-1
@@ -194,6 +295,7 @@ case $id_check_ret in
         echo "Original UDRC is installed."
         # use port 1 with mkiss
         packet_1port 1
+        get_kissparms 1
         $KISSPARMS -p ${PORTNAME_1} -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
     ;;
     3|4)
@@ -201,24 +303,31 @@ case $id_check_ret in
         if $bsplitchannel ; then
             # use port 0 only with mkiss
             packet_1port 0
+            get_kissparms 0
             $KISSPARMS -p ${PORTNAME_1} -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
 
         else
             # use both ports with mkiss
             packet_2port
+            get_kissparms 0
             $KISSPARMS -p ${PORTNAME_1} -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
+            get_kissparms 1
             $KISSPARMS -p ${PORTNAME_2} -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
         fi
     ;;
     5)
         echo "One Watt Spot installed"
-        # use port 1 with mkiss
+        # use port 0 with mkiss
         pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx none | tail -1)
-        echo "using mkiss with UDRC and pseudo term=$pseudoterm on port 1"
-        $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME_1} ${IPADDR_AX0} >/tmp/ax25-config.tmp
+        echo "using mkiss with OWS and pseudo term=$pseudoterm on port 0"
+
+        get_ipaddr 0
+        $SBINDIR/kissattach  ${pseudoterm} ${PORTNAME_1} ${IPADDR} >/tmp/ax25-config.tmp
         kissattach_ret=$?
         dbgecho "kissattach return: $?"
-        /etc/ax25/ax25dev-parms ax0
+        get_port_speed 0
+        /etc/ax25/ax25dev-parms ax0 $PORTSPEED
+        get_kissparms 0
         $KISSPARMS -p ${PORTNAME_1} -f no -l 100 -r 32 -s $SLOTTIME -t $TXDELAY
     ;;
     *)
