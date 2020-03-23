@@ -119,7 +119,7 @@ apt-get update
 # Be patient, the following command may take some time
 # Also you may get a (q to quit) prompt to continue after reading about sudoers
 # list. Just hit 'q'
-apt-get upgrade -y
+apt-get dist-upgrade -y
 # reboot
 shutdown -r now
 ```
