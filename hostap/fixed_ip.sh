@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Set a fixed lan ip address for old style ip handling
+# Set a fixed lan ip address
 #  Usage: $scriptname [-l][-s][-w][-d][-h] last_ip_octet or complete ip address
 #
 # Edit file:
@@ -10,7 +10,7 @@
 #
 DEBUG=1
 # When set to true no files are written
-DEBUG_MODE="true"
+DEBUG_MODE="false"
 
 DEBUG_RESET_NETWORKING="false"
 SET_WIFI_IPADDR="false"
@@ -64,29 +64,29 @@ function valid_ip()
 
 function set_static_lan()
 {
-iface="$lanif"
-echo "$scriptname: writing files for static LAN ip address"
-fname="/etc/dhcpcd.conf"
+    iface="$lanif"
+    echo "$scriptname: writing files for static LAN ip address"
+    fname="/etc/dhcpcd.conf"
 
-need_manual_edit="false"
+    need_manual_edit="false"
 
-# Determine if all 'interface eth0' lines are commented.
-while read -r line ; do
-    dbgecho "Processing $line"
-    # your code goes here
-    if [[ ${line:0:1} == "#" ]] ; then
-        dbgecho "Found comment char"
-    else
-        dbgecho "No comment"
-        need_manual_edit="true"
-    fi
-done < <(grep -i "interface $iface" $fname)
+    # Determine if all 'interface eth0' lines are commented.
+    while read -r line ; do
+        dbgecho "Processing $line"
+        # your code goes here
+        if [[ ${line:0:1} == "#" ]] ; then
+            dbgecho "Found comment char"
+        else
+            dbgecho "No comment"
+            need_manual_edit="true"
+        fi
+    done < <(grep -i "interface $iface" $fname)
 
-# if an uncommented "interface eth0 line is found then have to edit
-# manually.
+    # if an uncommented "interface eth0 line is found then have to edit
+    # manually.
 
-if [[ "$need_manual_edit" != "true" ]] ; then
-   cat <<EOT >> $fname
+    if [[ "$need_manual_edit" != "true" ]] ; then
+        cat <<EOT >> $fname
 
 interface $iface
 
@@ -96,18 +96,18 @@ interface $iface
 
 EOT
 
-else
-   echo "$scriptname: file $fname already config'ed, edit manually"
-fi
+    else
+        echo "$scriptname: file $fname already config'ed, edit manually"
+    fi
 
-grep -i "iface $iface inet manual" $if_file > /dev/null 2>&1
-if [ $? -ne 0 ] ; then
-   cat <<EOT >> $if_file
+    grep -i "^iface $iface inet manual" $if_file > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        cat <<EOT >> $if_file
 iface $iface inet manual
 EOT
-else
-   echo "$scriptname: file $if_file already config'ed OK"
-fi
+    else
+        echo "$scriptname: file $if_file already config'ed OK"
+    fi
 }
 
 # ===== function set_static_wan
@@ -197,10 +197,49 @@ function status_service() {
     return $retcode
 }
 
+# ===== function restart_networking_new
+
+function restart_networking_new() {
+    netplan apply
+    systemctl stop networking.service
+}
+
+# ===== function restart_networking_old
+
+function restart_networking_old() {
+
+    # Not sure how to enable new ip address
+    if [ "$DEBUG_RESET_NETWORKING" = "true" ] ; then
+        echo "You are about to lose your SSH session"
+        echo "Login in using lan address: $lan_ipaddr or wlan address: $wlan_ipaddr"
+        systemctl is-enabled NetworkManager.service
+        if [ $? -eq 0 ] ; then
+          echo "Disabling Network Manager"
+          $SYSTEMCTL disable NetworkManager.service
+        fi
+        $SYSTEMCTL daemon-reload
+        $SYSTEMCTL --no-pager restart dhcpcd.service
+        sudo service networking restart
+    fi
+}
+
+# ===== function set_dhcp
+# Configure Etherenet device to use DHCP
+
+function set_dhcp() {
+    # Modify /etc/network/interface
+    sudo sed -i -e '/iface eth0/d' $if_file
+
+    # Modify /etc/dhcpcd.conf
+    sudo sed -i -e '/^interface eth0/,$d' /etc/dhcpcd.conf
+}
+
 # ===== function usage
 
 function usage() {
-   echo "Usage: $scriptname [-l][-s][-w][-d][-h] last_ip_octet or complete ip address"
+   echo "Usage: $scriptname [-l][-s][-w][-y][-d][-h] last_ip_octet or complete ip address"
+   echo " Default to setting a static ip address"
+   echo "   -y --dhcp  set Ethernet device to use DHCP"
    echo "   -l --link  show all devices that have link"
    echo "   -s --show  show all devices with ip4 addresses"
    echo "   -w --wifi  set wifi address"
@@ -228,15 +267,19 @@ status_service $service
 bnetwork_manager_status="$?"
 echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
 
+# Set flag to use systemd-neworkd & netplan
+networking_style="new"
+
 if [ -d $NETPLAN_CFG_DIR ] ; then
     echo "Netplan configuration directory found."
     if [ ${bsystemd_networkd_status} = 0 ] || [ ${bnetwork_manager} = 0 ] ; then
         echo "Configuring network interfaces with systemd-networkd + netplan"
     else
-        echo "Have netplan configuration file but systemd-networkd or network-manager not running."
+        echo "Have netplan configuration but systemd-networkd or network-manager not running."
     fi
 else
     echo "Configuring Network interfaces with ifupdown."
+    networking_style="old"
 fi
 
 echo
@@ -272,17 +315,17 @@ fi
 
 fi
 
-netplan_dir="/etc/netplan"
-if [ -d "$netplan_dir" ] ; then
-    echo "Found $netplan_dir"
-fi
-
 # parse any args on command line
 if (( $# != 0 )) ; then
    while [[ $# -gt 0 ]] ; do
    key="$1"
 
    case $key in
+      -y|--dhcp)
+          echo "Set DHCP address"
+          set_dhcp
+          exit 0
+      ;;
       -d|--debug)
           DEBUG_MODE="true"
 	  DEBUG=1
@@ -372,19 +415,14 @@ else
    echo "$scriptname: Using DEBUG_MODE, no files written"
 fi
 
-# Not sure how to enable new ip address
-if [ "$DEBUG_RESET_NETWORKING" = "true" ] ; then
-   echo "You are about to lose your SSH session"
-   echo "Login in using lan address: $lan_ipaddr or wlan address: $wlan_ipaddr"
-   systemctl is-enabled NetworkManager.service
-   if [ $? -eq 0 ] ; then
-      echo "Disabling Network Manager"
-      $SYSTEMCTL disable NetworkManager.service
-   fi
-   $SYSTEMCTL daemon-reload
-   $SYSTEMCTL --no-pager restart dhcpcd.service
-   sudo service networking restart
+if [ $networking_style == "old" ] ; then
+   restart_networking_old
+else
+   restart_networking_new
 fi
+
+sleep 2
+networkctl list
 
 echo
 echo "Fixed IP address config FINISHED"
