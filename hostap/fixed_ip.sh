@@ -8,7 +8,8 @@
 # Check file:
 #  /etc/network/interfaces
 #
-DEBUG=1
+DEBUG=
+
 # When set to true no files are written
 DEBUG_MODE="false"
 
@@ -86,7 +87,7 @@ function set_static_lan()
     # manually.
 
     if [[ "$need_manual_edit" != "true" ]] ; then
-        cat <<EOT >> $fname
+        sudo tee $fname > /dev/null << EOT
 
 interface $iface
 
@@ -102,7 +103,7 @@ EOT
 
     grep -i "^iface $iface inet manual" $if_file > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
-        cat <<EOT >> $if_file
+        sudo tee $if_file > /dev/null <<EOT
 iface $iface inet manual
 EOT
     else
@@ -126,7 +127,7 @@ fname="/etc/dhcpcd.conf"
 grep -i "interface $iface" $if_file > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
 
-cat <<EOT >> $fname
+sudo tee $fname > /dev/null <<EOT
 
 interface $iface
   static ip_address=$1/24
@@ -139,7 +140,7 @@ fi
 
 grep -i "iface $iface inet static" $if_file > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
-   cat <<EOT >> $if_file
+   sudo tee $if_file > /dev/null <<EOT
 allow-hotplug wlan0
 iface wlan0 inet static
   address $ip_addr
@@ -197,11 +198,31 @@ function status_service() {
     return $retcode
 }
 
+# ===== function check_services
+function check_services() {
+    # What's running:
+
+    service="networking"
+    status_service $service
+    bnetworking_status="$?"
+    echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
+
+    service="systemd-networkd"
+    status_service $service
+    bsystemd_networkd_status="$?"
+    echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
+
+    service="network-manager"
+    status_service $service
+    bnetwork_manager_status="$?"
+    echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
+}
+
 # ===== function restart_networking_new
 
 function restart_networking_new() {
     netplan apply
-    systemctl stop networking.service
+    $SYSTEMCTL stop networking.service
 }
 
 # ===== function restart_networking_old
@@ -220,6 +241,45 @@ function restart_networking_old() {
         $SYSTEMCTL daemon-reload
         $SYSTEMCTL --no-pager restart dhcpcd.service
         sudo service networking restart
+    fi
+}
+
+# ===== function check_network_style
+
+function check_network_style() {
+    # Set flag to use systemd-neworkd & netplan
+    networking_style="new"
+
+    if [ -d $NETPLAN_CFG_DIR ] ; then
+        echo "Netplan configuration directory found."
+        if [ ${bsystemd_networkd_status} = 0 ] || [ ${bnetwork_manager} = 0 ] ; then
+            echo "Configuring network interfaces with systemd-networkd + netplan"
+        else
+            echo "Have netplan configuration but systemd-networkd or network-manager not running."
+        fi
+    else
+        echo "Configuring Network interfaces with ifupdown."
+        networking_style="old"
+    fi
+    echo
+}
+
+# ===== check_network_device
+function check_network_device() {
+    # Find name of Ethernet device(s)
+    # look at /sys/class/net for enx or ethx device names
+    device_list=$(ls /sys/class/net | tr '\n' ' ' |tr -s '[[:space:]] ')
+    #dbgecho "device list: $device_list"
+    device_cnt=$(ls -1 /sys/class/net | wc -l)
+    netdevice_cnt=$(grep -c "^en\|^eth" <<< $(ls /sys/class/net))
+    echo "Found $device_cnt network devices. $netdevice_cnt Ethernet devices"
+
+    if [ "$netdevice_cnt" -gt 0 ] ; then
+        display_eth_addrlink
+        echo
+    else
+        echo "No Ethernet devices found."
+        exit 1
     fi
 }
 
@@ -246,59 +306,17 @@ function usage() {
    echo "   -d --debug set debug mode, will not change any files"
    echo "   -h display this message"
    echo
+   exit 0
 }
 
 # ===== main
 
-# What's running:
-
-service="networking"
-status_service $service
-bnetworking_status="$?"
-echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
-
-service="systemd-networkd"
-status_service $service
-bsystemd_networkd_status="$?"
-echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
-
-service="network-manager"
-status_service $service
-bnetwork_manager_status="$?"
-echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
-
-# Set flag to use systemd-neworkd & netplan
-networking_style="new"
-
-if [ -d $NETPLAN_CFG_DIR ] ; then
-    echo "Netplan configuration directory found."
-    if [ ${bsystemd_networkd_status} = 0 ] || [ ${bnetwork_manager} = 0 ] ; then
-        echo "Configuring network interfaces with systemd-networkd + netplan"
-    else
-        echo "Have netplan configuration but systemd-networkd or network-manager not running."
-    fi
-else
-    echo "Configuring Network interfaces with ifupdown."
-    networking_style="old"
+if [ ! -z "$DEBUG" ] ; then
+    check_services
 fi
 
-echo
-
-# Find name of Ethernet device(s)
-# look at /sys/class/net for enx or ethx device names
-device_list=$(ls /sys/class/net | tr '\n' ' ' |tr -s '[[:space:]] ')
-#dbgecho "device list: $device_list"
-device_cnt=$(ls -1 /sys/class/net | wc -l)
-netdevice_cnt=$(grep -c "^en\|^eth" <<< $(ls /sys/class/net))
-echo "Found $device_cnt network devices. $netdevice_cnt Ethernet devices"
-
-if [ "$netdevice_cnt" -gt 0 ] ; then
-    display_eth_addrlink
-    echo
-else
-    echo "No Ethernet devices found."
-    exit
-fi
+check_network_style
+check_network_device
 
 if [ 1 -eq 0 ] ; then
 
@@ -343,19 +361,23 @@ if (( $# != 0 )) ; then
       ;;
       -?|-h|--help)
          usage
-         exit 0
-      ;;
+       ;;
       *)
-# Anything else on command line
-# IP address or last octet of ip address
+         # Anything else on command line
+         # IP address or last octet of ip address
          ip_parse="$1"
+         re='[0-9]+$'
+         if ! [[ $ip_parse =~ $re ]] ; then
+             echo "Invalid argument: $ip_parse"
+             usage
+         fi
       ;;
    esac
    shift # past argument or value
 done
 fi
 
-# setup systemctl command run as root
+# setup systemctl command, run as root
 if [[ "$DEBUG_MODE" = "false" ]] && [[ $EUID != 0 ]] ; then
    SYSTEMCTL="sudo systemctl"
    echo "Running as user $(whoami)"
@@ -415,7 +437,8 @@ else
    echo "$scriptname: Using DEBUG_MODE, no files written"
 fi
 
-if [ $networking_style == "old" ] ; then
+if [ "$networking_style" = "old" ] ; then
+   echo "DEBUG: network style: $networking_style"
    restart_networking_old
 else
    restart_networking_new
