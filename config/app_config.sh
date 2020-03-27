@@ -19,11 +19,12 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function usage
 function usage() {
-   echo "Usage: $scriptname [-d][-h][core][plu][rmsgw][messanger]" >&2
+   echo "Usage: $scriptname [-d][-h][core][plu][plumin][rmsgw]" >&2
    echo "   core      MUST be run before any other config"
-   echo "   plu       Configures paclink-unix & email applications"
+   echo "   plu       Configures paclink-unix & webmail with dovecot"
+   echo "   plumin    Configures paclink-unix & mutt"
    echo "   rmsgw     Configures Linux RMS Gateway"
-   echo "   messanger Configures messanger appliance"
+#   echo "   messenger Configures messenger appliance"
    echo "   -d        set debug flag"
    echo "   -h        no arg, display this message"
    echo
@@ -264,8 +265,8 @@ case $APP_SELECT in
       source ./plu_config.sh $USER $CALLSIGN
       popd > /dev/null
    ;;
-#   messanger)
-#      echo "$scriptname: Config messanger appliance"
+#   messenger)
+#      echo "$scriptname: Config messenger appliance"
 #      pushd ../plu
 #      source ./pluimap_config.sh -
 #      popd > /dev/null
