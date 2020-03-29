@@ -43,8 +43,16 @@ t2_timeout=100
 * If sound card channels are to be used for HF programs and not for Direwolf (packet)
   * Run _ax25-stop_
 
-
 #### To enable split channel mode
+
+* Install split channel files
+  * Will install pulseaudio, and a number of configuration files
+  * Will modify _/etc/direwolf.conf_, _/etc/ax25/port.conf_
+```
+cd
+cd n7nix/splitchan
+./split_install.sh
+```
 
 * Direwolf packet mode uses left channel
   * Active port is _udr0_
