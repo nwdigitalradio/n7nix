@@ -46,8 +46,8 @@ t2_timeout=100
 #### To enable split channel mode
 
 * Install split channel files
-  * Will install pulseaudio, and a number of configuration files
-  * Will modify _/etc/direwolf.conf_, _/etc/ax25/port.conf_
+  * Installs pulseaudio, and a number of configuration files
+  * Modifys _/etc/direwolf.conf_, _/etc/ax25/port.conf_
 ```
 cd
 cd n7nix/splitchan
