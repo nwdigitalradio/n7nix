@@ -137,9 +137,13 @@ function switch_config() {
     case "$ax25_udr0_baud" in
         1200)
             newspeed_port0=9600
+            # For reference only
+            newreceive_out0=disc
         ;;
         9600)
             newspeed_port0=1200
+            # For reference only
+            newreceive_out0=disc
         ;;
         off)
             newspeed=off
