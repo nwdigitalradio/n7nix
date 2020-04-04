@@ -45,8 +45,9 @@
 
 scriptname="`basename $0`"
 
-SPLIT_CHANNEL_FILE="/etc/ax25/split_channel"
+PORT_CFG_FILE="/etc/ax25/port.conf"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
+
 USER=
 SYSTEMCTL="systemctl"
 
@@ -344,11 +345,6 @@ else
 fi
 
 # And finally set up the port configuration file
-sudo tee "$SPLIT_CHANNEL_FILE" > /dev/null <<< "split_chan $CONNECTOR"
-if [ ! -e "$PORT_CFG_FILE" ] ; then
-    echo "No port config file: $PORT_CFG_FILE found, copying from repo."
-    sudo cp /home/$USER//n7nix/ax25/port.conf $PORT_CFG_FILE
-fi
 split_chan_on
 
 # may need to do the following:
