@@ -119,7 +119,6 @@ if $b_gpioWRITE ; then
         state="off"
     fi
     echo "Turn gpio $gpio_num $state"
-
 else
     echo -n "Read gpio: $gpio_num = "
     gpio -g read $gpio_num
