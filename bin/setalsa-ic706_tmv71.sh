@@ -67,7 +67,7 @@ else
         LO_DRIVER_RIGHT="3.0"
         ADC_LEVEL_RIGHT="-4.0"
         IN1_R='10 kOhm'
-        IN2_R="Off"eeeeeeeeeeeeeeeeeeee
+        IN2_R="Off"
     fi
 fi
 
