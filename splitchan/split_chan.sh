@@ -74,9 +74,9 @@ function stop_service() {
     fi
 }
 
-# ===== function config_both_channels
+# ===== function config_dw_2chan
 # Edit direwolf.conf to use both channels (channel 0 & 1) of a DRAWS HAT
-function config_both_channels() {
+function config_dw_2chan() {
 
     sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/"  $DIREWOLF_CFGFILE
     sudo sed -i -e '/^ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
@@ -85,12 +85,12 @@ function config_both_channels() {
     sudo sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 12/" $DIREWOLF_CFGFILE
 }
 
-# ===== function config_single_channel
+# ===== function config_dw_1chan
 
 # Configure direwolf to use only one mDin6 connector
 # - defaults to using left mDin6 connector
 
-function config_single_channel() {
+function config_dw_1chan() {
     sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE draws-capture-$CONNECTOR draws-playback-$CONNECTOR/"  $DIREWOLF_CFGFILE
     sudo sed -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
 #    sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 23/" $DIREWOLF_CFGFILE
@@ -403,8 +403,8 @@ usage () {
 
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
-   dbgecho "set sudo"
-   SYSTEMCTL="sudo systemctl"
+    dbgecho "set sudo"
+    SYSTEMCTL="sudo systemctl"
 else
     if [ -e "$PORT_CFG_FILE" ] ; then
         echo "Running as root"
@@ -478,7 +478,8 @@ dbgecho "bsplitchannel is $bsplitchannel"
 if $bsplitchannel ; then
     # Setup split channel
     start_service pulseaudio
-    config_single_channel
+    config_dw_1chan
+    split_chan_on
 
     # ===== Edit ax25d.conf
     # Change RMS Gateway & paclink-unix p2p to use correct udr port name
@@ -490,8 +491,15 @@ if $bsplitchannel ; then
 
 else
     # Setup direwolf controls both ports
-    stop_service pulseaudio
-    config_both_channels
+    service="pulseaudio"
+    if systemctl is-active --quiet "$service" ; then
+        stop_service $service
+    else
+        echo "Service: $service is already stopped"
+    fi
+
+    config_dw_2chan
+    split_chan_off
 fi
 
 # restart direwolf
@@ -500,4 +508,3 @@ ax25-start
 
 # ==== verify direwolf service
 display_service_status "direwolf"
-
