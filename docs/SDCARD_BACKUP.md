@@ -2,14 +2,16 @@
 
 ## Using Linux
 
-[PiShrink](https://github.com/Drewsif/PiShrink)
 
 ##### Requirements
 ###### dcfldd
+* [dcfldd](http://dcfldd.sourceforge.net/)
 ```
 sudo apt-get install -y dcfldd
 ```
 ###### pishrink.sh
+* [PiShrink](https://github.com/Drewsif/PiShrink)
+
 ```
 wget https://raw.githubusercontent.com/Drewsif/PiShrink/master/pishrink.sh
 chmod +x pishrink.sh
