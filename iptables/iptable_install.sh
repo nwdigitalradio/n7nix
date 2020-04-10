@@ -126,6 +126,12 @@ done
 if [ "$CREATE_IPTABLES" = "true" ] ; then
 
     # Setup some iptable rules
+    # 224.0.0.22
+    #  - used for the IGMPv3 protocol.
+    # 239.255.255.250:1900
+    #  - Chromecast
+    #  - traffic is discovery multicast traffic that occurs every 2 minutes from the system
+    #  - UPnP (Universal Plug and Play)/SSDP (Simple Service Discovery Protocol) by various vendors to advertise the capabilities of (or discover) devices
     echo
     echo "== setup iptables"
     sudo $BIN_DIR/iptable-up.sh
