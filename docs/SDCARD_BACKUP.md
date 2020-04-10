@@ -1,7 +1,16 @@
 # How to make an SD card image backup
 
-## Using Linux
+## Using Raspberry Pi SD Card Copier
 
+* Click on Main Menu icon and select:
+```
+Accessories > SD Card Copier
+```
+* Fill in diaglog boxes for
+  * __Copy From Device__
+  * __Copy To Device__
+
+## Using Linux
 
 ##### Requirements
 ###### dcfldd
