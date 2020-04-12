@@ -141,47 +141,60 @@ function start_service() {
 # Diff installed files with repo files
 function do_diff() {
 
-# Is pulse audio installed?
-packagename="pulseaudio"
-is_pkg_installed $packagename
-if [ $? -ne 0 ] ; then
-    echo "$scriptname: No package: $packagename found"
-else
-    # Found package, will continue
-    echo "$scriptname: Detected $packagename package."
-fi
+    # Is pulse audio installed?
+    packagename="pulseaudio"
+    is_pkg_installed $packagename
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: No package: $packagename found"
+    else
+        # Found package, will continue
+        echo "$scriptname: Detected $packagename package."
+    fi
 
-# Check for split-channels source directory
-if [ ! -e "$SPLIT_DIR" ] ; then
-    echo "No split-channels source directory found ($SPLIT_DIR), exiting"
-    exit 1
-else
-    echo "Found split-channels source directory: $SPLIT_DIR"
-fi
+    # Check for split-channels source directory
+    if [ ! -e "$SPLIT_DIR" ] ; then
+        echo "No split-channels source directory found ($SPLIT_DIR)"
+        return
+    else
+        echo "Found split-channels source directory: $SPLIT_DIR"
+    fi
 
-# Copy files
-# Start from the split-channels repository directory
-cd "$SPLIT_DIR/etc"
+    # DIFF files
+    # Start from the split-channels repository directory
+    cd "$SPLIT_DIR/etc"
 
-echo "Diff asound config"
-diff asound.conf /etc/asound.conf
-echo "Diff pulse config"
-diff -bwBr --brief pulse /etc/pulse
+    echo "Diff asound config"
+    diff asound.conf /etc/asound.conf
+    echo "Diff pulse config"
+    diff -bwBr --brief pulse /etc/pulse
 
-echo "Diff pulse audio systemd start service"
-diff systemd/system/pulseaudio.service /etc/systemd/system
+    echo "Diff pulse audio systemd start service"
+    diff systemd/system/pulseaudio.service /etc/systemd/system
 
-# Diff direwolf configuration
-echo "Diff direwolf config file"
-if [ -e /home/$USER/tmp/direwolf.conf ] ; then
-    diff /home/$USER/tmp/direwolf.conf /etc/direwolf.conf
-else
-    echo "Save a copy of direwolf configuration file."
-    cp /etc/direwolf.conf /home/$USER/tmp/
-fi
+    # Diff direwolf configuration
+    echo "Diff direwolf config file"
+    if [ -e /home/$USER/tmp/direwolf.conf ] ; then
+        diff /home/$USER/tmp/direwolf.conf /etc/direwolf.conf
+    else
+        echo "Save a copy of direwolf configuration file."
+        cp /etc/direwolf.conf /home/$USER/tmp/
+    fi
 }
 
+# ===== function comment out second channel in direwolf
+
+function comment_second_chan() {
+    # sed -i -e "/\[pi4\]/,/\[/ s/^dtoverlay=.*/#&/" $BOOT_CFG_FILE
+    # Add comment character
+    sed -i -e '/^CHANNEL 1/,/^$/ s/^\(^PTT GPIO.*\)/#\1/g'  "$DIREWOLF_CFGFILE"
+    sed -i -e '/^CHANNEL 1/,/^$/ s/^\(^MODEM.*\)/#\1/g'  "$DIREWOLF_CFGFILE"
+    sed -i -e '/^CHANNEL 1/,/^$/ s/^\(^MYCALL.*\)/#\1/g'  "$DIREWOLF_CFGFILE"
+    sed -i -e '/CHANNEL 1/,/^$/ s/^\(^CHANNEL.*\)/#\1/g'  "$DIREWOLF_CFGFILE"
+}
+
+
 # ===== function turn split channel on
+
 function split_chan_on() {
 
     echo "Enable split channels, Direwolf has left channel, HF has right channel"
@@ -211,9 +224,9 @@ usage () {
 
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
-   USER=$(whoami)
-   SYSTEMCTL="sudo systemctl"
-   echo "Running as user: $USER"
+    SYSTEMCTL="sudo systemctl"
+    USER=$(whoami)
+    echo "set sudo as user $USER"
 else
     # Running as root
     get_user_name
@@ -244,11 +257,10 @@ while [[ $# -gt 0 ]] ; do
             CONNECTOR="$2"
             shift # past argument
             if [ "$CONNECTOR" != "right" ] && [ "$CONNECTOR" != "left" ] ; then
-                echo "Connectory argument must either be left or right, found '$CONNECTOR'"
+                echo "Connector argument must either be left or right, found '$CONNECTOR'"
                 exit
             fi
             echo "Set connector to: $CONNECTOR"
-
         ;;
         -V)
             do_diff
@@ -301,13 +313,24 @@ fi
 # Copy files
 # Start from the split-channels repository directory
 cd "$SPLIT_DIR/etc"
+ASOUND_CFG_FILE="/etc/asound.conf"
+PULSE_CFG_DIR="/etc/pulse"
 
-echo "Copy asound config"
-sudo cp -u asound.conf /etc/asound.conf
-echo "Copy pulse config"
-sudo rsync -av pulse/ /etc/pulse
-echo "Copy pulse audio systemd start service"
-sudo cp -u systemd/system/pulseaudio.service /etc/systemd/system
+# If asound.conf or pulse config directory exists do NOT overwrite
+# unless explicity (command line arg) told to
+
+if [ ! -e $ASOUND_CFG_DIR ] && [ ! -d $PULSE_CFG_DIR ] ; then
+
+    echo "Copy asound config"
+    sudo cp -u asound.conf /etc/asound.conf
+    echo "Copy pulse config"
+    sudo rsync -av pulse/ /etc/pulse
+    echo "Copy pulse audio systemd start service"
+    sudo cp -u systemd/system/pulseaudio.service /etc/systemd/system
+else
+    echo "asound config file & pulse config directory already exist, NO config files copied"
+    do_diff
+fi
 
 # Modify direwolf configuration
 echo "Edit direwolf config file"
@@ -333,6 +356,8 @@ fi
 #   now: ADEVICE draws-capture-left draws-playback-left
 dbgecho "ADEVICE"
 sudo sed -i -e "/^ADEVICE plughw:CARD=/ s/^ADEVICE plughw:CARD=.*/ADEVICE draws-capture-$CONNECTOR draws-playback-$CONNECTOR/" $DIREWOLF_CFGFILE
+
+comment_second_chan
 
 echo "DEBUG follows:"
 grep -i "^ADEVICE" $DIREWOLF_CFGFILE
