@@ -163,39 +163,39 @@ function do_diff() {
     packagename="pulseaudio"
     is_pkg_installed $packagename
     if [ $? -ne 0 ] ; then
-        echo "$scriptname: No package: $packagename found"
+        echo "No package: $packagename found"
     else
         # Found package, will continue
-        echo "$scriptname: Detected $packagename package."
+        echo "Detected $packagename package."
     fi
 
     # Check for split-channels source directory
     if [ ! -e "$SPLIT_DIR" ] ; then
-        echo "No split-channels source directory found ($SPLIT_DIR)"
+        echo "  No split-channels source directory found ($SPLIT_DIR)"
         return
     else
-        echo "Found split-channels source directory: $SPLIT_DIR"
+        echo "  Found split-channels source directory: $SPLIT_DIR"
     fi
 
     # DIFF files
     # Start from the split-channels repository directory
     cd "$SPLIT_DIR/etc"
 
-    echo "Diff asound config"
+    echo "  Diff asound config"
     diff asound.conf /etc/asound.conf
-    echo "Diff pulse config"
+    echo "  Diff pulse config"
     diff -bwBr --brief pulse /etc/pulse
 
-    echo "Diff pulse audio systemd start service"
+    echo "  Diff pulse audio systemd start service"
     diff systemd/system/pulseaudio.service /etc/systemd/system
 
     # Diff direwolf configuration
-    echo "Diff direwolf config file"
+    echo "  Diff direwolf config file"
     if [ -e /home/$USER/tmp/direwolf.conf ] ; then
-        diff /home/$USER/tmp/direwolf.conf /etc/direwolf.conf
+        diff /home/$USER/tmp/direwolf.conf $DIREWOLF_CFGFILE
     else
-        echo "Save a copy of direwolf configuration file."
-        cp /etc/direwolf.conf /home/$USER/tmp/
+        echo "  Save a copy of direwolf configuration file."
+        cp $DIREWOLF_CFGFILE /home/$USER/tmp/
     fi
 }
 
@@ -421,8 +421,8 @@ function is_splitchan() {
 
     # ==== verify port config file
     if [ -e "$PORT_CFG_FILE" ] ; then
-        portcfg=port1
-        PORTSPEED=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+        portname=port1
+        PORTSPEED=$(sed -n "/\[$portname\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
 
         case $PORTSPEED in
             1200 | 9600)
@@ -473,7 +473,7 @@ function verify_direwolf() {
         if [ "$?" -eq 0 ] ; then
             # Get 'left' or 'right' channel from direwolf config (last word in ADEVICE string)
             chan_lr=$(grep "^ADEVICE " $DIREWOLF_CFGFILE | grep -oE '[^-]+$')
-            echo "Direwolf is running with pid: $pid, Split channel is enabled, Direwolf controls $chan_lr channel only"
+            echo -e "Direwolf is running with pid: $pid, Split channel is enabled\n  Direwolf controls $chan_lr channel only"
         else
             echo "Direwolf is running with pid: $pid and controls both channels"
         fi
@@ -481,34 +481,34 @@ function verify_direwolf() {
         echo "Direwolf is NOT running"
     fi
 
-    echo -n "Check: "
-    grep "^ADEVICE" /etc/direwolf.conf
+    echo -n "  Check: "
+    grep "^ADEVICE" $DIREWOLF_CFGFILE
 
-    echo -n "Check: "
+    echo -n "  Check: "
     grep -q "^ARATE " $DIREWOLF_CFGFILE
     if [ $? -ne 0 ] ; then
         echo "ARATE parameter NOT set in $DIREWOLF_CFGFILE"
     else
-        arateval=$(grep "^ARATE " /etc/direwolf.conf | cut -f2 -d' ')
+        arateval=$(grep "^ARATE " $DIREWOLF_CFGFILE | cut -f2 -d' ')
         echo "ARATE parameter already set to $arateval in direwolf config file."
     fi
 
-    num_chan=$(grep "^ACHANNELS " /etc/direwolf.conf | cut -f2 -d' ')
-    echo "Number of direwolf channels: $num_chan"
+    num_chan=$(grep "^ACHANNELS " $DIREWOLF_CFGFILE | cut -f2 -d' ')
+    echo "  Number of direwolf channels: $num_chan"
 }
 
 
 # ===== Split channel status
-function split_chan_stat() {
+function split_chan_status() {
 
     # ==== verify pulse audio
     packagename="pulseaudio"
     is_pkg_installed $packagename
     if [ $? -ne 0 ] ; then
-        echo "$scriptname: No package $packagename NOT found"
+        echo "  No package $packagename NOT found"
     else
         # Found package
-        echo "$scriptname: Detected $packagename package."
+        echo "  Detected $packagename package."
     fi
 
     is_pulseaudio
@@ -556,10 +556,13 @@ function split_chan_stat() {
 #
 usage () {
 	(
-	echo "Usage: $scriptname [-c][-V][-d][-h]"
-        echo "                  No args will update all programs."
-        echo "  -c right | left Specify either right or left mDin6 connector."
-        echo "  -V              Displays differences of required programs."
+	echo "Usage: $scriptname [-c <connector>][-s][-d][-h][left|right|off]"
+        echo "                  No args will show status of Direwolf, pulseaudio & asound"
+        echo "  left            ENable split channel, direwolf uses left connector"
+        echo "  right           ENable split channel, direwolf uses right connector NOT IMPLEMENTED"
+        echo "  off             DISable split channel"
+        echo "  -c right | left ENable split channel, use either right or left mDin6 connector."
+        echo "  -s              Display verbose status"
         echo "  -d              Set DEBUG flag"
         echo "  -h              Display this message."
         echo
@@ -573,7 +576,7 @@ usage () {
 if [[ $EUID != 0 ]] ; then
     SYSTEMCTL="sudo systemctl"
     USER=$(whoami)
-    echo "set sudo as user $USER"
+    dbgecho "set sudo as user $USER"
 else
     # Running as root
     get_user_name
@@ -626,9 +629,9 @@ while [[ $# -gt 0 ]] ; do
         left|LEFT)
             CONNECTOR="left"
         ;;
-        right|RIGHT
+        right|RIGHT)
             CONNECTOR="right"
-        ;;)
+        ;;
         off|OFF)
             split_chan_off
             exit 0
