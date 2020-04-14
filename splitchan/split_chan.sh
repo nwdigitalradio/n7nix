@@ -122,8 +122,8 @@ function split_chan_on() {
 function split_chan_toggle() {
     # Test if split channel indicator file exists
     if [ -e "$PORT_CFG_FILE" ] ; then
-        portcfg=port1
-        PORTSPEED=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+        portname=port1
+        PORTSPEED=$(sed -n "/\[$portname\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
         if [ "$PORTSPEED" == "off" ] ; then
             # Current config is set for split channel
             echo "Toggle so direwolf controls both channels"
@@ -190,8 +190,8 @@ function is_splitchan() {
 
     # ==== verify port config file
     if [ -e "$PORT_CFG_FILE" ] ; then
-        portcfg=port1
-        PORTSPEED=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+        portname=port1
+        PORTSPEED=$(sed -n "/\[$portname\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
 
         case $PORTSPEED in
             1200 | 9600)
@@ -330,8 +330,8 @@ function split_status() {
 
     if [ -e "$PORT_CFG_FILE" ] ; then
         echo -n "Port config file exists "
-        portcfg=port1
-        PORTSPEED=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+        portname=port1
+        PORTSPEED=$(sed -n "/\[$portname\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
         if [ "$PORTSPEED" == "off" ] ; then
             # Current config is set for split channel
                 bsplitchannel=true
