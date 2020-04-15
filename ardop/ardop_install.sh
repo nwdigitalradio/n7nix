@@ -164,7 +164,7 @@ if [ "$needs_pkg" = "true" ] ; then
    echo
    echo -e "=== Installing build tools"
 
-   apt-get install -y -q $BUILD_PKG_REQUIRE
+   sudo apt-get install -y -q $BUILD_PKG_REQUIRE
    if [ "$?" -ne 0 ] ; then
       echo "Build tool install failed. Please try this command manually:"
       echo "apt-get -y $BUILD_PKG_REQUIRE"
