@@ -172,7 +172,7 @@ if [ "$needs_pkg" = "true" ] ; then
    fi
 fi
 
-arim_ver="2.7"
+arim_ver="2.8"
 download_filename="arim-${arim_ver}.tar.gz"
 ARIM_SRC_DIR=$SRC_DIR/arim-$arim_ver
 
