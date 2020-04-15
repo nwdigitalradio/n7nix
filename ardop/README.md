@@ -1,0 +1,41 @@
+## To Install ardopc & arim
+
+```
+cd
+cd n7nix/ardop
+./ardop_install.sh
+```
+
+#### Run ardopc
+* Make sure ax25/direwolf is not running
+```
+ax25-stop
+```
+* Verify ax.25/direwolf status
+```
+ax25-status
+```
+* Open a console and type the following:
+```
+cd
+cd bin
+./piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=12
+```
+
+#### Run arim
+* Refer to this link for help: [Arim v2.8 Help](https://www.whitemesa.net/arim/arim.html)
+* Open another console
+* Run arim from home directory
+  * This will create an arim.ini file in directory _arim_
+* Exit arim (type q) and edit arim config file: _arim/arim.ini_
+  * mycall =
+  * gridsq = CN88
+
+* Run arim again and attach to the tnc 1
+  * press space bar
+  * type: att 1
+
+* Use the ping command to verify a connection
+  * press space bar
+  * type: ```ping <callsign> <number of pings to send>```
+    * ie: ``` ping n7nix 2```
