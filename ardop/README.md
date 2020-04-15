@@ -16,6 +16,8 @@ ax25-stop
 ax25-status
 ```
 * Open a console and type the following:
+  * For left mDin6 connector on the DRAWS hat _GPIO=12_
+
 ```
 cd
 cd bin
@@ -24,7 +26,7 @@ cd bin
 
 #### Run arim
 * Refer to this link for help: [Arim v2.8 Help](https://www.whitemesa.net/arim/arim.html)
-* Open another console
+* Open another console terminal window
 * Run arim from home directory
   * This will create an arim.ini file in directory _arim_
 * Exit arim (type q) and edit arim config file: _arim/arim.ini_
