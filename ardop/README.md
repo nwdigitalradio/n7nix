@@ -16,7 +16,8 @@ ax25-stop
 ax25-status
 ```
 * Open a console and type the following:
-  * For left mDin6 connector on the DRAWS hat _GPIO=12_
+  * For left mDin6 connector on a DRAWS hat _GPIO=12_
+  * For left mDin6 connector on a UDRC II hat _GPIO=23_
 
 ```
 cd
