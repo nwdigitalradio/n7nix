@@ -31,13 +31,11 @@ sset 'PCM' 0.0dB
 # IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
 # IN2 Compensated receive audio (all radios, 1200 baud and slower packet)
 
-#  Turn on DISCOUT
+#  Turn on AFOUT
 sset 'IN1_L to Left Mixer Positive Resistor' '10 kOhm'
-sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
 
-#  Turn off AFOUT
-sset 'IN2_L to Left Mixer Positive Resistor' 'Off'
-sset 'IN2_R to Right Mixer Positive Resistor' 'Off'
+# Turn on DISCOUT
+sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
 
 # Everything after this line is common to both audio channels
 
