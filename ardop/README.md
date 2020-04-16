@@ -21,7 +21,15 @@ ax25-status
 ```
 cd
 cd bin
+```
+* __Assuming only RPi internal sound device is installed__
+* __For a DRAWS hat__ left mDin6 connector
+```
 ./piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=12
+```
+* __For a UDRC II hat__ left mDin6 connector
+```
+./piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=23
 ```
 
 #### Run arim
