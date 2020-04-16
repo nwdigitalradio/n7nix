@@ -90,4 +90,10 @@ sset 'LOL Output Mixer L_DAC' on
 #  Turn on TONEIN
 sset 'LOR Output Mixer R_DAC' on
 EOF
-alsactl store
+
+ALSACTL="alsactl"
+if [[ $EUID != 0 ]] ; then
+   ALSACTL="sudo alsactl"
+fi
+
+$ALSACTL store
