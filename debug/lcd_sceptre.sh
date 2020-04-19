@@ -11,7 +11,10 @@
 #hdmi_group:0=1
 #hdmi_mode:0=4
 
-BOOT_CFG_FILE="config.txt"
+BOOT_CFG_FILE="/boot/config.txt"
+BUP_CFG_FILE="/tmp/config.bak"
+
+cp $BOOT_CFG_FILE $BUP_CFG_FILE
 
 # Comment 'dtoverlay=' line in [pi4] section
 echo "Edit first line after [pi4]"
@@ -32,5 +35,5 @@ hdmi_mode:0=4\
 /' $BOOT_CFG_FILE
 
 echo
-diff $BOOT_CFG_FILE config.bak
+diff $BOOT_CFG_FILE $BUP_CFG_FILE
 echo "End edit"
