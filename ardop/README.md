@@ -5,6 +5,14 @@ cd
 cd n7nix/ardop
 ./ardop_install.sh
 ```
+#### You must setup your alsa settings
+* ARDOP installation was tested on VHF first
+###### VHF radio: Kenwood TM-V71a ``` setalsa-tmv71a.sh ```
+* Once ARDOP on VHF was confirmed, switched to HF
+
+###### HF radio: ICOM IC-706MKIIG: ``` setalsa-ic706.sh ```
+###### HF radio: ICOM IC-7300 ``` setalsa-ic7300.sh ```
+###### HF radio: Elecraft KX2/KX3 ``` setalsa-kx2.sh ```
 
 #### Run ardopc
 * Make sure ax25/direwolf is not running
@@ -27,10 +35,16 @@ cd bin
 * __For a DRAWS hat__ left mDin6 connector
 ```
 ./piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=12
+
+# If .asoundrc is configured then
+./piardopc 8515 pcm.ARDOP pcm.ARDOP -p GPIO=12
 ```
 * __For a UDRC II hat__ left mDin6 connector
 ```
 ./piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=23
+
+# If .asoundrc is configured then
+./piardopc 8515 pcm.ARDOP pcm.ARDOP -p GPIO=23
 ```
 
 #### Run arim
@@ -50,3 +64,56 @@ cd bin
   * press space bar
   * type: ```ping <callsign> <number of pings to send>```
     * ie: ``` ping n7nix 2```
+
+
+### .asoundrc file reference
+
+* [Why asoundrc](https://www.alsa-project.org/wiki/Asoundrc)
+
+* __NOTE:__ run aplay -l to determine sound card number.
+
+#### For a udrc/DRAWS hat
+
+```
+pcm.ARDOP {
+        type rate
+        slave {
+        pcm "hw:1,0"
+        rate 12000
+        }
+}
+```
+
+#### For an IC-7300 with internal sound card
+
+  * When you plug in the USB cable to the RPI from the IC-7300 it
+becomes card 1, the udrc becomes card 2 and the RPi internal sound
+card remains as card 0.
+
+```
+Playback Devices
+
+# Internal RPi audio device
+Card 0, ID `ALSA', name `bcm2835 ALSA'
+  Device hw:0,0 ID `bcm2835 ALSA', name `bcm2835 ALSA', 7 subdevices (7 available)
+
+# IC-7300 audio device
+Card 1, ID `CODEC', name `USB Audio CODEC'
+  Device hw:1,0 ID `USB Audio', name `USB Audio', 1 subdevices (0 available)
+
+# UDRC/DRAWS hat audio device
+Card 2, ID `udrc', name `udrc'
+  Device hw:2,0 ID `bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi-0', name `', 1 subdevices (1 available)
+```
+
+* The following references the IC-7300 audio device
+  * Note the __rate__ parameter has changed
+```
+pcm.ARDOP {
+        type rate
+        slave {
+        pcm "hw:1,0"
+        rate 48000
+        }
+}
+```
