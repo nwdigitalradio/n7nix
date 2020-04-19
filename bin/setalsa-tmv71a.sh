@@ -28,6 +28,36 @@ IN1_R='Off'
 IN2_L="10 kOhm"
 IN2_R="10 kOhm"
 
+# ===== function get product id of HAT
+# Sets variable PROD_ID
+
+function get_prod_id() {
+    # Initialize product ID variable
+    PROD_ID=
+    prgram="udrcver.sh"
+    which $prgram
+    if [ "$?" -eq 0 ] ; then
+        dbgecho "Found $prgram in path"
+        $prgram -
+        PROD_ID=$?
+    else
+        currentdir=$(pwd)
+        # Get path one level down
+        pathdn1=$( echo ${currentdir%/*})
+        dbgecho "Test pwd: $currentdir, path: $pathdn1"
+        if [ -e "$pathdn1/bin/$prgram" ] ; then
+            dbgecho "Found $prgram here: $pathdn1/bin"
+            $pathdn1/bin/$prgram -
+            PROD_ID=$?
+        else
+            echo "Could not locate $prgram default product ID to draws"
+            PROD_ID=4
+        fi
+    fi
+}
+
+
+# ====== main
 
 # Check if no port config file found
 if [ ! -f $PORT_CFG_FILE ] ; then
@@ -71,6 +101,15 @@ stateowner=$(stat -c %U $asoundstate_file)
 if [ $? -ne 0 ] ; then
    "$scriptname: Command 'alsactl store' will not work, file: $asoundstate_file does not exist"
    exit
+fi
+
+# Check if HAT is a UDRC or UDRC II
+get_prod_id
+    if [[ "$PROD_ID" -eq 2 ]] || [[ "$PROD_ID" -eq 3 ]] ; then
+    IN1_L='10 kOhm'
+    IN1_R='10 kOhm'
+    IN2_L="Off"
+    IN2_R="Off"
 fi
 
 # IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
