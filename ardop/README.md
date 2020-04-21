@@ -71,8 +71,13 @@ cd bin
 * [Why asoundrc](https://www.alsa-project.org/wiki/Asoundrc)
 
 * __NOTE:__ run aplay -l to determine sound card number.
+* __NOTE: pcm "hw:1,0" line__
+  * This line must match the sound card number from running aplay -l
+  * ie. _hw:1,0_, refers to card #1
+
 
 #### For a udrc/DRAWS hat
+
 
 ```
 pcm.ARDOP {
@@ -84,11 +89,14 @@ pcm.ARDOP {
 }
 ```
 
-#### For an IC-7300 with internal sound card
+### For an IC-7300 which has an internal sound card
 
-  * When you plug in the USB cable to the RPI from the IC-7300 it
+* IC-7300 sound card PCM connects to RPi via USB cable
+
+* When you plug in the USB cable to the RPI from the IC-7300 it
 becomes card 1, the udrc becomes card 2 and the RPi internal sound
 card remains as card 0.
+  * _CODEC_ is the name of the IC-7300 sound card device
 
 ```
 Playback Devices
@@ -106,7 +114,7 @@ Card 2, ID `udrc', name `udrc'
   Device hw:2,0 ID `bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi-0', name `', 1 subdevices (1 available)
 ```
 
-* The following references the IC-7300 audio device
+* The following .asoundrc config file references the IC-7300 audio device
   * Note the __rate__ parameter has changed
 ```
 pcm.ARDOP {
@@ -116,4 +124,11 @@ pcm.ARDOP {
         rate 48000
         }
 }
+```
+##### Command line to start piardopc
+
+* .asoundrc configuration file must be edited, see above
+
+```
+./piardopc 8515 pcm.ARDOP pcm.ARDOP -p /dev/ttyUSB0
 ```
