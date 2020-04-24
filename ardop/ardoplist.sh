@@ -53,17 +53,6 @@ grid_square="cn88nl"   # default grid square location or origin
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
-# ===== function usage
-# Display program help info
-#
-usage () {
-	(
-	echo "Usage: $0 <integer_distance_in_miles> <maidenhead_grid_square>"
-	echo " exiting ..."
-	) 1>&2
-	exit 2
-}
-
 # ===== function is_pkg_installed
 
 function is_pkg_installed() {
@@ -214,17 +203,18 @@ function parse_listing() {
 #
 usage () {
 	(
-	echo "Usage: $scriptname [-s <winlink_service_name][-d][-f][-h]"
-        echo "                  Default to display winlink proximity service."
-        echo "  -s status proximity listing Specify Winlink service"
-        echo "  -f              Force update of service file"
-        echo "  -d              Set DEBUG flag"
-        echo "  -h              Display this message."
+	echo "Usage: $scriptname [-s <winlink_service_name][-d][-f][-h][-D <distance][-g <grid_square>]"
+        echo "                       Default to display Winlink PROXIMITY service."
+        echo "  -D <distance>        Set distance in miles"
+        echo "  -g <grid_square>     Set location grid square ie. CN88nl"
+        echo "  -s <winlink_service> Specify Winlink service,: status, proximity or listing"
+        echo "  -f                   Force update of service file"
+        echo "  -d                   Set DEBUG flag"
+        echo "  -h                   Display this message."
         echo
 	) 1>&2
 	exit 1
 }
-
 
 ## =============== main ===============
 
