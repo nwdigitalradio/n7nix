@@ -172,6 +172,9 @@ if [ "$needs_pkg" = "true" ] ; then
    fi
 fi
 
+# garim 1.2
+# wget https://www.whitemesa.net/garim/src/garim-1.2.tar.gz
+
 arim_ver="2.8"
 download_filename="arim-${arim_ver}.tar.gz"
 ARIM_SRC_DIR=$SRC_DIR/arim-$arim_ver
