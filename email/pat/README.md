@@ -110,12 +110,18 @@ K7HTZ     [CN87OD] 148    178 ARDOP 2000        3.587.50 MHz   3.589.00 MHz ardo
 K7HTZ     [CN87OD] 148    178 ARDOP 2000        7.101.20 MHz   7.102.70 MHz ardop:///K7HTZ?freq=7101.2
 K7HTZ     [CN87OD] 148    178 ARDOP 2000       10.144.70 MHz  10.146.20 MHz ardop:///K7HTZ?freq=10144.7
 K7HTZ     [CN87OD] 148    178 ARDOP 2000       14.108.50 MHz  14.110.00 MHz ardop:///K7HTZ?freq=14108.5
+
+K7IF      [CN87OA] 162    178 ARDOP 2000        3.588.40 MHz   3.589.90 MHz ardop:///K7IF?freq=3588.4
+K7IF      [CN87OA] 162    178 ARDOP 2000        7.101.90 MHz   7.103.40 MHz ardop:///K7IF?freq=7101.9
+K7IF      [CN87OA] 162    178 ARDOP 2000       10.144.90 MHz  10.146.40 MHz ardop:///K7IF?freq=10144.9
+K7IF      [CN87OA] 162    178 ARDOP 2000       14.095.50 MHz  14.097.00 MHz ardop:///K7IF?freq=14095.5
 ```
 
 
 ##### Using N7NIX script
 * Using [Winlink Web Services](https://cms.winlink.org/json/metadata?op=GatewayProximity) get gateway proximity list for ARDOP
   * Defaults to grid square of CN88nl & a distance of 140 miles
+  * __NOTE:__ This script lists __Center Frequency__ to get __Dial Frequency__ subtract 1500 KHz.
 
 ```
 cd
