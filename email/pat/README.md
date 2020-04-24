@@ -35,6 +35,8 @@ pat --listen="ardop" interactive
   * locator
 
 #### Rig control
+
+* [PAT Rig Control](https://github.com/la5nta/pat/wiki/Rig-control) wiki.
 * Edit PAT config file config.json
   * Add an entry to _hamlib_rigs_
   * ie. For an IC-706MKIIG
@@ -114,8 +116,25 @@ K7HTZ     [CN87OD] 148    178 ARDOP 2000       14.108.50 MHz  14.110.00 MHz ardo
 ```
 cd
 cd n7nix/ardop
-./ardoplist.sh
 
+# List command line arguments
+
+./ardoplist.sh -h
+
+Usage:  [-s <winlink_service_name][-d][-f][-h][-D <distance][-g <grid_square>]
+                       Default to display Winlink PROXIMITY service.
+  -D <distance>        Set distance in miles
+  -g <grid_square>     Set location grid square ie. CN88nl
+  -s <winlink_service> Specify Winlink service,: status, proximity or listing
+  -f                   Force update of service file
+  -d                   Set DEBUG flag
+  -h                   Display this message.
+```
+
+* Run using defaults
+
+```
+./ardoplist.sh -h
 Using distance of 140 miles & grid square cn88nl
 
 Generated new /home/pi/tmp/ardop/ardopprox.json file
