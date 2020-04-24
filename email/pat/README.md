@@ -9,9 +9,18 @@ pi       18821  0.5  2.8 258144 55992 pts/8    Sl+  Apr21  15:06 ./piARDOP_GUI
 pi        6257  0.0  0.3  28100  7748 pts/0    Sl+  Apr21   0:00 rigctld -m311 -r /dev/ttyUSB0 -s 4800
 ```
 
+#### PAT config
+* PAT config file lives here: _.wl2k/config.json_
+  * __NOTE__ preceeding dot in directory name
+* Edit the following configuration variables
+  * mycall
+  * secure_login_password
+  * locator
+
+
 ### Consoles
 
-#### ARDOP
+#### Console 1: ARDOP
 
 * From your local bin directory start ARDOP
   * The following is for a DRAWS hat
@@ -21,20 +30,13 @@ cd ~/bin
 ./piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=12
 ```
 
-#### ARDOP listener
+#### Console 2: ARDOP listener
 
 ```
 pat --listen="ardop" interactive
 ```
 
-#### PAT config
-* PAT config file lives here: _.wl2k/config.json
-* Edit the following configuration variables
-  * mycall
-  * secure_login_password
-  * locator
-
-#### Rig control
+#### Console 3: Rig control
 
 * [PAT Rig Control](https://github.com/la5nta/pat/wiki/Rig-control) wiki.
 * Edit PAT config file config.json
@@ -65,7 +67,8 @@ rigctl -l | grep -i "706"
    311  Icom                   IC-706MkIIG             0.8.2           Stable
 ```
 
-#### Initial setup & debug
+#### Console 4: Waterfall
+
 * For a visual waterfall run piARDOP_GUI
   * From a console running on the RPi desktop
 ```
@@ -74,6 +77,7 @@ cd ~/bin
 ```
 
 ### Winlink Point to point connection
+* [Verify Pat listener is running](#console-2-ardop-listener)
 
 ```
 pat connect ardop:///AF4PM?freq=7101
