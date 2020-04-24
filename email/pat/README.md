@@ -10,7 +10,7 @@ pi        6257  0.0  0.3  28100  7748 pts/0    Sl+  Apr21   0:00 rigctld -m311 -
 ```
 
 #### PAT config
-* PAT config file lives here: _.wl2k/config.json_
+* PAT config file lives here: [.wl2k/config.json](https://github.com/nwdigitalradio/n7nix/blob/master/email/pat/config.json)
   * __NOTE__ preceeding dot in directory name
 * Edit the following configuration variables
   * mycall
@@ -45,7 +45,8 @@ pat --listen="ardop" interactive
 ```
  "IC-706MKIIG": {"address": "localhost:4532", "network": "tcp"}
 ```
-  * Under "ardop": add a rig control (rigctl) rig name.
+  * Under "ardop": add a rig control __rigctl rig name__
+    * Link to [rigctl rig names](https://github.com/Hamlib/Hamlib/wiki/Supported-Radios).
     * Must match a name from ```rigctl -l``` list
 ```
   "rig": "IC-706MKIIG",
