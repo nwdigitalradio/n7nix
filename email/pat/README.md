@@ -20,24 +20,10 @@ pi        6257  0.0  0.3  28100  7748 pts/0    Sl+  Apr21   0:00 rigctld -m311 -
 
 ### Consoles
 
-#### Console 1: ARDOP
+#### Console 1: Rig control
 
-* From your local bin directory start ARDOP
-  * The following is for a DRAWS hat
-
-```
-cd ~/bin
-./piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=12
-```
-
-#### Console 2: ARDOP listener
-
-```
-pat --listen="ardop" interactive
-```
-
-#### Console 3: Rig control
-
+* Get rig control running first since it is used by PAT.
+  * Technically you do __NOT__ need _rigctrld_ running if you set radio frequency manually.
 * [PAT Rig Control](https://github.com/la5nta/pat/wiki/Rig-control) wiki.
 * Edit PAT config file config.json
   * Add an entry to _hamlib_rigs_
@@ -66,6 +52,22 @@ rigctl -l | grep -i "706"
    309  Icom                   IC-706                  0.8.1           Untested
    310  Icom                   IC-706MkII              0.8.1           Untested
    311  Icom                   IC-706MkIIG             0.8.2           Stable
+```
+
+#### Console 2: ARDOP
+
+* From your local bin directory start ARDOP
+  * The following is for a DRAWS hat
+
+```
+cd ~/bin
+./piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=12
+```
+
+#### Console 3: ARDOP listener
+
+```
+pat --listen="ardop" interactive
 ```
 
 #### Console 4: Waterfall
