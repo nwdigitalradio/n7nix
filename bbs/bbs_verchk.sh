@@ -8,7 +8,8 @@ scriptname="`basename $0`"
 # Get version number from files web page
 ver_url="https://sourceforge.net/projects/linfbb/files/"
 #curl -s https://sourceforge.net/projects/linfbb/files/ | grep -i ".tar.gz" | head -n 1 | cut -f2 -d'"'
-filename=$(curl -s "$ver_url" | grep -i ".tar.gz" | head -n 1 | cut -f2 -d'"')
+#filename=$(curl -s "$ver_url" | grep -i ".tar.gz" | head -n 1 | cut -f2 -d'"')
+filename=$(curl -s "https://sourceforge.net/projects/linfbb/files/" | grep -i ".tar.gz" | head -n 1 | grep -o "title=.*" | cut -f2 -d'/' | cut -f 1 -d':')
 if [ "$?" -eq 0 ] ; then
     # filename format ffb-x.x.x.tar.gz
     # remove last 2 extensions
@@ -16,7 +17,7 @@ if [ "$?" -eq 0 ] ; then
 #    basename="${basename%.*}"
     basename="$(basename $filename .tar.gz)"
     bbs_latest_ver=$(echo $basename | cut -f2 -d'-')
-#    echo "filename: $filename, basename: $basename, version: $bbs_latest_ver"
+#    echo "DEBUG: filename: $filename, basename: $basename, version: $bbs_latest_ver"
 
     # get version number from local source
     local_srcdir="/usr/local/src/fbb*"
