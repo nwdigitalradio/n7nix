@@ -10,10 +10,14 @@
 #
 DEBUG=
 
+RADIO="TM-V71a"
 scriptname="`basename $0`"
+
 asoundstate_file="/var/lib/alsa/asound.state"
 AX25_CFGDIR="/usr/local/etc/ax25"
 PORT_CFG_FILE="$AX25_CFGDIR/port.conf"
+ALSA_LOG_DIR="$HOME/tmp"
+ALSA_LOG_FILE="$ALSA_LOG_DIR/alsa_mixer.log"
 
 # Default to 1200 baud settings for both channels
 PCM_LEFT="-2.0"
@@ -28,6 +32,8 @@ IN1_R='Off'
 IN2_L="10 kOhm"
 IN2_R="10 kOhm"
 
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
 # ===== function get product id of HAT
 # Sets variable PROD_ID
 
@@ -35,7 +41,7 @@ function get_prod_id() {
     # Initialize product ID variable
     PROD_ID=
     prgram="udrcver.sh"
-    which $prgram
+    which $prgram > /dev/null
     if [ "$?" -eq 0 ] ; then
         dbgecho "Found $prgram in path"
         $prgram -
@@ -50,14 +56,14 @@ function get_prod_id() {
             $pathdn1/bin/$prgram -
             PROD_ID=$?
         else
-            echo "Could not locate $prgram default product ID to draws"
+            echo "Could not locate $prgram default product ID to DRAWS"
             PROD_ID=4
         fi
     fi
 }
 
 
-# ====== main
+# ===== main
 
 # Check if no port config file found
 if [ ! -f $PORT_CFG_FILE ] ; then
@@ -97,6 +103,10 @@ else
     fi
 fi
 
+if [ ! -d $ALSA_LOG_DIR ] ; then
+   mkdir -p $ALSA_LOG_DIR
+fi
+
 stateowner=$(stat -c %U $asoundstate_file)
 if [ $? -ne 0 ] ; then
    "$scriptname: Command 'alsactl store' will not work, file: $asoundstate_file does not exist"
@@ -127,7 +137,11 @@ if [ ! -z "$DEBUG" ] ; then
     echo
 fi
 
-amixer -c udrc -s << EOF
+echo >> $ALSA_LOG_FILE
+date >> $ALSA_LOG_FILE
+echo "Radio: $RADIO set from $scriptname" | tee -a $ALSA_LOG_FILE
+
+amixer -c udrc -s << EOF >> $ALSA_LOG_FILE
 sset 'PCM' "${PCM_LEFT}dB,${PCM_RIGHT}dB"
 sset 'LO Driver Gain' "${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
 sset 'ADC Level' ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB
@@ -198,3 +212,17 @@ if [[ $EUID != 0 ]] ; then
 fi
 
 $ALSACTL store
+if [ "$?" -ne 0 ] ; then
+    echo "ALSA mixer settings NOT stored."
+fi
+
+# Display abreviated listing of settings
+prgram="alsa-show.sh"
+which $prgram > /dev/null
+if [ "$?" -eq 0 ] ; then
+    dbgecho "Found $prgram in path"
+    $prgram
+        PROD_ID=$?
+else
+    echo "Could not locate $prgram"
+fi
