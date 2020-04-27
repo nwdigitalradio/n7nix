@@ -21,6 +21,8 @@ DIREWOLF_CFGFILE="/etc/direwolf.conf"
 AX25_CFGDIR="/usr/local/etc/ax25"
 AX25PORT="udr"
 
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
 # ===== function ax25_status
 
 function ax25_status() {
