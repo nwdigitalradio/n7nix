@@ -1,8 +1,9 @@
 #!/bin/bash
 #
-# Install FBB BBS
+# Install FBB BBS from:
+# https://sourceforge.net/projects/linfbb/files/
 #
-#BBS_VER="7.0.8-beta8"
+
 BBS_VER="7.0.9"
 num_cores=$(nproc --all)
 
