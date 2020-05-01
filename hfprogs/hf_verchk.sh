@@ -204,8 +204,6 @@ function test_fldigi_ver() {
         cl_ver=$(fldigi --version | head -n 1 | cut -d' ' -f2)
         if [ "$flver" != "$cl_ver" ] ; then
             echo "$(tput setaf 1)$flapp version built ($cl_ver) does not match source version ($flver) $(tput setaf 7)"
-            # Force a source download & rebuild by resetting version to built version
-            fl_ver="$cl_ver"
         fi
     fi
 }
