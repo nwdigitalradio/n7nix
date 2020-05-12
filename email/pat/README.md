@@ -124,7 +124,7 @@ K7IF      [CN87OA] 162    178 ARDOP 2000       14.095.50 MHz  14.097.00 MHz ardo
 ##### Using N7NIX script
 * Using [Winlink Web Services](https://cms.winlink.org/json/metadata?op=GatewayProximity) get gateway proximity list for ARDOP
   * Defaults to grid square of CN88nl & a distance of 140 miles
-  * __NOTE:__ This script lists __Center Frequency__ to get __Dial Frequency__ subtract 1500 KHz.
+  * __NOTE:__ This script lists __Center Frequency__, to get __Dial Frequency__ subtract 1500 KHz.
 
 ```
 cd
