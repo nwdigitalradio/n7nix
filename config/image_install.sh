@@ -6,7 +6,7 @@
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
-imapinstall="false"
+imapinstall="true"
 USER=
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -117,7 +117,7 @@ popd > /dev/null
 pushd ../plu
 if [ "$imapinstall" = "true" ] ; then
     echo "$scriptname: Install paclink-unix with imap"
-    source ./pluimap_install.sh
+    source ./plu_install.sh
 # This is both an install & configuration script
 #    pushd ../email/claws/
 #    source ./claws_install.sh
