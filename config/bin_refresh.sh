@@ -52,6 +52,7 @@ if [ ! -d "$ax25bindir" ] ; then
    exit 1
 fi
 
+sudo cp -u /home/$USER/n7nix/ax25/port.conf $ax25bindir
 sudo cp -u /home/$USER/n7nix/systemd/ax25/ax25-* $ax25bindir
 sudo cp -u /home/$USER/n7nix/systemd/ax25/ax25dev-* $ax25bindir
 sudo chown -R root:staff $ax25bindir
