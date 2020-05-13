@@ -119,27 +119,36 @@ function check_user() {
 
 function get_ssid() {
 
-read -t 1 -n 10000 discard
-echo -n "Enter ssid (0 - 15) for direwolf APRS, followed by [enter]"
-read -ep ": " SSID
+    SSID=16
+    read -t 1 -n 10000 discard
+    echo -n "Enter ssid (0 - 15) for direwolf APRS, followed by [enter]"
+    read -ep ": " SSID
 
-# Remove any leading zeros
-SSID=$((10#$SSID))
+    # Remove any leading zeros
+    SSID=$((10#$SSID))
 
-if [ -z "${SSID##*[!0-9]*}" ] ; then
-   echo "Input: $SSID, not a positive integer"
-   return 0
-fi
+    # Test for an integer
+    if [ -z "${SSID##*[!0-9]*}" ] ; then
+        echo "  Input: $SSID, not a positive integer"
+        return 0
+    fi
 
-sizessidstr=${#SSID}
+    # Test for already used SSID number (10)
+    if [ "$SSID" -eq "10" ] ; then
+        echo "  SSID = $SSID  already in use, choose 0-15 but not 10"
+        return 0
+    fi
 
-if (( sizessidstr > 2 )) || ((sizessidstr < 0 )) ; then
-   echo "Invalid ssid: $SSID, length = $sizessidstr, should be 1 or 2 numbers"
-   return 0
-fi
+    sizessidstr=${#SSID}
 
-dbgecho "Using SSID: $SSID"
-return 1
+    # Test for number of digits, either 1 or 2
+    if (( sizessidstr > 2 )) || ((sizessidstr < 0 )) ; then
+        echo "  Invalid ssid: $SSID, length = $sizessidstr, should be 1 or 2 numbers"
+        return 0
+    fi
+
+    dbgecho "Using SSID: $SSID"
+    return 1
 }
 
 # ===== function prompt_read
