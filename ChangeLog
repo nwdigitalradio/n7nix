@@ -1,3 +1,22 @@
+Wed May 13 12:39:53 PDT 2020  Basil Gunn <basil@pacabunga.com>
+
+  * Image NWDR16 release
+    * Packet:
+      * Fix BBS install script & version check for version 7.0.9
+      * Add aprx install script
+      * Add missing Xastir run time library
+      * Fix RMS Gateway stat directory permissions.
+      * Add support for APRS client nixtracker
+      * Add alsa settings support for Alinco DR-x35 radios.
+      * Fix Setting direwolf SSID to 10 as already used.
+    * HF:
+      * Fixes for ardop-start, ardoplist.sh & ardop_install.sh
+      * ardop & arim functional install working
+      * Update all HF programs to current versions.
+    * Both HF & packet:
+      * Make split channel work on HF for right mDin6 connector.
+      * Make some alsa settings script UDRC II aware
+
 Thu Jan 23 08:48:40 PST 2020  Basil Gunn <basil@pacabunga.com>
 
   * Image NWDR15 release
@@ -13,7 +32,7 @@ Thu Jan 23 08:48:40 PST 2020  Basil Gunn <basil@pacabunga.com>
       * Add speed switch script
     * HF:
       * Updated hf_install.sh script for maintaining latest versions of HF programs
-    * Both HF & packet
+    * Both HF & packet:
       * Desktop icons for starting & stopping AX.25/direwolf, appear after initial config
       * Added split channel maintenance scripts for running HF & packet (direwolf) at same time
 
