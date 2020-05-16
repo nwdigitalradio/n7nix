@@ -29,6 +29,8 @@ IN1_R='Off'
 IN2_L="10 kOhm"
 IN2_R="10 kOhm"
 
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
 # ===== function get product id of HAT
 # Sets variable PROD_ID
 
