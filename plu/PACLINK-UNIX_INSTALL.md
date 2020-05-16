@@ -55,14 +55,14 @@ cd n7nix/config
 # should now be in directory ~/n7nix/config
 # become root
 sudo su
-./app_install.sh plu
+./app_install.sh plumin
 ```
 * When the script finishes you should see:
 
 ```
 mutt install/config FINISHED
 
-app install (plu) script FINISHED
+app install (plumin) script FINISHED
 ```
 
 paclink-unix install should now be completed and is ready for configuration.

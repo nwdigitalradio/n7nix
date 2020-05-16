@@ -40,7 +40,7 @@
 * **NOTE: You might already have an image with paclink-unix imap installed**
   * Check for any of these conditions:
     * If you installed everything at once using _image_install.sh_
-    * If you already have run _app_install.sh pluimap_
+    * If you already have run _app_install.sh plu_
     * If you have an image from SeaPac
   * Then continue on to  __Start the Config Script__ section
 
@@ -52,14 +52,14 @@ cd n7nix/config
 # should now be in directory ~/n7nix/config
 # become root
 sudo su
-./app_install.sh pluimap
+./app_install.sh plu
 ```
 * Upon completion you should see:
 
 ```
 paclink-unix with imap, install script FINISHED
 
-app install (pluimap) script FINISHED
+app install (plu) script FINISHED
 ```
 ### Start the Config Script
 
@@ -68,13 +68,13 @@ cd n7nix/config
 # should now be in directory ~/n7nix/config
 # become root
 sudo su
-./app_config.sh pluimap
+./app_config.sh plu
 ```
 
 * When the script finishes you should see:
 
 ```
-app config (pluimap) script FINISHED
+app config (plu) script FINISHED
 ```
 
 #### Note: you will also have to run the hostap/fixed_ip.sh script

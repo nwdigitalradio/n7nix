@@ -2,62 +2,115 @@
 
 ## Introduction
 
-This repo contains scripts & notes for taking a new Raspbian image and
-creating a working image that will boot up & run the following configurations:
-* Core only
-  * This includes [direwolf](https://github.com/wb2osz/direwolf/blob/master/README.md) & [AX.25](http://www.linux-ax25.org/wiki/Main_Page) with no other application
-* RMS Winlink Gateway
-* paclink-unix in two flavors
-  * paclink-unix basic which allows using a movemail e-mail client like Thunderbird
-  * paclink-unix imap which allows using any e-mail client that supports IMAP.
+This repository contains scripts & notes for taking a Linux Raspbian
+distribution and creating a working image that will run packet, HF
+programs or both. The [NWDR image](http://nwdig.net/downloads/) has
+already installed a number of popular programs so that **ONLY**
+configuration is required.
 
-**Note:** These scripts are meant to be run once **only** on a fresh image.
+  * Since the sound CODEC is a stereo device there are 2 audio
+  channels that may be split between packet & HF program usage.
 
-**Note:** _deviation_ is stand alone and is not part of the install/config
-process.
-Files in _vnc_ & uronode are also currently not used for core install.
+#### HF Program configuration
 
-As of around August 2019 main line Linux has a kernel with the driver
-for the Texas Instruments tlv320aic32x4 DSP sound chip that the
-UDRC/DRAWS hat can use.
+* The NWDR image defaults to this configuration.
+* In this configuration an HF program (fldigi, wsjt-x, ARDOP, etc) controls the sound CODEC
+* [List of HF programs currently on the NWDR image](docs/IMAGE_README.md)
 
-* [Raspbian image](https://www.raspberrypi.org/downloads/raspbian/).
+#### Packet Configurations:
+* Core only: This includes
+[direwolf](https://github.com/wb2osz/direwolf/blob/master/README.md)
+& [AX.25](https://github.com/ve7fet/linuxax25) with no other
+application running.
+* Linux RMS Gateway for Winlink
+* Winlink client: paclink-unix in two flavors
+
+  * paclink-unix min which installs postfix and a console base email
+    client.
+  * paclink-unix default which allows using any e-mail client that
+  supports
+  [IMAP](https://en.wikipedia.org/wiki/Internet_Message_Access_Protocol).
+* APRS client: Xastir, YAAC, nixtracker
+* APRS digipeater & iGate: aprx
+
+#### Both HF programs & Packet at the same time
+* Split channel scripts control configuring the audio CODEC channels.
+
+
+## Configuration scripts
+
+The NWDR image has installed all software listed [here](docs/IMAGE_README.md)
+
+**Note:** These configuration scripts were meant to be run **once only**
+starting from a clean image. They might work if used more than once
+but they were not tested for that case. If an installation fails I
+would like to know about it. Please post any problems you might have
+on the [UDRC forum](https://nw-digital-radio.groups.io/g/udrc/).
+
+
+
+
+Whether using HF programs or packet you **MUST** set _deviation_ using
+[ALSA](https://en.wikipedia.org/wiki/Advanced_Linux_Sound_Architecture)
+settings for your specific radio.  [draws-manager](../draws-manager)
+and [measure_deviate.sh script](deviation) help determine these
+settings. Usually for a particular radio the 1200 baud & 9600 baud
+ALSA settings will be different.
+
+As of around August 2019 main line Linux kernel has a driver
+for the Texas Instruments tlv320aic32x4 DSP sound chip that can be
+used by UDRC/DRAWS HAT.
 
 The NW Digital Radio [UDRC
-II](http://nwdigitalradio.com/wp-content/uploads/2012/04/UDRC-IIDS.pdf) is a
-[hat](https://github.com/raspberrypi/hats) that contains the
-tlv320aic32x4 DSP sound chip plus routes GPIO pins to control PTT. It also has
-a 12V to 5V regulator so that you can run the Pi from a 12V supply.
+II](http://nwdigitalradio.com/wp-content/uploads/2012/04/UDRC-IIDS.pdf)
+or
+[DRAWS](https://nw-digital-radio.groups.io/g/udrc/files/DRAWSBrochure-1.pdf)
+are [HATS](https://github.com/raspberrypi/hats) that contains the
+tlv320aic32x4 DSP sound chip plus routes GPIO pins to control PTT.
+They also have a 12V to 5V buck regulator so that you can run the Pi
+with the HAT from a 12V supply. DRAWS also has a [SkyTraq S1216F8-GL
+GNSS GPS Module](http://www.skytraq.com.tw/datasheet/S1216V8_v0.9.pdf)
+and an [TI TLA2024 4 channel A/D
+converter](https://www.ti.com/lit/ds/symlink/tla2024.pdf?&ts=1589647159814)
+accessed by the 8 pin Auxiliary connector.
 
-Only the direwolf configuration is specific to the [UDRC II
-hardware](http://nwdigitalradio.com/wp-content/uploads/2012/04/UDRC-IIDS.pdf)
+* For packet, only the direwolf configuration is specific to the [UDRC
+II](http://nwdigitalradio.com/wp-content/uploads/2012/04/UDRC-IIDS.pdf)
+or
+[DRAWS](https://nw-digital-radio.groups.io/g/udrc/files/DRAWSBrochure-1.pdf)
+hardware.
 
-These scripts were meant to be run **once only** starting from  a clean image. They
-might work if used more than once but they were not tested for that
-case. If an installation fails I would like to know about it. Please
-post any problems you might have on the [UDRC
-forum](https://nw-digital-radio.groups.io/g/udrc/).
-
-## Installation scripts
+* For HF programs, you must use the proper sound card device name for both Capture and Playback devices.
+  * Each HF program may have a different syntax for referencing the
+  device, for example:
+```
+udrc: - (hw:0,0)
+```
+or
+```
+input:plughw:CARD=udrc,DEV=0
+output: plughw:CARD=udrc,DEV=0
+```
 
 ### Core
 
-**Core is required for any other packet apps using a UDRC**. This option
+Regardless of what functionality you want to install the first thing to run is
+[core_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/docs/CORE_INSTALL.md)
+which will do the initial configuring of the [Raspbian kernel](https://www.raspberrypi.org/downloads/raspbian/) & install
+AX.25 & direwolf.
+
+**Core is required for all packet apps using a UDRC or DRAWS HAT**. This option
 installs
 [direwolf](https://github.com/nwdigitalradio/n7nix/tree/master/direwolf)
 & [AX.25](https://github.com/nwdigitalradio/n7nix/tree/master/ax25)
-tools/apps/library.  Use this option if you want to run APRS only or
+tools/apps/library.  Use this option if you want to run APRS or
 some packet client that uses direwolf or AX.25. As part of the core
 requirements this option also configures
 [systemd](https://github.com/nwdigitalradio/n7nix/tree/master/systemd)
 to start direwolf, AX.25 attach & AX.25 apps like mheardd at boot time.
 
-Regardless of what functionality you want to install the first thing to run is
-[core_install.sh](https://github.com/nwdigitalradio/n7nix/blob/master/docs/CORE_INSTALL.md)
-which will do the initial configuring of the compass kernel & install
-AX.25 & direwolf.
-
-### RMS Gateway
+### Packet App Configuration
+#### RMS Gateway
 
 In order to install the Linux RMS Gateway you must register with Winlink to get a
 password for a gateway.
@@ -66,65 +119,37 @@ See
 [RMSGW_INSTALL.md](https://github.com/nwdigitalradio/n7nix/blob/master/rmsgw/README.md)
 for details on installing RMS Gateway functionality.
 
-See
-[config/app_install.sh](https://github.com/nwdigitalradio/n7nix/tree/master/config/app_install.sh)
+* See app install script: [config/app_install.sh](config/app_install.sh)
 for installing all apps required for RMS Gateway.
 
-### paclink-unix
+#### paclink-unix
 
-* Two installation options:
-  * basic -
-  [installs paclink-unix, mutt &
-  postfix](https://github.com/nwdigitalradio/n7nix/blob/master/plu/PACLINK-UNIX_INSTALL.md)
-  * imap -
-  [installs the above plus, dovecot imap mailserver &
-  hostapd](https://github.com/nwdigitalradio/n7nix/blob/master/plu/PACLINK-UNIX-IMAP_INSTALL.md)
-  WiFi access point, and dnsmasq to serve up DNS & DHCP when the RPi 3
-  is not connected to a network.
+* [Installation options](plu/README.md)
+* paclink-unix will work with any Linux email client that supports
+[IMAP](https://en.wikipedia.org/wiki/Internet_Message_Access_Protocol)
+for retrieving email messages
 
-#### paclink-unix basic
+##### 3 email clients supported with install scripts
 
-This is a light weight paclink-unix install that gives functionality
-to use an e-mail client on the Raspberry Pi to compose & send winlink
-messages.
 
-Installs the following:
-* paclink-unix to format e-mail
-* postfix for the mail transfer agent
-* mutt for the mail user agent
+* Command line client: mutt
+* Native Linux client: [Claws-mail](https://github.com/nwdigitalradio/n7nix/blob/master/email/claws/README.md)
+* Web based
+[rainloop](https://github.com/nwdigitalradio/n7nix/blob/master/email/rainloop/README.md)
 
-#### paclink-unix imap
+#### aprs
 
-This installs functionality to use any imap e-mail client & to access
-paclink-unix from a browser. It allows using a WiFi device (smart
-phone, tablet, laptop) to compose a Winlink message & envoke
-paclink-unix to send the message. This is also configured to cough up
-a dhcp config for your mobil device if your RPi 3 is in a car not
-connected to the Internet.
-
-Installs the following:
-* paclink-unix to format e-mail
-* postfix for the mail transfer agent
-* [dovecot](https://github.com/nwdigitalradio/n7nix/tree/master/mailserv), imap e-mail server
-* [hostapdd](https://github.com/nwdigitalradio/n7nix/tree/master/hostap)
-to enable a Raspberry Pi 3 to be a virtual access point
-* dnsmasq to allow connecting to the Raspbery Pi when it is not
-connected to a network
-* nodejs to host the control page for paclink-unix
-* iptables to enable NAT
-
+* [aprx](aprx)
+* [nixtracker](tracker)
+* [xastir](xastir)
+* [yaac](yaac)
 
 ### Other
-
-#### [Alpine mail client](https://github.com/nwdigitalradio/n7nix/tree/master/email/alpine)
-
-* Notes on building & getting the alpine mail client to work with paclink-unix.
-  * I don't recommend using Alpine, mutt is actively maintained and a better solution.
 
 #### [deviation](https://github.com/nwdigitalradio/n7nix/tree/master/deviation)
 
 * Script that generates a tone file using sox, turns on correct PTT
-gpio and plays wave file through a UDRC
+gpio and plays wave file through a UDRC II or DRAWS HAT.
 * Generating a tone sine wave is one part of measuring deviation. The
 other part is doing the actual measurement. The [Xastir
 wiki](http://xastir.org/index.php/HowTo:Set_Deviation_via_RTL) has a

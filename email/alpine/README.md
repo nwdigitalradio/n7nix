@@ -1,5 +1,8 @@
 ## Alpine mailer
 
+* Notes on building & getting the Alpine mail client to work with paclink-unix.
+  * I don't recommend using Alpine, mutt is actively maintained and a better solution.
+
 #### Getting the source for compiling on Unix/Linux
 * SourceForge has version 2.03 **- DO NOT USE**
   * https://sourceforge.net/projects/re-alpine/
@@ -8,10 +11,9 @@
 
 #### Getting a package
 
-* Debian Jessie has an alpine package 2.11
+* Debian Buster has an alpine package 2.21
 
 #### Building from source on RPi 3
-
 
 ```
 git clone git://repo.or.cz/alpine.git
