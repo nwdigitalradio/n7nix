@@ -1,5 +1,12 @@
 # Linux paclink-unix install for UDRC
 
+* **NOTE: You might already have an RPi image with paclink-unix imap installed**
+  * Check for any of these conditions:
+    * If you have an NWDRxx image
+    * If you installed everything at once using _image_install.sh_
+    * If you have already run _app_install.sh plu_
+  * __If__ any of these conditions apply __then__ continue on to  [Start the Config Script](#start-the-config-script) section
+
 ## Install core components
 
 * This installation assumes you have already [installed core components](https://github.com/nwdigitalradio/n7nix/blob/master/docs/CORE_INSTALL.md)
@@ -7,7 +14,7 @@
 
 ## Install paclink-unix, Dovecot & hostap
 
-* This script will install the following:
+* The script, _./app_install.sh pluimap_ will install the following:
   * paclink-unix basic
   * dovecot imap mail server
   * hostap for WiFi connection
@@ -37,13 +44,6 @@
 
 ### Start the Install Script
 
-* **NOTE: You might already have an image with paclink-unix imap installed**
-  * Check for any of these conditions:
-    * If you installed everything at once using _image_install.sh_
-    * If you already have run _app_install.sh plu_
-    * If you have an image from SeaPac
-  * Then continue on to  __Start the Config Script__ section
-
 * Execute the following script from the directory that scripts were cloned to.
   * Should be starting from your login home directory eg. /home/pi
 
@@ -61,7 +61,15 @@ paclink-unix with imap, install script FINISHED
 
 app install (plu) script FINISHED
 ```
-### Start the Config Script
+
+## Start the Config Script
+* The instructions from this point on assume paclink-unix has been successfully installed as is the case if you are using the NWDRxx RPi image.
+* There are two options for configuring paclink-unix:
+  * Full configuration: __./app_config.sh plu__
+  * Minimal configuration: __./app_config.sh plumin__
+    * Configures mutt email client & postfix only
+
+* Console commands follow for a full paclink-unix configuration
 
 ```bash
 cd n7nix/config
@@ -77,19 +85,7 @@ sudo su
 app config (plu) script FINISHED
 ```
 
-#### Note: you will also have to run the hostap/fixed_ip.sh script
-* You **MUST** read this script first to set up your fixed ip addresses for both eth0 & wlan interfaces.
-* You **MUST** reboot after running the hostap/fixed_ip.sh script
-
 # How to Test Mail client
-###### Associate your device running your email client to the RPi WiFi Access Point
-* Find the list of WiFi Access Points & select the one on the RPi
-  * Look for the name you entered during configuration:
-
-```
-Enter Service set identifier (SSID) for new WiFi access point, followed by [enter]:
-```
-
 
 ###### Sending mail is a two step process
 * Compose an e-mail with your e-mail app
@@ -126,8 +122,11 @@ sudo su
 journalctl -f -u pluweb.service
 ```
 
-* Now open a browser & go to: __your_ip_address__:8082
-* Should see something like the following:
+* Now open a browser & enter either of these 2 URLs
+  * __<your_local_ip_address>__:8082
+  * localhost:8082
+
+* You should now see something like the following:
 
 ---
 
@@ -140,7 +139,7 @@ journalctl -f -u pluweb.service
 
 ## [mutt or Neomutt e-mail client](https://www.neomutt.org/)
 * mutt is configured by default in the  [mutt install script](https://github.com/nwdigitalradio/n7nix/blob/master/plu/mutt_install.sh)
-  * mutt is installed by default when paclink-unix is installed.
+  * **NOTE:** mutt is installed by default when paclink-unix is installed.
 
 ## [K-9 Mail Android client](https://k9mail.github.io/)
 * Reference configuration for K-9 Mail
@@ -167,4 +166,20 @@ journalctl -f -u pluweb.service
 * Username: <login_user_name>
 * Authentication: Normal password
 * Password: <login_password>
+
+# Configure WiFi for remote operation
+
+* __Under development__, not ready for use
+
+### Note: you will also have to run the hostap/fixed_ip.sh script
+* You **MUST** read this script first to set up your fixed ip addresses for both eth0 & wlan interfaces.
+* You **MUST** reboot after running the hostap/fixed_ip.sh script
+
+###### Associate your device running your email client to the RPi WiFi Access Point
+* Find the list of WiFi Access Points & select the one on the RPi
+  * Look for the name you entered during configuration:
+
+```
+Enter Service set identifier (SSID) for new WiFi access point, followed by [enter]:
+```
 
