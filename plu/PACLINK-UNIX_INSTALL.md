@@ -1,6 +1,6 @@
-# Linux paclink-unix install for UDRC
+# Linux paclink-unix install for Raspberry Pi
 
-## Install core components for Raspberry Pi with a UDRC sound card
+## Install core components for Raspberry Pi with a UDRC/DRAWS sound card
 
 * This installation assumes you have already [installed core components](https://github.com/nwdigitalradio/n7nix/blob/master/docs/CORE_INSTALL.md)
 
@@ -21,8 +21,7 @@
 
 #### Claws-mail
 
-* Follow [these
-instructions](https://github.com/nwdigitalradio/n7nix/blob/master/email/claws/README.md)
+* Follow [these instructions](https://github.com/nwdigitalradio/n7nix/blob/master/email/claws/README.md)
 when running claws-mail for the first time
 * claws-mail should have a desktop icon or can be accessed from Main Menu > Internet > Claws Mail
 
@@ -77,7 +76,7 @@ paclink-unix install should now be completed and is ready for configuration.
     * Real name (ie. Joe Blow)
   * For Postfix
     * Configure _General type of mail configuration:_ accept the default _Internet Site_, just hit ```<Enter>```
-    * Configure _System mail name: accept the default name, just hit ```<Enter>```
+    * Configure _System mail name: accept the default name_, just hit ```<Enter>```
 
 ##### A note about the winlink password required by paclink-unix
 * If you are not yet a registered Winlink user, just hit enter when prompted for the Winlink password
