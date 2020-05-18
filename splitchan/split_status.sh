@@ -112,7 +112,9 @@ function display_service_status() {
 function split_debugstatus() {
 
     is_splitchan
-    splitchan_result=$?
+    splitchan_result="$?"
+#   echo "DEBUG: split_debugstatus(): checking is_splitchan result: $splitchan_result"
+
     if [ "$splitchan_result" -eq "1" ] ; then
         # Get 'left' or 'right' channel (get last word in ADEVICE string)
         chan_lr=$(grep "^ADEVICE " $DIREWOLF_CFGFILE | grep -oE '[^-]+$')
@@ -227,12 +229,15 @@ function split_status() {
     if [ "$?" -eq 0 ] ; then
         # Direwolf is running, check for split channels
         is_splitchan
-        if [ "$?" -eq 0 ] ; then
+        splitchan_result="$?"
+#       echo "DEBUG: split_status(): checking is_splitchan result: $splitchan_result"
+
+        if [ "$splitchan_result" -eq "0" ] ; then
+            echo "Direwolf is running with pid: $pid and controls both channels"
+        else
             # Get 'left' or 'right' channel from direwolf config (last word in ADEVICE string)
             chan_lr=$(grep "^ADEVICE " $DIREWOLF_CFGFILE | grep -oE '[^-]+$')
             echo "Direwolf is running with pid: $pid, Split channel is enabled, Direwolf controls $chan_lr channel only"
-        else
-            echo "Direwolf is running with pid: $pid and controls both channels"
         fi
     else
         echo "Direwolf is NOT running"
