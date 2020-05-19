@@ -155,8 +155,11 @@ function switch_config() {
     esac
 
     echo "=== set port.conf $newspeed_port0 baud rate"
-    # Switch speeds in config file
+    # Switch speeds in port config file
     sudo sed -i -e "/\[port0\]/,/\[/ s/^speed=.*/speed=$newspeed_port0/" $PORT_CFG_FILE
+    # Set audio/disc in port config file
+    sudo sed -i -e "/\[port0\]/,/\[/ s/^receive_out=.*/receive_out=$newreceive_out0/" $PORT_CFG_FILE
+
     direwolf_set_baud $newspeed_port0
 }
 
