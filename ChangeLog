@@ -1,4 +1,4 @@
-Wed May 13 12:39:53 PDT 2020  Basil Gunn <basil@pacabunga.com>
+Tue May 19 09:24:52 PDT 2020  Basil Gunn <basil@pacabunga.com>
 
   * Image NWDR16 release
     * Packet:
@@ -15,7 +15,8 @@ Wed May 13 12:39:53 PDT 2020  Basil Gunn <basil@pacabunga.com>
       * Update all HF programs to current versions.
     * Both HF & packet:
       * Make split channel work on HF for right mDin6 connector.
-      * Make some alsa settings script UDRC II aware
+        * Fix split_status.sh
+      * Make some alsa settings scripts UDRC II aware
 
 Thu Jan 23 08:48:40 PST 2020  Basil Gunn <basil@pacabunga.com>
 
