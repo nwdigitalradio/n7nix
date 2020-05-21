@@ -112,6 +112,45 @@ function CopyDesktopFiles() {
     echo "copying desktop files FINISHED"
 }
 
+# Get latest version of WiringPi
+CURRENT_VER="2.52"
+TMPDIR=/home/$USER/tmp
+
+# ===== function get_wp_ver
+# Get current version of WiringPi
+function get_wp_ver() {
+    wp_ver=$(gpio -v | grep -i "version" | cut -d':' -f2)
+
+    # echo "DEBUG: $wp_ver"
+    # Strip leading white space
+    # This also works
+    # wp_ver=$(echo $wp_ver | tr -s '[[:space:]]')"
+
+    wp_ver="${wp_ver#"${wp_ver%%[![:space:]]*}"}"
+}
+
+# ===== function chk_wp_ver
+# Check that the latest version of WiringPi is installed
+function chk_wp_ver() {
+    get_wp_ver
+    echo "WiringPi version: $wp_ver"
+    if [ "$wp_ver" != "$CURRENT_VER" ] ; then
+        echo "Installing latest version of WiringPi"
+        # Setup tmp directory
+        if [ ! -d "$TMPDIR" ] ; then
+            mkdir "$TMPDIR"
+        fi
+
+        pushd $TMPDIR
+        wget https://project-downloads.drogon.net/wiringpi-latest.deb
+        sudo dpkg -i wiringpi-latest.deb
+        popd > /dev/null
+
+        get_wp_ver
+        echo "New WiringPi version: $wp_ver"
+    fi
+}
+
 # ===== main
 
 echo "$scriptname: script start"
@@ -222,6 +261,10 @@ case $APP_SELECT in
       # Fix for 'file Manager instantly closes when opened' bug
       echo "Update file manager pcmanfm"
       apt-get install -y -q --reinstall pcmanfm
+
+      # Check for latest verion of WiringPi
+      chk_wp_ver
+
    ;;
    rmsgw)
       # Configure rmsgw
