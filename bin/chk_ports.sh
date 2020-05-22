@@ -13,6 +13,9 @@ AXPORTS_FILE="$AX25_CFGDIR/axports"
 AX25D_FILE="$AX25_CFGDIR/ax25d.conf"
 RMSGW_CHAN_FILE="/etc/rmsgw/channels.xml"
 PLU_CFG_FILE="/usr/local/etc/wl2k.conf"
+APRX_CFG_FILE="/etc/aprx.conf"
+TRACKER_CFG_FILE="/etc/tracker/aprs_tracker.ini"
+XASTIR_CFG_FILE="$HOME/.xastir/config/xastir.cnf"
 
 PRIMARY_DEVICE="udr0"
 ALTERNATE_DEVICE="udr1"
@@ -24,7 +27,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # ===== function usage
 function usage() {
    echo "Usage: $scriptname [-d][-e][-h]" >&2
-   echo " Displays or edits: $(basename "$AXPORTS_FILE"), $(basename "$AX25D_FILE"), $(basename "$RMSGW_CHAN_FILE"), $(basename "$PLU_CFG_FILE")"
+   echo " Displays or edits: $(basename "$AXPORTS_FILE"), $(basename "$AX25D_FILE"), $(basename "$RMSGW_CHAN_FILE"), $(basename "$PLU_CFG_FILE"), $(basename "$APRX_CFG_FILE"), $(basename "$TRACKER_CFG_FILE"), $(basename "$XASTIR_CFG_FILE")"
    echo " No command line args, will display port names in above files."
    echo "   -d        set debug flag"
    echo "   -e        set edit files flag"
@@ -138,7 +141,16 @@ function get_ax25d_device() {
     device_ax25d=$(echo $dev_str | cut -d ' ' -f3 | tr -d "]")
     callsign_ax25d=$(echo $dev_str | cut -d ' ' -f1 | tr -d "[")
 
-    dbgecho "DEBUG: get_ax25d: arg: $dev_str, device: $device_ax25d, call: $callsign_ax25d"
+    word_cnt=$(wc -w <<< $dev_str)
+
+    dbgecho "DEBUG: get_ax25d: arg: $dev_str, word cnt: $word_cnt, device: $device_ax25d, call: $callsign_ax25d"
+    if [[ "$word_cnt" -eq 1 ]] ; then
+        device_ax25d=
+        callsign_ax25d=$(echo $callsign_ax25d | tr -d "]")
+
+        echo "No device associated with this call: $callsign_ax25d"
+        return
+    fi
 
     # Test if device string is not null
     if [ ! -z "$device_axports" ] ; then
@@ -162,11 +174,25 @@ function ax25d_chan () {
         echo "ax25d: No ports found in $AXPORTS_FILE"
         return
     elif (( linecnt > 2 )) ; then
-        echo "ax25d: custom config file, edit by hand."
-        return
+        echo "ax25d: custom config file, with $linecnt entries"
     else
         dbgecho "ax25d: found $linecnt lines: $getline"
     fi
+
+    # Iterate through all ax25d.conf entries
+    itercnt=$linecnt
+    while [[ $itercnt -gt 0 ]] ; do
+        dev_string=$(grep -m "$itercnt" "^\[" <<< $getline | tail -n 1 )
+        dbgecho "maxcnt: $itercnt, dev_string: $dev_string"
+
+        get_ax25d_device "$dev_string"
+
+        ((itercnt--))
+    done
+
+if [ 1 = 0  ] ; then
+    echo
+    echo "== old code"
 
     if (( linecnt > 1 )) ; then
         # First entry
@@ -183,6 +209,7 @@ function ax25d_chan () {
         get_ax25d_device "$getline"
         set_ax25d_device
     fi
+fi
 }
 
 # ===== function plu_chan
@@ -225,6 +252,25 @@ function rmsgw_chan () {
         fi
         echo "RMS gateway: chan_name: $chan_name, call sign: $call_name"
     fi
+}
+
+# ===== function aprx_chan
+# pull call sign & ssid from aprx.conf file
+function aprx_chan() {
+    grep -m 1 -i "callsign\|^mycall" $APRX_CFG_FILE
+}
+
+# ===== function tracker_chan
+# pull call sign & ssid from aprs_tracker.ini file
+function tracker_chan() {
+    grep -m1 -i "mycall" $TRACKER_CFG_FILE
+}
+
+
+# ===== function xastir_chan
+# pull call sign & ssid from xastir file
+function xastir_chan() {
+    grep -i "^station_callsign" "$XASTIR_CFG_FILE"
 }
 
 # ===== function network_ports
@@ -295,6 +341,15 @@ while [[ $# -gt 0 ]] ; do
             echo
             echo "File: $PLU_CFG_FILE"
             grep  'ax25port=' "$PLU_CFG_FILE"
+            echo
+            echo "File: $APRX_CFG_FILE"
+            grep -i "callsign\|^mycall" $APRX_CFG_FILE
+            echo
+            echo "File: $TRACKER_CFG_FILE"
+            grep -i callsign $TRACKER_CFG_FILE
+            echo
+            echo "File: $XASTIR_CFG_FILE"
+            grep -i "^station_callsign" "$XASTIR_CFG_FILE"
             exit
         ;;
         -h)
@@ -327,7 +382,7 @@ echo "== file: $chkfile check"
 if [ -e "$chkfile" ] ; then
     device_axports
 else
-    echo "File: $chk_file does not exist"
+    echo "File: $chkfile does not exist"
 fi
 
 chkfile="$AX25D_FILE"
@@ -336,24 +391,47 @@ echo "== file: $chkfile check"
 if [ -e "$chkfile" ] ; then
     ax25d_chan
 else
-    echo "File: $chk_file does not exist"
+    echo "File: $chkfile does not exist"
 fi
 
 chkfile="$RMSGW_CHAN_FILE"
 echo
-echo "== file: $chkfile check"
+echo -n "== file: $(basename $chkfile) check "
 if [ -e "$chkfile" ] ; then
     rmsgw_chan
 else
-    echo "File: $chk_file does not exist"
+    echo "File: $chkfile does not exist"
 fi
 
 chkfile="$PLU_CFG_FILE"
-echo
-echo "== file: $chkfile check"
+echo -n "== file: $(basename $chkfile) check "
 if [ -e "$chkfile" ] ; then
     plu_chan
 else
-    echo "File: $chk_file does not exist"
+    echo "File: $chkfile does not exist"
+fi
+
+chkfile="$APRX_CFG_FILE"
+echo -n "== file: $(basename $chkfile) check "
+if [ -e "$chkfile" ] ; then
+    aprx_chan
+else
+    echo "File: $chkfile does not exist"
+fi
+
+chkfile="$TRACKER_CFG_FILE"
+echo -n "== file: $(basename $chkfile) check "
+if [ -e "$chkfile" ] ; then
+    tracker_chan
+else
+    echo "File: $chkfile does not exist"
+fi
+
+chkfile="$XASTIR_CFG_FILE"
+echo -n "== file: $(basename $chkfile) check "
+if [ -e "$chkfile" ] ; then
+    xastir_chan
+else
+    echo "File: $chkfile does not exist"
 fi
 
