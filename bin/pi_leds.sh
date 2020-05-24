@@ -17,7 +17,7 @@ function dbgecho  { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 #
 usage () {
 	(
-	echo "Usage: $scriptname [heartbeat][mmc]"
+	echo "Usage: $scriptname [heartbeat][mmc][timer]"
         ) 1>&2
         exit 1
 }
@@ -31,6 +31,10 @@ if [[ $# -gt 0 ]] ; then
     echo "Found argument $key"
 
     case $key in
+          timer)
+            dbgecho "Changing led trigger from $trigger to timer"
+             echo timer | sudo tee /sys/class/leds/led$LED_N/trigger
+        ;;
         heartbeat)
             dbgecho "Changing led trigger from $trigger to heartbeat blink"
              echo heartbeat | sudo tee /sys/class/leds/led$LED_N/trigger
