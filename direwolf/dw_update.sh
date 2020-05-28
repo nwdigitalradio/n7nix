@@ -24,8 +24,13 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/
 function install_direwolf_source() {
    num_cores=$(nproc --all)
    echo "=== Install direwolf version $DW_VER from source using $num_cores cores"
+
+   # Update build requirements
+   apt-get install -y -q libgps-dev cmake
+
    SRC_DIR="/usr/local/src/"
    cd "$SRC_DIR"
+
 # This gets current HOT version
 #   git clone https://www.github.com/wb2osz/direwolf
 #   cd direwolf
