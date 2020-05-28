@@ -30,9 +30,13 @@ function install_direwolf_source() {
 #   git clone https://www.github.com/wb2osz/direwolf
 #   cd direwolf
 
+   # Remove existing zip files as wget by default will not overwrite an existing file name
+   if [ -e $DW_VER.zip ] ; then
+       rm $DW_VER.zip
+   fi
    # This gets version $DW_VER
    wget https://github.com/wb2osz/direwolf/archive/$DW_VER.zip
-   unzip $DW_VER.zip
+   unzip -o $DW_VER.zip
    cd direwolf-$DW_VER
 
    echo "Building direwolf in directory $(pwd)"
@@ -40,8 +44,29 @@ function install_direwolf_source() {
    /usr/local/src/direwolf-dev/src/dwgpsd.c:65:2: error: #error libgps API version might be incompatible."
    echo "See direwolf github issues #241"
    echo
+   DWGPSD_FILE="src/dwgpsd.c"
+   # Fix above with sed
+   gpsd_ver=$(grep -i "#if GPSD_API_MAJOR_VERSION < 5 || GPSD_API_MAJOR_VERSION > 8" $DWGPSD_FILE)
+   if [ "$?" ] ; then
+       echo "== Found gpsd API check string"
+       # Get Major Version number check
+       gpsd_major_ver=$(echo $gpsd_ver | cut -f2 -d'>')
+       #echo "DEBUG 1: gspd_major_ver: $gpsd_major_ver"
+       # Strip leading white space
+       gpsd_major_ver=$(echo $gpsd_major_ver | tr -s '[[:space:]]')
+       # echo "DEBUG 2: gspd_major_ver: $gpsd_major_ver"
+       # grep "GPSD_API_MAJOR_VERSION" $DWGPSD_FILE
+       sed -i -e "/#if GPSD_API_MAJOR_VERSION/ s/8/9/" $DWGPSD_FILE
+       # echo "DEBUG 3: "
+       # grep "GPSD_API_MAJOR_VERSION" $DWGPSD_FILE
+   else
+      echo "== Did not find gpsd API check string"
+   fi
 
-   mkdir build && cd build
+   if [ ! -d "build" ] ; then
+       mkdir build
+   fi
+   cd build
    cmake ..
    make -j$num_cores
    make install
@@ -73,8 +98,16 @@ if [ $? -ne 0 ] ; then
    echo "$scriptname: No direwolf program found in path"
    exit 1
 else
-   dire_ver=$(direwolf -v 2>/dev/null | grep -m 1 -i version | cut -d " " -f4)
-   echo "Found direwolf version: $dire_ver"
+#   dire_ver=$(direwolf -v 2>/dev/null | grep -m 1 -i version | cut -d " " -f4)
+    dire_ver=$(direwolf -v 2>/dev/null | grep -m 1 -i version)
+    grep -i development <<< $dire_ver >/dev/null 2>&1
+    if [ "$?" ] ; then
+        dire_verx=$(echo $dire_ver | cut -d " " -f5)
+    else
+        dire_vexr=$(echo $dire_ver | cut -d " " -f4)
+    fi
+
+    echo "Found direwolf version: ${dire_verx#*D} : D${dire_ver#*D}"
 fi
 
 # Check if config file exists
@@ -137,6 +170,6 @@ dire_new_ver=$(direwolf -v 2>/dev/null | grep -m 1 -i version)
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: direwolf update script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
-echo "direwolf version was: $dire_ver is now: $dire_new_ver"
+echo "direwolf version was: D${dire_ver#*D} is now: $dire_new_ver"
 echo
 exit 0
