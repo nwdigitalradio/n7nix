@@ -106,7 +106,10 @@ echo "== List current iptables rules"
 $SU iptables -L -nvx
 
 
-rule_count=$(grep -c "\-A OUTPUT" /etc/iptables/rules.ipv4.ax25)
+rule_count=0
+if [ -e "/etc/iptables/rules.ipv4.ax25" ] ; then
+    rule_count=$(grep -c "\-A OUTPUT" /etc/iptables/rules.ipv4.ax25)
+fi
 echo
 echo "Number of ax25 iptables rules found: $rule_count"
 
@@ -119,7 +122,7 @@ for ipt_file in `echo ${IPTABLES_FILES}` ; do
    if [ -f $ipt_file ] ; then
       echo "iptables file: $ipt_file exists"
    else
-      echo "Need to create iptables file: $ipt_file"
+      echo "Creating iptables file: $ipt_file"
       CREATE_IPTABLES=true
    fi
 done
@@ -145,7 +148,7 @@ if [ "$CREATE_IPTABLES" = "true" ] ; then
     sudo /bin/bash $BIN_DIR/iptable-up.sh
     sudo sh -c "iptables-save > /etc/iptables/rules.ipv4.ax25"
 
-    grep "iptables-restore" /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 > /dev/null
+    grep -q "iptables-restore" /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 > /dev/null 2>&1
     retcode="$?"
     if [ "$retcode" -ne 0 ] ; then
         echo "Setup restore command"
