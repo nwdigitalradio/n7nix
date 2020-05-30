@@ -16,6 +16,12 @@ function is_pkg_installed() {
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
 }
 
+# ===== function is_ax25up
+function is_ax25up() {
+    ax25device=$1
+    ip a show $ax25device up > /dev/null  2>&1
+}
+
 # ===== function get_user
 
 function get_user() {
@@ -122,6 +128,19 @@ for ipt_file in `echo ${IPTABLES_FILES}` ; do
       CREATE_IPTABLES=true
    fi
 done
+
+echo " == Check to see if ax.25 devices are up"
+is_ax25up ax0
+ax0_up="$?"
+
+is_ax25up ax1
+ax1_up="$?"
+
+if [ "$ax0_up" -ne 0 ] && [ "$ax1_up" -ne 0 ] ; then
+    echo "$(date "+%Y %m %d %T %Z"): $scriptname: iptables installed but NOT configured, no AX.25 devices available" | sudo tee -a $UDR_INSTALL_LOGFILE
+    exit 0
+fi
+
 
 if [ "$CREATE_IPTABLES" = "true" ] ; then
 
