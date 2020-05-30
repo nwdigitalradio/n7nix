@@ -91,6 +91,12 @@ card 0: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi
 cd
 cd n7nix
 git pull
+
+sudo su
+apt-get update
+apt-get dist-upgrade
+# revert back to normal user
+exit
 ```
 
 ##### Configure core functionality
