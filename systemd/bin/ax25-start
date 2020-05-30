@@ -112,6 +112,7 @@ else
     get_user
     check_user
 fi
+BIN_DIR="/home/$USER/bin"
 
 # If no port config file found create one
 if [ ! -f $PORT_CFG_FILE ] ; then
@@ -136,5 +137,55 @@ echo "STARTING AX.25/Direwolf: port 0: $ax25_udr0_baud & port1: $ax25_udr1_baud 
 for service in `echo ${SERVICE_LIST}` ; do
     start_service $service
 done
+
+echo "Verifying IPtables"
+
+rule_count=$(grep -c "\-A OUTPUT" /etc/iptables/rules.ipv4.ax25)
+echo "Number of ax25 iptables rules found: $rule_count"
+
+CREATE_IPTABLES=false
+IPTABLES_FILES="/etc/iptables/rules.ipv4.ax25 /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
+for ipt_file in `echo ${IPTABLES_FILES}` ; do
+
+   if [ -f $ipt_file ] ; then
+      echo "iptables file: $ipt_file exists"
+   else
+      echo "Need to create iptables file: $ipt_file"
+      CREATE_IPTABLES=true
+   fi
+done
+
+if [ -e "/etc/iptables/rules.ipv4.ax25" ] && [ $rule_count -lt 6 ] ; then
+    dbgecho "Will create iptables rules due to rule count: $rule_count"
+    CREATE_IPTABLES=true
+fi
+
+if [ "$CREATE_IPTABLES" = "true" ] ; then
+
+    sudo /bin/bash $BIN_DIR/iptable-flush.sh
+
+    # Setup some iptable rules
+    # 224.0.0.22
+    #  - used for the IGMPv3 protocol.
+    # 239.255.255.250:1900
+    #  - Chromecast
+    #  - traffic is discovery multicast traffic that occurs every 2 minutes from the system
+    #  - UPnP (Universal Plug and Play)/SSDP (Simple Service Discovery Protocol) by various vendors to advertise the capabilities of (or discover) devices
+    echo
+    echo "== setup iptables"
+    sudo /bin/bash $BIN_DIR/iptable-up.sh
+    sudo sh -c "iptables-save > /etc/iptables/rules.ipv4.ax25"
+
+    grep "iptables-restore" /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 > /dev/null
+    retcode="$?"
+    if [ "$retcode" -ne 0 ] ; then
+        echo "Setup restore command"
+        sudo tee /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 > /dev/null <<EOF
+iptables-restore < /etc/iptables/rules.ipv4.ax25
+EOF
+    fi
+    rule_count=$(grep -c "\-A OUTPUT" /etc/iptables/rules.ipv4.ax25)
+    echo "Number of ax25 rules now: $rule_count"
+fi
 
 change_icon "off"
