@@ -148,7 +148,7 @@ function install_direwolf_source() {
 
     echo "=== Install direwolf version $DW_VER from source using $num_cores cores"
 
-#   apt-get install gpsd
+    # Update build requirements
     apt-get install -y -q libgps-dev cmake
 
    SRC_DIR="/usr/local/src/"
