@@ -1,7 +1,13 @@
 #!/bin/bash
 #
+# iptable-check.sh
+#
+# Verify that iptables has been configured for AX.25 operation
+# If iptables has not been configured then add some rules to the tables
+
 DEBUG=
 SU=
+scriptname="`basename $0`"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -37,9 +43,42 @@ function check_user() {
    dbgecho "using USER: $USER"
 }
 
+# ===== function usage
+
+function usage() {
+    echo "Usage: $scriptname [-d][-h]" >&2
+    echo "   -d        set debug flag"
+    echo "   -h        display this message"
+    echo
+}
+
 #
 # ===== main
 #
+
+while [[ $# -gt 0 ]] ; do
+APP_ARG="$1"
+
+case $APP_ARG in
+
+   -d|--debug)
+      DEBUG=1
+      echo "Debug mode on"
+   ;;
+   -h|--help|-?)
+      usage
+      exit 0
+   ;;
+   *)
+       echo "Unrecognized command line argument: $APP_ARG"
+       usage
+       exit 0
+   ;;
+
+esac
+
+shift # past argument
+done
 
 # Get list of users with home directories
 USERLIST="$(ls /home)"
@@ -119,10 +158,10 @@ EOF
 fi
 
 if [ ! -z "$DEBUG" ] ; then
-    echo
-    echo "Dump file: /etc/iptables/rules.ipv4.ax25"
-    cat /etc/iptables/rules.ipv4.ax25
-    echo
-    echo "Dump file: /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
-    cat /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25
+    IPTABLES_FILES="/etc/iptables/rules.ipv4.ax25 /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
+    for ipt_file in `echo ${IPTABLES_FILES}` ; do
+        echo
+        echo "== Dump file: $ipt_file"
+        cat $ipt_file
+    done
 fi
