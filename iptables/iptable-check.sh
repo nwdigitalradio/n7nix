@@ -41,18 +41,6 @@ function check_user() {
 # ===== main
 #
 
-# Check for required iptables files
-#
-IPTABLES_FILES="/etc/iptables/rules.ipv4.ax25 /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
-for ipt_file in `echo ${IPTABLES_FILES}` ; do
-
-   if [ -f $ipt_file ] ; then
-      echo "iptables file: $ipt_file exists"
-   else
-      echo "Need to create iptables file: $ipt_file"
-   fi
-done
-
 # Get list of users with home directories
 USERLIST="$(ls /home)"
 USERLIST="$(echo $USERLIST | tr '\n' ' ')"
@@ -67,7 +55,6 @@ else
     check_user
 fi
 BIN_DIR="/home/$USER/bin"
-
 
 echo "== List current iptables rules"
 # List iptables rules
@@ -84,6 +71,8 @@ rule_count=$(grep -c "\-A OUTPUT" /etc/iptables/rules.ipv4.ax25)
 echo
 echo "Number of ax25 iptables rules found: $rule_count"
 
+# Check for required iptables files
+#
 CREATE_IPTABLES=false
 IPTABLES_FILES="/etc/iptables/rules.ipv4.ax25 /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
 for ipt_file in `echo ${IPTABLES_FILES}` ; do
