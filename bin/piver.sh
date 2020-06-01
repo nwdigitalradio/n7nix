@@ -60,12 +60,20 @@ b03111)
    echo " Pi 4 Model B, Rev 1.1, 2GB mem, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
+b03112)
+   echo " Pi 4 Model B, Rev 1.2, 2GB mem, Mfg by Sony UK"
+   HAS_WIFI=true
+;;
 c03111)
    echo " Pi 4 Model B, Rev 1.1, 4GB mem, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
 c03112)
    echo " Pi 4 Model B, Rev 1.2, 4GB mem, Mfg by Sony UK"
+   HAS_WIFI=true
+;;
+d03114)
+   echo " Pi 4 Model B, Rev 1.4, 8GB mem, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
 *)
