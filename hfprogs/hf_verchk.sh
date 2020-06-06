@@ -353,32 +353,33 @@ fi
 
 # wsjtx
 if [ -z "$DEBUG1" ] ; then
-wsjtx_app="wsjtx"
-ver_url="http://physics.princeton.edu/pulsar/K1JT/$wsjtx_app.html"
-# Trying to parse this:
-# Availability (GA) release:&nbsp; <i>WSJT-X</i><i> 2.2</i>.1<br>
-# wsjtx_ver=$(curl -s $ver_url | grep -A 1 -i "Availability (GA)" | tail -n 1 | cut -d '<' -f1)
-wsjtx_ver=$(curl -s $ver_url | grep -A 1 -io "Availability (GA).*" | head -n 1 | sed -e 's/<[^>]*>//g' | sed -n 's/.*WSJT-X//p')
+    wsjtx_app="wsjtx"
+    ver_url="http://physics.princeton.edu/pulsar/K1JT/$wsjtx_app.html"
+    # Trying to parse this:
+    # Availability (GA) release:&nbsp; <i>WSJT-X</i><i> 2.2</i>.1<br>
 
-# $(curl -s $ver_url | grep -i "Availability (GA)" | cut -d '>' -f3 | cut -d '<' -f1)
-# curl -s $ver_url | grep -i "Availability (GA)" | cut -d '>' -f3 | cut -d '<' -f1
-# Remove preceding white space & any non printable characters
-wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | tr -dc '[:alnum:].' )
+    # wsjtx_ver=$(curl -s $ver_url | grep -A 1 -i "Availability (GA)" | tail -n 1 | cut -d '<' -f1)
+    #           $(curl -s $ver_url | grep -i "Availability (GA)" | cut -d '>' -f3 | cut -d '<' -f1)
 
-installed_prog_ver_get "$wsjtx_app"
+    # This removes all html tags:  sed -e 's/<[^>]*>//g'
+    wsjtx_ver=$(curl -s $ver_url | grep -A 1 -io "Availability (GA).*" | head -n 1 | sed -e 's/<[^>]*>//g' | sed -n 's/.*WSJT-X//p')
 
-echo "$wsjtx_app:   current version: $wsjtx_ver, installed: $prog_ver"
+    # Remove preceding white space & any non printable characters
+    wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | tr -dc '[:alnum:].' )
 
-if $UPDATE_FLAG ; then
-    if [[ "$wsjtx_ver" != "$prog_ver" ]] ; then
-        echo "       versions are different and WILL be updated."
-        /bin/bash ./hf_install.sh "$USER" wsjtx "$wsjtx_ver"
-        UPDATE_EXEC_FLAG=true
-    else
-        echo "         version is current"
+    installed_prog_ver_get "$wsjtx_app"
+
+    echo "$wsjtx_app:   current version: $wsjtx_ver, installed: $prog_ver"
+
+    if $UPDATE_FLAG ; then
+        if [[ "$wsjtx_ver" != "$prog_ver" ]] ; then
+            echo "       versions are different and WILL be updated."
+            /bin/bash ./hf_install.sh "$USER" wsjtx "$wsjtx_ver"
+            UPDATE_EXEC_FLAG=true
+        else
+            echo "         version is current"
+        fi
     fi
-fi
-
 fi
 
 # Update all the fl programs
