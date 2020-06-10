@@ -116,7 +116,8 @@ else
 
 #        jq -c '.GatewayChannels[]' <<< $value | while read i; do
         while read i; do
-            frequency=$(jq -r '.Frequency' <<< $i);
+            c_frequency=$(jq -r '.Frequency' <<< $i);
+            d_frequency=c_frequency-1500
             baud=$(jq -r '.Baud' <<< $i);
             gridsquare=$(jq -r '.Gridsquare' <<< $i);
             # Distance extraction does not work
@@ -155,7 +156,8 @@ function parse_proximity() {
     dbgecho "Function parse_proximity with input file $ARDOP_FILE_RAW"
 
     # Print the table header
-    echo " Callsign        Frequency  Distance    Baud"
+    echo "                    Center          Dial"
+    echo " Callsign         Frequency       Frequency  Distance    Baud"
 
     last_callsign="N0ONE"
     callsign_cnt=0
@@ -171,7 +173,8 @@ function parse_proximity() {
         callsign=$(echo "$callsign" | tr -d ' ')
 
 
-        frequency=$(jq -r '.Frequency' <<< $value);
+        c_frequency=$(jq -r '.Frequency' <<< $value);
+        d_frequency=$((c_frequency-1500))
         mode=$(jq -r '.RequestedMode' <<< $value);
         baud=$(jq -r '.Baud' <<< $value);
         distance=$(jq -r '.Distance' <<< $value);
@@ -183,7 +186,7 @@ function parse_proximity() {
         fi
         ((linecnt++))
 
-        printf ' %-10s\t%10s\t%s\t%4s\n' "$callsign" "$frequency" "$distance" "$baud"
+        printf ' %-10s\t%10s\t%10s\t%s\t%4s\n' "$callsign" "$c_frequency" "$d_frequency" "$distance" "$baud"
 
     done > >(tee $ARDOP_PROXIMITY_FILE_OUT) 2>&1
 
