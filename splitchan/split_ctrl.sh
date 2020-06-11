@@ -170,7 +170,7 @@ function do_diff() {
     fi
 
     # Check for split-channels source directory
-    if [ ! -e "$SPLIT_DIR" ] ; then
+    if [ ! -d "$SPLIT_DIR" ] ; then
         echo "  No split-channels source directory found ($SPLIT_DIR)"
         return
     else
