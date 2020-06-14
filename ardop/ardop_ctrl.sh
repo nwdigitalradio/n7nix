@@ -7,15 +7,33 @@ LOCAL_BIN="/home/pi/bin"
 SYSTEMD_DIR="/etc/systemd/system"
 FORCE_UPDATE=
 
-# for IC-706mkIIg
-rignum=311
-ic706_baud=4800
+# default radioname
+radioname="ic706"
 
-# ic-7300
-sample_rate=48000
+declare -A radio_ic706=( [rignum]=311 [samplerate]=48000 [baudrate]=4800 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-26.5" )
+declare -A radio_ic7300=( [rignum]=373 [samplerate]=48000 [baudrate]=19200 [pttctrl]="/dev/ttyUSB0" [catctrl]="-c /dev/ttyUSB0" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
 
-# draws
-sample_rate=12000
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+RADIOLIST="ic706 ic7300 kx2"
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function name_check
+# Verify that the supplied radio name is in the supported list
+function name_check() {
+    retcode=1
+    namecheck=$1
+    for radio in $RADIOLIST ; do
+        if [ $radio = "$namecheck" ] ; then
+            return 0
+        fi
+    done
+    return $retcode
+}
+
+# ===== function asoundfile
+# Use a heredoc to build the .asoundrc file
 
 function asoundfile() {
 sudo tee $HOME/.asoundrc > /dev/null << EOT
@@ -23,32 +41,43 @@ pcm.ARDOP {
         type rate
         slave {
         pcm "hw:1,0"
-        rate 48000
+        rate ${radio[samplerate]}
         }
 }
 EOT
 }
+
+# ===== function unitfile_rigctld
+# Use a heredoc to build the rigctld.service file
+
 function unitfile_rigctld() {
 sudo tee /etc/systemd/system/rigctld.service > /dev/null << EOT
 [Unit]
 Description=rigctld
 #Before=pat
 
-
 [Service]
-ExecStart=/usr/local/bin/rigctld -m $rignum -r /dev/ttyUSB0 -s $ic706_baud
+ExecStart=/usr/local/bin/rigctld -m ${radio[rignum]} -r /dev/ttyUSB0 -s ${radio[baudrate]}
 WorkingDirectory=/home/pi/
 StandardOutput=inherit
 StandardError=inherit
 Restart=no
 User=pi
 
-
 [Install]
 WantedBy=multi-user.target
-WantedBy=pat
+#WantedBy=pat
 EOT
 }
+
+# ===== function unitfile_ardop
+# Use a heredoc to build the ardop.service file
+#
+# From piardopc documentation
+# -p device or --ptt device         Device to use for PTT control using RTS or GPIO Pin (Raspbery Pi only)
+# -c device or --cat device         Device to use for CAT Control
+# -k string or --keystring string   String (In HEX) to send to the radio to key PTT
+# -u string or --unkeystring string String (In HEX) to send to the radio to unkeykey PTT
 
 function unitfile_ardop() {
 sudo tee /etc/systemd/system/ardop.service > /dev/null << EOT
@@ -58,9 +87,9 @@ After=network.target sound.target
 
 [Service]
 User=pi
-ExecStart=/bin/sh -c "/home/pi/bin/piardopc 8515 pcm.ARDOP pcm.ARDOP -p GPIO=12"
-#ExecStart=/bin/sh -c "/home/pi/bin/piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=12"
-#ExecStart=/bin/sh -c "cd /tmp && /usr/local/bin/piardopc"
+WorkingDirectory=/home/pi/
+ExecStart=/home/pi/bin/piardopc 8515 pcm.ARDOP pcm.ARDOP ${radio[catctrl]} -p ${radio[pttctrl]}
+#ExecStart=/bin/sh -c "/home/pi/bin/piardopc 8515 plughw:1,0 plughw:1,0 -p ${radio[pttctrl]} "
 Restart=no
 
 [Install]
@@ -68,11 +97,13 @@ WantedBy=multi-user.target
 EOT
 }
 
+# ===== function unitfile_pat
+# Use a heredoc to build the pat.service file
+
 function unitfile_pat() {
 sudo tee /etc/systemd/system/pat.service > /dev/null << EOT
 [Unit]
 Description=pat
-#After=winlinkrms
 #Before=network.target
 Requires=rigctld
 #Wants=rigctld
@@ -192,7 +223,9 @@ function check_service() {
 # ===== function kill_ardop
 function kill_ardop() {
     kill_flag=$1
-
+    echo
+    echo "DEBUG: kill_ardop: kill_flag $kill_flag"
+    echo
 
     for process in "rigctld" "piardopc" "pat" ; do
 
@@ -204,7 +237,7 @@ function kill_ardop() {
             echo "proc $process: $ret, pid: $pid_pat, args: $args"
         fi
 
-        # Stop systemd service
+        # Stop systemd services
         service="$process"
         if [ "$process" = "piardopc" ] ; then
             service="ardop"
@@ -227,27 +260,27 @@ function kill_ardop() {
 function process_check() {
     kill_flag=
     auddev="udrc"
-    if [ ! -z $1 ] ; then
+    if [ "$1" -eq 1 ] ; then
         kill_flag=true
         echo "kill flag set"
     fi
     echo
     echo "  === audio device $auddev check"
     if [ -e "/proc/asound/$auddev/pcm0c/sub0/status" ] ; then
-        grep -i "state:" "/proc/asound/$auddev/pcm0c/sub0/status"
+        grep -i "state:\|closed" "/proc/asound/$auddev/pcm0c/sub0/status"
     else
         echo "Audio device status file does NOT exist"
     fi
     filename="$HOME/.asoundrc"
-    if [ ! -e "$filename" ] || [ $FORCE_UPDATE = true ] ; then
+    if [ ! -e "$filename" ] || [ "$FORCE_UPDATE" = "true" ] ; then
         echo "File: $filename does not exist, creating"
         # create asound file
         asoundfile
     fi
 
-    echo
-    echo "  === process check"
-    kill_ardop $kill_flag
+#    echo
+#    echo "  === process check"
+#    kill_ardop $kill_flag
 }
 
 # ===== function unitfile_update
@@ -301,6 +334,37 @@ function unitfile_check() {
     return $retcode
 }
 
+function ardop_process_status() {
+    echo " == Ardop systemctl unit file check"
+    unitfile_check
+    retcode=$?
+#   echo "DEBUG: retcode from unitfile_check: $retcode"
+    if [ "$retcode" -eq 1 ] ; then
+        echo " systemctl daemon-reload"
+        $SYSTEMCTL daemon-reload
+    fi
+
+    echo " == Ardop process check"
+    status_all_services
+    status_all_processes
+}
+
+usage () {
+	(
+	echo "Usage: $scriptname [-f][-d][-h][status][stop][start]"
+        echo "                  No args will show status of rigctld, piardopc, pat"
+        echo "                  args with dashes must come before other arguments"
+        echo "  start           start required ardop processes"
+        echo "  stop            stop all ardop processes"
+        echo "  status          display status of all ardop processes"
+        echo "  -f | --force    Update all systemd unit files & .asoundrc file"
+        echo "  -d              Set DEBUG flag"
+        echo "  -h              Display this message."
+        echo
+	) 1>&2
+	exit 1
+}
+
 # ===== main
 
 # Check if running as root
@@ -309,14 +373,44 @@ if [[ $EUID != 0 ]] ; then
 else
    SYSTEMCTL="systemctl"
 fi
+
 # draws manager collides with pat http
 check_service "draws-manager"
+
+if [[ $# -eq 0 ]] ; then
+    APP_ARG="status"
+fi
 
 while [[ $# -gt 0 ]] ; do
 APP_ARG="$1"
 
 case $APP_ARG in
+    -a)
+        radioname=$2
+        shift  # past argument
 
+        name_check $radioname
+        if [ $? -eq 1 ] ; then
+            echo "Radio: $radioname NOT supported"
+            exit
+        fi
+        radioname="radio_${radioname}"
+        echo "Setting rig name to: $radioname"
+        if [ ! -z "$DEBUG" ] ; then
+            declare -n radio=$radioname
+            echo
+            echo "DEBUG: radio name: $radioname, radio: $radio"
+            printf "rig ctrl baud rate: %s\n" ${radio[baudrate]}
+            echo
+            catctrl=${radio[catctrl]}
+            if [ -z $catctrl ] ; then catctrl="rigctl" ; fi
+            echo "== Dump radio parameters for radio: $radioname"
+            for key in "${!radio[@]}"; do echo -n "$key -> ${radio[$key]}, "; done
+            echo
+            printf "rig number: %s, baud rate: %s, alsa sample rate: %s, ptt: %s, cat: %s, alsa pcm: %s\n" ${radio[rignum]} ${radio[baudrate]} ${radio[samplerate]} ${radio[pttctrl]} "$catctrl" "${radio[alsa_pcm]}"
+        fi
+        exit
+    ;;
     stop)
         echo "Kill all ardopc, rigctld & pat processes"
         # temporary until everything is started with systemd
@@ -328,18 +422,8 @@ case $APP_ARG in
         done
     ;;
     status)
-        echo " == Ardop systemctl unit file check"
-        unitfile_check
-        retcode=$?
-#        echo "DEBUG: retcode from unitfile_check: $retcode"
-        if [ "$retcode" -eq 1 ] ; then
-            echo " systemctl daemon-reload"
-            $SYSTEMCTL daemon-reload
-        fi
-
-        echo " == Ardop process check"
-        status_all_services
-        status_all_processes
+        ardop_process_status
+        echo "Finished ardop status"
         exit 0
     ;;
     -f|--force)
@@ -365,9 +449,10 @@ esac
 shift # past argument
 done
 
-if [[ $# -eq 0 ]] ; then
-    APP_ARG="status"
-fi
+# make variable radio an alias for radioname
+declare -n radio=$radioname
+
+process_check 0
 unitfile_check
 retcode=$?
 
