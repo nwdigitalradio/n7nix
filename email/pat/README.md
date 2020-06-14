@@ -78,6 +78,8 @@ pat --listen="ardop" interactive
 cd ~/bin
 ./piARDOP_GUI
 ```
+* hostname: localhost
+* port: 8515
 
 ### Winlink Point to point connection
 * [Verify Pat listener is running](#console-2-ardop-listener)
