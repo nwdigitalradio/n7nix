@@ -15,6 +15,7 @@ echo "FOR REFERENCE ONLY, DO NOT USE"
 exit 0
 
 wget https://github.com/la5nta/pat/releases/download/v0.9.0/pat_0.9.0_linux_armhf.deb
+dpkg -i pat_0.9.0_linux_armhf.deb
 
 # pat connect ardop:///LA1J?freq=3601.5
 # pat connect ardop:///K7HTZ?freq=14108.5
