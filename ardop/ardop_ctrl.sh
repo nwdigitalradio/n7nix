@@ -280,13 +280,7 @@ function process_check() {
     fi
 
     audio_device_check $auddev
-
-    filename="$HOME/.asoundrc"
-    if [ ! -e "$filename" ] || [ "$FORCE_UPDATE" = "true" ] ; then
-        echo "File: $filename does not exist, creating"
-        # create asound file
-        asoundfile
-    fi
+    asoundrc_file_check
 
 #    echo
 #    echo "  === process check"
@@ -317,6 +311,7 @@ function unitfile_update() {
             ;;
         esac
     done
+    $SYSTEMCTL daemon-reload
 }
 
 # ===== function systemd unit file check
@@ -373,7 +368,7 @@ function is_pulseaudio() {
     return $retcode
 }
 
-# function check for an integer
+# ===== function check for an integer
 
 function is_num() {
     local chk=${1#[+-]};
@@ -404,6 +399,47 @@ function which_radio() {
     fi
 }
 
+# ===== function asoundrc_file_check
+function asoundrc_file_check() {
+
+    if [[ $EUID != 0 ]] ; then
+        cfgfile="$HOME/.asoundrc"
+        if [ ! -e "$cfgfile" ] || [ "$FORCE_UPDATE" = "true" ] ; then
+            echo "File: $cfgfile does not exist, creating"
+            # create asound file
+            asoundfile
+        else
+            grep -i "pcm.ARDOP" $cfgfile > /dev/null 2>&1
+            if [ $? -ne 0 ] ; then
+                echo "asoundrc_file_check: No ARDOP entry in $cfgfile"
+            else
+                echo "asoundrc_file_check: Found ARDOP entry in $cfgfile"
+                CARDNO=$(aplay -l | grep -i udrc)
+
+                if [ ! -z "$CARDNO" ] ; then
+#                    echo "asoundrc_file_check: udrc card number line: $CARDNO"
+                    CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
+#                    echo "asoundrc_file_check: udrc is sound card #$CARDNO"
+                    asound_cardno=$(grep -i pcm $cfgfile | tail -n 1 | cut -d':' -f2 | cut -d',' -f1)
+                    if [ $CARDNO -ne $asound_cardno ] ; then
+                        echo
+                        echo " asoundrc_file_check: asound cfg device does NOT match aplay device"
+                        echo
+                    else
+                        echo "asoundrc_file_check: asound cfg device match: sound card number: $CARDNO"
+                    fi
+                else
+                    echo "asoundrc_file_check: No udrc sound card found."
+                fi
+            fi
+        fi
+    else
+        echo
+        echo " Running as root so .asoundrc file not checked"
+    fi
+}
+
+
 # ==== ardop_file_status
 # Verify ardop programs are installed
 
@@ -416,30 +452,12 @@ function ardop_file_status() {
         echo "Pulse Audio is NOT running"
     fi
 
-    if [[ $EUID != 0 ]] ; then
-        USER=$(whoami)
-        # Check for .asoundrc & asound.conf ALSA configuration files
-        # Verify virtual sound device ARDOP
-        cfgfile="/home/$USER/.asoundrc"
-
-        if [ ! -e "$cfgfile" ] ; then
-            echo "File: $cfgfile does not exist"
-        else
-            grep -i "pcm.ARDOP" $cfgfile > /dev/null 2>&1
-            if [ $? -ne 0 ] ; then
-                echo "No ARDOP entry in $cfgfile"
-            else
-                echo "Found ARDOP entry in $cfgfile"
-            fi
-        fi
-    else
-        echo
-        echo " Running as root so .asoundrc file not checked"
-    fi
+    # Check for .asoundrc & asound.conf ALSA configuration files
+    # Verify virtual sound device ARDOP
+    asoundrc_file_check
 
     # Verify config file to define virtual devices for split channel operation
     cfgfile="/etc/asound.conf"
-
     if [ ! -e "$cfgfile" ] ; then
         echo "File: $cfgfile does not exist"
     else
