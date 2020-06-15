@@ -5,17 +5,31 @@
 #
 # Install FAQ
 # https://github.com/la5nta/pat/wiki/Install-FAQ
-# "IC-706MKIIG": {"address": "localhost:4532", "network": "tcp"}
-# "K3/KX3": {"address": "localhost:4532", "network": "tcp"}
-#
+# Need to edit file: $HOME/.wl2k/config.json
+#  mycall
+#  secure_login_password
+#  locator (Grid square locator ie. CN88nl)
+#  hamlib_rigs:
+#     "IC-706MKIIG": {"address": "localhost:4532", "network": "tcp"}
+#     "K3/KX3": {"address": "localhost:4532", "network": "tcp"}
+#  ardop: rig:
 #   "rig": "ic-706MKII",
 #   "rig": "K3/KX3",
 
 echo "FOR REFERENCE ONLY, DO NOT USE"
-exit 0
 
-wget https://github.com/la5nta/pat/releases/download/v0.9.0/pat_0.9.0_linux_armhf.deb
-dpkg -i pat_0.9.0_linux_armhf.deb
+patver="0.9.0"
+
+echo " == Get pat ver: $patver"
+wget https://github.com/la5nta/pat/releases/download/v${patver}/pat_${patver}_linux_armhf.deb
+if [ $?  -ne 0 ] ; then
+    echo "Failed getting pat deb file"
+else
+    echo " == Installpat ver: $patver"
+    sudo dpkg -i pat_${patver}_linux_armhf.deb
+fi
 
 # pat connect ardop:///LA1J?freq=3601.5
 # pat connect ardop:///K7HTZ?freq=14108.5
+
+exit 0
