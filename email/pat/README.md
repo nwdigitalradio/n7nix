@@ -12,10 +12,12 @@ pi        6257  0.0  0.3  28100  7748 pts/0    Sl+  Apr21   0:00 rigctld -m311 -
 #### PAT config
 * PAT config file lives here: [.wl2k/config.json](https://github.com/nwdigitalradio/n7nix/blob/master/email/pat/config.json)
   * __NOTE__ preceeding dot in directory name
-* Edit the following configuration variables
+* Edit the following configuration variables in the json config file
   * mycall
   * secure_login_password
   * locator
+  * hamlib_rigs
+  * ardop, "rig":
 
 
 ### Consoles
@@ -25,14 +27,14 @@ pi        6257  0.0  0.3  28100  7748 pts/0    Sl+  Apr21   0:00 rigctld -m311 -
 * Get rig control running first since it is used by PAT.
   * Technically you do __NOT__ need _rigctrld_ running if you set radio frequency manually.
 * [PAT Rig Control](https://github.com/la5nta/pat/wiki/Rig-control) wiki.
-* Edit PAT config file config.json
+* Edit PAT config file: config.json
   * Add an entry to _hamlib_rigs_
   * ie. For an IC-706MKIIG
 ```
  "IC-706MKIIG": {"address": "localhost:4532", "network": "tcp"}
 ```
-  * Under "ardop": add a rig control __rigctl rig name__
-    * Link to [rigctl rig names](https://github.com/Hamlib/Hamlib/wiki/Supported-Radios).
+  * Edit "ardop": entry by adding a __rigctl rig name__
+    * Link to [Hamlib rigctl rig names](https://github.com/Hamlib/Hamlib/wiki/Supported-Radios).
     * Must match a name from ```rigctl -l``` list
 ```
   "rig": "IC-706MKIIG",
