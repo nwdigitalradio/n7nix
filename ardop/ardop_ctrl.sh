@@ -7,15 +7,11 @@ LOCAL_BIN="/home/pi/bin"
 SYSTEMD_DIR="/etc/systemd/system"
 FORCE_UPDATE=
 
-# default radioname
-radioname="ic706"
-
-declare -A radio_ic706=( [rignum]=311 [samplerate]=48000 [baudrate]=4800 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-26.5" )
-declare -A radio_ic7300=( [rignum]=373 [samplerate]=48000 [baudrate]=19200 [pttctrl]="/dev/ttyUSB0" [catctrl]="-c /dev/ttyUSB0" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
-
-function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
-
 RADIOLIST="ic706 ic7300 kx2"
+
+declare -A radio_ic706=( [rigname]="IC-706" [rignum]=311 [samplerate]=48000 [baudrate]=4800 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-26.5" )
+declare -A radio_ic7300=( [rigname]="IC-7300" [rignum]=373 [samplerate]=48000 [baudrate]=19200 [pttctrl]="/dev/ttyUSB0" [catctrl]="-c /dev/ttyUSB0" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
+declare -A radio_kx2=( [rigname]="K3/KX3" [rignum]=229 [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="0.0" [alsa_pcm]="0.0" )
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -255,6 +251,24 @@ function kill_ardop() {
     done
 }
 
+# ===== function audio_device_check
+
+function audio_device_check() {
+
+    audio_device=$1
+    if [ -z $audio_device ] ; then
+        echo "Need to pass audio device name to audio_device_check()"
+        return
+    fi
+
+    echo -n "  == audio device $audio_device check: "
+    if [ -e "/proc/asound/$audio_device/pcm0c/sub0/status" ] ; then
+        grep -i "state:\|closed" "/proc/asound/$audio_device/pcm0c/sub0/status"
+    else
+        echo "device status file does NOT exist"
+    fi
+}
+
 # ===== function process_check
 
 function process_check() {
@@ -264,13 +278,9 @@ function process_check() {
         kill_flag=true
         echo "kill flag set"
     fi
-    echo
-    echo "  === audio device $auddev check"
-    if [ -e "/proc/asound/$auddev/pcm0c/sub0/status" ] ; then
-        grep -i "state:\|closed" "/proc/asound/$auddev/pcm0c/sub0/status"
-    else
-        echo "Audio device status file does NOT exist"
-    fi
+
+    audio_device_check $auddev
+
     filename="$HOME/.asoundrc"
     if [ ! -e "$filename" ] || [ "$FORCE_UPDATE" = "true" ] ; then
         echo "File: $filename does not exist, creating"
@@ -289,6 +299,7 @@ function process_check() {
 function unitfile_update() {
 
     echo " == unit file update"
+
     for unit_file in "rigctld" "ardop" "pat" ; do
         case $unit_file in
             rigctld)
@@ -334,6 +345,8 @@ function unitfile_check() {
     return $retcode
 }
 
+# ===== function ardop_process_status
+
 function ardop_process_status() {
     echo " == Ardop systemctl unit file check"
     unitfile_check
@@ -347,6 +360,121 @@ function ardop_process_status() {
     echo " == Ardop process check"
     status_all_services
     status_all_processes
+    auddev="udrc"
+    audio_device_check $auddev
+}
+
+# ===== function is_pulseaudio
+# Determine if pulse audio is running
+
+function is_pulseaudio() {
+    pid=$(pidof pulseaudio)
+    retcode="$?"
+    return $retcode
+}
+
+# function check for an integer
+
+function is_num() {
+    local chk=${1#[+-]};
+    [ "$chk" ] && [ -z "${chk//[0-9]}" ]
+}
+
+function which_radio() {
+
+    if [ -e "/etc/systemd/system/rigctld.service" ] ; then
+        radionum=$(grep "rigctld -m" /etc/systemd/system/rigctld.service | cut -d' ' -f3)
+        if is_num $radionum ; then
+            dbgecho "radio number ok: $radionum"
+            for array in $RADIOLIST ; do
+               arrayname="radio_${array}"
+               declare -n radarray=$arrayname
+               #debug
+               # echo "name ${radarray[rigname]}, number: ${radarray[rignum]}"
+               if [ "${radarray[rignum]}" -eq "$radionum" ] ; then
+                   radio_name="${radarray[rigname]}"
+                   break;
+               fi
+            done
+        else
+            echo "Check rigctld unit file, not configured properly"
+        fi
+    else
+        echo "rigctld not configured"
+    fi
+}
+
+# ==== ardop_file_status
+# Verify ardop programs are installed
+
+function ardop_file_status() {
+
+    is_pulseaudio
+    if [ "$?" -eq 0 ] ; then
+        echo "== Pulse Audio is running with pid: $pid"
+    else
+        echo "Pulse Audio is NOT running"
+    fi
+
+    if [[ $EUID != 0 ]] ; then
+        USER=$(whoami)
+        # Check for .asoundrc & asound.conf ALSA configuration files
+        # Verify virtual sound device ARDOP
+        cfgfile="/home/$USER/.asoundrc"
+
+        if [ ! -e "$cfgfile" ] ; then
+            echo "File: $cfgfile does not exist"
+        else
+            grep -i "pcm.ARDOP" $cfgfile > /dev/null 2>&1
+            if [ $? -ne 0 ] ; then
+                echo "No ARDOP entry in $cfgfile"
+            else
+                echo "Found ARDOP entry in $cfgfile"
+            fi
+        fi
+    else
+        echo
+        echo " Running as root so .asoundrc file not checked"
+    fi
+
+    # Verify config file to define virtual devices for split channel operation
+    cfgfile="/etc/asound.conf"
+
+    if [ ! -e "$cfgfile" ] ; then
+        echo "File: $cfgfile does not exist"
+    else
+        echo "Found file: $cfgfile for split channel operation"
+    fi
+
+    PROGLIST="piARDOP_GUI piardop2 piardopc"
+
+    echo " == Ardop Verify required programs"
+
+    for prog_name in `echo ${PROGLIST}` ; do
+        type -P $prog_name &> /dev/null
+        retcode="$?"
+        if [ "$retcode" -ne 0 ] ; then
+            echo "$scriptname: Need to Install $prog_name"
+            NEEDPKG_FLAG=true
+        else
+            # Get last word of filename, break on under bar, only look at first 3 characters
+            lastword=$(grep -oE '[^_]+$' <<< $prog_name | cut -c1-3)
+            if [ "$lastword" != "GUI" ] ; then
+                echo "Found program: $prog_name, $($prog_name -h | head -n 1)"
+            else
+                echo "Found program: $prog_name"
+            fi
+        fi
+    done
+
+    prog_name="arim"
+    type -P $prog_name &> /dev/null
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Need to Install $prog_name"
+        NEEDPKG_FLAG=true
+    else
+        echo "Found program: $prog_name, version: $($prog_name -v | head -n 1)"
+    fi
 }
 
 usage () {
@@ -357,6 +485,7 @@ usage () {
         echo "  start           start required ardop processes"
         echo "  stop            stop all ardop processes"
         echo "  status          display status of all ardop processes"
+        echo "  -a <radio name> specify radio name (ic706 ic7300 kx2)"
         echo "  -f | --force    Update all systemd unit files & .asoundrc file"
         echo "  -d              Set DEBUG flag"
         echo "  -h              Display this message."
@@ -380,6 +509,10 @@ check_service "draws-manager"
 if [[ $# -eq 0 ]] ; then
     APP_ARG="status"
 fi
+
+# default radio name
+radioname="radio_ic706"
+declare -n radio=$radioname
 
 while [[ $# -gt 0 ]] ; do
 APP_ARG="$1"
@@ -422,6 +555,10 @@ case $APP_ARG in
         done
     ;;
     status)
+        # radio_name var is set by which_radio
+        which_radio
+        echo " == Status for configured rig: $radio_name"
+        ardop_file_status
         ardop_process_status
         echo "Finished ardop status"
         exit 0
@@ -451,6 +588,11 @@ done
 
 # make variable radio an alias for radioname
 declare -n radio=$radioname
+
+# radio_name var is set by which_radio
+which_radio
+echo
+echo " == Status for configured rig: $radio_name"
 
 process_check 0
 unitfile_check
