@@ -51,9 +51,10 @@ is_pulseaudio
 if [ "$?" -eq 0 ] ; then
     echo "== Pulse Audio is running with pid: $pid"
 else
-    echo "Pusle Audio is NOT running"
+    echo "Pulse Audio is NOT running"
 fi
 
+USER=$(whoami)
 # Check for .asoundrc & asound.conf ALSA configuration files
 # Verify virtual sound device ARDOP
 cfgfile="/home/$USER/.asoundrc"
