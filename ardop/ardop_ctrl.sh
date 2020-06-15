@@ -403,7 +403,7 @@ case $APP_ARG in
             printf "rig ctrl baud rate: %s\n" ${radio[baudrate]}
             echo
             catctrl=${radio[catctrl]}
-            if [ -z $catctrl ] ; then catctrl="rigctl" ; fi
+            if [ -z "$catctrl" ] ; then catctrl="rigctl" ; fi
             echo "== Dump radio parameters for radio: $radioname"
             for key in "${!radio[@]}"; do echo -n "$key -> ${radio[$key]}, "; done
             echo
