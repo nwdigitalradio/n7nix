@@ -80,6 +80,7 @@ echo
 echo "==== Check rmsgw configuration directory"
 ls -al /etc/rmsgw
 ls -al /usr/local/etc/rmsgw
+echo
 echo "==== Check stat directory"
 ls  -al /etc/rmsgw/stat
 
@@ -152,7 +153,8 @@ while IFS= read -r line ; do
 done <<< $getline
 
 # get the first port line after the last comment
-axports_line=$(tail -n3 $AXPORTS_FILE | grep -v "#" | head -n 1)
+#axports_line=$(tail -n3 $AXPORTS_FILE | grep -v "#" | grep -v "N0ONE" |  head -n 1)
+axports_line=$(tail -n3 $AXPORTS_FILE | grep -vE "^#|N0ONE" |  head -n 1)
 
 echo "Using axports line: $axports_line"
 port=$(echo $axports_line | cut -d' ' -f1)
