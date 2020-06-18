@@ -493,6 +493,14 @@ function ardop_file_status() {
     else
         echo "Found program: $prog_name, version: $($prog_name -v | head -n 1)"
     fi
+    prog_name="pat"
+    type -P $prog_name &> /dev/null
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Need to Install $prog_name"
+        NEEDPKG_FLAG=true
+    else
+        echo "Found program: $prog_name, version: $($prog_name version)"
+    fi
 }
 
 usage () {
@@ -523,6 +531,10 @@ fi
 
 # draws manager collides with pat http
 check_service "draws-manager"
+
+# For now assume NOT running in split_channel mode and
+#  shut down direwolf
+check_service "direwolf"
 
 if [[ $# -eq 0 ]] ; then
     APP_ARG="status"
