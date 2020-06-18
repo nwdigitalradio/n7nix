@@ -151,25 +151,30 @@ Usage:  [-s <winlink_service_name][-d][-f][-h][-D <distance][-g <grid_square>]
 * Run using defaults
 
 ```
-./ardoplist.sh -h
+./ardoplist.sh
 Using distance of 140 miles & grid square cn88nl
 
 Generated new /home/pi/tmp/ardop/ardopprox.json file
 
- Callsign        Frequency  Distance    Baud
- K7NHV     	   3598800	75	 600
- K7NHV     	   7103700	75	 600
- K7NHV     	  10146500	75	 600
- K7HTZ     	   3589000	92	 600
- K7HTZ     	   7102700	92	 600
- K7HTZ     	  10146200	92	 600
- K7HTZ     	  14110000	92	 600
- K7IF      	   3589900	101	 600
- K7IF      	   7103400	101	 600
- K7IF      	  10146400	101	 600
- K7IF      	  14097000	101	 600
- N7LOB     	   3591000	114	 600
-Total gateways: 12, total call signs: 4
+                    Center          Dial
+ Callsign         Frequency       Frequency  Distance    Baud
+ K7NHV     	   3598800	   3597300	75	 600
+ K7NHV     	   7103700	   7102200	75	 600
+ K7NHV     	  10146500	  10145000	75	 600
+ K7HTZ     	   3589000	   3587500	92	 600
+ K7HTZ     	   3593500	   3592000	92	 600
+ K7HTZ     	   7102700	   7101200	92	 600
+ K7HTZ     	   7103000	   7101500	92	 600
+ K7HTZ     	  10146200	  10144700	92	 600
+ K7HTZ     	  10147500	  10146000	92	 600
+ K7HTZ     	  14108500	  14107000	92	 600
+ K7HTZ     	  14110000	  14108500	92	 600
+ K7IF      	   3589900	   3588400	101	 600
+ K7IF      	   7103400	   7101900	101	 600
+ K7IF      	  10146400	  10144900	101	 600
+ K7IF      	  14097000	  14095500	101	 600
+ N7LOB     	   3591000	   3589500	114	 600
+Total gateways: 16, total call signs: 4
 ```
 ### Winlink RMS Gateway connection
 
