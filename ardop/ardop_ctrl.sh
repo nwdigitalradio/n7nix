@@ -1,5 +1,9 @@
 #!/bin/bash
 #
+# ardop_ctrl.sh
+#
+# start, stop & show status for ardop processes
+
 BIN="/usr/bin"
 LBIN="/usr/local/bin"
 LOCAL_BIN="/home/pi/bin"
@@ -7,9 +11,11 @@ LOCAL_BIN="/home/pi/bin"
 SYSTEMD_DIR="/etc/systemd/system"
 FORCE_UPDATE=
 
-RADIOLIST="ic706 ic7300 kx2"
+# names of supported radios
+RADIOLIST="ic706 ic7000 ic7300 kx2"
 
 declare -A radio_ic706=( [rigname]="IC-706" [rignum]=311 [samplerate]=48000 [baudrate]=4800 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-26.5" )
+declare -A radio_ic7000=( [rigname]="IC-7000" [rignum]=360 [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
 declare -A radio_ic7300=( [rigname]="IC-7300" [rignum]=373 [samplerate]=48000 [baudrate]=19200 [pttctrl]="/dev/ttyUSB0" [catctrl]="-c /dev/ttyUSB0" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
 declare -A radio_kx2=( [rigname]="K3/KX3" [rignum]=229 [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="0.0" [alsa_pcm]="0.0" )
 
@@ -511,7 +517,7 @@ usage () {
         echo "  start           start required ardop processes"
         echo "  stop            stop all ardop processes"
         echo "  status          display status of all ardop processes"
-        echo "  -a <radio name> specify radio name (ic706 ic7300 kx2)"
+        echo "  -a <radio name> specify radio name (ic706 ic7000 ic7300 kx2)"
         echo "  -f | --force    Update all systemd unit files & .asoundrc file"
         echo "  -d              Set DEBUG flag"
         echo "  -h              Display this message."
@@ -530,6 +536,7 @@ else
 fi
 
 # draws manager collides with pat http
+
 check_service "draws-manager"
 
 # For now assume NOT running in split_channel mode and
