@@ -34,6 +34,23 @@ function name_check() {
     return $retcode
 }
 
+# ===== function desktop_waterfall_file
+# Use a heredoc to build the Desktop/ardop-gui file
+
+function desktop-waterfall_file() {
+    tee $HOME/Desktop/ardop-gui.desktop > /dev/null << EOT
+Desktop Entry]
+Name=ARDOP-waterfall
+Comment=Startup waterfall for ardop
+Exec=/home/pi/bin/piARDOP_GUI
+Type=Application
+# Some random icon
+Icon=/usr/lib/python3/dist-packages/thonny/plugins/pi/res/zoom.png
+Terminal=False
+Categories=Network;HAM Radio;
+EOT
+}
+
 # ===== function asoundfile
 # Use a heredoc to build the .asoundrc file
 
@@ -148,7 +165,7 @@ function status_service() {
 
 # ===== function status_all_processes
 function status_all_processes() {
-    for process in "rigctld" "piardopc" "pat" ; do
+    for process in "rigctld" "piardopc" "piARDOP_GUI" "pat" ; do
 
         pid_pat="$(pidof $process)"
         ret=$?
@@ -590,6 +607,11 @@ case $APP_ARG in
         for service in "rigctld" "ardop" "pat" ; do
             start_service $service
         done
+        # Set up desktop icon for piARDOP_GUI
+        filename="/home/$USER/Desktop/ardop-gui.desktop"
+        if [ ! -e $filename ] ; then
+            desktop_waterfall_file
+        fi
     ;;
     status)
         # radio_name var is set by which_radio
