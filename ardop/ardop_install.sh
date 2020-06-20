@@ -1,12 +1,14 @@
 #!/bin/bash
 #
+# ardop_install.sh
+#
 # Download the ardop suite of programs to /usr/local/src
 # ardop programs include:
 #  piARDOP_GUI
 #  piardop2
 #  piardopc
 # Also download arim (Amateur Radio Instant Messaging) for
-# verification
+#  and build for ardop verification
 #
 # Uncomment this statement for debug echos
 # DEBUG=1
