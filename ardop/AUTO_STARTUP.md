@@ -21,7 +21,7 @@ __NOTE:__ specify radio name with the _-a_ option see [below](#ardop_ctrlsh-scri
 
 
 ##### ardop_ctrl.sh start
-* This verifys systemd service files
+* Verify and start Systemd service files.
 ```
 cd
 cd n7nix/ardop
@@ -56,7 +56,16 @@ Usage:  [-f][-d][-h][status][stop][start]
 ```
 
 ##### Start ARDOP waterfall
-* from a console:
+
+#### To run from desktop icon
+
+__NOTE:__ the Desktop file that is executed from this icon really needs an appropriate icon file.
+
+* Get rid of annoying dialog box that prompts for what to do with an executable
+* File manager > Edit > Preferences > General
+  * Check _Don't ask options on launch executable file_
+
+#### To run from a console:
 ```
 piARDOP_GUI
 ```
