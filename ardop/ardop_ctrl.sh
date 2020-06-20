@@ -37,7 +37,7 @@ function name_check() {
 # ===== function desktop_waterfall_file
 # Use a heredoc to build the Desktop/ardop-gui file
 
-function desktop-waterfall_file() {
+function desktop_waterfall_file() {
     tee $HOME/Desktop/ardop-gui.desktop > /dev/null << EOT
 Desktop Entry]
 Name=ARDOP-waterfall
