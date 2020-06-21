@@ -38,7 +38,14 @@ function name_check() {
 # Use a heredoc to build the Desktop/ardop-gui file
 
 function desktop_waterfall_file() {
-    tee $HOME/Desktop/ardop-gui.desktop > /dev/null << EOT
+
+    # If running as root do NOT create any user related files
+    if [[ $EUID != 0 ]] ; then
+        # Set up desktop icon for piARDOP_GUI
+        filename="$HOME/Desktop/ardop-gui.desktop"
+        if [ ! -e $filename ] || [ ! -z "$FORCE_UPDATE" ] ; then
+
+            tee $filename > /dev/null << EOT
 Desktop Entry]
 Name=ARDOP-waterfall
 Comment=Startup waterfall for ardop
@@ -49,6 +56,11 @@ Icon=/usr/lib/python3/dist-packages/thonny/plugins/pi/res/zoom.png
 Terminal=False
 Categories=Network;HAM Radio;
 EOT
+        fi
+    else
+        echo
+        echo " Running as root so ARDOP desktop file not created"
+    fi
 }
 
 # ===== function asoundfile
@@ -457,6 +469,7 @@ function asoundrc_file_check() {
             fi
         fi
     else
+        # If running as root do NOT create any user related files
         echo
         echo " Running as root so .asoundrc file not checked"
     fi
@@ -607,11 +620,9 @@ case $APP_ARG in
         for service in "rigctld" "ardop" "pat" ; do
             start_service $service
         done
-        # Set up desktop icon for piARDOP_GUI
-        filename="/home/$USER/Desktop/ardop-gui.desktop"
-        if [ ! -e $filename ] ; then
-            desktop_waterfall_file
-        fi
+        # Will create desktop icon start up file if:
+        #  Not running as root and (Desktop file does not exist or FORCE_UPDATE is true)
+        desktop_waterfall_file
     ;;
     status)
         # radio_name var is set by which_radio
@@ -654,6 +665,11 @@ echo
 echo " == Status for configured rig: $radio_name"
 
 process_check 0
+
+# Will create desktop icon start up file if:
+#  Not running as root and (Desktop file does not exist or FORCE_UPDATE is true)
+desktop_waterfall_file
+
 unitfile_check
 retcode=$?
 
