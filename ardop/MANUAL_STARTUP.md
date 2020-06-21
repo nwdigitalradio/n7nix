@@ -10,7 +10,7 @@
 * Get rig control running first (only used by PAT at this time)
 
 * [PAT Rig Control](https://github.com/la5nta/pat/wiki/Rig-control) wiki.
-* Edit PAT config file: config.json
+* Edit PAT config file: _.wl2k/config.json_
   * Add an entry to _hamlib_rigs_
   * ie. For an IC-706MKIIG
 ```
@@ -66,13 +66,16 @@ cd ~/bin
 ./piardopc 8515 pcm.ARDOP pcm.ARDOP -p GPIO=23
 ```
 
-#### Console 3: ARDOP listener
-##### Console listener
-*
+#### Console 3: PAT ARDOP listener
+##### Console PAT listener
+
+* **NOTE:** The pat ardop listener launched from console appears to go deaf after one or two connections
+  * The pat ardop html listener seems more robust
+
 ```
 pat --listen="ardop" interactive
 ```
-##### HTML web server listener
+##### HTML web server PAT listener
 *  control the active listeners with the --listen, -l option:
 ```
 pat --listen winmor,ardop,ax25,telnet http
@@ -81,12 +84,23 @@ pat --listen winmor,ardop,ax25,telnet http
 pat --listen="ardop" html
 ```
 
+#### Console 4: Waterfall
 
-#### run piARDOP_GUI
-* set Host Name: localhost
-* set Port: 8515
+* For a visual waterfall run piARDOP_GUI
+  * From a console running on the RPi desktop
+```
+cd ~/bin
+./piARDOP_GUI
+```
+* On initial startup piARDOP_GUI will prompt for Host Name & Port number
+  * set Host Name: localhost
+  * set Port: 8515
 
-#### Run arim
+## At this point you can either run **PAT** or **ARIM**
+
+* [Notes on running PAT](https://github.com/nwdigitalradio/n7nix/blob/master/email/pat/README.md)
+
+#### Console 5: Run ARIM
 * Refer to this link for help: [Arim v2.8 Help](https://www.whitemesa.net/arim/arim.html)
 * Open another console terminal window
 * Run arim from home directory
