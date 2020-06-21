@@ -3,7 +3,7 @@
 # Uncomment this statement for debug echos
 # DEBUG=1
 
-ARDOP_PROTOCOL_VER=2
+ARDOP_PROTOCOL_VER=1
 SYSTEMCTL="sytemctl"
 
 # Set connector to be either left or right
