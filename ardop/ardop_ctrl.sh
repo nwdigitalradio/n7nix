@@ -34,6 +34,26 @@ function name_check() {
     return $retcode
 }
 
+# ===== function desktop_pat_file
+# Use a heredoc to build the Desktop/pat file
+
+function desktop_pat_file() {
+    # If running as root do NOT create any user related files
+    if [[ $EUID != 0 ]] ; then
+        # Set up desktop icon for PAT
+        filename="$HOME/Desktop/pat.desktop"
+        if [ ! -e $filename ] || [ ! -z "$FORCE_UPDATE" ] ; then
+
+            tee $filename > /dev/null << EOT
+[Desktop Entry]
+Encoding=UTF-8
+Name=PAT
+Type=Link
+URL=http://localhost:8080
+Icon=/usr/share/icons/PiXflat/32x32/apps/mail.png
+EOT
+}
+
 # ===== function desktop_waterfall_file
 # Use a heredoc to build the Desktop/ardop-gui file
 
@@ -46,7 +66,7 @@ function desktop_waterfall_file() {
         if [ ! -e $filename ] || [ ! -z "$FORCE_UPDATE" ] ; then
 
             tee $filename > /dev/null << EOT
-Desktop Entry]
+[Desktop Entry]
 Name=ARDOP-waterfall
 Comment=Startup waterfall for ardop
 Exec=/home/pi/bin/piARDOP_GUI
@@ -623,6 +643,7 @@ case $APP_ARG in
         # Will create desktop icon start up file if:
         #  Not running as root and (Desktop file does not exist or FORCE_UPDATE is true)
         desktop_waterfall_file
+        desktop_pat_file
     ;;
     status)
         # radio_name var is set by which_radio
@@ -669,6 +690,7 @@ process_check 0
 # Will create desktop icon start up file if:
 #  Not running as root and (Desktop file does not exist or FORCE_UPDATE is true)
 desktop_waterfall_file
+desktop_pat_file
 
 unitfile_check
 retcode=$?
