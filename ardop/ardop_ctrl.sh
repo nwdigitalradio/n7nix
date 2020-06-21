@@ -52,6 +52,11 @@ Type=Link
 URL=http://localhost:8080
 Icon=/usr/share/icons/PiXflat/32x32/apps/mail.png
 EOT
+        fi
+    else
+        echo
+        echo " Running as root so PAT desktop file not created"
+    fi
 }
 
 # ===== function desktop_waterfall_file
