@@ -361,8 +361,10 @@ if [ -z "$DEBUG1" ] ; then
     # wsjtx_ver=$(curl -s $ver_url | grep -A 1 -i "Availability (GA)" | tail -n 1 | cut -d '<' -f1)
     #           $(curl -s $ver_url | grep -i "Availability (GA)" | cut -d '>' -f3 | cut -d '<' -f1)
 
-    # This removes all html tags:  sed -e 's/<[^>]*>//g'
-    wsjtx_ver=$(curl -s $ver_url | grep -A 1 -io "Availability (GA).*" | head -n 1 | sed -e 's/<[^>]*>//g' | sed -n 's/.*WSJT-X//p')
+    # This removes all html tags:  sed -e 's/<[^>]*>//g' worked for 2.2.1 but not 2.2.2
+#    wsjtx_ver=$(curl -s $ver_url | grep -A 1 -i "Availability (GA).*" | head -n 1 | sed -e 's/<[^>]*>//g' | sed -n 's/.*WSJT-X//p')
+     # Works for 2.2.2
+     wsjtx_ver=$(curl -s http://physics.princeton.edu/pulsar/K1JT/wsjtx.html | grep -A 1 -i "Availability (GA).*" | tail -n 1 |  sed -e 's/<[^>]*>//g')
 
     # Remove preceding white space & any non printable characters
     wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | tr -dc '[:alnum:].' )
