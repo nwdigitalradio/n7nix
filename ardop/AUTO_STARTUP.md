@@ -4,7 +4,7 @@
 
 __NOTE:__ specify radio name with the _-a_ option see [below](#ardop_ctrlsh-script). Default radio is Icom ic706.
 
-* The intention of the _ardop_ctrl.sh_ script was to get ARDOP running to be used with _ARIM_ or _PAT_ applications.
+* The intention of the _ardop_ctrl.sh_ script is to get ARDOP running to be used with _ARIM_ or _PAT_ applications.
 * If you haven't already installed PAT you should do that [now](https://github.com/nwdigitalradio/n7nix/tree/master/email/pat)
 
 * This script does the following:
