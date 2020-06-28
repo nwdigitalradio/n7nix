@@ -30,8 +30,8 @@ IN1_R='Off'
 IN2_L="10 kOhm"
 IN2_R="10 kOhm"
 
-PTM_PL="PTM_P1"
-PTM_PR="PTM_P1"
+PTM_PL="P1"
+PTM_PR="P1"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -95,6 +95,7 @@ if [ ! -z "$DEBUG" ] ; then
     echo "PCM: $PCM_LEFT, $PCM_RIGHT"
     echo "LO Driver Gain: ${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
     echo "ADC Level: ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB"
+    echo "Power Tune: ${PTM_PL}, ${PTM_PR}"
     echo "IN1: $IN1_L, $IN1_R"
     echo "IN2: $IN2_L, $IN2_R"
     echo

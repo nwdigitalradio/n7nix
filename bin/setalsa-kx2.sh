@@ -30,8 +30,8 @@ IN1_R='Off'
 IN2_L="10 kOhm"
 IN2_R="10 kOhm"
 
-PTM_PL="PTM_P3"
-PTM_PR="PTM_P3"
+PTM_PL="P3"
+PTM_PR="P3"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
