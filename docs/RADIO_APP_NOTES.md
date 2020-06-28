@@ -146,3 +146,17 @@ IN1		L:[10 kOhm]	R:[10 kOhm]
 IN2		L:[Off]		R:[Off]
 ```
 
+## ALSA settings for Yaesu FT-7900R
+
+#### From RaspberryPi-4-HamRadio
+
+I use a FT-7900 with my TNC-Pi9k6.
+  * You need to use the 6 pin mini-DIN connector and not the DB-9.
+  * That way, you don't need to change anything when switching between 1200 and 9600 baud except the settings
+on the TNC and on the radio.
+  *  No switching jumpers or cables.
+
+ The pin-out you mention on the PiGate site is just for radios that
+don't have the built-in packet port. You *could* set it up through the
+mic and headset ports, but then you are limited to 1200 baud only.
+
