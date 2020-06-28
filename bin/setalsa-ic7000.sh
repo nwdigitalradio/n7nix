@@ -1,13 +1,64 @@
 #!/bin/bash
 #
 # setalsa-ic7000.sh
-# For iCom IC-7000 radio
 #
-
-# Enable setting receive path from discriminator
-MODE_9600_ENABLE=true
+# For using an iCom IC-7000 radio on left or right connectory for HF
+#
+# Supports a udrc II or DRAWS hat on a Raspberry Pi
+#
+# For UDRC II, enable setting receive path from discriminator (DISC)
+# This script ignores /etc/ax25/port.conf file
+DEBUG=1
 
 asoundstate_file="/var/lib/alsa/asound.state"
+
+# Default settings for left & right channels
+PCM_LEFT="-16.5"
+PCM_RIGHT="-16.5"
+LO_DRIVER_LEFT="-6.0"
+LO_DRIVER_RIGHT="-6.0"
+ADC_LEVEL_LEFT="-2.0"
+ADC_LEVEL_RIGHT="-2.0"
+
+IN1_L='Off'
+IN1_R='Off'
+IN2_L="10 kOhm"
+IN2_R="10 kOhm"
+
+PTM_PL="PTM_P1"
+PTM_PR="PTM_P1"
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function get product id of HAT
+# Sets variable PROD_ID
+
+function get_prod_id() {
+    # Initialize product ID variable
+    PROD_ID=
+    prgram="udrcver.sh"
+    which $prgram
+    if [ "$?" -eq 0 ] ; then
+        dbgecho "Found $prgram in path"
+        $prgram -
+        PROD_ID=$?
+    else
+        currentdir=$(pwd)
+        # Get path one level down
+        pathdn1=$( echo ${currentdir%/*})
+        dbgecho "Test pwd: $currentdir, path: $pathdn1"
+        if [ -e "$pathdn1/bin/$prgram" ] ; then
+            dbgecho "Found $prgram here: $pathdn1/bin"
+            $pathdn1/bin/$prgram -
+            PROD_ID=$?
+        else
+            echo "Could not locate $prgram default product ID to DRAWS"
+            PROD_ID=4
+        fi
+    fi
+}
+
+# ===== main
 
 stateowner=$(stat -c %U $asoundstate_file)
 if [ $? -ne 0 ] ; then
@@ -15,55 +66,49 @@ if [ $? -ne 0 ] ; then
    exit
 fi
 
-# Be sure we're running as root
- if [[ $EUID != 0 ]] ; then
-   echo "Command 'alsactl store' will not work unless you are root"
+# Check if HAT is a UDRC or UDRC II
+# If found then use discriminator routing
+
+get_prod_id
+if [[ "$PROD_ID" -eq 2 ]] || [[ "$PROD_ID" -eq 3 ]] ; then
+    IN1_L='10 kOhm'
+    IN1_R='10 kOhm'
+    IN2_L="Off"
+    IN2_R="Off"
 fi
 
-if [ "$MODE_9600_ENABLE" = "true" ] ; then
+# IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
+# IN2 Compensated receive audio (all radios, 1200 baud and slower packet)
 
-    echo "debug: 9600 baud enable ie. DISCOUT"
-    # For 9600 baud packet only
-    # Turn AFOUT off & DISCOUT on
-    # ie. Receive audio off & discriminator output on
-
-    amixer -c udrc -s << EOF
-sset 'IN1_L to Left Mixer Positive Resistor' '10 kOhm'
-sset 'IN1_R to Right Mixer Positive Resistor' '10 kOhm'
-sset 'IN2_L to Left Mixer Positive Resistor' 'Off'
-sset 'IN2_R to Right Mixer Positive Resistor' 'Off'
-EOF
-
-else
-    echo "debug: 1200 baud enable ie. AFOUT"
-    # Default mode, for HF & 1200 baud packet
-    # Turn AFOUT on & DISCOUT off
-    # ie. Receive audio on & discriminator off
-
-    amixer -c udrc -s << EOF
-sset 'IN1_L to Left Mixer Positive Resistor' 'Off'
-sset 'IN1_R to Right Mixer Positive Resistor' 'Off'
-sset 'IN2_L to Left Mixer Positive Resistor' '10 kOhm'
-sset 'IN2_R to Right Mixer Positive Resistor' '10 kOhm'
-EOF
+if [ ! -z "$DEBUG" ] ; then
+    # Test new method
+    echo "== DEBUG: $scriptname: Port Speed: $PORTSPEED_LEFT, $PORTSPEED_RIGHT  =="
+    echo "PCM: $PCM_LEFT, $PCM_RIGHT"
+    echo "LO Driver Gain: ${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
+    echo "ADC Level: ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB"
+    echo "IN1: $IN1_L, $IN1_R"
+    echo "IN2: $IN2_L, $IN2_R"
+    echo
 fi
 
 amixer -c udrc -s << EOF
+sset 'PCM' "${PCM_LEFT}dB,${PCM_RIGHT}dB"
+sset 'LO Driver Gain' "${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
+sset 'ADC Level' ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB
+
+sset 'IN1_L to Left Mixer Positive Resistor' "$IN1_L"
+sset 'IN1_R to Right Mixer Positive Resistor' "$IN1_R"
+sset 'IN2_L to Left Mixer Positive Resistor' "$IN2_L"
+sset 'IN2_R to Right Mixer Positive Resistor' "$IN2_R"
+
+sset 'DAC Left Playback PowerTune'  $PTM_PL
+sset 'DAC Right Playback PowerTune' $PTM_PR
+
 #  Set default input and output levels
-sset 'PCM' -16.5dB,-16.5dB
-sset 'ADC Level' -2.0dB,-2.0dB
-sset 'LO Driver Gain' -6.0dB,-6.0dB
-
-sset 'DAC Left Playback PowerTune'  PTM_P1
-sset 'DAC Right Playback PowerTune' PTM_P1
-
 # Everything after this is common to both audio channels
 
 sset 'CM_L to Left Mixer Negative Resistor' '10 kOhm'
 sset 'CM_R to Right Mixer Negative Resistor' '10 kOhm'
-
-# IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
-# IN2 Receive audio (all radios, 1200 baud packet)
 
 #  Turn off unnecessary pins
 sset 'IN1_L to Right Mixer Negative Resistor' 'Off'
@@ -113,4 +158,10 @@ sset 'LOL Output Mixer L_DAC' on
 # Turn on TONEIN
 sset 'LOR Output Mixer R_DAC' on
 EOF
-alsactl store
+
+ALSACTL="alsactl"
+if [[ $EUID != 0 ]] ; then
+   ALSACTL="sudo alsactl"
+fi
+
+$ALSACTL store

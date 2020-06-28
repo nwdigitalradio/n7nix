@@ -2,21 +2,17 @@
 #
 # setalsa-kx2.sh
 #
-# audio channels for HF only
+# For using an Elecraft KX2 on left or right connector for HF
 #
-# For a udrc II or DRAWS hat
-#
-# For iCom IC-706mkIIG on left or right connector for HF
+# Supports a udrc II or DRAWS hat on a Raspberry Pi
 #
 # For UDRC II, enable setting receive path from discriminator (DISC)
 # This script ignores /etc/ax25/port.conf file
 DEBUG=1
 
 asoundstate_file="/var/lib/alsa/asound.state"
-AX25_CFGDIR="/usr/local/etc/ax25"
-PORT_CFG_FILE="$AX25_CFGDIR/port.conf"
 
-# Default to 1200 baud settings for left channels, ICOM on right channel
+# Default  settings for left & right channels
 PCM_LEFT="0.0"
 PCM_RIGHT="0.0"
 LO_DRIVER_LEFT="0.0"
@@ -28,6 +24,9 @@ IN1_L='Off'
 IN1_R='Off'
 IN2_L="10 kOhm"
 IN2_R="10 kOhm"
+
+PTM_PL="PTM_P3"
+PTM_PR="PTM_P3"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -53,12 +52,11 @@ function get_prod_id() {
             $pathdn1/bin/$prgram -
             PROD_ID=$?
         else
-            echo "Could not locate $prgram default product ID to draws"
+            echo "Could not locate $prgram default product ID to DRAWS"
             PROD_ID=4
         fi
     fi
 }
-
 
 # ===== main
 
@@ -69,16 +67,15 @@ if [ $? -ne 0 ] ; then
 fi
 
 # Check if HAT is a UDRC or UDRC II
+# If found then use discriminator routing
+
 get_prod_id
-    if [[ "$PROD_ID" -eq 2 ]] || [[ "$PROD_ID" -eq 3 ]] ; then
+if [[ "$PROD_ID" -eq 2 ]] || [[ "$PROD_ID" -eq 3 ]] ; then
     IN1_L='10 kOhm'
     IN1_R='10 kOhm'
     IN2_L="Off"
     IN2_R="Off"
 fi
-
-RECVSIG_LEFT="audio"
-RECVSIG_RIGHT="audio"
 
 # IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
 # IN2 Compensated receive audio (all radios, 1200 baud and slower packet)
@@ -86,7 +83,6 @@ RECVSIG_RIGHT="audio"
 if [ ! -z "$DEBUG" ] ; then
     # Test new method
     echo "== DEBUG: $scriptname: Port Speed: $PORTSPEED_LEFT, $PORTSPEED_RIGHT  =="
-    echo "RECVSIG: $RECVSIG_LEFT, $RECVSIG_RIGHT"
     echo "PCM: $PCM_LEFT, $PCM_RIGHT"
     echo "LO Driver Gain: ${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
     echo "ADC Level: ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB"
@@ -105,8 +101,11 @@ sset 'IN1_R to Right Mixer Positive Resistor' "$IN1_R"
 sset 'IN2_L to Left Mixer Positive Resistor' "$IN2_L"
 sset 'IN2_R to Right Mixer Positive Resistor' "$IN2_R"
 
+sset 'DAC Left Playback PowerTune'  $PTM_PL
+sset 'DAC Right Playback PowerTune' $PTM_PR
+
 #  Set default input and output levels
-# Everything after this line is common to both audio channels
+# Everything after this is common to both audio channels
 
 sset 'CM_L to Left Mixer Negative Resistor' '10 kOhm'
 sset 'CM_R to Right Mixer Negative Resistor' '10 kOhm'
