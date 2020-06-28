@@ -10,7 +10,12 @@
 # This script ignores /etc/ax25/port.conf file
 DEBUG=1
 
+RADIO="Elecraft KX2"
+scriptname="`basename $0`"
+
 asoundstate_file="/var/lib/alsa/asound.state"
+ALSA_LOG_DIR="$HOME/tmp"
+ALSA_LOG_FILE="$ALSA_LOG_DIR/alsa_mixer.log"
 
 # Default  settings for left & right channels
 PCM_LEFT="0.0"
@@ -60,6 +65,10 @@ function get_prod_id() {
 
 # ===== main
 
+if [ ! -d $ALSA_LOG_DIR ] ; then
+   mkdir -p $ALSA_LOG_DIR
+fi
+
 stateowner=$(stat -c %U $asoundstate_file)
 if [ $? -ne 0 ] ; then
    "Command 'alsactl store' will not work, file: $asoundstate_file does not exist"
@@ -82,7 +91,7 @@ fi
 
 if [ ! -z "$DEBUG" ] ; then
     # Test new method
-    echo "== DEBUG: $scriptname: Port Speed: $PORTSPEED_LEFT, $PORTSPEED_RIGHT  =="
+    echo "== DEBUG:  =="
     echo "PCM: $PCM_LEFT, $PCM_RIGHT"
     echo "LO Driver Gain: ${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
     echo "ADC Level: ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB"
@@ -91,7 +100,11 @@ if [ ! -z "$DEBUG" ] ; then
     echo
 fi
 
-amixer -c udrc -s << EOF
+echo >> $ALSA_LOG_FILE
+date >> $ALSA_LOG_FILE
+echo "Radio: $RADIO set from $scriptname" | tee -a $ALSA_LOG_FILE
+
+amixer -c udrc -s << EOF >> $ALSA_LOG_FILE
 sset 'PCM' "${PCM_LEFT}dB,${PCM_RIGHT}dB"
 sset 'LO Driver Gain' "${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
 sset 'ADC Level' ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB
@@ -165,3 +178,17 @@ if [[ $EUID != 0 ]] ; then
 fi
 
 $ALSACTL store
+if [ "$?" -ne 0 ] ; then
+    echo "ALSA mixer settings NOT stored."
+fi
+
+# Display abreviated listing of settings
+prgram="alsa-show.sh"
+which $prgram > /dev/null
+if [ "$?" -eq 0 ] ; then
+    dbgecho "Found $prgram in path"
+    $prgram
+        PROD_ID=$?
+else
+    echo "Could not locate $prgram"
+fi
