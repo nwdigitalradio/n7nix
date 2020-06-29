@@ -41,11 +41,37 @@ function display_ctrl() {
     CTRL_VAL=${CTRL_VAL#\'}
 }
 
+# ===== function display_all
+# Display all ALSA control values
+function display_all() {
+
+    echo " ==== Display all $(amixer -c udrc scontrols | wc -l) controls ===="
+
+    control_list="$(amixer -c udrc scontrols)"
+
+#    for alsa_ctrl in $control_list  ; do
+#        echo "Control = $alsa_ctrl"
+#    done
+
+while read control; do
+    ctrl_name=$(echo $control | cut -f2 -d"'")
+#    echo "Control = $control, short name: $ctrl_name"
+
+    CTRL_STR="$(amixer -c $CARD get \""$ctrl_name"\")"
+
+    echo " == Control Name: $ctrl_name ==="
+    echo " $CTRL_STR"
+    echo
+
+done <<< $control_list
+}
+
 # ===== Display program help info
 
 function usage () {
 	(
 	echo "Usage: $scriptname [-c card_name][-d][-h]"
+        echo "    -a dump all the alsa control values"
         echo "    -c card_name, default=udrc"
         echo "    -v turn on verbose display"
         echo "    -d turn on debug display"
@@ -73,6 +99,11 @@ while [[ $# -gt 0 ]] ; do
         -v)
             echo "Turning on verbose"
             bverbose=true
+        ;;
+        -a)
+            echo
+            display_all
+            exit 0
         ;;
         -c)
 
