@@ -6,8 +6,11 @@
 #
 # Supports a udrc II or DRAWS hat on a Raspberry Pi
 #
-# For UDRC II, enable setting receive path from discriminator (DISC)
-# This script ignores /etc/ax25/port.conf file
+# For UDRC II, this script enables setting receive path from
+# discriminator (DISC)
+#
+# Note: This script ignores /etc/ax25/port.conf file so will not work
+# for split channel.
 DEBUG=1
 
 RADIO="Elecraft KX2"
@@ -18,10 +21,11 @@ ALSA_LOG_DIR="$HOME/tmp"
 ALSA_LOG_FILE="$ALSA_LOG_DIR/alsa_mixer.log"
 
 # Default  settings for left & right channels
-PCM_LEFT="0.0"
-PCM_RIGHT="0.0"
-LO_DRIVER_LEFT="0.0"
-LO_DRIVER_RIGHT="0.0"
+# Mike gain should be set to 20
+PCM_LEFT="-19.5"
+PCM_RIGHT="-19.5"
+LO_DRIVER_LEFT="-6.0"
+LO_DRIVER_RIGHT="-6.0"
 ADC_LEVEL_LEFT="-2.0"
 ADC_LEVEL_RIGHT="-2.0"
 
@@ -30,8 +34,8 @@ IN1_R='Off'
 IN2_L="10 kOhm"
 IN2_R="10 kOhm"
 
-PTM_PL="P3"
-PTM_PR="P3"
+PTM_PL="P2"
+PTM_PR="P2"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 

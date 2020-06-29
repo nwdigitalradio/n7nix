@@ -2,12 +2,14 @@
 #
 # setalsa-ic7000.sh
 #
-# For using an iCom IC-7000 radio on left or right connectory for HF
+# For using an iCom IC-7000 radio on left or right connector for HF
 #
 # Supports a udrc II or DRAWS hat on a Raspberry Pi
 #
-# For UDRC II, enable setting receive path from discriminator (DISC)
-# This script ignores /etc/ax25/port.conf file
+# For UDRC II, this script enable setting receive path from
+# discriminator (DISC)
+# NOTE: This script ignores /etc/ax25/port.conf file so will not work
+# for split channel.
 DEBUG=1
 
 RADIO="Icom IC-7000"
@@ -18,8 +20,8 @@ ALSA_LOG_DIR="$HOME/tmp"
 ALSA_LOG_FILE="$ALSA_LOG_DIR/alsa_mixer.log"
 
 # Default settings for left & right channels
-PCM_LEFT="-16.5"
-PCM_RIGHT="-16.5"
+PCM_LEFT="-26.5"
+PCM_RIGHT="-26.5"
 LO_DRIVER_LEFT="-6.0"
 LO_DRIVER_RIGHT="-6.0"
 ADC_LEVEL_LEFT="-2.0"
