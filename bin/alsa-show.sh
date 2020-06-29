@@ -71,7 +71,7 @@ done <<< $control_list
 function usage () {
 	(
 	echo "Usage: $scriptname [-c card_name][-d][-h]"
-        echo "    -a dump all the alsa control values"
+        echo "    -a dump all alsa control values"
         echo "    -c card_name, default=udrc"
         echo "    -v turn on verbose display"
         echo "    -d turn on debug display"
