@@ -386,6 +386,9 @@ while [[ $# -gt 0 ]] ; do
             check_pi_ver
 
             check_pi_firmware
+            echo
+            echo "==== vc debug ===="
+            sudo vcdbg log msg
             exit 0
         ;;
         -v)
