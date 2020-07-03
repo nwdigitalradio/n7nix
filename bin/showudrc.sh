@@ -192,7 +192,6 @@ fi
 
 }
 
-
 # ===== function check locale settings
 # Compare country code in X11 layout, WPA config file & iw reg settings
 
@@ -227,26 +226,22 @@ function check_locale() {
      fi
 }
 
-#
-# ===== Main ===============================
+# ===== function check udrc enumeration
+function check_udrc() {
+    CARDNO=$(aplay -l | grep -i udrc)
 
-# Verify that aplay enumerates udrc sound card
+    if [ ! -z "$CARDNO" ] ; then
+        echo "udrc card number line: $CARDNO"
+        CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
+        echo "udrc is sound card #$CARDNO"
+        display_alsa
+    else
+        echo "No udrc sound card found."
+    fi
+}
 
-CARDNO=$(aplay -l | grep -i udrc)
-
-echo "==== Sound Card ===="
-if [ ! -z "$CARDNO" ] ; then
-   echo "udrc card number line: $CARDNO"
-   CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
-   echo "udrc is sound card #$CARDNO"
-   display_alsa
-else
-   echo "No udrc sound card found."
-fi
-
-echo "==== Pi Ver ===="
-# Raspberry Pi version check based on Revision number from cpuinfo
-
+# ===== function check pi version
+function check_pi_ver() {
 CPUINFO_FILE="/proc/cpuinfo"
 HAS_WIFI=false
 
@@ -324,6 +319,98 @@ if $HAS_WIFI ; then
    echo " Has WiFi"
 fi
 
+}
+
+# ===== check pi firmware versions
+function check_pi_firmware() {
+
+    echo
+    echo "==== Pi Firmware VideoCore Ver ===="
+    vcgencmd version
+
+    echo
+    echo "==== Pi Firmware EEPROM Ver ===="
+    vcgencmd bootloader_version
+
+    echo
+    echo "==== Pi Firmware EEPROM Config ===="
+    vcgencmd bootloader_config
+}
+
+# ===== Display program help info
+
+function usage () {
+	(
+	echo "Usage: $scriptname [-f][-v][-h]"
+        echo "    -f display Raspberry Pi version info"
+        echo "    -v turn on verbose display"
+        echo "    -h display this message."
+        echo
+	) 1>&2
+	exit 1
+}
+
+#
+# ===== Main ===============================
+
+
+# parse any command line options
+while [[ $# -gt 0 ]] ; do
+
+    key="$1"
+    case $key in
+        -f)
+            echo "Raspberry Pi Version check"
+            echo "==== Sound Card ===="
+            CARDNO=$(aplay -l | grep -i udrc)
+
+            if [ ! -z "$CARDNO" ] ; then
+                echo "udrc card number line: $CARDNO"
+                CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
+                echo "udrc is sound card #$CARDNO"
+            else
+                echo "No udrc sound card found."
+            fi
+
+            echo
+            echo "==== Pi Ver ===="
+            # Raspberry Pi version check based on Revision number from cpuinfo
+            check_pi_ver
+
+            check_pi_firmware
+            exit 0
+        ;;
+        -v)
+            echo "Turning on verbose"
+            bverbose=true
+        ;;
+        -h)
+            usage
+            exit 0
+        ;;
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+    shift # past argument or value
+done
+
+# Verify that aplay enumerates udrc sound card
+
+
+echo "==== Sound Card ===="
+check_udrc
+
+echo
+echo "==== Pi Ver ===="
+# Raspberry Pi version check based on Revision number from cpuinfo
+check_pi_ver
+
+check_pi_firmware
+
+echo
 echo "==== udrc Ver ===="
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
