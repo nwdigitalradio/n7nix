@@ -372,6 +372,10 @@ while [[ $# -gt 0 ]] ; do
                 echo "No udrc sound card found."
             fi
 
+            product_id="$(tr -d '\0' </sys/firmware/devicetree/base/hat/product_id)"
+            product_ver="$(tr -d '\0' </sys/firmware/devicetree/base/hat/product_ver)"
+            echo "HAT id: $product_id, ver: $product_ver"
+
             echo
             echo "==== Pi Ver ===="
             # Raspberry Pi version check based on Revision number from cpuinfo
