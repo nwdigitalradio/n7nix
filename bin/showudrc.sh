@@ -375,6 +375,10 @@ while [[ $# -gt 0 ]] ; do
             product_id="$(tr -d '\0' </sys/firmware/devicetree/base/hat/product_id)"
             product_ver="$(tr -d '\0' </sys/firmware/devicetree/base/hat/product_ver)"
             echo "HAT id: $product_id, ver: $product_ver"
+            echo
+            echo "==== Driver Overlays ===="
+            ls -al /boot/overlays/udrc.*
+            ls -al /boot/overlays/draws.*
 
             echo
             echo "==== Pi Ver ===="
