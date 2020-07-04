@@ -64,7 +64,7 @@ passwd: digiberry
 - 2: Verify that codec drivers have loaded
 - 3: Second boot: run script: _app_config.sh core_
 - 4: Third boot: Set your ALSA config
-- 5For packet turn on Direwolf & AX.25
+- 5: For packet turn on Direwolf & AX.25
 
 #### Check for required drivers first
 * Open a console and type:
