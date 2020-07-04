@@ -2,6 +2,7 @@
 #
 # Uncomment this statement for debug echos
 #DEBUG=1
+bverbose=false
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -392,7 +393,11 @@ while [[ $# -gt 0 ]] ; do
             check_pi_firmware
             echo
             echo "==== vc debug ===="
-            sudo vcdbg log msg
+            if [ "$bverbose" == true ] ; then
+                sudo vcdbg log msg
+            else
+                sudo vcdbg log msg 2>&1 | grep -i "draws\|udrc"
+            fi
             exit 0
         ;;
         -v)
