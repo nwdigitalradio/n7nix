@@ -6,7 +6,7 @@
 #
 # Supports a udrc II or DRAWS hat on a Raspberry Pi
 #
-# For UDRC II, this script enable setting receive path from
+# For UDRC II, this script enables setting receive path from
 # discriminator (DISC)
 # NOTE: This script ignores /etc/ax25/port.conf file so will not work
 # for split channel.
@@ -34,6 +34,9 @@ IN2_R="10 kOhm"
 
 PTM_PL="P1"
 PTM_PR="P1"
+
+RECVSIG_LEFT="audio"
+RECVSIG_RIGHT="audio"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -73,19 +76,23 @@ fi
 
 stateowner=$(stat -c %U $asoundstate_file)
 if [ $? -ne 0 ] ; then
-   "Command 'alsactl store' will not work, file: $asoundstate_file does not exist"
+   "$scriptname: Command 'alsactl store' will not work, file: $asoundstate_file does not exist"
    exit
 fi
 
 # Check if HAT is a UDRC or UDRC II
-# If found then use discriminator routing
-
+#  - If found then use discriminator routing
 get_prod_id
 if [[ "$PROD_ID" -eq 2 ]] || [[ "$PROD_ID" -eq 3 ]] ; then
+    echo "Detected UDRC or UDRC II, product ID: $PROD_ID"
     IN1_L='10 kOhm'
     IN1_R='10 kOhm'
     IN2_L="Off"
     IN2_R="Off"
+    RECVSIG_LEFT="disc"
+    RECVSIG_RIGHT="disc"
+else
+    dbgecho "UDRC or UDRC II not detected"
 fi
 
 # IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
@@ -93,7 +100,8 @@ fi
 
 if [ ! -z "$DEBUG" ] ; then
     # Test new method
-    echo "== DEBUG:  =="
+    echo "== DEBUG: $scriptname: Port Speed: $PORTSPEED_LEFT, $PORTSPEED_RIGHT  =="
+    echo "RECVSIG: $RECVSIG_LEFT, $RECVSIG_RIGHT"
     echo "PCM: $PCM_LEFT, $PCM_RIGHT"
     echo "LO Driver Gain: ${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
     echo "ADC Level: ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB"
@@ -120,8 +128,8 @@ sset 'IN2_R to Right Mixer Positive Resistor' "$IN2_R"
 sset 'DAC Left Playback PowerTune'  $PTM_PL
 sset 'DAC Right Playback PowerTune' $PTM_PR
 
-#  Set default input and output levels
-# Everything after this is common to both audio channels
+# Set default input and output levels
+# Everything after this line is common to both audio channels
 
 sset 'CM_L to Left Mixer Negative Resistor' '10 kOhm'
 sset 'CM_R to Right Mixer Negative Resistor' '10 kOhm'
@@ -175,23 +183,34 @@ sset 'LOL Output Mixer L_DAC' on
 sset 'LOR Output Mixer R_DAC' on
 EOF
 
+dbgecho "amixer finished"
+prgram="alsa-show.sh"
+
 ALSACTL="alsactl"
 if [[ $EUID != 0 ]] ; then
+   # This prevents the following error:
+   #   No protocol specified
+   #   xcb_connection_has_error() returned true
+   unset DISPLAY
+
    ALSACTL="sudo alsactl"
+   prgram="$HOME/bin/alsa-show.sh"
+else
+  prgram="/home/pi/bin/alsa-show.sh"
 fi
 
 $ALSACTL store
 if [ "$?" -ne 0 ] ; then
     echo "ALSA mixer settings NOT stored."
+else
+    dbgecho "ALSA mixer successfully stored."
 fi
 
 # Display abreviated listing of settings
-prgram="alsa-show.sh"
 which $prgram > /dev/null
 if [ "$?" -eq 0 ] ; then
-    dbgecho "Found $prgram in path"
+    dbgecho "Found $(basename $prgram) in path"
     $prgram
-        PROD_ID=$?
 else
     echo "Could not locate $prgram"
 fi
