@@ -15,9 +15,10 @@ DEBUG=
 RADIO="IC-706"
 scriptname="`basename $0`"
 
-asoundstate_file="/var/lib/alsa/asound.state"
 AX25_CFGDIR="/usr/local/etc/ax25"
 PORT_CFG_FILE="$AX25_CFGDIR/port.conf"
+
+asoundstate_file="/var/lib/alsa/asound.state"
 ALSA_LOG_DIR="$HOME/tmp"
 ALSA_LOG_FILE="$ALSA_LOG_DIR/alsa_mixer.log"
 
@@ -33,6 +34,12 @@ IN1_L='Off'
 IN1_R='Off'
 IN2_L="10 kOhm"
 IN2_R="10 kOhm"
+
+PTM_PL="P3"
+PTM_PR="P3"
+
+RECVSIG_LEFT="audio"
+RECVSIG_RIGHT="audio"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -78,16 +85,19 @@ if [ $? -ne 0 ] ; then
 fi
 
 # Check if HAT is a UDRC or UDRC II
+#  - If found then use discriminator routing
 get_prod_id
-    if [[ "$PROD_ID" -eq 2 ]] || [[ "$PROD_ID" -eq 3 ]] ; then
+if [[ "$PROD_ID" -eq 2 ]] || [[ "$PROD_ID" -eq 3 ]] ; then
+    echo "Detected UDRC or UDRC II, product ID: $PROD_ID"
     IN1_L='10 kOhm'
     IN1_R='10 kOhm'
     IN2_L="Off"
     IN2_R="Off"
+    RECVSIG_LEFT="disc"
+    RECVSIG_RIGHT="disc"
+else
+    dbgecho "UDRC or UDRC II not detected"
 fi
-
-RECVSIG_LEFT="audio"
-RECVSIG_RIGHT="audio"
 
 # IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
 # IN2 Compensated receive audio (all radios, 1200 baud and slower packet)
@@ -99,6 +109,7 @@ if [ ! -z "$DEBUG" ] ; then
     echo "PCM: $PCM_LEFT, $PCM_RIGHT"
     echo "LO Driver Gain: ${LO_DRIVER_LEFT}dB,${LO_DRIVER_RIGHT}dB"
     echo "ADC Level: ${ADC_LEVEL_LEFT}dB,${ADC_LEVEL_RIGHT}dB"
+    echo "Power Tune: ${PTM_PL}, ${PTM_PR}"
     echo "IN1: $IN1_L, $IN1_R"
     echo "IN2: $IN2_L, $IN2_R"
     echo
@@ -117,6 +128,9 @@ sset 'IN1_L to Left Mixer Positive Resistor' "$IN1_L"
 sset 'IN1_R to Right Mixer Positive Resistor' "$IN1_R"
 sset 'IN2_L to Left Mixer Positive Resistor' "$IN2_L"
 sset 'IN2_R to Right Mixer Positive Resistor' "$IN2_R"
+
+sset 'DAC Left Playback PowerTune'  $PTM_PL
+sset 'DAC Right Playback PowerTune' $PTM_PR
 
 # Set default input and output levels
 # Everything after this line is common to both audio channels
@@ -173,23 +187,34 @@ sset 'LOL Output Mixer L_DAC' on
 sset 'LOR Output Mixer R_DAC' on
 EOF
 
+dbgecho "amixer finished"
+prgram="alsa-show.sh"
+
 ALSACTL="alsactl"
 if [[ $EUID != 0 ]] ; then
+   # This prevents the following error:
+   #   No protocol specified
+   #   xcb_connection_has_error() returned true
+   unset DISPLAY
+
    ALSACTL="sudo alsactl"
+   prgram="$HOME/bin/alsa-show.sh"
+else
+  prgram="/home/pi/bin/alsa-show.sh"
 fi
 
 $ALSACTL store
 if [ "$?" -ne 0 ] ; then
     echo "ALSA mixer settings NOT stored."
+else
+    dbgecho "ALSA mixer successfully stored."
 fi
 
 # Display abreviated listing of settings
-prgram="alsa-show.sh"
 which $prgram > /dev/null
 if [ "$?" -eq 0 ] ; then
-    dbgecho "Found $prgram in path"
+    dbgecho "Found $(basename $prgram) in path"
     $prgram
-        PROD_ID=$?
 else
     echo "Could not locate $prgram"
 fi
