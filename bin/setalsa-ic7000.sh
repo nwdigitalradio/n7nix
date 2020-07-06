@@ -10,7 +10,7 @@
 # discriminator (DISC)
 # NOTE: This script ignores /etc/ax25/port.conf file so will not work
 # for split channel.
-DEBUG=1
+DEBUG=
 
 RADIO="Icom IC-7000"
 scriptname="`basename $0`"
@@ -47,7 +47,7 @@ function get_prod_id() {
     # Initialize product ID variable
     PROD_ID=
     prgram="udrcver.sh"
-    which $prgram
+    which $prgram > /dev/null
     if [ "$?" -eq 0 ] ; then
         dbgecho "Found $prgram in path"
         $prgram -
@@ -67,6 +67,7 @@ function get_prod_id() {
         fi
     fi
 }
+
 
 # ===== main
 
