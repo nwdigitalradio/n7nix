@@ -77,7 +77,7 @@ tail: cannot open '/var/log/rms.debug' for reading: No such file or directory
 * on new installations the log file will be empty for up to 1/2 hour or so.
 
 ##### Test Winlink automatic check-in script
-* rmsgw_aci = Radio Mail Server automatic check-in
+* rmsgw_aci = Radio Mail Server Gateway automatic check-in
 * _rmsgw_aci_ is a C program that calls bash script _rmschanstat_
 
 * To test these two programs run this script: ``` chk_wlaci.sh```
