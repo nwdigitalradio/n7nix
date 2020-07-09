@@ -26,9 +26,8 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 function name_check() {
     retcode=1
     namecheck=$1
-    echo "DEBUG: radiolist: $RADIOLIST"
+
     for radio_name in ${RADIOLIST} ; do
-        echo "DEBUG: radio: $radio_name, name: $namecheck"
         if [ "$radio_name" = "$namecheck" ] ; then
             return 0
         fi
@@ -146,8 +145,8 @@ After=network.target sound.target
 [Service]
 User=pi
 WorkingDirectory=/home/pi/
-ExecStart=/home/pi/bin/piardopc 8515 pcm.ARDOP pcm.ARDOP ${radio[catctrl]} -p ${radio[pttctrl]}
-#ExecStart=/bin/sh -c "/home/pi/bin/piardopc 8515 plughw:1,0 plughw:1,0 -p ${radio[pttctrl]} "
+ExecStart=/bin/sh -c "/home/pi/bin/piardopc 8515 pcm.ARDOP pcm.ARDOP ${radio[catctrl]} -p ${radio[pttctrl]}"
+#ExecStart=/bin/sh -c "/home/pi/bin/piardopc 8515 plughw:1,0 plughw:1,0 ${radio[catctrl]} -p ${radio[pttctrl]} "
 Restart=no
 
 [Install]
@@ -335,10 +334,14 @@ function audio_device_check() {
 
 function process_check() {
     kill_flag=
-    auddev="udrc"
     if [ "$1" -eq 1 ] ; then
         kill_flag=true
         echo "kill flag set"
+    fi
+
+    auddev="udrc"
+    if [ "$radio_name" = "IC-7300" ] ; then
+        auddev="/dev/ttyUSB0"
     fi
 
     audio_device_check $auddev
@@ -417,7 +420,11 @@ function ardop_process_status() {
     echo " == Ardop process check"
     status_all_services
     status_all_processes
+
     auddev="udrc"
+    if [ "$radio_name" = "IC-7300" ] ; then
+        auddev="/dev/ttyUSB0"
+    fi
     audio_device_check $auddev
 }
 
@@ -437,8 +444,11 @@ function is_num() {
     [ "$chk" ] && [ -z "${chk//[0-9]}" ]
 }
 
+# ===== function which radio is configured
+
 function which_radio() {
 
+    radio_name=
     if [ -e "/etc/systemd/system/rigctld.service" ] ; then
         radionum=$(grep "rigctld -m" /etc/systemd/system/rigctld.service | cut -d' ' -f3)
         if is_num $radionum ; then
@@ -458,6 +468,28 @@ function which_radio() {
         fi
     else
         echo "rigctld not configured"
+    fi
+}
+
+function radio_name_verify() {
+    # radio_name var is set by which_radio
+    which_radio
+
+    # upper to lower case
+    xradio_name=$(echo "$radio_name" | tr '[A-Z]' '[a-z]')
+    # get rid of dash
+    xradio_name=${xradio_name//[-]/}
+    xradioname="$(echo $radioname| cut -f2 -d'_')"
+
+    if [ -z "$radio_name" ] ; then
+        echo " *** ARDOP NOT CONFIGURED."
+    elif [ "$xradio_name" != "$xradioname" ] ;then
+        echo
+        echo "$(tput setaf 1) Configured radio $radio_name DOES NOT MATCH requested radio $radioname$(tput setaf 7)"
+        echo
+        exit 1
+    else
+        dbgecho " configured rig: $radio_name matches requested rig $radioname"
     fi
 }
 
@@ -493,6 +525,9 @@ function asoundrc_file_check() {
                 else
                     echo "asoundrc_file_check: No udrc sound card found."
                 fi
+                sample_rate=$(grep -m2 -i rate ~/.asoundrc | tail -n1 | tr -s '[[:space:]] ' | cut -f3 -d' ')
+                echo "asoundrc_file_check: sample rate: $sample_rate"
+
             fi
         fi
     else
@@ -626,7 +661,7 @@ case $APP_ARG in
         if [ ! -z "$DEBUG" ] ; then
             declare -n radio=$radioname
             echo
-            echo "DEBUG: radio name: $radioname, radio: $radio"
+            echo "DEBUG: radio name: $radioname, radio: $radio_name"
             printf "rig ctrl baud rate: %s\n" ${radio[baudrate]}
             echo
             catctrl=${radio[catctrl]}
@@ -652,8 +687,9 @@ case $APP_ARG in
         desktop_pat_file
     ;;
     status)
-        # radio_name var is set by which_radio
-        which_radio
+        radio_name_verify
+
+        echo
         echo " == Status for configured rig: $radio_name"
         ardop_file_status
         ardop_process_status
@@ -686,8 +722,8 @@ done
 # make variable radio an alias for radioname
 declare -n radio=$radioname
 
-# radio_name var is set by which_radio
-which_radio
+radio_name_verify
+
 echo
 echo " == Status for configured rig: $radio_name"
 
