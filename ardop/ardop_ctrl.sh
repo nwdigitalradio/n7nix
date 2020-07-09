@@ -636,7 +636,6 @@ case $APP_ARG in
             echo
             printf "rig number: %s, baud rate: %s, alsa sample rate: %s, ptt: %s, cat: %s, alsa pcm: %s\n" ${radio[rignum]} ${radio[baudrate]} ${radio[samplerate]} ${radio[pttctrl]} "$catctrl" "${radio[alsa_pcm]}"
         fi
-        exit
     ;;
     stop)
         echo "Kill all ardopc, rigctld & pat processes"
