@@ -31,12 +31,52 @@ function get_axport_device() {
     fi
 }
 
+# ===== function get_user
+
+function get_user() {
+   # Check if there is only a single user on this system
+   if (( `ls /home | wc -l` == 1 )) ; then
+      USER=$(ls /home)
+   else
+      echo -n "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]"
+      read -ep ": " USER
+   fi
+}
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
+
 # ===== main
 
-# Be sure we're running as root
+# Get list of users with home directories
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+# Check if running as root
 if [[ $EUID != 0 ]] ; then
-   echo "Must be root"
-   exit 1
+#   echo "set sudo"
+#   SYSTEMCTL="sudo systemctl"
+    USER=$(whoami)
+else
+    get_user
+    check_user
 fi
 
 if [ ! -d /home/$USER ] ; then
