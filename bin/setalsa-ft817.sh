@@ -74,19 +74,9 @@ if [ "$MODE_9600_ENABLE" = "true" ] ; then
     # Turn AFOUT off & DISCOUT on
     # ie. Receive audio off & discriminator output on
 
-    # DO NOT KNOW what these values should be
-    # ONLY set routing for discriminator for left & right channels
-
-    # PCM_LEFT="0.0"
-    # LO_DRIVER_LEFT="3.0"
-    # ADC_LEVEL_LEFT="-4.0"
     IN1_L='10 kOhm'
-    IN2_L="Off"
-
-    # PCM_RIGHT="0.0"
-    # LO_DRIVER_RIGHT="3.0"
-    # ADC_LEVEL_RIGHT="-4.0"
     IN1_R='10 kOhm'
+    IN2_L="Off"
     IN2_R="Off"
 
     RECVSIG_LEFT="disc"
