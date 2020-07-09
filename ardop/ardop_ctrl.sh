@@ -26,8 +26,10 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 function name_check() {
     retcode=1
     namecheck=$1
-    for radio in $RADIOLIST ; do
-        if [ $radio = "$namecheck" ] ; then
+    echo "DEBUG: radiolist: $RADIOLIST"
+    for radio_name in ${RADIOLIST} ; do
+        echo "DEBUG: radio: $radio_name, name: $namecheck"
+        if [ "$radio_name" = "$namecheck" ] ; then
             return 0
         fi
     done
