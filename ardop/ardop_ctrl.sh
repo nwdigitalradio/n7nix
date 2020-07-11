@@ -10,14 +10,15 @@ LOCAL_BIN="/home/pi/bin"
 
 SYSTEMD_DIR="/etc/systemd/system"
 FORCE_UPDATE=
+DISPLAY_PARAMETERS=false
 
 # names of supported radios
 RADIOLIST="ic706 ic7000 ic7300 kx2"
 
-declare -A radio_ic706=( [rigname]="IC-706" [rignum]=311 [samplerate]=48000 [baudrate]=4800 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-26.5" )
-declare -A radio_ic7000=( [rigname]="IC-7000" [rignum]=360 [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
-declare -A radio_ic7300=( [rigname]="IC-7300" [rignum]=373 [samplerate]=48000 [baudrate]=19200 [pttctrl]="/dev/ttyUSB0" [catctrl]="-c /dev/ttyUSB0" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
-declare -A radio_kx2=( [rigname]="K3/KX3" [rignum]=229 [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="0.0" [alsa_pcm]="0.0" )
+declare -A radio_ic706=( [rigname]="IC-706" [rignum]=311 [audioname]=udrc [samplerate]=48000 [baudrate]=4800 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-26.5" )
+declare -A radio_ic7000=( [rigname]="IC-7000" [rignum]=360 [audioname]=udrc [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
+declare -A radio_ic7300=( [rigname]="IC-7300" [rignum]=373 [audioname]=CODEC [samplerate]=48000 [baudrate]=19200 [pttctrl]="/dev/ttyUSB0" [catctrl]="-c /dev/ttyUSB0" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
+declare -A radio_kx2=( [rigname]="K3/KX3" [rignum]=229 [audioname]=udrc[samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="0.0" [alsa_pcm]="0.0" )
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -93,11 +94,22 @@ EOT
 # Use a heredoc to build the .asoundrc file
 
 function asoundfile() {
-sudo tee $HOME/.asoundrc > /dev/null << EOT
+
+    # Determine correct audio card number for .asoundrc file
+    CARDNO=$(aplay -l | grep -i udrc)
+    if [ ! -z "$CARDNO" ] ; then
+        # echo "asoundrc_file_check: udrc card number line: $CARDNO"
+        CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
+    else
+        echo "Problem finding UDRC/DRAWS audio device card number"
+        CARDNO=1
+    fi
+
+    sudo tee $HOME/.asoundrc > /dev/null << EOT
 pcm.ARDOP {
         type rate
         slave {
-        pcm "hw:1,0"
+        pcm "hw:${CARDNO},0"
         rate ${radio[samplerate]}
         }
 }
@@ -500,7 +512,7 @@ function asoundrc_file_check() {
         cfgfile="$HOME/.asoundrc"
         if [ ! -e "$cfgfile" ] || [ "$FORCE_UPDATE" = "true" ] ; then
             echo "File: $cfgfile does not exist, creating"
-            # create asound file
+            # create asound file in user home directory
             asoundfile
         else
             grep -i "pcm.ARDOP" $cfgfile > /dev/null 2>&1
@@ -601,6 +613,26 @@ function ardop_file_status() {
     fi
 }
 
+# ==== function display radio parameters stored in associative array
+
+function display_parameters() {
+    echo "== Dump radio parameters for radio: $radioname"
+    keycnt=0
+    for key in "${!radio[@]}"; do
+        echo -n "$key -> ${radio[$key]}, "
+        ((keycnt++))
+        if [ $keycnt -ge 3 ] ; then
+            echo
+            keycnt=0
+        fi
+    done
+
+    printf "\nrig number: %s, baud rate: %s, audio device: %s, alsa sample rate: %s, ptt: %s, cat: %s, alsa pcm: %s\n" ${radio[rignum]} ${radio[baudrate]} ${radio[audioname]} ${radio[samplerate]} ${radio[pttctrl]} "$catctrl" "${radio[alsa_pcm]}"
+
+}
+
+# ==== function display arguments used by this script
+
 usage () {
 	(
 	echo "Usage: $scriptname [-f][-d][-h][status][stop][start]"
@@ -611,6 +643,7 @@ usage () {
         echo "  status          display status of all ardop processes"
         echo "  -a <radio name> specify radio name (ic706 ic7000 ic7300 kx2)"
         echo "  -f | --force    Update all systemd unit files & .asoundrc file"
+        echo "  -p              Print parameters for a particular radio name"
         echo "  -d              Set DEBUG flag"
         echo "  -h              Display this message."
         echo
@@ -666,10 +699,7 @@ case $APP_ARG in
             echo
             catctrl=${radio[catctrl]}
             if [ -z "$catctrl" ] ; then catctrl="rigctl" ; fi
-            echo "== Dump radio parameters for radio: $radioname"
-            for key in "${!radio[@]}"; do echo -n "$key -> ${radio[$key]}, "; done
-            echo
-            printf "rig number: %s, baud rate: %s, alsa sample rate: %s, ptt: %s, cat: %s, alsa pcm: %s\n" ${radio[rignum]} ${radio[baudrate]} ${radio[samplerate]} ${radio[pttctrl]} "$catctrl" "${radio[alsa_pcm]}"
+            display_parameters
         fi
     ;;
     stop)
@@ -696,6 +726,9 @@ case $APP_ARG in
         echo "Finished ardop status"
         exit 0
     ;;
+    -p)
+        DISPLAY_PARAMETERS=true
+   ;;
     -f|--force)
         FORCE_UPDATE=true
         echo "Force update mode on"
@@ -723,6 +756,11 @@ done
 declare -n radio=$radioname
 
 radio_name_verify
+
+if [ $DISPLAY_PARAMETERS = true ] ; then
+    display_parameters
+    exit 0
+fi
 
 echo
 echo " == Status for configured rig: $radio_name"
