@@ -3,6 +3,10 @@
 # ardop_ctrl.sh
 #
 # start, stop & show status for ardop processes
+#
+# Creates these 3 systemd unit files
+# rigctld.service, ardop.service, pat.service
+
 
 BIN="/usr/bin"
 LBIN="/usr/local/bin"
@@ -15,10 +19,10 @@ DISPLAY_PARAMETERS=false
 # names of supported radios
 RADIOLIST="ic706 ic7000 ic7300 kx2"
 
-declare -A radio_ic706=( [rigname]="IC-706" [rignum]=311 [audioname]=udrc [samplerate]=48000 [baudrate]=4800 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-26.5" )
-declare -A radio_ic7000=( [rigname]="IC-7000" [rignum]=360 [audioname]=udrc [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
-declare -A radio_ic7300=( [rigname]="IC-7300" [rignum]=373 [audioname]=CODEC [samplerate]=48000 [baudrate]=19200 [pttctrl]="/dev/ttyUSB0" [catctrl]="-c /dev/ttyUSB0" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
-declare -A radio_kx2=( [rigname]="K3/KX3" [rignum]=229 [audioname]=udrc[samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [alsa_lodriver]="0.0" [alsa_pcm]="0.0" )
+declare -A radio_ic706=( [rigname]="IC-706" [rignum]=311 [audioname]=udrc [samplerate]=48000 [baudrate]=4800 [pttctrl]="GPIO=12" [catctrl]="" [rigctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-26.5" )
+declare -A radio_ic7000=( [rigname]="IC-7000" [rignum]=360 [audioname]=udrc [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [rigctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
+declare -A radio_ic7300=( [rigname]="IC-7300" [rignum]=373 [audioname]=CODEC [samplerate]=48000 [baudrate]=19200 [pttctrl]="/dev/ttyUSB0" [catctrl]="-c /dev/ttyUSB0" [rigctrl]="-p /dev/ttyUSB0 -P RTS" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
+declare -A radio_kx2=( [rigname]="K3/KX3" [rignum]=229 [audioname]=udrc[samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [rigctrl]="" [alsa_lodriver]="0.0" [alsa_pcm]="0.0" )
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -117,16 +121,21 @@ EOT
 }
 
 # ===== function unitfile_rigctld
+# For IC-7300
+# ExecStart=/usr/local/bin/rigctld -m 373 -r /dev/ttyUSB0 -p /dev/ttyUSB0 -P RTS -s 19200
 # Use a heredoc to build the rigctld.service file
 
 function unitfile_rigctld() {
-sudo tee /etc/systemd/system/rigctld.service > /dev/null << EOT
+
+    echo "DEBUG: creating rigctld unit file for radio: ${radio[rigname]}"
+
+    sudo tee /etc/systemd/system/rigctld.service > /dev/null << EOT
 [Unit]
 Description=rigctld
 #Before=pat
 
 [Service]
-ExecStart=/usr/local/bin/rigctld -m ${radio[rignum]} -r /dev/ttyUSB0 -s ${radio[baudrate]}
+ExecStart=/usr/local/bin/rigctld -m ${radio[rignum]} -r /dev/ttyUSB0 ${radio[rigctrl]} -s ${radio[baudrate]}
 WorkingDirectory=/home/pi/
 StandardOutput=inherit
 StandardError=inherit
@@ -142,6 +151,7 @@ EOT
 # ===== function unitfile_ardop
 # Use a heredoc to build the ardop.service file
 #
+# ./piardopc 8515 pcm.ARDOP pcm.ARDOP -c /dev/ttyUSB0 -p /dev/ttyUSB
 # From piardopc documentation
 # -p device or --ptt device         Device to use for PTT control using RTS or GPIO Pin (Raspbery Pi only)
 # -c device or --cat device         Device to use for CAT Control
@@ -149,7 +159,9 @@ EOT
 # -u string or --unkeystring string String (In HEX) to send to the radio to unkeykey PTT
 
 function unitfile_ardop() {
-sudo tee /etc/systemd/system/ardop.service > /dev/null << EOT
+    echo "DEBUG: creating ardop unit file for radio: ${radio[rigname]}"
+
+    sudo tee /etc/systemd/system/ardop.service > /dev/null << EOT
 [Unit]
 Description=ardopc - ARDOP softmodem for pi
 After=network.target sound.target
@@ -358,10 +370,6 @@ function process_check() {
 
     audio_device_check $auddev
     asoundrc_file_check
-
-#    echo
-#    echo "  === process check"
-#    kill_ardop $kill_flag
 }
 
 # ===== function unitfile_update
@@ -484,7 +492,7 @@ function which_radio() {
 }
 
 function radio_name_verify() {
-    # radio_name var is set by which_radio
+    # radio_name var is set by which_radio from rigctld service file
     which_radio
 
     # upper to lower case
@@ -499,7 +507,11 @@ function radio_name_verify() {
         echo
         echo "$(tput setaf 1) Configured radio $radio_name DOES NOT MATCH requested radio $radioname$(tput setaf 7)"
         echo
-        exit 1
+        # Check if in DEBUG mode or just displaying parameters
+        if [ ! -z $DEBUG  ] && [ "$DISPLAY_PARAMETERS" = "false" ] ; then
+            echo "DEBUG: $DEBUG, DISPLAY: $DISPLAY_PARAMETERS"
+            exit 1
+        fi
     else
         dbgecho " configured rig: $radio_name matches requested rig $radioname"
     fi
@@ -617,6 +629,7 @@ function ardop_file_status() {
 
 function display_parameters() {
     echo "== Dump radio parameters for radio: $radioname"
+    echo
     keycnt=0
     for key in "${!radio[@]}"; do
         echo -n "$key -> ${radio[$key]}, "
@@ -681,7 +694,9 @@ APP_ARG="$1"
 
 case $APP_ARG in
     -a)
+        # specify radio name
         radioname=$2
+
         shift  # past argument
 
         name_check $radioname
@@ -690,14 +705,16 @@ case $APP_ARG in
             exit
         fi
         radioname="radio_${radioname}"
-        echo "Setting rig name to: $radioname"
+        declare -n radio=$radioname
+        echo "Setting radio name to: $radioname, rig name: ${radio[rigname]}"
+
+
+        #echo "DEBUG: radio name: $radioname, radio: $radio_name"
+        #printf "rig ctrl baud rate: %s\n" ${radio[baudrate]}
+        #echo
         if [ ! -z "$DEBUG" ] ; then
-            declare -n radio=$radioname
-            echo
-            echo "DEBUG: radio name: $radioname, radio: $radio_name"
-            printf "rig ctrl baud rate: %s\n" ${radio[baudrate]}
-            echo
             catctrl=${radio[catctrl]}
+
             if [ -z "$catctrl" ] ; then catctrl="rigctl" ; fi
             display_parameters
         fi
@@ -708,6 +725,11 @@ case $APP_ARG in
         kill_ardop true
     ;;
     start)
+
+        if [ "$FORCE_UPDATE" = "true" ] ; then
+            echo "DEBUG: Updating systemd unitfiles"
+            unitfile_update
+        fi
         for service in "rigctld" "ardop" "pat" ; do
             start_service $service
         done
@@ -715,6 +737,7 @@ case $APP_ARG in
         #  Not running as root and (Desktop file does not exist or FORCE_UPDATE is true)
         desktop_waterfall_file
         desktop_pat_file
+        exit 0
     ;;
     status)
         radio_name_verify
