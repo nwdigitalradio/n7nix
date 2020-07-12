@@ -191,7 +191,7 @@ Requires=rigctld
 
 [Service]
 User=pi
-ExecStart=/usr/bin/pat http
+ExecStart=/usr/bin/pat --listen="ardop" http
 WorkingDirectory=/home/pi/
 StandardOutput=inherit
 StandardError=inherit
