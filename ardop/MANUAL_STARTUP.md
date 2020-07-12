@@ -179,12 +179,24 @@ pcm.ARDOP {
         }
 }
 ```
+##### Command line for rigctl
+
+```
+rigctld -m 373 -r /dev/ttyUSB0 -p /dev/ttyUSB0 -P RTS -s 19200
+```
+
 ##### Command line to start piardopc
 
 * .asoundrc configuration file must be edited, see above
 
+###### From piardopc documentation
+* -p device or --ptt device         Device to use for PTT control using RTS or GPIO Pin (Raspbery Pi only)
+* -c device or --cat device         Device to use for CAT Control
+* -k string or --keystring string   String (In HEX) to send to the radio to key PTT
+* -u string or --unkeystring string String (In HEX) to send to the radio to unkeykey PTT
+
 ```
-./piardopc 8515 pcm.ARDOP pcm.ARDOP -p /dev/ttyUSB0
+piardopc 8515 pcm.ARDOP pcm.ARDOP -c /dev/ttyUSB0 -p /dev/ttyUSB
 ```
 
 ## Stop Direwolf
