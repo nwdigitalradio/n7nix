@@ -67,6 +67,27 @@ aplay -l
 * Stop all Ardop systemd service files and Ardop processes
 * This option will stop any Ardop processes that were started from a console or Systemd Service Files
 
+##### Specify a radio
+* Default radio is IC-706
+* Example to change to IC-7300
+```
+cd
+cd n7nix/ardop
+./ardop_ctrl.sh -a ic706 stop
+./ardop_ctrl.sh -f -a ic7300 start
+ # only have to use the -f force flag once to re-write the systemd unit files for a particular radio
+./ardop_ctrl.sh -a ic7300 status
+```
+##### Systemd unit files exec commands for IC-7300
+* For rigctld.service
+```
+ExecStart=/usr/local/bin/rigctld -m 373 -r /dev/ttyUSB0 -p /dev/ttyUSB0 -P RTS -s 19200
+```
+* For ardop.service
+```
+ExecStart=/bin/sh -c "/home/pi/bin/piardopc 8515 pcm.ARDOP pcm.ARDOP -c /dev/ttyUSB0 -p /dev/ttyUSB0"
+```
+
 #### Start ARDOP waterfall
 
 ##### To run waterfall from desktop icon
