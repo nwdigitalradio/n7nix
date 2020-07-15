@@ -187,7 +187,42 @@ sudo su
 ```
 * This will stop _direwolf_ & all the AX.25 services allowing another program to use the DRAWS sound card.
 
-#### Enable the RPi on board audio device
+##### FLdigi
+
+* Soundcard device
+  * Configure->Config dialog->Soundcard->Devices
+    * Click on PortAudio check box and deselect all others
+```
+capture: udrc: bcm2835-i2s-tlv320aic32x4-hifi-0
+playback: udrc: bcm2835-i2s-tlv320aic32x4-hifi-0
+```
+* PTT
+  * Configuration->Rig->GPIO
+    * For left mDin6 connector
+      * Select BCM 12, check box ```=1```
+    * For right mDin6 connector
+      * Select BCM 23, check box ```=1```
+
+##### JS8CALL
+
+* Soundcard device
+  * File->Settings-Audio->Modulation Sound Card
+```
+Input:  plughw:CARD=udrc,DEV=0
+Output: plughw:CARD=udrc,DEV=0
+```
+* PTT
+  * The following allows JS8Call to execute an external script for controlling a rig's PTT:
+    * File->Settings->Radio->Rig Options->Advanced->PTT Command
+```
+/home/pi/bin/ptt_ctrl.sh
+```
+* Script defaults to using left connector, to use right connector
+```
+/home/pi/bin/ptt_ctrl.sh -r
+```
+
+#### To Enable the RPi On-Board Audio Device
 
 * The default configuration enables the RPi on board bcm2835 sound device
 * If for some reason you want to disable the sound device then:
