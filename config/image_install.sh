@@ -167,6 +167,7 @@ chip "ads1015-*"
 	label in6 "User ADC 1"
 	label in7 "User ADC 2"
 	compute in4 ((48.7/10)+1)*@, @/((48.7/10)+1)
+        compute in5 ((10/10)+1)*@, @/((10/10)+1)
 EOF
 fi
 
