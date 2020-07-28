@@ -73,7 +73,7 @@ Pass : 12345
 
 #### Select Default text editor
 
-* Using left pannel click on _General_
+* Using left panel click on _General_
 * Using the drop down menu for _Default text editor_ select _Plain (forced)_
 * Click _Back_ on top left to go to default mail screen
 
