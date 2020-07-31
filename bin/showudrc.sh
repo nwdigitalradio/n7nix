@@ -341,7 +341,9 @@ function check_pi_firmware() {
 
     echo
     echo "==== Pi Firmware EEPROM Config ===="
-    vcgencmd bootloader_config
+    # Delete all trailing blank lines at end of file (only).
+    bloadercfg=$(sed -e "s/[[:blank:]]*$//" <<< "$(vcgencmd bootloader_config)")
+    echo "$bloadercfg"
 }
 
 # ===== Display program help info
