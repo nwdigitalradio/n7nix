@@ -121,7 +121,7 @@ function display_ctrl() {
 function display_alsa() {
 # Default card name
 CARD="udrc"
-echo "==== ALSA Controls for Radio Tansmit ===="
+echo "==== ALSA Controls for Radio Transmit ===="
 
 control="LO Driver Gain"
 audio_display_ctrl "$control"
@@ -323,6 +323,8 @@ esac
 if $HAS_WIFI ; then
    echo " Has WiFi"
 fi
+# Display Raspberry Pi serial number
+tail -n 4 $CPUINFO_FILE
 
 }
 
@@ -494,6 +496,8 @@ lsb_release -a
 echo
 echo "---- systemd"
 hostnamectl
+echo -n "        sd card id: "
+cat /sys/block/mmcblk0/device/cid
 echo
 echo "---- modules"
 lsmod | egrep -e '(udrc|tlv320)'
