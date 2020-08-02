@@ -34,15 +34,15 @@ and scroll down to **"Writing an image to the SD card"**
   * There are good notes [here for Discovering the SD card mount
   point](https://www.raspberrypi.org/documentation/installation/installing-images/linux.md)
 
-* After decompressing current_image.img.xz file you will find an image file: nwdrxx.img
+* After decompressing current_image.img.xz file you will find an image file: current_image.img
 
 ```
 # Become root
 sudo su
 apt-get install dcfldd
 
-# Use name of decompressed file ie. nwdr16.img
-time (dcfldd if=nwdrxx.img of=/dev/sdf bs=4M status=progress; sync)
+# Use name of decompressed file ie. current_image.img
+time (dcfldd if=current_image.img of=/dev/sdf bs=4M status=progress; sync)
 # Doesn't hurt to run sync twice
 sync
 ```
@@ -64,11 +64,14 @@ passwd: digiberry
 
 - 1: First boot:
   - Verify that required drivers for the DRAWS codec are loaded.
+  - Update the configuration scripts
+  - Verify kernel is on upgrade hold
   - Follow 'Welcome to Raspberry Pi' piwiz screens.
-- 2: Verify that codec drivers have loaded
-- 3: Second boot: run script: _app_config.sh core_
-- 4: Third boot: Set your ALSA config
-- 5: For packet turn on Direwolf & AX.25
+- 2: Second boot: run script: ```app_config.sh core```
+- 3: Third boot: Set your ALSA config
+- 4: For packet turn on Direwolf & AX.25
+
+### 1. First boot
 
 #### Check for required drivers first
 * Open a console and type:
@@ -82,7 +85,7 @@ card 0: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi
 
 * If you do **NOT** see _udrc_ enumerated  **do NOT continue**
   * Until the UDRC/DRAWS drivers are loaded the configuration scripts will not succeed.
-  * Run the _showudrc.sh_ script and [post the console output to the UDRC groups.io forum](https://nw-digital-radio.groups.io/g/udrc/topics)
+  * Run the ```showudrc.sh``` script and [post the console output to the UDRC groups.io forum](https://nw-digital-radio.groups.io/g/udrc/topics)
 
 #### Initial Image Config
 
@@ -99,9 +102,10 @@ git pull
 * As of July 2020 **DO NOT UPGRADE kernel package**
   * You want to retain last known _good_ kernel version: 4.19.118-v7l+ at least in the short term.
   * Follow [Placing a hold on kernel upgrade](#placing-a-hold-on-kernel-upgrade)
+    * If you downloaded _nwdr16.img.xz_ then the kernel hold will be in place, [verify that](#verify-a-hold-is-placed-on-kernel-upgrades)
 
 #### Update Raspberry Pi OS package information and their dependencies
-* **DO NOT** excute the following commands until you have verified a hold on a kernel upgrade
+* **DO NOT** excute the following update/upgrade commands until you have [verified a hold on a kernel upgrade](#placing-a-hold-on-kernel-upgrade)
 ```
 sudo su
 apt-get update
@@ -115,6 +119,7 @@ exit
   * Follow the screens as you would on any other Raspbian install.
   * When prompted to restart the RPi please do so.
 
+### 2. Second boot
 
 ##### Configure core functionality
 
@@ -140,7 +145,7 @@ sudo su
   * direwolf
   * systemd
 
-* **Now reboot your RPi**
+### 3. Third boot
 
 * **You must set your ALSA configuration** for your particular radio at this time
   * Also note which connector you are using as you can vary ALSA settings based on which channel you are using
@@ -155,8 +160,12 @@ sudo su
   * The default config is to run HF applications like js8call, wsjtx
   and FLdigi
   * If you are **not** interested in packet and want to run an HF app then go ahead & do that now.
+
+### 4. For Packet Turn on Direwolf & AX.25
+
   * If you want to run a **packet application** or run some tests on the
-  DRAWS board that requires _direwolf_ then enable AX.25/direwolf like this:
+    DRAWS board that requires _direwolf_ then enable AX.25/direwolf like this:
+
 ```
 cd ~/bin
 # Become root
@@ -172,7 +181,7 @@ ax25-status
 ax25-status -d
 ```
 
-##### More Packet Program Options
+#### More Packet Program Options
 
 * After confirming that the core functionality works you can configure
 other packet programs that will use _direwolf_ such as rmsgw,
@@ -310,4 +319,3 @@ apt-mark hold libraspberrypi-bin libraspberrypi-dev libraspberrypi-doc libraspbe
 apt-mark hold raspberrypi-bootloader raspberrypi-kernel raspberrypi-kernel-headers
 ```
 * Once you confirm that there is a hold on the Raspberry Pi kernel it is safe to upgrade other programs.
-
