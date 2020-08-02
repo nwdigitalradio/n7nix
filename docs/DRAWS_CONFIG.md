@@ -7,13 +7,18 @@
 * [Go to the download site](http:nwdig.net/downloads) to find the current filename of the image
   * You can get the image using the following or just click on the filename using your browser.
 ```bash
-wget http://images.nwdigitalradio.com/downloads/current_image.zip
+wget http://images.nwdigitalradio.com/downloads/current_image.img.xz
 ```
 
-##### Unzip the image file
+##### Decompress the xz compressed image file
+* Linux requires xz-utils package
+* Windows requires WinZip, Easy 7-Zip or Windows Explorer, right click on file.
+* Mac requires any of B1 Free Archiver, The Unarchiver, EZ 7z or 7zX
+
 ```bash
-unzip current_image.zip
+xz --decompress current_image.img.xz
 ```
+
 ##### Provision an SD card
 * At least a 16GB microSD card is recommended
 
@@ -29,15 +34,14 @@ and scroll down to **"Writing an image to the SD card"**
   * There are good notes [here for Discovering the SD card mount
   point](https://www.raspberrypi.org/documentation/installation/installing-images/linux.md)
 
-```
-unzip current_image.zip
-# You will find an image file: nwdrxx.img
+* After decompressing current_image.img.xz file you will find an image file: nwdrxx.img
 
+```
 # Become root
 sudo su
 apt-get install dcfldd
 
-# Use name of unzipped file ie. nwdr14.img
+# Use name of decompressed file ie. nwdr16.img
 time (dcfldd if=nwdrxx.img of=/dev/sdf bs=4M status=progress; sync)
 # Doesn't hurt to run sync twice
 sync
@@ -80,24 +84,37 @@ card 0: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi
   * Until the UDRC/DRAWS drivers are loaded the configuration scripts will not succeed.
   * Run the _showudrc.sh_ script and [post the console output to the UDRC groups.io forum](https://nw-digital-radio.groups.io/g/udrc/topics)
 
-#### Initial Config Detail
+#### Initial Image Config
+
+* If you are running with an attached monitor you should see the Raspbian 'Welcome to Raspberry Pi' piwiz splash screen
+  * **DO NOT** run the piwiz splash screen yet
+
+##### Update NWDR image configuration scripts
+```
+cd
+cd n7nix
+git pull
+```
+
+* As of July 2020 **DO NOT UPGRADE kernel package**
+  * You want to retain last known _good_ kernel version: 4.19.118-v7l+ at least in the short term.
+  * Follow [Placing a hold on kernel upgrade](#placing-a-hold-on-kernel-upgrade)
+
+#### Update Raspberry Pi OS package information and their dependencies
+* **DO NOT** excute the following commands until you have verified a hold on a kernel upgrade
+```
+sudo su
+apt-get update
+apt-get upgrade
+
+# revert back to normal user
+exit
+```
 
 * If you are running with an attached monitor you should see the Raspbian 'Welcome to Raspberry Pi' piwiz splash screen
   * Follow the screens as you would on any other Raspbian install.
   * When prompted to restart the RPi please do so.
 
-##### Update configuration scripts
-```
-cd
-cd n7nix
-git pull
-
-sudo su
-apt-get update
-apt-get dist-upgrade
-# revert back to normal user
-exit
-```
 
 ##### Configure core functionality
 
@@ -257,3 +274,40 @@ touch /boot/ssh
 ```
 
 * Boot the new micro SD card.
+
+### Placing A Hold On Kernel Upgrade
+  * To verify your current kernel version
+```
+uname -r
+```
+* You should see: ```4.19.118-v7l+```
+* If you see : ```5.4.51-v7l+``` then your DRAWS hat will have problems
+  * The driver for the TI ads1015 chip is missing in this kernel.
+
+
+* Do **NOT** use the following commands:
+  * _apt-get dist-upgrade_
+  * _apt full-upgrade_
+
+#### Verify a hold is placed on kernel upgrades
+* In a console run the following command:
+```
+apt-mark showhold
+```
+* should see this in console output
+```
+libraspberrypi-bin
+libraspberrypi-dev
+libraspberrypi-doc
+libraspberrypi0
+raspberrypi-bootloader
+raspberrypi-kernel
+```
+* If you did not see the above console output then place a hold on kernel upgrades by executing the following 2 hold commands as root:
+```
+sudo su
+apt-mark hold libraspberrypi-bin libraspberrypi-dev libraspberrypi-doc libraspberrypi0
+apt-mark hold raspberrypi-bootloader raspberrypi-kernel raspberrypi-kernel-headers
+```
+* Once you confirm that there is a hold on the Raspberry Pi kernel it is safe to upgrade other programs.
+
