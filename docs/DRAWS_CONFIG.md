@@ -292,7 +292,10 @@ uname -r
 * You should see: ```4.19.118-v7l+```
 * If you see : ```5.4.51-v7l+``` then your DRAWS hat will have problems
   * The driver for the TI ads1015 chip is missing in this kernel.
-
+  * To revert your kernel back to 4.19.118 run the following (courtesy of Thomas KF7RSF):
+```
+sudo rpi-upgrade e1050e94821a70b2e4c72b318d6c6c968552e9a2
+```
 
 * Do **NOT** use the following commands:
   * _apt-get dist-upgrade_
