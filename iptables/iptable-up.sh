@@ -1,4 +1,6 @@
 #!/bin/bash
+#
+# Enable iptables rules on devices that are up
 
 # ===== function is_ax25up
 function is_ax25up() {
@@ -8,18 +10,15 @@ function is_ax25up() {
 
 # ===== main
 
-device="ax0"
-is_ax25up "$device"
-if [ "$?" -eq 0 ] ; then
-    iptables -A OUTPUT -o "$device" -d 224.0.0.22 -p igmp -j DROP
-    iptables -A OUTPUT -o "$device" -d 224.0.0.251 -p udp -m udp --dport 5353 -j DROP
-    iptables -A OUTPUT -o "$device" -d 239.255.255.250 -p udp -m udp  -j DROP
-fi
-
-device="ax1"
-is_ax25up "$device"
-if [ "$?" -eq 0 ] ; then
-    iptables -A OUTPUT -o "$device" -d 224.0.0.22 -p igmp -j DROP
-    iptables -A OUTPUT -o "$device" -d 224.0.0.251 -p udp -m udp --dport 5353 -j DROP
-    iptables -A OUTPUT -o "$device" -d 239.255.255.250 -p udp -m udp  -j DROP
-fi
+# For each ax25 interface check if it is up and apply iptables rules
+for device in "ax0" "ax1" ; do
+    echo "Using device: $device"
+    is_ax25up "$device"
+    if [ "$?" -eq 0 ] ; then
+        iptables -A OUTPUT -o "$device" -d 224.0.0.22 -p igmp -j DROP
+        iptables -A OUTPUT -o "$device" -d 224.0.0.251 -p udp -m udp --dport 5353 -j DROP
+        iptables -A OUTPUT -o "$device" -d 239.255.255.250 -p udp -m udp  -j DROP
+    else
+        echo "Device: $device NOT UP, iptable rules not applied"
+    fi
+done
