@@ -314,6 +314,7 @@ libraspberrypi-doc
 libraspberrypi0
 raspberrypi-bootloader
 raspberrypi-kernel
+raspberrypi-kernel-headers
 ```
 * If you did not see the above console output then place a hold on kernel upgrades by executing the following 2 hold commands as root:
 ```
