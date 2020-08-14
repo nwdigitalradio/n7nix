@@ -8,6 +8,7 @@
 # DEBUG=1
 
 service="draws-manager"
+SYSTEMCTL="systemctl"
 scriptname="`basename $0`"
 CTRL_CHOICES="start stop status"
 
@@ -17,10 +18,11 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # Check if running as root and exit if not
 
 function root_chk() {
-    # Be sure we're running as root
+    # Check if running as root
     if [[ $EUID != 0 ]] ; then
-        echo "Must be root"
-        exit 1
+        SYSTEMCTL="sudo systemctl "
+    else
+        SYSTEMCTL="systemctl"
     fi
 }
 
@@ -38,7 +40,7 @@ function service_start() {
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ "$?" -ne 0 ] ; then
         echo "ENABLING $service"
-        systemctl enable "$service"
+        $SYSTEMCTL enable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem ENABLING $service"
         fi
@@ -49,7 +51,7 @@ function service_start() {
     if systemctl is-active --quiet $service ; then
         echo "$service is already running."
     else
-        systemctl start --no-pager $service.service
+        $SYSTEMCTL start --no-pager $service.service
     fi
 }
 
@@ -59,13 +61,13 @@ function service_stop() {
     root_chk
 
     if systemctl is-active --quiet $service ; then
-        systemctl stop $service.service
+        $SYSTEMCTL stop $service.service
     else
         echo "$service is NOT running."
     fi
 
     if systemctl is-enabled --quiet "$service" ; then
-        systemctl disable $service.service
+        $SYSTEMCTL disable $service.service
     else
         echo "$service is NOT enabled"
     fi
