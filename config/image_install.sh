@@ -161,14 +161,14 @@ sensor_fname="/etc/sensors.d/draws"
 if [ ! -e "$sensor_fname" ] ; then
 
 cat  > $sensor_fname <<EOF
-chip "ads1015-*"
-	label in3 "User ADC Differential"
-        label in4 "+12V"
-        label in5 " +5V"
-	label in6 "User ADC 1"
-	label in7 "User ADC 2"
-	compute in4 ((48.7/10)+1)*@, @/((48.7/10)+1)
-        compute in5 ((10/10)+1)*@, @/((10/10)+1)
+chip "iio_hwmon-*"
+   label in1 "+12V"
+   label in2 " +5V"
+   label in3 "User ADC 1"
+   label in4 "User ADC 2"
+   label in5 "User ADC Differential"
+   compute in1 ((48.7/10)+1)*@, @/((48.7/10)+1)
+   compute in2 4*@, @/4
 EOF
 fi
 
