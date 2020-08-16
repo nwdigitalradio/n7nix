@@ -86,6 +86,7 @@ cp -u /home/$USER/n7nix/tracker/tracker-* $userbindir
 cp -u /home/$USER/n7nix/tracker/updown_log.sh $userbindir
 
 cp -u /home/$USER/n7nix/config/bin_refresh.sh $userbindir
+cp -u /home/$USER/n7nix/config/sensor_update.sh $userbindir
 
 sudo chown -R $USER:$USER $userbindir
 
@@ -118,12 +119,23 @@ echo "FINISHED copying desktop files"
 
 # ===== main
 
+# Don't be root
+if [[ $EUID == 0 ]] ; then
+   echo "Do NOT run this script as root"
+   exit 1
+fi
+
 # Get list of users with home directories
 USERLIST="$(ls /home)"
 USERLIST="$(echo $USERLIST | tr '\n' ' ')"
 
 get_user
 check_user
+
+echo " Updating local bin directory for user: $USER"
+cd
+cd n7nix
+git pull
 
 CopyDesktopFiles
 userbindir="/home/$USER/bin"
@@ -133,3 +145,12 @@ cd $userbindir
 ax25bindir="/usr/local/etc/ax25"
 CopyAX25Files
 
+# Check if DRAWS sensor config file needs updating
+program_name="sensor_update.sh"
+type -P "$program_name"  &>/dev/null
+if [ $? -eq 0 ] ; then
+    echo "script: ${program_name} found"
+    sensor_update.sh
+else
+    echo -e "\n\t$(tput setaf 1)Script: ${progname} NOT installed $(tput setaf 7)\n"
+fi

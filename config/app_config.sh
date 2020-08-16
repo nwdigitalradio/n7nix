@@ -332,7 +332,14 @@ done
 
 echo "Update the local bin directory."
 cd "$START_DIR"
-./bin_refresh.sh
+program_name="./bin_refresh.sh"
+type -P "$program_name"  &>/dev/null
+if [ $? -eq 0 ] ; then
+    echo "script: ${program_name} found"
+    ./bin_refresh.sh
+else
+    echo -e "\n\t$(tput setaf 1)script: ${program_name} NOT installed $(tput setaf 7)\n"
+fi
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: app config ($APP_SELECT) script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
