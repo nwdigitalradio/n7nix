@@ -1,6 +1,17 @@
 #!/bin/bash
 #
 # Refresh programs for a stale image.
+#
+# Updates these repositories:
+# - n7nix
+# - split-channels
+# - draws-manager
+#
+# Calls these scripts:
+# - bin_refresh.sh
+# - hf_verchk.sh
+# - xs_verchk.sh
+# - gp_verchk.sh
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
