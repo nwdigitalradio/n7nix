@@ -111,11 +111,18 @@ new setting for Menu #39
 * The IC-7000 presents the received signal on both pin 4 DISCOUT & pin 5 AFOUT
 
 #### From Winlink Programs group
-### IC-7100, keys but no power out
+### IC-7100, 7200, 7300, 7410 keys but no power out
 
-  * Are you in USB-D?
-  * How are the Connectors set on the 7100 menus?
-  * And what are the Playback and Record levels for the 7100?
+* Are you in USB-D?
+* How are the Connectors set on the 7100 menus?
+* What are the Playback and Record levels for the 7100?
+
+* *DATA MOD* set to *USB-D*
+* *CI-V Baud Rate* set to *19,200*
+* *ACC/USB Output Select* set to *AF*
+* *ACC/USB AF Level* set to *50%* (initially, need to adjust this)
+* *USB MOD Level* set to *50%* (initially, need to adjust)
+
 
 ### RPi - ALSA Configuration
 * Run _setalsa-ic7000.sh_ which sets alsa config to the following:
