@@ -25,13 +25,16 @@ set mode (see p. 54 item 29 9600 MODE).
 |   5   | AF OUT   | Outputs 1200 bps receive data |
 |   6   | SQ       | Squelch output, goes to ground when squelch opens |
 
+
 ### IC-7000
 
 * [IC-7000 Instruction Manual](https://www.icomamerica.com/en/downloads/DownloadDocument.aspx?Document=165)
 
+
 ### IC-7300
 
 * [IC-7300 Basic Manual](https://www.icomamerica.com/en/downloads/DownloadDocument.aspx?Document=784)
+
 
 ### Yaesu FT-891
 * [FT-891 Operating Manual](https://www.yaesu.com/airband/downloadFile.cfm?FileID=11695&FileCatID=158&FileName=FT%2D891%5FOM%5FENG%5FEH065H201%5F1611A%2DBO%2D2.pdf&FileContentType=application%2Fpdf)
