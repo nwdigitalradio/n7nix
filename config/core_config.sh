@@ -4,6 +4,9 @@
 #  - core_install.sh or
 #  - first boot from an SD card image created with image_install.sh
 #
+# Took out changing hostname (8/2020) due to many 'unable to resolve host'
+# errors.
+#
 # Uncomment this statement for debug echos
 DEBUG=1
 
@@ -327,56 +330,6 @@ else
    echo "User pi NOT found"
 fi
 
-hostname_default="draws"
-
-# Check hostname
-
-echo "=== Verify current hostname: $HOSTNAME"
-
-# Check for any of the default hostnames
-if ! is_hostname  ; then
-   # Change hostname
-   echo "Current host name: $HOSTNAME, change it"
-   read -t 1 -n 10000 discard
-   echo -n "Enter new host name followed by [enter]"
-   read -ep ": " HOSTNAME
-
-   if [ ! -z "$HOSTNAME" ] ; then
-       echo "Setting new hostname: $HOSTNAME"
-   else
-       echo "Setting hostname to default: $hostname_default"
-       HOSTNAME="$hostname_default"
-   fi
-   echo "$HOSTNAME" > /etc/hostname
-fi
-
-# Get hostname again incase it was changed
-HOSTNAME=$(cat /etc/hostname | tail -1)
-
-echo "=== Set mail hostname"
-echo "$HOSTNAME.localhost" > /etc/mailname
-
-# Be sure system host name can be resolved
-
-grep "127.0.1.1" /etc/hosts
-if [ $? -eq 0 ] ; then
-   # Found 127.0.1.1 entry
-   # Be sure hostnames match
-   HOSTNAME_CHECK=$(grep "127.0.1.1" /etc/hosts | awk {'print $2'})
-   if [ "$HOSTNAME" != "$HOSTNAME_CHECK" ] ; then
-      echo "Make host names match between /etc/hostname & /etc/hosts"
-      sed -i -e "/127.0.1.1/ s/127.0.1.1\t.*/127.0.1.1\t$HOSTNAME ${HOSTNAME}.localnet/" /etc/hosts
-   else
-      echo "host names match between /etc/hostname & /etc/hosts"
-   fi
-else
-   # Add a 127.0.1.1 entry to /etc/hosts
-   sed -i '1i\'"127.0.1.1\t$HOSTNAME $HOSTNAME.localnet" /etc/hosts
-   if [ $? -ne 0 ] ; then
-      echo "Failed to modify /etc/hosts file"
-   fi
-fi
-
 echo "=== Set time zone & current time"
 
 DATETZ=$(date +%Z)
@@ -478,16 +431,16 @@ if [ "$ipaddr_ax0" = "$cur_ipaddr_ax0" ] && [ "$ipaddr_ax1" = "$cur_ipaddr_ax1" 
 else
 
     echo -e "\n\t$(tput setaf 4)before: $(tput setaf 7)\n"
-    grep -i "IPADDR_AX.=" "$ax25upd_filename"
+    grep -i "ax25_ipaddr\[.\]" "$ax25upd_filename"
 
     # Replace everything after string IPADDR_AX0
-    sed -i -e "/IPADDR_AX0/ s/^IPADDR_AX0=.*/IPADDR_AX0=\"$ipaddr_ax0\"/"  $ax25upd_filename
+    sed -i -e "/ax25_ipaddr\[0\]/ s/^ax25_ipaddr\[0\]=.*/ax25_ipaddr\[0\]=\"$ipaddr_ax0\"/"  $ax25upd_filename
     if [ "$?" -ne 0 ] ; then
         echo -e "\n\t$(tput setaf 1)Failed to change ax0 ip address $(tput setaf 7)\n"
     fi
 
     # Replace everything after string IPADDR_AX1
-    sed -i -e "/IPADDR_AX1/ s/^IPADDR_AX1=.*/IPADDR_AX1=\"$ipaddr_ax1\"/"  $ax25upd_filename
+    sed -i -e "/ax25_ipaddr\[1\]/ s/^ax25_ipaddr\[1\]=.*/ax25_ipaddr\[1\]=\"$ipaddr_ax1\"/"  $ax25upd_filename
     if [ "$?" -ne 0 ] ; then
         echo -e "\n\t$(tput setaf 1)Failed to change ax1 ip address $(tput setaf 7)\n"
     fi
