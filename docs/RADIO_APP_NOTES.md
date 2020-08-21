@@ -111,7 +111,7 @@ new setting for Menu #39
 * The IC-7000 presents the received signal on both pin 4 DISCOUT & pin 5 AFOUT
 
 #### From Winlink Programs group
-### IC-7100, 7200, 7300, 7410 keys but no power out
+### IC-7100 (7200, 7300, 7410) keys but no power out
 
 * Are you in USB-D?
 * How are the Connectors set on the 7100 menus?
