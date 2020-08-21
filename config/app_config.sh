@@ -151,6 +151,95 @@ function chk_wp_ver() {
     fi
 }
 
+# ===== function refresh bindir
+# Update the local bin dir
+function refresh_bindir() {
+    echo "Update local bin directory for user: $USER"
+    cd "$START_DIR"
+    program_name="/home/$USER/bin/bin_refresh.sh"
+    type -P "$program_name"  &>/dev/null
+    if [ $? -eq 0 ] ; then
+        echo "script: ${program_name} found"
+        sudo -u "$USER" $program_name
+    else
+        echo -e "\n\t$(tput setaf 1)script: ${program_name} NOT installed $(tput setaf 7)\n"
+    fi
+}
+
+# ===== function is_hostname
+# Has hostname already been changed?
+
+function is_hostname() {
+    retcode=0
+    # Check hostname
+    HOSTNAME=$(cat /etc/hostname | tail -1)
+
+    # Check for any of the default hostnames
+    if [ "$HOSTNAME" = "raspberrypi" ] || [ "$HOSTNAME" = "compass" ] || [ "$HOSTNAME" = "draws" ] || [ -z "$HOSTNAME" ] ; then
+        retcode=1
+    fi
+#    dbgecho "is_hostname ret: $retcode"
+    return $retcode
+}
+
+# ===== function set_hostname
+# Change host machine name in these files:
+# - /etc/hostname
+# - /etc/mailname
+# - /etc/hosts
+
+function set_hostname() {
+
+    hostname_default="draws"
+
+    # Check hostname
+    echo "=== Verify current hostname: $HOSTNAME"
+
+    # Check for any of the default hostnames
+    if ! is_hostname  ; then
+        # Change hostname
+        echo "Current host name: $HOSTNAME, change it"
+        read -t 1 -n 10000 discard
+        echo -n "Enter new host name followed by [enter]"
+        read -ep ": " HOSTNAME
+
+        if [ ! -z "$HOSTNAME" ] ; then
+            echo "Setting new hostname: $HOSTNAME"
+        else
+            echo "Setting hostname to default: $hostname_default"
+            HOSTNAME="$hostname_default"
+        fi
+        echo "$HOSTNAME" > /etc/hostname
+    fi
+
+    # Get hostname again incase it was changed
+    HOSTNAME=$(cat /etc/hostname | tail -1)
+
+    echo "=== Set mail hostname"
+    echo "$HOSTNAME.localhost" > /etc/mailname
+
+    # Be sure system host name can be resolved
+
+    grep "127.0.1.1" /etc/hosts
+    if [ $? -eq 0 ] ; then
+        # Found 127.0.1.1 entry
+        # Be sure hostnames match
+        HOSTNAME_CHECK=$(grep "127.0.1.1" /etc/hosts | awk {'print $2'})
+        if [ "$HOSTNAME" != "$HOSTNAME_CHECK" ] ; then
+            echo "Make host names match between /etc/hostname & /etc/hosts"
+            sed -i -e "/127.0.1.1/ s/127.0.1.1\t.*/127.0.1.1\t$HOSTNAME ${HOSTNAME}.localnet/" /etc/hosts
+        else
+            echo "host names match between /etc/hostname & /etc/hosts"
+        fi
+    else
+        # Add a 127.0.1.1 entry to /etc/hosts
+        sed -i '1i\'"127.0.1.1\t$HOSTNAME $HOSTNAME.localnet" /etc/hosts
+        if [ $? -ne 0 ] ; then
+            echo "Failed to modify /etc/hosts file"
+        fi
+    fi
+}
+
 # ===== main
 
 echo "$scriptname: script start"
@@ -265,6 +354,12 @@ case $APP_SELECT in
       # Check for latest verion of WiringPi
       chk_wp_ver
 
+      # Update local bin dir
+      refresh_bindir
+
+      # Set new hostname as last action to prevent a bunch of unable to resolve host errors
+      set_hostname
+      # Need a reboot after this
    ;;
    rmsgw)
       # Configure rmsgw
@@ -329,17 +424,6 @@ esac
 
 shift # past argument or value
 done
-
-echo "Update the local bin directory."
-cd "$START_DIR"
-program_name="./bin_refresh.sh"
-type -P "$program_name"  &>/dev/null
-if [ $? -eq 0 ] ; then
-    echo "script: ${program_name} found"
-    sudo -u "$USER" ./bin_refresh.sh
-else
-    echo -e "\n\t$(tput setaf 1)script: ${program_name} NOT installed $(tput setaf 7)\n"
-fi
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: app config ($APP_SELECT) script FINISHED" | tee -a $UDR_INSTALL_LOGFILE
