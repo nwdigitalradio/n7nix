@@ -3,9 +3,19 @@
 # Install a host access point
 #
 # hosts, resolv.conf /etc/network/interfaces /etc/dhcpcd.conf
+#
+# == Configure hostapd.conf
+# == Check dnsmasq Version number
+# == Configure dnsmasq
+# == set up IPV4 forwarding
+# == setup iptables
+# == Give WiFi device a fixed IP address
+# == start services: hostapd, dnsmasq
+
 DEBUG=1
 
-fixed_ip_address="10.0.44.1"
+DNSMASQ_CFG_FILE="/etc/dnsmasq.conf"
+fixed_ip_address="10.0.40.4"
 ip_root=${fixed_ip_addr%.*}
 
 scriptname="`basename $0`"
@@ -54,40 +64,75 @@ fi
 # ===== function copy_dnsmasq
 function copy_dnsmasq() {
 
-echo "DEBUG: copy_dnsmasq arg: $1"
-if [ -z "$1" ] ; then
-   echo "$scriptname: function copy_dnsmasq() needs an argument ... exiting"
-   exit 1
-fi
+    echo "DEBUG: copy_dnsmasq arg: $1"
+    if [ -z "$1" ] ; then
+        echo "$scriptname: function copy_dnsmasq() needs an argument ... exiting"
+        exit 1
+    fi
 
-# Create a new file
-cat > $1/dnsmasq.conf <<EOT
+    # Add to end of file
+    sudo tee "$DNSMASQ_CFG_FILE" > /dev/null << EOT
+interface=wlan0 # Listening interface
+dhcp-range=${ip_root}.100,${ip_root}.200,255.255.255.0,24h
+                # Pool of IP addresses served via DHCP
+domain=wlan     # Local wireless DNS domain
+address=/rpi.wlan/$fixed_ip_address
+                # Alias for this router
+EOT
+
+    # Disable this config
+    if [ 1 -eq 0 ] ; then
+
+    # Create a new file
+    sudo tee $1/dnsmasq.conf > /dev/null << EOT
 interface=wlan0      # Use interface wlan0
+dhcp-range=${ip_root}.201,${ip_root}.239,12h
 listen-address=$fixed_ip_address
 bind-interfaces      # Bind to the interface to be sure we aren't sending things elsewhere
-server=8.8.8.8       # Forward DNS requests to Google DNS
+server=1.1.1.1       # Forward DNS requests to CloudFare
 domain-needed        # Don't forward short names
 bogus-priv           # Never forward addresses in the non-routed address spaces.
-dhcp-range=${ip_root}.201,${ip_root}.239,12h
+
 EOT
+
+    fi
 }
 
 # ===== function copy_hostapd
 function copy_hostapd() {
 
-echo "DEBUG: copy_hostapd: arg $1"
-if [ -z "$1" ] ; then
-   echo "$scriptname: function copy_hostapd() needs an argument ... exiting"
-   exit 1
-fi
+    echo "DEBUG: copy_hostapd: arg $1"
+    if [ -z "$1" ] ; then
+        echo "$scriptname: function copy_hostapd() needs an argument ... exiting"
+       exit 1
+    fi
 
-# Create a new file
+    # Create a new file
 
-echo "Enter Service set identifier (SSID) for new WiFi access point, followed by [enter]:"
-read -e SSID
+    echo "Enter Service set identifier (SSID) for new WiFi access point, followed by [enter]:"
+    read -e SSID
 
-# Create a new file
-cat > $1/hostapd.conf <<EOT
+    # Create a new file
+
+    sudo tee $1/hostapd.conf > /dev/null <<EOT
+country_code=US
+interface=wlan0
+ssid=snout
+hw_mode=g
+channel=7
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+#wpa=2
+#wpa_passphrase=AardvarkBadgerHedgehog
+#wpa_key_mgmt=WPA-PSK
+#wpa_pairwise=TKIP
+#rsn_pairwise=CCMP
+EOT
+
+# Disable this config
+if [ 1 -eq 0 ] ; then
+    sudo tee $1/hostapd.conf > /dev/null <<EOT
 interface=wlan0
 
 # Use the nl80211 driver with the brcmfmac driver
@@ -137,6 +182,8 @@ macaddr_acl=0
 ##wpa_pairwise=CCMP
 #rsn_pairwise=CCMP
 EOT
+
+fi
 }
 
 # ===== function seq_backup
@@ -165,46 +212,47 @@ function seq_backup() {
 # ===== function dnsmasq_config
 function dnsmasq_config() {
 
-# Check if a previous dnsmasq configuration file exists
-if [ -f "/etc/dnsmasq.conf" ] ; then
-   dnsmasq_linecnt=$(wc -l /etc/dnsmasq.conf)
-   # get rid of everything except line count
-   dnsmasq_linecnt=${dnsmasq_linecnt%% *}
-   dbgecho "dnsmasq.conf line count: $dnsmasq_linecnt"
-   if (("$dnsmasq_linecnt" > "10")) ; then
-      seq_backup "/etc/dnsmasq"
-      echo "Original dnsmasq config file saved as $fname"
-   fi
-fi
+    # Check if a previous dnsmasq configuration file exists
+    if [ -f "$DNSMASQ_CFG_FILE" ] ; then
+        dnsmasq_linecnt=$(wc -l $DNSMASQ_CFG_FILE)
+        # get rid of everything except line count
+        dnsmasq_linecnt=${dnsmasq_linecnt%% *}
+        dbgecho "dnsmasq.conf line count: $dnsmasq_linecnt"
+        if (("$dnsmasq_linecnt" > "10")) ; then
+            seq_backup "/etc/dnsmasq"
+            echo "Original dnsmasq config file saved as $fname"
+        fi
+    fi
 
-# Previous dnsmasq config file should be saved at this point and there
-# should be no config file
+    # Previous dnsmasq config file should be saved at this point and there
+    # should be no config file
 
-# Check if there is no dnsmasq config file
-if [ ! -f /etc/dnsmasq.conf ] ; then
-   copy_dnsmasq "/etc"
-else
-   echo "/etc/dnsmasq.conf already exists."
-   copy_dnsmasq "/tmp"
-   echo "=== diff of current dnsmasq config ==="
-   diff -b /etc/dnsmasq.conf /tmp
-   echo "=== end diff ==="
-fi
+    # Check if there is no dnsmasq config file
+    if [ ! -f "$DNSMASQ_CFG_FILE" ] ; then
+        copy_dnsmasq "/etc"
+    else
+        echo "/etc/dnsmasq.conf already exists."
+        copy_dnsmasq "/tmp"
+
+        echo "=== diff of current dnsmasq config ==="
+        diff -b "$DNSMASQ_CFG_FILE" /tmp
+        echo "=== end diff ==="
+    fi
 }
 
 # ===== hostapd_config
 function hostapd_config() {
-echo "Copy hostap config file."
-if [ ! -f /etc/hostapd/hostapd.conf ] ; then
-   copy_hostapd "/etc/hostapd"
-else
-   echo "/etc/hostapd/hostapd.conf already exists."
-   seq_backup "/etc/hostapd/hostapd"
-   copy_hostapd "/tmp"
-   echo "=== diff of current dnsmasq config ==="
-   diff -b /etc/hostapd/hostapd.conf /tmp
-   echo "=== end diff ==="
-fi
+    echo "Copy hostap config file."
+    if [ ! -f /etc/hostapd/hostapd.conf ] ; then
+        copy_hostapd "/etc/hostapd"
+    else
+        echo "/etc/hostapd/hostapd.conf already exists."
+        seq_backup "/etc/hostapd/hostapd"
+        copy_hostapd "/tmp"
+        echo "=== diff of current hostapd config ==="
+        diff -b /etc/hostapd/hostapd.conf /tmp
+        echo "=== end diff ==="
+    fi
 }
 
 # ===== function start_service
@@ -213,34 +261,36 @@ function start_service() {
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
         echo "ENABLING $service"
-        systemctl enable "$service"
+        sudo systemctl enable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem ENABLING $service"
         fi
     fi
-    systemctl --no-pager start "$service"
+    sudo systemctl --no-pager start "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem starting $service"
     fi
 }
 
+
 # ===== main
 
 echo " == Config hostap on an RPi 3/4"
 
-# Be sure we're running as root
-if [[ $EUID != 0 ]] ; then
-   echo "Must be root."
+# Be sure we are NOT running as root
+if [[ $EUID = 0 ]] ; then
+   echo "Must NOT be root."
    exit 1
 fi
 
+# Verify that RPi has built-in WiFi
 get_has_WiFi
 if [ $? -ne "0" ] ; then
    echo "No WiFi found ... exiting"
    exit 1
 fi
 
-echo "== Found WiFi"
+dbgecho "== Found WiFi"
 
 echo "== Configuring: hostapd.conf"
 hostapd_config
@@ -272,7 +322,6 @@ else
         if [ $? -eq 0 ] ; then
             echo "$scriptname: Will purge $pkg_name program"
             sudo apt-get purge dns-root-data
-
         fi
     fi
 fi
@@ -281,7 +330,7 @@ echo "== Configure dnsmasq"
 dnsmasq_config
 
 # set up IPV4 forwarding
-echo "==Set IPV4 forwarding"
+echo "== Set IPV4 forwarding"
 #ipf=$(cat /proc/sys/net/ipv4/ip_forward)
 ipf="$(tr -d '\0' </proc/sys/net/ipv4/ip_forward)"
 
@@ -315,7 +364,7 @@ if [ "$CREATE_IPTABLES" = "true" ] ; then
 
    iptables -t nat -S
    iptables -S
-   cat  > /lib/dhcpcd/dhcpcd-hooks/70-ipv4.nat <<EOF
+   sudo tee /lib/dhcpcd/dhcpcd-hooks/70-ipv4.nat > /dev/null << EOF
 iptables-restore < /etc/iptables/rules.ipv4.nat
 EOF
 
@@ -329,8 +378,13 @@ if [ -e "$currentdir/$prgram" ] ; then
     ./$currentdir/$prgram -w $fixed_ip_addr > /dev/null 2>&1
 fi
 
+# May need to unmask hostapd first
+#sudo systemctl unmask hostapd
+#sudo systemctl enable hostapd
+#sudo systemctl start hostapd
+
 echo "== start systemd services"
-systemctl daemon-reload
+sudo systemctl daemon-reload
 for service in `echo ${SERVICELIST}` ; do
     echo "Starting: $service"
     start_service $service
