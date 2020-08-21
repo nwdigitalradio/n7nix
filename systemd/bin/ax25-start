@@ -138,7 +138,8 @@ for service in `echo ${SERVICE_LIST}` ; do
     start_service $service
 done
 
-echo "Verifying IPtables"
+echo
+echo "== Verify IPtables"
 
 rule_count=$(grep -c "\-A OUTPUT" /etc/iptables/rules.ipv4.ax25)
 echo "Number of ax25 iptables rules found: $rule_count"
@@ -172,11 +173,11 @@ if [ "$CREATE_IPTABLES" = "true" ] ; then
     #  - traffic is discovery multicast traffic that occurs every 2 minutes from the system
     #  - UPnP (Universal Plug and Play)/SSDP (Simple Service Discovery Protocol) by various vendors to advertise the capabilities of (or discover) devices
     echo
-    echo "== setup iptables"
+    echo "== Setup iptables"
     sudo /bin/bash $BIN_DIR/iptable-up.sh
     sudo sh -c "iptables-save > /etc/iptables/rules.ipv4.ax25"
 
-    grep "iptables-restore" /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 > /dev/null
+    grep "iptables-restore" /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 > /dev/null 2>&1
     retcode="$?"
     if [ "$retcode" -ne 0 ] ; then
         echo "Setup restore command"
