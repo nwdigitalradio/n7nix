@@ -1,7 +1,14 @@
 #!/bin/bash
 #
 # Set a fixed lan ip address
-#  Usage: $scriptname [-l][-s][-w][-d][-h] last_ip_octet or complete ip address
+#  Usage: fixed_ip.sh [-l][-s][-w][-d][-h] last_ip_octet or
+#          complete ip address
+#
+# NOTE: For this script to work must get rid of persistence
+#  Delete these files:
+#   /var/lib/dhcpcd/<interface>.lease
+#   /var/lib/dhcpcd/<interface-ssid>.lease
+#   /var/lib/dhcpcd/duid
 #
 # Edit file:
 #  /etc/dhcpcd.conf
