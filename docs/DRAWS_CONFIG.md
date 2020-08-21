@@ -97,15 +97,21 @@ card 0: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi
 cd
 cd n7nix
 git pull
+cd config
+./bin_refresh.sh
 ```
 
-* As of July 2020 **DO NOT UPGRADE kernel package**
-  * You want to retain last known _good_ kernel version: 4.19.118-v7l+ at least in the short term.
-  * Follow [Placing a hold on kernel upgrade](#placing-a-hold-on-kernel-upgrade)
-    * If you downloaded _nwdr16.img.xz_ then the kernel hold will be in place, [verify that](#verify-a-hold-is-placed-on-kernel-upgrades)
+* If you previously put a hold on kernel upgrades (July 2020) then remove the hold
+  * Previous sensor driver problems have been fixed in this kernel:
+    *  ```Linux raspberrypi 5.4.51-v7l+ #1333 #SMP Mon Aug 10 16:51:40```
+
+```
+sudo su
+apt-mark unhold $(apt-mark showhold)
+```
 
 #### Update Raspberry Pi OS package information and their dependencies
-* **DO NOT** excute the following update/upgrade commands until you have [verified a hold on a kernel upgrade](#placing-a-hold-on-kernel-upgrade)
+
 ```
 sudo su
 apt-get update
@@ -285,9 +291,11 @@ touch /boot/ssh
 * Boot the new micro SD card.
 
 ### Placing A Hold On Kernel Upgrade
+* **For reference only, the current Linux kernel is safe to use with DRAWS**
+
   * To verify your current kernel version
 ```
-uname -r
+uname -a
 ```
 * You should see: ```4.19.118-v7l+```
 * If you see : ```5.4.51-v7l+``` then your DRAWS hat will have problems
