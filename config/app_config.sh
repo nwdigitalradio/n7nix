@@ -336,7 +336,7 @@ program_name="./bin_refresh.sh"
 type -P "$program_name"  &>/dev/null
 if [ $? -eq 0 ] ; then
     echo "script: ${program_name} found"
-    ./bin_refresh.sh
+    sudo -u "$USER" ./bin_refresh.sh
 else
     echo -e "\n\t$(tput setaf 1)script: ${program_name} NOT installed $(tput setaf 7)\n"
 fi
