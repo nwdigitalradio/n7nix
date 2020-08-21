@@ -150,7 +150,8 @@ program_name="sensor_update.sh"
 type -P "$program_name"  &>/dev/null
 if [ $? -eq 0 ] ; then
     echo "script: ${program_name} found"
-    sensor_update.sh
+    # Assumes not running as root
+    $userbindir/sensor_update.sh
 else
-    echo -e "\n\t$(tput setaf 1)Script: ${progname} NOT installed $(tput setaf 7)\n"
+    echo -e "\n\t$(tput setaf 1)Script: ${program_name} NOT installed $(tput setaf 7)\n"
 fi
