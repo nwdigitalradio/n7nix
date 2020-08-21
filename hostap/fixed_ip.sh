@@ -93,7 +93,7 @@ interface $iface
 
   static ip_address=$1/24
   static routers=$2
-  static domain_name_servers=$2
+  static domain_name_servers=1.1.1.1 9.9.9.9 $2
 
 EOT
 
