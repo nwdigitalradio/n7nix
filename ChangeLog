@@ -1,3 +1,12 @@
+Fri Aug 21 11:30:41 PDT 2020  Basil Gunn <basil@pacabunga.com>
+
+  * Image NWDR17 release
+    * Fix for sensor driver change when updating to kernel ver 5.4.51
+    * Updated WiringPi to ver: 2.52, required for RPi 4
+    * Fixed iptables install to occur after ax.25 devices are up.
+    * Add a sensors update script that checks kernel version & DRAWS assembly rev.
+    * Advance ardop control script
+
 Tue May 19 09:24:52 PDT 2020  Basil Gunn <basil@pacabunga.com>
 
   * Image NWDR16 release
