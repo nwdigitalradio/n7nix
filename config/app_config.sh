@@ -345,7 +345,6 @@ case $APP_SELECT in
 
       # copy desktop icon files
       CopyDesktopFiles
-      echo "core configuration FINISHED"
 
       # Fix for 'file Manager instantly closes when opened' bug
       echo "Update file manager pcmanfm"
@@ -357,9 +356,11 @@ case $APP_SELECT in
       # Update local bin dir
       refresh_bindir
 
-      # Set new hostname as last action to prevent a bunch of unable to resolve host errors
+      # Set new hostname as last action to prevent a bunch of 'unable to resolve host' errors
       set_hostname
       # Need a reboot after this
+      echo
+      echo "core configuration FINISHED, need to reboot"
    ;;
    rmsgw)
       # Configure rmsgw
