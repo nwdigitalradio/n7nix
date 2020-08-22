@@ -393,13 +393,13 @@ ax25upd_filename="/etc/ax25/ax25-upd"
 dummy_ipaddress_0="192.168.255.2"
 dummy_ipaddress_1="192.168.255.3"
 
-ipaddr_ax0=$(grep -i "IPADDR_AX0=" "$ax25upd_filename" | cut -d'=' -f2)
+ipaddr_ax0=$(grep -i "ax25_ipaddr\[0\]=" "$ax25upd_filename" | cut -d'=' -f2)
 #Remove surronding quotes
 ipaddr_ax0="${ipaddr_ax0%\"}"
 ipaddr_ax0="${ipaddr_ax0#\"}"
 cur_ipaddr_ax0="$ipaddr_ax0"
 
-ipaddr_ax1=$(grep -i "IPADDR_AX1=" "$ax25upd_filename" | cut -d'=' -f2)
+ipaddr_ax1=$(grep -i "ax25_ipaddr\[1\]=" "$ax25upd_filename" | cut -d'=' -f2)
 #Remove surronding quotes
 ipaddr_ax1="${ipaddr_ax1%\"}"
 ipaddr_ax1="${ipaddr_ax1#\"}"
@@ -447,7 +447,7 @@ else
 fi
 
 echo -e "\n\t$(tput setaf 4)after: $(tput setaf 7)\n"
-grep -i "IPADDR_AX.=" $ax25upd_filename
+grep -i "ax25_ipaddr\[.\]" $ax25upd_filename
 
 echo "=== FINISHED Setting up ip addresses for AX.25 interfaces"
 
