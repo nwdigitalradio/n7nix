@@ -135,7 +135,7 @@ function get_ssid() {
 
     # Test for already used SSID number (10)
     if [ "$SSID" -eq "10" ] ; then
-        echo "  SSID = $SSID  already in use, choose 0-15 but not 10"
+        echo "  SSID = $SSID  already in use, choose 1-15 but not 10"
         return 0
     fi
 
