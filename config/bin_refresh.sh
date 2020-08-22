@@ -146,12 +146,12 @@ ax25bindir="/usr/local/etc/ax25"
 CopyAX25Files
 
 # Check if DRAWS sensor config file needs updating
-program_name="sensor_update.sh"
+program_name="/home/$USER/bin/sensor_update.sh"
 type -P "$program_name"  &>/dev/null
 if [ $? -eq 0 ] ; then
     echo "script: ${program_name} found"
     # Assumes not running as root
-    $userbindir/sensor_update.sh
+    sudo -u "$USER" $program_name
 else
-    echo -e "\n\t$(tput setaf 1)Script: ${program_name} NOT installed $(tput setaf 7)\n"
+    echo -e "\n\t$(tput setaf 1)Script: ${program_name} NOT installed for user: $(whoami) $(tput setaf 7)\n"
 fi
