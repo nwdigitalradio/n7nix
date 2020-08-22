@@ -6,6 +6,7 @@ Fri Aug 21 11:30:41 PDT 2020  Basil Gunn <basil@pacabunga.com>
     * Fixed iptables install to occur after ax.25 devices are up.
     * Add a sensors update script that checks kernel version & DRAWS assembly rev.
     * Advance ardop control script
+    * app_config.sh core sets hostname as last action
 
 Tue May 19 09:24:52 PDT 2020  Basil Gunn <basil@pacabunga.com>
 
