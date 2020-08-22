@@ -154,6 +154,7 @@ function chk_wp_ver() {
 # ===== function refresh bindir
 # Update the local bin dir
 function refresh_bindir() {
+    echo
     echo "Update local bin directory for user: $USER"
     cd "$START_DIR"
     program_name="/home/$USER/bin/bin_refresh.sh"
@@ -162,7 +163,7 @@ function refresh_bindir() {
         echo "script: ${program_name} found"
         sudo -u "$USER" $program_name
     else
-        echo -e "\n\t$(tput setaf 1)script: ${program_name} NOT installed $(tput setaf 7)\n"
+        echo -e "\n\t$(tput setaf 1)script: ${program_name} NOT installed for user $(whoami) $(tput setaf 7)\n"
     fi
 }
 
