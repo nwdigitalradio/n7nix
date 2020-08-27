@@ -1,6 +1,8 @@
 ## DRAWS 8 Pin Auxiliary Connector
 * Looking into connector, pin 1 is top right
   * Odd number pins are on top
+* [Accessory Connector HDR-4x2M Pinout](https://nw-digital-radio.groups.io/g/udrc/files/DRAWSTech.pdf)
+  * Scroll to bottom of document
 
 |  Pin   |  RPi Function   |  Alt0    |    Alt1  |    Alt2   |   Alt3      |  Alt4    | Alt5  |
 | :---:  |  :---------:    |  :---:   |  :---: |  :---: |  :---: |  :---: |  :---: |
