@@ -168,7 +168,18 @@ fi
 
 function build_fldigi_src() {
     sudo apt-get build-dep fldigi
+    # Verify tar file exists
+    if [ ! -f "$download_filename" ] ; then
+        echo "Getting new file: $download_filename"
+        sudo wget http://www.w1hkj.com/files/$flapp/$download_filename
+    fi
+
     sudo tar -zxvsf $download_filename
+    if [ "$?" -ne 0 ] ; then
+        echo "$(tput setaf 1)FAILED to untar file: $download_filename ... exiting $(tput setaf 7)"
+        exit 1
+    fi
+
     sudo chown -R $USER:$USER $FLDIGI_SRC_DIR
     cd fldigi-$fldigi_ver
 
@@ -218,7 +229,17 @@ fi
 # ===== function build_flapp_src
 
 function build_flapp_src() {
+    # Verify tar file exists
+    if [ ! -f "$download_filename" ] ; then
+        echo "Getting new file: $download_filename"
+        sudo wget http://www.w1hkj.com/files/$flapp/$download_filename
+    fi
+
     sudo tar -zxvf $download_filename
+    if [ "$?" -ne 0 ] ; then
+        echo "$(tput setaf 1)FAILED to untar file: $download_filename ... exiting $(tput setaf 7)"
+        exit 1
+    fi
     sudo chown -R $USER:$USER $FLAPP_SRC_DIR
     cd $flapp-$flapp_ver
     ./configure --prefix=/usr/local --enable-static
