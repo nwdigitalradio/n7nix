@@ -110,7 +110,7 @@ function update_sensor_cfg() {
                 make_sensor_cfg $kernver
             fi
         else
-            echo "Incorrect sensor config file found ... replacing."
+            echo "sensor config file found for kernel vesion 4.x ... replacing."
             make_sensor_cfg $kernver
         fi
     fi
