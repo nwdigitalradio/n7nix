@@ -65,7 +65,6 @@ passwd: digiberry
 - 1: First boot:
   - Verify that required drivers for the DRAWS codec are loaded.
   - Update the configuration scripts
-  - Verify kernel is on upgrade hold
   - Follow 'Welcome to Raspberry Pi' piwiz screens.
 - 2: Second boot: run script: ```app_config.sh core```
 - 3: Third boot: Set your ALSA config
