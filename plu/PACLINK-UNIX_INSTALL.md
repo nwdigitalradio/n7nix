@@ -375,4 +375,3 @@ journalctl -f -u pluweb.service
 ```
 Enter Service set identifier (SSID) for new WiFi access point, followed by [enter]:
 ```
-
