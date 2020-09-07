@@ -1,33 +1,27 @@
 # paclink-unix has 2 install options
 
-## [basic](PACLINK-UNIX_INSTALL.md)
+## 1. Minimum (plumin)
 
 This is a light weight paclink-unix install that gives functionality
 to use an email client on the Raspberry Pi to compose & send winlink
 messages.
 
-[Installs the following](PACLINK-UNIX_INSTALL.md):
+##### Installs the following:
 * paclink-unix to format email
-* postfix for the email transfer agent
+* [postfix](http://www.postfix.org/)for the email transfer agent
 * [mutt](http://www.mutt.org/) or an upstream version of mutt called [NeoMutt](https://neomutt.org/) for the email user agent
-* Enables email clients that support Unix movemail.
+* Enables email clients that support Unix movemail (eg. Thunderbird)
 
-## [with IMAP server](PACLINK-UNIX-IMAP_INSTALL.md)
+## 2. With IMAP server (plu)
 
-* [installs everything in the basic install plus dovecot IMAP mailserver & 2 other email clients](PACLINK-UNIX-IMAP_INSTALL.md)
-  * There is a mobile option that installs hostapd WiFi access point, and dnsmasq to serve up DNS & DHCP when the remote RPi is not connected to a network.
-
+* [installs everything in the basic install plus dovecot IMAP mailserver & 2 more email clients](https://github.com/nwdigitalradio/n7nix/blob/master/plu/PACLINK-UNIX_INSTALL.md#install-paclink-unix--dovecot)
 
 This installs functionality to use any [IMAP](https://en.wikipedia.org/wiki/Internet_Message_Access_Protocol) email client & to access
 paclink-unix from a browser. It allows using a WiFi device (smart
 phone, tablet, laptop) to compose a Winlink message & envoke
-paclink-unix to send the message. This is also configured to cough up
-a dhcp config for your mobil device if your RPi is in a car not
-connected to the Internet.
+paclink-unix to send the message.
 
-* For a mobile email client I use an Android device with [K-9 Mail](https://k9mail.github.io/)
-
-[Installs the following](PACLINK-UNIX-IMAP_INSTALL.md)
+##### Installs the following
 * paclink-unix to format email
 * postfix for the email transfer agent
 * [dovecot](https://github.com/nwdigitalradio/n7nix/tree/master/mailserv), IMAP email server
