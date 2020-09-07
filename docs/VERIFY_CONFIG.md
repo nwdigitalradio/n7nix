@@ -41,7 +41,7 @@ sudo su
 
 #### Test Receive
 
-* Connect a cable from your UDRC/DRAWWS hat to your radio.
+* Connect a cable from your UDRC/DRAWS hat to your radio.
 * Tune your radio to the 2M 1200 baud APRS frequency 144.390 or some frequency known to have packet traffic
   * You should now be able to see the packets decoded by _direwolf_
 
@@ -86,20 +86,18 @@ with the -p or -m options.
 ```bash
 ax25-status -d
 ```
-* After _== failed & loaded but inactive units==_ you should see
+* After ```== failed & loaded but inactive units==``` you should see
 ```
 0 loaded units listed.
 ```
 
 * In your local bin directory(_~/bin_) you can stop and start the entire ax.25/tnc
 stack including _direwolf_ with these commands:
-  * Note you need to do this as root
+  * Since your local bin directory is in your _path_ you may execute the following commands from any directory as a normal user (ie. as user pi)
 
 ```bash
-sudo su
-cd ~/bin
-./ax25-stop
-./ax25-start
+ax25-stop
+ax25-start
 ```
 
 * Other progams that confirm that the installation was successful
