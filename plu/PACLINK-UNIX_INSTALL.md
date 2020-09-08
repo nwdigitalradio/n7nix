@@ -196,9 +196,9 @@ wl2ktelnet: unrecognized command (len 94): /*** [1] Secure login failed - accoun
   * rmslist.sh
 * Both of these scripts will give similar output in different formats
 
-###### gatewaylist.sh
+###### Script: gatewaylist.sh
 ```bash
-./gatewaylist.sh
+gatewaylist.sh
 ```
 * defaults set a distance of 30 miles & GRID SQUARE cn88nl
   * If you edit the script run the _-l_ option to build a new list
@@ -209,13 +209,13 @@ wl2ktelnet: unrecognized command (len 94): /*** [1] Secure login failed - accoun
 * _-l_  build a new RMS station proximity list
 * _-h_  lists all command line arguments
 
-###### rmslist.sh
+###### Script: rmslist.sh
 
 * Run the rmslist.sh script to get a list of RMS Gateway callsigns, frequencies & distances
   * The first argument is an integer in miles, second is your grid square
 
 ```bash
-./rmslist.sh <integer_distance_in_miles> <maidenhead_grid_square>
+rmslist.sh <integer_distance_in_miles> <maidenhead_grid_square>
 ```
 * defaults set a distance of 30 miles & GRID SQUARE cn88nl
 * requires both _cURL_ and the json parsing utility _jq_
