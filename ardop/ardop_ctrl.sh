@@ -99,13 +99,14 @@ EOT
 
 function asoundfile() {
 
+    audio_device="$1"
     # Determine correct audio card number for .asoundrc file
-    CARDNO=$(aplay -l | grep -i udrc)
+    CARDNO=$(aplay -l | grep -i $audio_device)
     if [ ! -z "$CARDNO" ] ; then
         # echo "asoundrc_file_check: udrc card number line: $CARDNO"
         CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
     else
-        echo "Problem finding UDRC/DRAWS audio device card number"
+        echo "Problem finding audio device ($audio_device) card number"
         CARDNO=1
     fi
 
@@ -365,11 +366,13 @@ function process_check() {
 
     auddev="udrc"
     if [ "$radio_name" = "IC-7300" ] ; then
-        auddev="/dev/ttyUSB0"
+         # I think this should be CODEC
+#        auddev="/dev/ttyUSB0"
+         auddev="CODEC"
     fi
 
     audio_device_check $auddev
-    asoundrc_file_check
+    asoundrc_file_check $auddev
 }
 
 # ===== function unitfile_update
@@ -443,7 +446,9 @@ function ardop_process_status() {
 
     auddev="udrc"
     if [ "$radio_name" = "IC-7300" ] ; then
-        auddev="/dev/ttyUSB0"
+         # I think this should be CODEC
+#        auddev="/dev/ttyUSB0"
+         auddev="CODEC"
     fi
     audio_device_check $auddev
 }
@@ -520,19 +525,21 @@ function radio_name_verify() {
 # ===== function asoundrc_file_check
 function asoundrc_file_check() {
 
+    audio_device="$1"
+
     if [[ $EUID != 0 ]] ; then
         cfgfile="$HOME/.asoundrc"
         if [ ! -e "$cfgfile" ] || [ "$FORCE_UPDATE" = "true" ] ; then
             echo "File: $cfgfile does not exist, creating"
             # create asound file in user home directory
-            asoundfile
+            asoundfile $audio_device
         else
             grep -i "pcm.ARDOP" $cfgfile > /dev/null 2>&1
             if [ $? -ne 0 ] ; then
                 echo "asoundrc_file_check: No ARDOP entry in $cfgfile"
             else
                 echo "asoundrc_file_check: Found ARDOP entry in $cfgfile"
-                CARDNO=$(aplay -l | grep -i udrc)
+                CARDNO=$(aplay -l | grep -i $audio_device)
 
                 if [ ! -z "$CARDNO" ] ; then
 #                    echo "asoundrc_file_check: udrc card number line: $CARDNO"
@@ -541,13 +548,13 @@ function asoundrc_file_check() {
                     asound_cardno=$(grep -i pcm $cfgfile | tail -n 1 | cut -d':' -f2 | cut -d',' -f1)
                     if [ $CARDNO -ne $asound_cardno ] ; then
                         echo
-                        echo " asoundrc_file_check: asound cfg device does NOT match aplay device"
+                        echo " asoundrc_file_check: asound cfg device ($asound_cardno) does NOT match aplay device ($CARDNO)"
                         echo
                     else
                         echo "asoundrc_file_check: asound cfg device match: sound card number: $CARDNO"
                     fi
                 else
-                    echo "asoundrc_file_check: No udrc sound card found."
+                    echo "asoundrc_file_check: No sound card ($audio_device) found."
                 fi
                 sample_rate=$(grep -m2 -i rate ~/.asoundrc | tail -n1 | tr -s '[[:space:]] ' | cut -f3 -d' ')
                 echo "asoundrc_file_check: sample rate: $sample_rate"
@@ -574,9 +581,16 @@ function ardop_file_status() {
         echo "Pulse Audio is NOT running"
     fi
 
+    auddev="udrc"
+    if [ "$radio_name" = "IC-7300" ] ; then
+         # I think this should be CODEC
+#        auddev="/dev/ttyUSB0"
+         auddev="CODEC"
+    fi
+
     # Check for .asoundrc & asound.conf ALSA configuration files
     # Verify virtual sound device ARDOP
-    asoundrc_file_check
+    asoundrc_file_check $auddev
 
     # Verify config file to define virtual devices for split channel operation
     cfgfile="/etc/asound.conf"
