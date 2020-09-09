@@ -234,7 +234,7 @@ function status_all_processes() {
         ret=$?
         # Display process: name, pid, arguments
         if [ "$ret" -eq 0 ] ; then
-            args=$(ps aux | grep -i $pid_pat | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
+            args=$(ps aux | grep "$pid_pat " | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
             echo "proc $process: $ret, pid: $pid_pat, args: $args"
         else
             echo "proc $process: $ret, NOT running"
