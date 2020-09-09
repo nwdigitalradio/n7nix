@@ -38,3 +38,9 @@ There are two ways to start up ARDOP to be used with another application
 * This is the preferred way to start ARDOP
   * automatically starts process from boot
   * Follow this Link: [Run automatically with systemd service files](AUTO_STARTUP.md)
+
+#### Running ARDOP waterfall
+* On initial startup piARDOP_GUI will prompt for Host Name & Port number
+  * set Host Name: localhost
+  * set Port: 8515
+
