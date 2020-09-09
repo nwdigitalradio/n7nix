@@ -124,15 +124,15 @@ fi
 
 function desktop_waterfall_file() {
     tee $HOME/Desktop/ardop-gui.desktop > /dev/null << EOT
-Desktop Entry]
+[Desktop Entry]
 Name=ARDOP-waterfall
 Comment=Startup waterfall for ardop
 Exec=/home/pi/bin/piARDOP_GUI
 Type=Application
 # Some random icon
 Icon=/usr/lib/python3/dist-packages/thonny/plugins/pi/res/zoom.png
-Terminal=False
-Categories=Network;HAM Radio;
+Terminal=false
+Categories=Network;X-HAM Radio;
 EOT
 }
 
