@@ -22,7 +22,7 @@ asoundstate_file="/var/lib/alsa/asound.state"
 ALSA_LOG_DIR="$HOME/tmp"
 ALSA_LOG_FILE="$ALSA_LOG_DIR/alsa_mixer.log"
 
-# Default to 1200 baud settings for both channels
+# Default settings for 1200 baud settings on both channels
 PCM_LEFT="-26.5"
 PCM_RIGHT="-26.5"
 LO_DRIVER_LEFT="-6.0"
@@ -73,6 +73,11 @@ function get_prod_id() {
 
 
 # ===== main
+
+# SET DEBUG flag if there any command line args
+if (( $# != 0 )) ; then
+    DEBUG=1
+fi
 
 if [ ! -d $ALSA_LOG_DIR ] ; then
    mkdir -p $ALSA_LOG_DIR
