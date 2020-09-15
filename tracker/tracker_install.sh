@@ -143,7 +143,8 @@ sudo apt-get install -y -q $PKGLIST
 node_file_name="node-v$NODEJS_VER-linux-armv7l.tar.xz"
 echo
 echo "== get node modules"
-sudo npm -g install ctype iniparser websocket connect serve-static finalhandler uid-number
+sudo npm -g install ctype iniparser connect serve-static finalhandler uid-number
+sudo npm --unsafe-perm -g install websocket
 
 #
 # Do not do this!
@@ -218,11 +219,11 @@ else
    git clone git://github.com/json-c/json-c.git
 
    echo "== build json-c"
-   cd json-c
-
-   sh autogen.sh
-   ./configure
+   mkdir json-c-build
+   cd json-c-build
+   cmake ../json-c   # See CMake section below for custom arguments
    make
+   make test
    sudo make install
    sudo ldconfig
 fi
@@ -312,9 +313,9 @@ fi
 dbgecho "MYCALL"
 sed -i -e "/^mycall = N0CALL/ s/NOCALL/$CALLSIGN/" $TRACKER_CFG_FILE
 
-# Confirm gps type
+# For DRAWS hat gps type needs to be gpsd
 # look at 'type =' argument in [gps] section
-gpstype=$(sed -n '/\[gps\]/,/\[/p'  "$TRACKER_CFG_FILE" | grep -i "^type =" | cut -f3 -d' ')
+gpstype=$(sudo sed -n '/\[gps\]/,/\[/p'  "$TRACKER_CFG_FILE" | grep -i "^type =" | cut -f3 -d' ')
 
 #echo "gps type: $gpstype"
 if [ "$gpstype" != "gpsd" ] ; then
