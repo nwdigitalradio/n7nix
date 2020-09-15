@@ -1,6 +1,12 @@
 ## Notes for dantracker install
 * Everything mentioned below is handled in install script tracker_install.sh
 
+### Notes:
+##### DRAWS
+* Third panel, gps stats does not work until the following configs are not defined in config file (aprs_tracker.ini):
+  * [gps] port
+  * [gps] rate
+
 ### Setup
 * copy these files to `/usr/local/bin`
 ```
