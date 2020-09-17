@@ -97,6 +97,19 @@ function split_chan_off() {
     sudo sed -i -e "/\[port1\]/,/\[/ s/^speed=.*/speed=1200/" $PORT_CFG_FILE
 }
 
+# ===== function usage
+# Display program help info
+
+function usage () {
+	(
+	echo "Usage: $scriptname [-d][-h]"
+        echo "    -d switch to turn on verbose debug display"
+        echo "    -h display this message."
+	echo " exiting ..."
+	) 1>&2
+	exit 1
+}
+
 
 # ===== main
 
@@ -106,6 +119,28 @@ if [[ $EUID != 0 ]] ; then
     USER=$(whoami)
     echo "set sudo as user $USER"
 fi
+
+echo
+while [[ $# -gt 0 ]] ; do
+
+    key="$1"
+    case $key in
+        -d)
+            echo "Set DEBUG flag"
+            DEBUG=1
+        ;;
+        -h)
+            usage
+            exit 0
+        ;;
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+    shift # past argument or value
+done
 
 service="pulseaudio"
 if systemctl is-active --quiet "$service" ; then
