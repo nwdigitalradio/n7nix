@@ -431,7 +431,7 @@ while [[ $# -gt 0 ]] ; do
             CONNECTOR="$2"
             shift # past argument
             if [ "$CONNECTOR" != "right" ] && [ "$CONNECTOR" != "left" ] ; then
-                echo "Connectory argument must either be left or right, found '$CONNECTOR'"
+                echo "Connector argument must either be left or right, found '$CONNECTOR'"
                 exit
             fi
          else
