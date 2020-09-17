@@ -284,6 +284,10 @@ while [[ $# -gt 0 ]] ; do
             split_debugstatus
             exit 0
         ;;
+        -h)
+            usage
+            exit 0
+        ;;
         *)
             echo "Undefined argument: $key"
             usage
