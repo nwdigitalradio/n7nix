@@ -1,5 +1,9 @@
 # Split Channel Operation
 
+Allow different modems to use left and right audio channels on the
+codec.  Assume Direwolf is used for packet on left channel and some HF
+program will use right audio channel.
+
 * Control AX.25/Direwolf & pulse audio port setup with file: _/etc/ax25/port.conf_
 * Script _split_ctrl.sh_ is used to configure & display channel status the other 3 scripts are legacy **only**
 
