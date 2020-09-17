@@ -1,7 +1,14 @@
-# Split channel Operation
+# Split Channel Operation
 
 * Control AX.25/Direwolf & pulse audio port setup with file: _/etc/ax25/port.conf_
 * Script _split_ctrl.sh_ is used to configure & display channel status the other 3 scripts are legacy **only**
+
+After installing split channel, Direwolf will be attached to left connector & port udr0. HF programs will attach to right audio channel.
+ie. FLDigi will use pulseaudio directly.
+ *  "Server String" for FLDigi configuration:
+```
+unix:/var/run/pulse/native
+```
 
 ### Scripts
 
