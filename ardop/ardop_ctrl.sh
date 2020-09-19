@@ -53,7 +53,6 @@ function desktop_pat_file() {
 
             tee $filename > /dev/null << EOT
 [Desktop Entry]
-Encoding=UTF-8
 Name=PAT
 Type=Link
 URL=http://localhost:8080
