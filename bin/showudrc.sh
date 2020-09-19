@@ -501,8 +501,19 @@ hostnamectl
 echo -n "        sd card id: "
 cat /sys/block/mmcblk0/device/cid
 echo
-echo "---- modules"
+echo "---- sound modules"
 lsmod | egrep -e '(udrc|tlv320)'
+if [ "$?" -ne 0 ] ; then
+    echo "NO UDRC sound devices found"
+    echo
+    echo "---- i2c devices"
+    ls "/dev/i2c*"
+    echo "ret: $?"
+    echo
+    echo "---- ALL snd modules"
+    lsmod | grep -i "snd"
+    echo "ret: $?"
+fi
 
 # Running udrc-dkms version 1.0.5 or later
 # dkmsdir="/lib/modules/$(uname -r)/updates/dkms"
