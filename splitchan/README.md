@@ -19,7 +19,7 @@ unix:/var/run/pulse/native
 ##### split_ctrl.sh
 * Defaults to displaying status of Direwolf, pulseaudio & asound
 * **NOTE:** only Direwolf on left connector has been tested
-* Use _split_ctrl.sh left_ to install AX.25 Direwolf on left DRAWS connector
+* Use _split_ctrl.sh left_ to install AX.25/Direwolf on left DRAWS connector
 * Use _split_ctrl.sh -s_ to verify split channel configuration
 
 ```
