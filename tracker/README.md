@@ -1,5 +1,5 @@
-## Notes for dantracker install
-* Everything mentioned below is handled in install script tracker_install.sh
+## Notes for nixtracker install
+* Everything mentioned below in __Setup__ section is handled in install script _tracker_install.sh_
 
 ### Notes:
 ##### DRAWS
