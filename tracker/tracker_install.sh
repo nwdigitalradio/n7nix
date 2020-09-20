@@ -310,8 +310,8 @@ if [ -z $CFG_USER ] ; then
 fi
 
 # Need to set a CALLSIGN in config file
-dbgecho "MYCALL"
-sed -i -e "/^mycall = N0CALL/ s/NOCALL/$CALLSIGN/" $TRACKER_CFG_FILE
+dbgecho "About to change MYCALL to $CALLSIGN"
+sudo sed -i -e "/^mycall = N0CALL/ s/NOCALL/$CALLSIGN/" $TRACKER_CFG_FILE
 
 # For DRAWS hat gps type needs to be gpsd
 # look at 'type =' argument in [gps] section
@@ -355,7 +355,9 @@ fi
 # Check if systemd service has already been installed
 SERVICE_NAME="tracker.service"
 if [ ! -f /etc/systemd/system/$SERVICED_NAME ] ; then
+   # $TRACKER_N7NIX_DIR/$SERVICE_NAME should be in $user file space
    sed -i -e "s/\$user/$user/" $TRACKER_N7NIX_DIR/$SERVICE_NAME
+
    sudo cp $TRACKER_N7NIX_DIR/$SERVICE_NAME /etc/systemd/system/
    sudo systemctl enable $SERVICE_NAME
    sudo systemctl daemon-reload
