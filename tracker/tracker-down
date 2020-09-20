@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# Have to be root
+if [[ $EUID != 0 ]] ; then
+   echo "Must be root"
+   exit 1
+fi
+
 screen -X -S Tracker quit
 # Set led0 to default behavior
 echo mmc0 > /sys/class/leds/led0/trigger
