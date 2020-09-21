@@ -2,8 +2,9 @@
 * Everything mentioned below in __Setup__ section is handled in install script _tracker_install.sh_
 
 ### Notes:
-##### DRAWS
-* Third panel, gps stats does not work until the following configs are not defined in config file (aprs_tracker.ini):
+##### DRAWS RPi hat
+* Third panel, gps stats, does not work until the following configs are not defined in config file (aprs_tracker.ini):
+  * This is true for any gpsd supported GPS device.
   * [gps] port
   * [gps] rate
 
