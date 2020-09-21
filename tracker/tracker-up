@@ -2,6 +2,9 @@
 TRACKER_CFG_DIR="/etc/tracker"
 TRACKER_CFG_FILE="$TRACKER_CFG_DIR/aprs_tracker.ini"
 
+USE_SYSTEMD=true
+SYSTEMCTL="systemctl"
+
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function get_user
@@ -45,6 +48,29 @@ function check_user() {
 
    dbgecho "using USER: $USER"
 }
+# ===== function start_service
+
+function start_service() {
+    service="$1"
+    echo "Starting: $service"
+
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        echo "ENABLING $service"
+        $SYSTEMCTL enable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem ENABLING $service"
+            exit
+        fi
+    fi
+
+sys    $SYSTEMCTL --no-pager start "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem starting $service"
+        systemctl status $service
+        exit
+    fi
+}
 
 # ===== main
 # Be sure we're running as root
@@ -64,11 +90,24 @@ fi
 echo "Starting Tracker"
 
 touch /tmp/aprs_tracker.log
-cd /home/$USER/bin
-screen -dmS Tracker -c /home/$USER/bin/.screenrc.trk
-#echo "Starting Spy"
-#screen -dmS Spy -c /etc/tracker/.screenrc.spy
-# Set led0 to heartbeat blink
-echo heartbeat > /sys/class/leds/led0/trigger
-screen -ls
+
+if [ "$USE_SYSTEMD" = "true" ] ; then
+
+    SERVICE_NAMES="aprs-server tracker-webserver plu-webserver"
+
+    for service in `echo "${SERVICE_NAMES}"` ; do
+        echo "Stopping service: $service"
+        start_service $service
+    done
+else
+
+    cd /home/$USER/bin
+    screen -dmS Tracker -c /home/$USER/bin/.screenrc.trk
+    #echo "Starting Spy"
+    #screen -dmS Spy -c /etc/tracker/.screenrc.spy
+    # Set led0 to heartbeat blink
+    echo heartbeat > /sys/class/leds/led0/trigger
+    screen -ls
+fi
+
 echo "finished starting tracker"

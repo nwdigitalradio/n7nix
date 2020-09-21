@@ -6,7 +6,6 @@ scriptname="`basename $0`"
 
 TRACKER_CFG_DIR="/etc/tracker"
 TRACKER_CFG_FILE="$TRACKER_CFG_DIR/aprs_tracker.ini"
-SERVICE_NAME="tracker.service"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -38,6 +37,13 @@ else
     echo "gps type: $gpstype OK"
 fi
 
-systemctl status $SERVICE_NAME
+# SERVICE_NAMES="tracker.service"
+SERVICE_NAMES="aprs-server tracker-webserver plu-webserver"
+
+for service in `echo "${SERVICE_NAMES}"` ; do
+    echo
+    echo "   == Status: $service"
+    systemctl --no-pager status $service
+done
 
 echo "$scriptname: finished"

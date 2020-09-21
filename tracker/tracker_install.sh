@@ -109,6 +109,35 @@ fi
 dbgecho "using USER: $USER"
 }
 
+# ===== function start_service
+
+function start_service() {
+    service="$1"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        echo "ENABLING $service"
+        systemctl enable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem ENABLING $service"
+        fi
+    fi
+    # Is service alread running?
+    systemctl is-active "$service"
+    if [ "$?" -eq 0 ] ; then
+        # service is already running, restart it to update config changes
+        systemctl --no-pager restart "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem re-starting $service"
+        fi
+    else
+        # service is not yet running so start it up
+        systemctl --no-pager start "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem starting $service"
+        fi
+    fi
+}
+
 # ===== main
 
 # Don't be root
@@ -353,18 +382,21 @@ fi
 # A dependency job for tracker.service failed. See 'journalctl -xe' for details.
 
 # Check if systemd service has already been installed
-SERVICE_NAME="tracker.service"
-if [ ! -f /etc/systemd/system/$SERVICED_NAME ] ; then
-   # $TRACKER_N7NIX_DIR/$SERVICE_NAME should be in $user file space
-   sed -i -e "s/\$user/$user/" $TRACKER_N7NIX_DIR/$SERVICE_NAME
+#SERVICE_NAMES="tracker.service"
+SERVICE_NAMES="aprs-server tracker-webserver plu-webserver"
+for service in `echo "${SERVICE_NAMES}"` ; do
+    if [ ! -f /etc/systemd/system/$service ] ; then
+        # $TRACKER_N7NIX_DIR/$SERVICE_NAME should be in $user file space
+        sed -i -e "s/\$user/$user/" $TRACKER_N7NIX_DIR/$service
 
-   sudo cp $TRACKER_N7NIX_DIR/$SERVICE_NAME /etc/systemd/system/
-   sudo systemctl enable $SERVICE_NAME
-   sudo systemctl daemon-reload
-   sudo systemctl start $SERVICE_NAME
-else
-   echo "System service $SERVICE_NAME already installed."
-fi
+        sudo cp $TRACKER_N7NIX_DIR/$service /etc/systemd/system/
+        start_service $service
+    else
+        echo "System service $service already installed."
+    fi
+done
+
+sudo systemctl daemon-reload
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: ${tracker_type}tracker build & install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE

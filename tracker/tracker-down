@@ -1,4 +1,28 @@
-#!/bin/sh
+#!/bin/bash
+USE_SYSTEMD=true
+SYSTEMCTL="systemctl"
+
+# ===== function stop_service
+
+function stop_service() {
+    service="$1"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+        echo "DISABLING $service"
+        $SYSTEMCTL disable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem DISABLING $service"
+        fi
+    else
+        echo "Service: $service already disabled."
+    fi
+    $SYSTEMCTL stop "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem STOPPING $service"
+    fi
+}
+
+# ===== main
 
 # Have to be root
 if [[ $EUID != 0 ]] ; then
@@ -6,7 +30,17 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
-screen -X -S Tracker quit
-# Set led0 to default behavior
-echo mmc0 > /sys/class/leds/led0/trigger
+if [ "$USE_SYSTEMD" = "true" ] ; then
+
+    SERVICE_NAMES="aprs-server tracker-webserver plu-webserver"
+
+    for service in `echo "${SERVICE_NAMES}"` ; do
+        echo "Stopping service: $service"
+        stop_service $service
+    done
+else
+    screen -X -S Tracker quit
+    # Set led0 to default behavior
+    echo mmc0 > /sys/class/leds/led0/trigger
 # screen -X -S Spy quit
+fi
