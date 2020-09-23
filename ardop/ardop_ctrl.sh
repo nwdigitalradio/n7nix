@@ -662,7 +662,7 @@ function display_parameters() {
 
 usage () {
 	(
-	echo "Usage: $scriptname [-f][-d][-h][status][stop][start]"
+	echo "Usage: $scriptname [-a <name>][-f][-d][-h][status][stop][start]"
         echo "                  No args will show status of rigctld, piardopc, pat"
         echo "                  args with dashes must come before other arguments"
         echo "  start           start required ardop processes"
