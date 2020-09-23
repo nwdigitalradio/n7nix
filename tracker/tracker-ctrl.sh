@@ -1,12 +1,16 @@
 #!/bin/bash
 #
 # tracker control program
+#
+# This script controls 3 processes using systemd service files and
+# using screen
 
 scriptname="`basename $0`"
 
 TRACKER_CFG_DIR="/etc/tracker"
 TRACKER_CFG_FILE="$TRACKER_CFG_DIR/aprs_tracker.ini"
 SYSTEMD_DIR="/etc/systemd/system"
+SYSTEMCTL="systemctl"
 
 # There is a single screen service which started the other 3 services
 # SERVICE_NAMES="tracker.service"
@@ -89,7 +93,7 @@ After=ax25dev.service
 After=aprs-server.target
 
 [Service]
-ExecStart=/bin/bash -c '/usr/bin/nodejs /home/pi/bin/webapp/tracker-server.js /etc/tracker/aprs_tracker.ini'
+ExecStart=/bin/bash -c '/usr/bin/nodejs /home/$USER/bin/webapp/tracker-server.js /etc/tracker/aprs_tracker.ini'
 RemainAfterExit=yes
 
 [Install]
@@ -108,7 +112,7 @@ After=ax25dev.service
 After=aprs-server.target
 
 [Service]
-ExecStart=/bin/bash -c '/usr/bin/nodejs /home/pi/bin/webapp/plu-server.js'
+ExecStart=/bin/bash -c '/usr/bin/nodejs /home/$USER/bin/webapp/plu-server.js'
 RemainAfterExit=yes
 
 [Install]
@@ -124,7 +128,7 @@ function unitfile_update() {
     echo " == unit file update"
 
     for unit_file in `echo "${SERVICE_NAMES}"` ; do
-                unitfile_${unit_file}
+        unitfile_${unit_file}
     done
     $SYSTEMCTL daemon-reload
 }
@@ -139,9 +143,6 @@ function unitfile_check() {
         if [ ! -e "$SYSTEMD_DIR/${file}.service" ] ; then
             retcode=1
             echo "Systemd unit file: $SYSTEMD_DIR/${file}.service NOT found."
-            echo "Creating systemd service files."
-            unitfile_update $file
-
         else
             systemctl status $file >/dev/null 2>&1
             status=$?
@@ -149,9 +150,9 @@ function unitfile_check() {
         fi
     done
     if [ "$retcode" -eq 0 ] && [ -z "$FORCE_UPDATE" ] ; then
-        echo "All systemd service files found"
+        echo "All tracker systemd service files found"
     else
-        echo "Creating systemd service files."
+        echo "Creating tracker systemd service files."
         unitfile_update
         retcode=1
     fi
@@ -191,6 +192,7 @@ function tracker_debugstatus() {
         echo "gps type: $gpstype OK"
     fi
 
+    echo
     echo "   $(tput bold)$(tput setaf 2) == Tracker systemctl unit file check$(tput sgr0)"
     unitfile_check
 
@@ -284,9 +286,11 @@ usage () {
 
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
+   USER=$(whoami)
    SYSTEMCTL="sudo systemctl "
 else
-   SYSTEMCTL="systemctl"
+   echo "Should ONLY run as user NOT root"
+   exit 1
 fi
 
 while [[ $# -gt 0 ]] ; do
@@ -323,7 +327,6 @@ case $APP_ARG in
     ;;
     status)
 
-        echo
         tracker_status
         echo "Finished tracker status"
         exit 0
