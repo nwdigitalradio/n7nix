@@ -42,8 +42,10 @@ SERVICE_NAMES="aprs-server tracker-webserver plu-webserver"
 
 for service in `echo "${SERVICE_NAMES}"` ; do
     echo
-    echo "   == Status: $service"
+    echo "   $(tput bold)$(tput setaf 2) == Status: $service $(tput sgr0)"
     systemctl --no-pager status $service
 done
 
+echo
+echo "Found $(cat /tmp/aprs_tracker.log | wc -l) lines in tracker log"
 echo "$scriptname: finished"
