@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 1.1
+# version: 1.2
 #
 # Display entire AX.25 configuration
 #
@@ -65,13 +65,15 @@ function display_kissparms() {
         if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
             SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
             TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
+            TXTAIL=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txtail" | cut -f2 -d'=')
             T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
             T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
         else
             echo "Use split channel config, HF on channel udr$devnum"
         fi
-        printf "port: %d, speed: %d, slottime: %3d, txdelay: %d, t1 timeout: %d, t2 timeout: %4d\n" "$devnum" "$PORTSPEED" "$SLOTTIME" "$TXDELAY" "$T1_TIMEOUT" "$T2_TIMEOUT"
+        printf "port: %d, speed: %d, slottime: %3d, txdelay: %d, txtail: %d, t1 timeout: %d, t2 timeout: %4d\n" "$devnum" "$PORTSPEED" "$SLOTTIME" "$TXDELAY" "$TXTAIL" "$T1_TIMEOUT" "$T2_TIMEOUT"
     done
+    echo
     echo " == kissparms from $AX25_KISS_CFG"
     grep "KISSPARMS -p" $AX25_KISS_CFG
 }
