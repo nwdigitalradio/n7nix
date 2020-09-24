@@ -77,7 +77,7 @@ dbgecho "using USER: $USER"
 #   exit 1
 #fi
 
-echo "$scriptname: Install tracker with UID: $EUID"
+echo "$scriptname: UNinstall ${tracker_type}tracker with UID: $EUID"
 
 get_user
 SRC_DIR="/home/$USER/dev"
