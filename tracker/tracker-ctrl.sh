@@ -268,12 +268,13 @@ function tracker_stop() {
 
 usage () {
 	(
-	echo "Usage: $scriptname [-f][-d][-h][status][stop][start]"
+	echo "Usage: $scriptname [-f][-d][-h][status][stop][start][restart]"
         echo "                  No args will show status tracker daemons"
         echo "                  args with dashes must come before other arguments"
         echo "  start           start required tracker processes"
         echo "  stop            stop all tracker processes"
         echo "  status          display status of all tracker processes"
+        echo "  restart         stop tracker then restart"
         echo "  -f | --force    Update all systemd unit files"
         echo "  -d              Set DEBUG flag"
         echo "  -h              Display this message."
@@ -300,28 +301,32 @@ case $APP_ARG in
     -f|--force)
         FORCE_UPDATE=true
         echo "Force update mode on"
-   ;;
+    ;;
     -d|--debug)
         DEBUG=1
         echo "Debug mode on"
-   ;;
-    -x)
+    ;;
+     -x)
         for service in `echo "${SERVICE_NAMES}"` ; do
             diff ${SYSTEMD_DIR}/${service}.service systemd
         done
         exit 0
-   ;;
+    ;;
     -h|--help|-?)
         usage
         exit 0
-   ;;
+    ;;
     stop)
-        echo "Kill all tracker processes"
-        # temporary until everything is started with systemd
         tracker_stop
         exit 0
     ;;
     start)
+        tracker_start
+        exit 0
+    ;;
+    restart)
+        tracker_stop
+        sleep  1
         tracker_start
         exit 0
     ;;
@@ -331,12 +336,11 @@ case $APP_ARG in
         echo "Finished tracker status"
         exit 0
     ;;
-   *)
+    *)
         echo "Unrecognized command line argument: $APP_ARG"
         usage
         exit 0
-   ;;
-
+    ;;
 esac
 
 shift # past argument
