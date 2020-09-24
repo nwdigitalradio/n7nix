@@ -17,12 +17,12 @@ FORCE_BUILD="false"
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
-user=$(whoami)
+USER=$(whoami)
 
-SRC_DIR="/home/$user/dev"
-LOCAL_BIN_DIR="/home/$user/bin"
+SRC_DIR="/home/$USER/dev"
+LOCAL_BIN_DIR="/home/$USER/bin"
 GLOBAL_BIN_DIR="/usr/local/bin"
-
+c
 # tracker type can be either dan or nix
 # nixtracker adds Winlink ability
 tracker_type="nix"
@@ -31,7 +31,7 @@ tracker_type="nix"
 TRACKER_CFG_DIR="/etc/tracker"
 TRACKER_CFG_FILE="$TRACKER_CFG_DIR/aprs_tracker.ini"
 TRACKER_SRC_DIR="$SRC_DIR/${tracker_type}tracker"
-TRACKER_N7NIX_DIR="/home/$user/n7nix/tracker"
+TRACKER_N7NIX_DIR="/home/$USER/n7nix/tracker"
 
 LIBFAP_SRC_DIR="$SRC_DIR/libfap"
 JSON_C_SRC_DIR="$SRC_DIR/json-c"
@@ -39,7 +39,7 @@ LIBFAP_VER="1.5"
 LIBINIPARSER_VER="3.1"
 NODEJS_VER="10.15.2"
 
-BIN_FILES="tracker-up tracker-down tracker-restart .screenrc.trk"
+BIN_FILES="tracker-ctrl.sh tracker-up tracker-down tracker-restart .screenrc.trk"
 PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool libgps-dev screen nodejs npm git"
 
 # ===== function dbgecho
@@ -272,7 +272,7 @@ else
    make
 fi
 
-# Check if /home/$user/bin is a file
+# Check if /home/$USER/bin is a file
 if [ -f $LOCAL_BIN_DIR ] ; then
    rm $LOCAL_BIN_DIR
 fi
@@ -308,14 +308,17 @@ echo "== install ${tracker_type}tracker"
 echo
 echo "== setup bin dir"
 
+# For screen only
 cp $TRACKER_N7NIX_DIR/.${tracker_type}screenrc.trk $TRACKER_N7NIX_DIR/.screenrc.trk
 
+# This will copy tracker-ctrl.sh to be used later to update systemd
+# service files
 for filename in `echo ${BIN_FILES}` ; do
    cp $TRACKER_N7NIX_DIR/$filename $LOCAL_BIN_DIR
 done
 
-sed -i -e "s/\$user/$user/" $LOCAL_BIN_DIR/tracker-up
-sed -i -e "s/\$user/$user/" $LOCAL_BIN_DIR/tracker-restart
+sed -i -e "s/\$user/$USER/" $LOCAL_BIN_DIR/tracker-up
+sed -i -e "s/\$user/$USER/" $LOCAL_BIN_DIR/tracker-restart
 
 if [ ! -d $TRACKER_CFG_DIR ] ; then
    sudo mkdir -p $TRACKER_CFG_DIR
@@ -335,7 +338,7 @@ echo "== setup systemd service"
 # Need to set a user in config file
 CFG_USER=$(grep -i "user" $TRACKER_CFG_FILE | cut -d"=" -f2 | tr -d ' ')
 if [ -z $CFG_USER ] ; then
-   echo "user = $user" | sudo tee -a $TRACKER_CFG_FILE
+   echo "user = $USER" | sudo tee -a $TRACKER_CFG_FILE
 fi
 
 # Need to set a CALLSIGN in config file
@@ -364,7 +367,7 @@ echo "Set static lat/lon TBD"
 echo
 echo "== setup systemd service"
 
-# Check for an incompatible service entry installed with pluimap
+# Check for an incompatible service entry installed with paclink-unix
 SERVICE_NAME="pluweb.service"
 if [ -f /etc/systemd/system/$SERVICE_NAME ] ; then
    echo "Replacing $SERVICE_NAME"
@@ -373,7 +376,16 @@ if [ -f /etc/systemd/system/$SERVICE_NAME ] ; then
    sudo rm /etc/systemd/system/$SERVICE_NAME
 fi
 
+# Install all tracker systemd service files
+program="${LOCAL_BIN_DIR}/tracker-ctrl.sh"
+type -P $program >/dev/null 2>&1
+if [ "$?"  -ne 0 ]; then
+    echo "Require $program to install systemd service, but script could not be found"
+fi
 
+${LOCAL_BIN_DIR}/tracker-ctrl.sh -f
+
+if [ 1 -eq 0 ] ; then
 # ===== Problem
 # == setup systemd service
 # Replacing pluweb.service
@@ -387,7 +399,7 @@ SERVICE_NAMES="aprs-server tracker-webserver plu-webserver"
 for service in `echo "${SERVICE_NAMES}"` ; do
     if [ ! -f /etc/systemd/system/$service ] ; then
         # $TRACKER_N7NIX_DIR/$SERVICE_NAME should be in $user file space
-        sed -i -e "s/\$user/$user/" $TRACKER_N7NIX_DIR/$service
+        sed -i -e "s/\$user/$USER/" $TRACKER_N7NIX_DIR/$service
 
         sudo cp $TRACKER_N7NIX_DIR/$service /etc/systemd/system/
         start_service $service
@@ -395,6 +407,8 @@ for service in `echo "${SERVICE_NAMES}"` ; do
         echo "System service $service already installed."
     fi
 done
+
+fi # comment out above code
 
 sudo systemctl daemon-reload
 
