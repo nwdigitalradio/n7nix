@@ -149,6 +149,7 @@ function default_kissparms() {
     SLOTTIME="200"
     TXDELAY="500"
     TXTAIL="100"
+    PERSIST="32"
 }
 
 # ===== function get_kissparms
@@ -177,6 +178,7 @@ function get_kissparms() {
             SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
             TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
             TXTAIL=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txtail" | cut -f2 -d'=')
+            PERSIST=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^persist" | cut -f2 -d'=')
             T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
             T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
         else
@@ -298,7 +300,7 @@ case $id_check_ret in
         # use port 1 with mkiss
         packet_1port 1
         get_kissparms 1
-        $KISSPARMS -p ${PORTNAME_1} -f no -l $TXTAIL -r 32 -s $SLOTTIME -t $TXDELAY
+        $KISSPARMS -p ${PORTNAME_1} -f no -l $TXTAIL -r $PERSIST -s $SLOTTIME -t $TXDELAY
     ;;
     3|4)
         echo "UDRC II or DRAWS installed"
@@ -306,15 +308,15 @@ case $id_check_ret in
             # use port 0 only with mkiss
             packet_1port 0
             get_kissparms 0
-            $KISSPARMS -p ${PORTNAME_1} -f no -l $TXTAIL -r 32 -s $SLOTTIME -t $TXDELAY
+            $KISSPARMS -p ${PORTNAME_1} -f no -l $TXTAIL -r $PERSIST -s $SLOTTIME -t $TXDELAY
 
         else
             # use both ports with mkiss
             packet_2port
             get_kissparms 0
-            $KISSPARMS -p ${PORTNAME_1} -f no -l $TXTAIL -r 32 -s $SLOTTIME -t $TXDELAY
+            $KISSPARMS -p ${PORTNAME_1} -f no -l $TXTAIL -r $PERSIST -s $SLOTTIME -t $TXDELAY
             get_kissparms 1
-            $KISSPARMS -p ${PORTNAME_2} -f no -l $TXTAIL -r 32 -s $SLOTTIME -t $TXDELAY
+            $KISSPARMS -p ${PORTNAME_2} -f no -l $TXTAIL -r $PERSIST -s $SLOTTIME -t $TXDELAY
         fi
     ;;
     5)
@@ -330,7 +332,7 @@ case $id_check_ret in
         get_port_speed 0
         /etc/ax25/ax25dev-parms ax0 $PORTSPEED
         get_kissparms 0
-        $KISSPARMS -p ${PORTNAME_1} -f no -l $TXTAIL -r 32 -s $SLOTTIME -t $TXDELAY
+        $KISSPARMS -p ${PORTNAME_1} -f no -l $TXTAIL -r $PERSIST -s $SLOTTIME -t $TXDELAY
     ;;
     *)
         echo "Invalid udrc id ... exiting"
