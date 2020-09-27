@@ -22,7 +22,7 @@ USER=$(whoami)
 SRC_DIR="/home/$USER/dev"
 LOCAL_BIN_DIR="/home/$USER/bin"
 GLOBAL_BIN_DIR="/usr/local/bin"
-c
+
 # tracker type can be either dan or nix
 # nixtracker adds Winlink ability
 tracker_type="nix"
@@ -342,8 +342,10 @@ if [ -z $CFG_USER ] ; then
 fi
 
 # Need to set a CALLSIGN in config file
-dbgecho "About to change MYCALL to $CALLSIGN"
-sudo sed -i -e "/^mycall = N0CALL/ s/NOCALL/$CALLSIGN/" $TRACKER_CFG_FILE
+get_callsign
+SSID=14
+dbgecho "About to change MYCALL to $CALLSIGN-$SSID"
+sudo sed -i -e "/^mycall = N0CALL/ s/NOCALL/$CALLSIGN-$SSID/" $TRACKER_CFG_FILE
 
 # For DRAWS hat gps type needs to be gpsd
 # look at 'type =' argument in [gps] section
