@@ -53,6 +53,10 @@ if [ ! -d "$ax25bindir" ] ; then
 fi
 
 sudo cp -u /home/$USER/n7nix/ax25/port.conf $ax25bindir
+sudo cp -u /home/$USER/n7nix/ax25/ax25-reset.sh $ax25bindir
+sudo cp -u /home/$USER/n7nix/ax25/ax25-showcfg.sh $ax25bindir
+sudo cp -u /home/$USER/n7nix/ax25/ax25-setcfg.sh $ax25bindir
+
 sudo cp -u /home/$USER/n7nix/systemd/ax25/ax25-* $ax25bindir
 sudo cp -u /home/$USER/n7nix/systemd/ax25/ax25dev-* $ax25bindir
 sudo chown -R root:staff $ax25bindir
@@ -73,7 +77,6 @@ fi
 
 cp -u /home/$USER/n7nix/systemd/bin/* $userbindir
 cp -u /home/$USER/n7nix/bin/* $userbindir
-cp -u /home/$USER/n7nix/debug/ax25-reset.sh $userbindir
 cp -u /home/$USER/n7nix/iptables/iptable-*.sh $userbindir
 cp -u /usr/local/src/paclink-unix/test_scripts/chk_perm.sh $userbindir
 
