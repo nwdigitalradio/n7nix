@@ -24,6 +24,7 @@ KISSPARMS="sudo $SBINDIR/kissparms"
 BAUDRATE=1200
 PORTNUM=0
 PORTNAME_1="udr0"
+b_baudset=false
 
 PORT_CFG_FILE="/etc/ax25/port.conf"
 
@@ -37,10 +38,18 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # Uses port.conf file for port speed, kissattach parms & ax.25 parms
 
 function get_port_speed() {
+    # Check if baudrate is set from command line
+    if [ $b_baudset = true ] ; then
+        PORTSPEED=$BAUDRATE
+        return
+    else
+        dbgecho "${FUNCNAME[0]}(): b_baudset: $b_baudset"
+    fi
+
     retcode=0
     portnumber=$1
     if [ -z $portnumber ] ; then
-        echo "Need to supply a port number in get_port_cfg"
+        echo "Need to supply a port number in ${FUNCNAME[0]}"
         return 1
     fi
 
@@ -65,47 +74,125 @@ function get_port_speed() {
     esac
 }
 
-# ===== function set_kissparms
+# ===== function save_kissparms
+# Set kiss parameters AND write them to a file
 
-function set_kissparms() {
+function save_kissparms() {
 
     portnumber=$1
     if [ -z $portnumber ] ; then
-        echo "Need to supply a port number in get_kissparms"
+        echo "Need to supply a port number in ${FUNCNAME[0]}"
         return 1
     fi
 
-        # Set variables: portname, portcfg, PORTSPEED
-        get_port_speed $portnumber
-        baudrate_parm="baud_$PORTSPEED"
-        if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
-            if [ "$slottime" -ne "$SLOTTIME" ] ; then
-#                sudo sed -ie "0,/^slottime/ s/^slottime=.*/slottime=$slottime/" $PORT_CFG_FILE
-                 SLOTTIME=$slottime
-            fi
+    # Set variables: portname, portcfg, PORTSPEED
+#    get_port_speed $portnumber
+    PORTSPEED=$BAUDRATE
+    baudrate_parm="baud_$PORTSPEED"
 
-            if [ "$persist" -ne "$PERSIST" ] ; then
-#                sudo sed -ie "0,/^persist/ s/^persist=.*/persist=$persist/" $PORT_CFG_FILE
-                PERSIST=$persist
-            fi
-            dbgecho "Debug: txdelay: $txdelay, TXDELAY: $TXDELAY"
-            if [ "$txdelay" -ne "$TXDELAY" ] ; then
-                TXDELAY=$txdelay
-            fi
+    dbgecho "DEBUG 2: port: $portnumber, speed: $PORTSPEED, slottime: $SLOTTIME, txdelay: $TXDELAY, txtail: $TXTAIL, persist: $PERSIST, t1 timeout: $T1_TIMEOUT, t2 timeout: $T2_TIMEOUT"
+    dbgecho "${FUNCNAME[0]}: port: $portnumber, baud: $PORTSPEED"
 
-            dbgecho "Debug: txtail: $txtail, TXTAIL: $TXTAIL"
-            if [ "$txtail" -ne "$TXTAIL" ] ; then
-                TXTAIL=$txtail
+    if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
+        echo "Saving AX.25 parameters to file $PORT_CFG_FILE"
+
+        # slottime
+        dbgecho " ${FUNCNAME[0]}(): Comparing $slottime to $SLOTTIME"
+        if [ "$slottime" -ne "$SLOTTIME" ] ; then
+#             sudo sed -ie "0,/^slottime/ s/^slottime=.*/slottime=$slottime/$occurence" $PORT_CFG_FILE
+#             sudo sed -ie "s/^slottime=.*/slottime=$slottime/$occurence" $PORT_CFG_FILE
+              if [ $PORTSPEED -eq 9600 ] ; then
+                  sudo sed -ie "0,/^slottime=/!{0,/^slottime=/s/^slottime=.*/slottime=$slottime/}" $PORT_CFG_FILE
+              else
+                  sudo sed -ie "0,/^slottime=/{s/^slottime.*/slottime=$slottime/}" $PORT_CFG_FILE
+              fi
+             SLOTTIME=$slottime
+        fi
+
+        # persist
+        if [ "$persist" -ne "$PERSIST" ] ; then
+            if [ $PORTSPEED -eq 9600 ] ; then
+                sudo sed -ie "0,/^persist=/!{0,/^persist=/s/^persist=.*/persist=$persist/}" $PORT_CFG_FILE
+            else
+                sudo sed -ie "0,/^persist=/{s/^persist=.*/persist=$persist/}" $PORT_CFG_FILE
             fi
+            PERSIST=$persist
+        fi
+
+        # txdelay
+        dbgecho "Debug: txdelay: $txdelay, TXDELAY: $TXDELAY"
+        if [ "$txdelay" -ne "$TXDELAY" ] ; then
+            if [ $PORTSPEED -eq 9600 ] ; then
+                sudo sed -ie "0,/^txdelay=/!{0,/^txdelay=/s/^txdelay=.*/txdelay=$txdelay/}" $PORT_CFG_FILE
+            else
+                sudo sed -ie "0,/^txdelay/{s/^txdelay=.*/txdelay=$txdelay/}" $PORT_CFG_FILE
+            fi
+            TXDELAY=$txdelay
+        fi
+
+        # txtail
+        dbgecho "Debug: txtail: $txtail, TXTAIL: $TXTAIL"
+        if [ "$txtail" -ne "$TXTAIL" ] ; then
+            if [ $PORTSPEED -eq 9600 ] ; then
+                sudo sed -ie "0,/^txtail=/!{0,/^txtail=/s/^txtail=.*/txtail=$txtail/}" $PORT_CFG_FILE
+            else
+                sudo sed -ie "0,/^txtail/{s/^txtail=.*/txtail=$txtail/}" $PORT_CFG_FILE
+            fi
+            TXTAIL=$txtail
+        fi
 
 #            TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
 #            TXTAIL=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txtail" | cut -f2 -d'=')
 #            T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
 #            T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
-        else
+    else
             echo "NO PORTSPEED found, use split channel config, HF on channel udr$portnumber"
+   fi
+}
+
+
+# ===== function set_kissparms
+# Set kiss parameters without writing them to a file
+
+function set_kissparms() {
+
+    portnumber=$1
+    if [ -z $portnumber ] ; then
+        echo "Need to supply a port number in ${FUNCNAME[0]}"
+        return 1
+    fi
+
+    # Set variables: portname, portcfg, PORTSPEED
+    get_port_speed $portnumber
+    baudrate_parm="baud_$PORTSPEED"
+
+    if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
+        if [ "$slottime" -ne "$SLOTTIME" ] ; then
+#            sudo sed -ie "0,/^slottime/ s/^slottime=.*/slottime=$slottime/" $PORT_CFG_FILE
+             SLOTTIME=$slottime
         fi
-#        printf "port: %d, speed: %d, slottime: %3d, txdelay: %d, txtail: %d, persist: %d, t1 timeout: %d, t2 timeout: %4d\n" "$portnumber" "$PORTSPEED" "$SLOTTIME" "$TXDELAY" "$TXTAIL" "$PERSIST" "$T1_TIMEOUT" "$T2_TIMEOUT"
+
+        if [ "$persist" -ne "$PERSIST" ] ; then
+#            sudo sed -ie "0,/^persist/ s/^persist=.*/persist=$persist/" $PORT_CFG_FILE
+            PERSIST=$persist
+        fi
+        dbgecho "Debug: txdelay: $txdelay, TXDELAY: $TXDELAY"
+        if [ "$txdelay" -ne "$TXDELAY" ] ; then
+            TXDELAY=$txdelay
+        fi
+
+        dbgecho "Debug: txtail: $txtail, TXTAIL: $TXTAIL"
+        if [ "$txtail" -ne "$TXTAIL" ] ; then
+            TXTAIL=$txtail
+        fi
+
+#            TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
+#            TXTAIL=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txtail" | cut -f2 -d'=')
+#            T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
+#            T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
+    else
+            echo "NO PORTSPEED found, use split channel config, HF on channel udr$portnumber"
+   fi
 }
 
 # ===== function get_kissparms
@@ -113,25 +200,25 @@ function set_kissparms() {
 function get_kissparms() {
 
     portnumber=$1
-    if [ -z $portnumber ] ; then
-        echo "Need to supply a port number in get_kissparms"
-        return 1
-    fi
 
-        # Set variables: portname, portcfg, PORTSPEED
+    # Set variables: portname, portcfg, PORTSPEED
+    PORTSPEED=$BAUDRATE
+    if [ $b_baudset = false ] ; then
         get_port_speed $portnumber
-        baudrate_parm="baud_$PORTSPEED"
-        if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
-            SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
-            TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
-            TXTAIL=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txtail" | cut -f2 -d'=')
-            PERSIST=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^persist" | cut -f2 -d'=')
-            T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
-            T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
-        else
-            echo "NO PORTSPEED found, use split channel config, HF on channel udr$portnumber"
-        fi
-#        printf "port: %d, speed: %d, slottime: %3d, txdelay: %d, txtail: %d, persist: %d, t1 timeout: %d, t2 timeout: %4d\n" "$portnumber" "$PORTSPEED" "$SLOTTIME" "$TXDELAY" "$TXTAIL" "$PERSIST" "$T1_TIMEOUT" "$T2_TIMEOUT"
+    fi
+    baudrate_parm="baud_$PORTSPEED"
+    dbgecho "Getting kissparms for port speed: $PORTSPEED"
+
+    if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
+        SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
+        TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
+        TXTAIL=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txtail" | cut -f2 -d'=')
+        PERSIST=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^persist" | cut -f2 -d'=')
+        T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
+        T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
+    else
+        echo "NO PORTSPEED found, use split channel config, HF on channel udr$portnumber"
+    fi
 }
 
 # ===== function display_kissparms
@@ -139,31 +226,50 @@ function get_kissparms() {
 function display_kissparms() {
 
     portnumber=$1
-        # Set variables: portname, portcfg, PORTSPEED
+    if [ -z $portnumber ] ; then
+        echo "Need to supply a port number in ${FUNCNAME[0]}"
+        return 1
+    fi
+
+    # Set variables: portname, portcfg, PORTSPEED
+    PORTSPEED=$BAUDRATE
+    if [ $b_baudset = false ] ; then
         get_port_speed $portnumber
-        baudrate_parm="baud_$PORTSPEED"
-        if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
-            SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
-            TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
-            TXTAIL=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txtail" | cut -f2 -d'=')
-            PERSIST=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^persist" | cut -f2 -d'=')
-            T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
-            T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
-        else
-            echo "Use split channel config, HF on channel udr$portnumber"
-        fi
-        printf "port: %d, speed: %d, slottime: %3d, txdelay: %d, txtail: %d, persist: %d, t1 timeout: %d, t2 timeout: %4d\n" "$portnumber" "$PORTSPEED" "$SLOTTIME" "$TXDELAY" "$TXTAIL" "$PERSIST" "$T1_TIMEOUT" "$T2_TIMEOUT"
+    fi
+
+    baudrate_parm="baud_$PORTSPEED"
+
+    if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
+        SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
+        TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
+        TXTAIL=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txtail" | cut -f2 -d'=')
+        PERSIST=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^persist" | cut -f2 -d'=')
+        T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
+        T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
+    else
+        echo "Use split channel config, HF on channel udr$portnumber"
+    fi
+    printf "port: %d, speed: %d, slottime: %3d, txdelay: %d, txtail: %3d, persist: %d, t1 timeout: %d, t2 timeout: %4d\n" "$portnumber" "$PORTSPEED" "$SLOTTIME" "$TXDELAY" "$TXTAIL" "$PERSIST" "$T1_TIMEOUT" "$T2_TIMEOUT"
 }
 
+# function init_kissparms
+function init_kissparms() {
+    get_kissparms $PORTNUM
+    persist=$PERSIST
+    slottime=$SLOTTIME
+    txdelay=$TXDELAY
+    txtail=$TXTAIL
+}
 
 # ===== function usage
 
 function usage() {
-   echo "Usage: $scriptname [-d][-k][-h]" >&2
+   echo "Usage: $scriptname [-d][-k][-s][-h][[--port <val>][--baudrate <val>][--persist <val>][--slottime <val>][--txdelay <val>][--txtail <val>]" >&2
    echo " default Direwolf parameters:"
    echo " --slottime 10, --persist 63, --txdelay 30, --txtail 10"
    echo "   -d          set debug flag"
    echo "   -k          Display kissparms only"
+   echo "   -s          Save parameters to a file"
    echo "   -h          Display this message"
    echo "   --port <val>      Select port number (0 - left, 1 - right) default 0"
    echo "   --baudrate <val>  Set baudrate (1200 or 9600) default 1200"
@@ -177,12 +283,9 @@ function usage() {
 
 # ===== main
 
+init_kissparms
 
-get_kissparms $PORTNUM
-persist=$PERSIST
-slottime=$SLOTTIME
-txdelay=$TXDELAY
-txtail=$TXTAIL
+dbgecho "DEBUG 1: port: $portnumber, speed: $PORTSPEED, slottime: $SLOTTIME, txdelay: $TXDELAY, txtail: $TXTAIL, persist: $PERSIST, t1 timeout: $T1_TIMEOUT, t2 timeout: $T2_TIMEOUT"
 
 while [[ $# -gt 0 ]] ; do
 APP_ARG="$1"
@@ -194,7 +297,16 @@ case $APP_ARG in
         echo "Debug mode on"
     ;;
     -k)
-        display_kissparms
+        b_baudset=true
+        BAUDRATE=1200
+        display_kissparms $PORTNUM
+        BAUDRATE=9600
+        display_kissparms $PORTNUM
+        exit 0
+   ;;
+    -s)
+        set_kissparms $PORTNUM
+        save_kissparms $PORTNUM
         exit 0
    ;;
    --port)
@@ -203,7 +315,7 @@ case $APP_ARG in
         shift  # past argument
 
         if ! [[ $portnum =~ $re ]] ; then
-            echo "error: $baudrate NOT a number" >&2
+            echo "error: $portnum NOT a number" >&2
             exit 1
         fi
         if (( $portnum != 0 )) && (( $portnum != 1 )) ; then
@@ -229,11 +341,13 @@ case $APP_ARG in
             exit 1
         fi
         echo "setting baudrate to: $baudrate"
-        if [[ $baudrate -ne "$BAUDRATE" ]] ; then
-            get_kissparms $PORTNUM
-            BAUDRATE=$baudrate
-        fi
+        b_baudset=true
+        dbgecho "${FUNCNAME[0]}(): baudset: $b_baudset"
 
+        if [[ $baudrate -ne "$BAUDRATE" ]] ; then
+            BAUDRATE=$baudrate
+            init_kissparms
+        fi
    ;;
    --persist)
         # Value % scaled to range 0 - 255
@@ -263,13 +377,14 @@ case $APP_ARG in
         #steps of 10 mSec only
         slottime_10=$(( (slottime/10) * 10 ))
 
-        if (( slotime_10 != slottime )) ; then
-            echo "Slottime: must be a multiple of 10: $slottime"
+        dbgecho "Compare slottime: $slottime, to slottime_10: $slottime_10"
+        if (( slottime_10 != slottime )) ; then
+            echo "Slottime($slottime): must be a multiple of 10: $slottime_10"
             slottime=$slottime_10;
         fi
 
         if (( $slottime >= 0 )) && (( $slottime <= 500 )) ; then
-            echo "setting SLOTTIME to: $slottime"
+            echo "setting SLOTTIME to: $slottime, for baudrate: $BAUDRATE"
         else
             echo "Error: invalid SLOTTIME value $slottime, must be 0-500"
             exit 1
@@ -291,13 +406,12 @@ case $APP_ARG in
             txdelay=$txdelay_10;
         fi
 
-        if (( $txdelay >= 0 )) && (( $txdelay <= 500 )) ; then
+        if (( $txdelay >= 0 )) && (( $txdelay <= 700 )) ; then
             echo "setting TXDELAY to: $txdelay"
         else
             echo "Error: invalid TXDELAY value $txdelay, must be 0-500"
             exit 1
         fi
-
    ;;
    --txtail)
        txtail=$2
@@ -308,21 +422,20 @@ case $APP_ARG in
             echo "error: $txtail NOT a number" >&2
             exit 1
         fi
-        if (( $txtail >= 0 )) && (( $txtail <= 500 )) ; then
+        if (( $txtail >= 0 )) && (( $txtail <= 700 )) ; then
             echo "setting TXTAIL to: $txtail"
         else
             echo "Error: invalid TXTAIL value $txtail, must be 0-500"
             exit 1
         fi
-
    ;;
-
    -h|--help|?)
       usage
       exit 0
    ;;
    *)
-      break;
+      echo "Unrecognized argument: $APP_ARG"
+      exit 1
    ;;
 
 esac
