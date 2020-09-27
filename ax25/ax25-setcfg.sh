@@ -97,47 +97,70 @@ function save_kissparms() {
         echo "Saving AX.25 parameters to file $PORT_CFG_FILE"
 
         # slottime
-        dbgecho " ${FUNCNAME[0]}(): Comparing $slottime to $SLOTTIME"
+        dbgecho " ${FUNCNAME[0]}(): Comparing slottime: $slottime : $SLOTTIME"
         if [ "$slottime" -ne "$SLOTTIME" ] ; then
 #             sudo sed -ie "0,/^slottime/ s/^slottime=.*/slottime=$slottime/$occurence" $PORT_CFG_FILE
 #             sudo sed -ie "s/^slottime=.*/slottime=$slottime/$occurence" $PORT_CFG_FILE
               if [ $PORTSPEED -eq 9600 ] ; then
                   sudo sed -ie "0,/^slottime=/!{0,/^slottime=/s/^slottime=.*/slottime=$slottime/}" $PORT_CFG_FILE
+                  retcode="$?"
               else
                   sudo sed -ie "0,/^slottime=/{s/^slottime.*/slottime=$slottime/}" $PORT_CFG_FILE
+                  retcode="$?"
               fi
-             SLOTTIME=$slottime
+              if [ $retcode -ne 0 ] ; then
+                  echo "${FUNCNAME[0]}(): sed error for slottime."
+              fi
+              SLOTTIME=$slottime
         fi
 
         # persist
+        dbgecho " ${FUNCNAME[0]}(): Comparing persist: $persist : $PERSIST"
         if [ "$persist" -ne "$PERSIST" ] ; then
             if [ $PORTSPEED -eq 9600 ] ; then
                 sudo sed -ie "0,/^persist=/!{0,/^persist=/s/^persist=.*/persist=$persist/}" $PORT_CFG_FILE
+                retcode="$?"
             else
                 sudo sed -ie "0,/^persist=/{s/^persist=.*/persist=$persist/}" $PORT_CFG_FILE
+                retcode="$?"
+            fi
+            if [ $retcode -ne 0 ] ; then
+                echo "${FUNCNAME[0]}(): sed error for persist."
             fi
             PERSIST=$persist
         fi
 
         # txdelay
-        dbgecho "Debug: txdelay: $txdelay, TXDELAY: $TXDELAY"
+        dbgecho " ${FUNCNAME[0]}(): Comparing txdelay: $txdelay : $TXDELAY"
         if [ "$txdelay" -ne "$TXDELAY" ] ; then
             if [ $PORTSPEED -eq 9600 ] ; then
                 sudo sed -ie "0,/^txdelay=/!{0,/^txdelay=/s/^txdelay=.*/txdelay=$txdelay/}" $PORT_CFG_FILE
+                retcode="$?"
             else
                 sudo sed -ie "0,/^txdelay/{s/^txdelay=.*/txdelay=$txdelay/}" $PORT_CFG_FILE
+                retcode="$?"
             fi
+            if [ $retcode -ne 0 ] ; then
+                echo "${FUNCNAME[0]}(): sed error for txdelay"
+            fi
+
             TXDELAY=$txdelay
         fi
 
         # txtail
-        dbgecho "Debug: txtail: $txtail, TXTAIL: $TXTAIL"
+        dbgecho " ${FUNCNAME[0]}(): Comparing txtail: $txtail : $TXTAIL"
         if [ "$txtail" -ne "$TXTAIL" ] ; then
             if [ $PORTSPEED -eq 9600 ] ; then
                 sudo sed -ie "0,/^txtail=/!{0,/^txtail=/s/^txtail=.*/txtail=$txtail/}" $PORT_CFG_FILE
+                retcode="$?"
             else
                 sudo sed -ie "0,/^txtail/{s/^txtail=.*/txtail=$txtail/}" $PORT_CFG_FILE
+                retcode="$?"
             fi
+            if [ $retcode -ne 0 ] ; then
+                echo "${FUNCNAME[0]}(): sed error for txtail."
+            fi
+
             TXTAIL=$txtail
         fi
 
@@ -168,12 +191,10 @@ function set_kissparms() {
 
     if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
         if [ "$slottime" -ne "$SLOTTIME" ] ; then
-#            sudo sed -ie "0,/^slottime/ s/^slottime=.*/slottime=$slottime/" $PORT_CFG_FILE
              SLOTTIME=$slottime
         fi
 
         if [ "$persist" -ne "$PERSIST" ] ; then
-#            sudo sed -ie "0,/^persist/ s/^persist=.*/persist=$persist/" $PORT_CFG_FILE
             PERSIST=$persist
         fi
         dbgecho "Debug: txdelay: $txdelay, TXDELAY: $TXDELAY"
@@ -185,11 +206,6 @@ function set_kissparms() {
         if [ "$txtail" -ne "$TXTAIL" ] ; then
             TXTAIL=$txtail
         fi
-
-#            TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
-#            TXTAIL=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txtail" | cut -f2 -d'=')
-#            T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
-#            T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
     else
             echo "NO PORTSPEED found, use split channel config, HF on channel udr$portnumber"
    fi
@@ -285,7 +301,6 @@ function usage() {
 
 init_kissparms
 
-dbgecho "DEBUG 1: port: $portnumber, speed: $PORTSPEED, slottime: $SLOTTIME, txdelay: $TXDELAY, txtail: $TXTAIL, persist: $PERSIST, t1 timeout: $T1_TIMEOUT, t2 timeout: $T2_TIMEOUT"
 
 while [[ $# -gt 0 ]] ; do
 APP_ARG="$1"
@@ -295,6 +310,7 @@ case $APP_ARG in
     -d|--debug)
         DEBUG=1
         echo "Debug mode on"
+        dbgecho "DEBUG 1: port: $portnumber, speed: $PORTSPEED, slottime: $SLOTTIME, txdelay: $TXDELAY, txtail: $TXTAIL, persist: $PERSIST, t1 timeout: $T1_TIMEOUT, t2 timeout: $T2_TIMEOUT"
     ;;
     -k)
         b_baudset=true
@@ -305,7 +321,7 @@ case $APP_ARG in
         exit 0
    ;;
     -s)
-        set_kissparms $PORTNUM
+#        set_kissparms $PORTNUM
         save_kissparms $PORTNUM
         exit 0
    ;;
