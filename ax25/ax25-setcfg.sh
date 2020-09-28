@@ -274,7 +274,7 @@ function init_kissparms() {
 # ===== function usage
 
 function usage() {
-   echo "Usage: $scriptname [-d][-k][-s][-h][[--port <val>][--baudrate <val>][--persist <val>][--slottime <val>][--txdelay <val>][--txtail <val>]" >&2
+   echo "Usage: $scriptname [-d][-k][-h][[--port <val>][--baudrate <val>][--persist <val>][--slottime <val>][--txdelay <val>][--txtail <val>][-s]" >&2
    echo " default Direwolf parameters:"
    echo " --slottime 10, --persist 63, --txdelay 30, --txtail 10"
    echo "   -d          set debug flag"
