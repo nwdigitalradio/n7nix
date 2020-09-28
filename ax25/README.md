@@ -30,7 +30,7 @@ TXDELAY should be adjusted to allow radio sufficient time to switch from receive
 
 ## Script Descriptions
 
-#### ax25-showcfg.sh
+#### ax25-setcfg.sh
 
 * This script only manuplates kiss parameters: PERSIST, SLOTTIME TXDELAY & TXTAIL
   * To change AX.25 parameters T1_TIMEOUT & T2_TIMEOUT edit _/etc/ax25/port.conf_ file
