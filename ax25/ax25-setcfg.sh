@@ -17,7 +17,6 @@
 re='^[0-9]+$'
 
 SBINDIR=/usr/local/sbin
-BINDIR=/usr/local/bin
 AX25_KISS_CFG="/etc/ax25/ax25-upd"
 
 KISSPARMS="sudo $SBINDIR/kissparms"
