@@ -9,11 +9,33 @@ cd config
 ./bin_refresh.sh
 ```
 
-## Script Description
+### PERSIST, SLOTTIME, TXDELAY, TXTAIL Definitions
+
+##### PERSIST & SLOTTIME
+* persistence parameter, scaled to the range 0 - 255 as a percent. 100%=255.
+* slottime - How long to wait after detecting a _busy line_ before checking the percentage chance on the persistence setting.
+
+The algorithm used with the PERSIST and SLOTTIME parameters helps avoid
+collisions by randomizing the wait time before transmitting. The more random the timing
+the less chance of two TNCs transmitting at the same time and colliding.
+
+##### TXDELAY
+* TXDELAY - Sets the time delay between Push-to-Talk and the beginning of data.
+* How long after bringing the transmitter up to wait before sending data.
+
+TXDELAY should be adjusted to allow radio sufficient time to switch from receive mode to transmit mode and develop full power output.
+
+##### TXTAIL
+* How long to hold up the transmitter after data has been sent
+
+## Script Descriptions
 
 #### ax25-showcfg.sh
 
-* This script uses program _kissparms_ to dynamically configure KISS settings that have been setup for AX.25 use by kissattach.
+* This script only manuplates kiss parameters: PERSIST, SLOTTIME TXDELAY & TXTAIL
+  * To change AX.25 parameters T1_TIMEOUT & T2_TIMEOUT edit _/etc/ax25/port.conf_ file
+
+* Uses program _kissparms_ to dynamically configure KISS settings that have been setup for AX.25 use by kissattach.
   * See _man kissparms_ to learn more about that program
   * _kissparms_ is part of the ax25tools package
 * KISS parameters may be set at any time during the operation of the AX.25 port
