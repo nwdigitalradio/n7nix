@@ -143,7 +143,6 @@ function save_kissparms() {
             if [ $retcode -ne 0 ] ; then
                 echo "${FUNCNAME[0]}(): sed error for txdelay"
             fi
-
             TXDELAY=$txdelay
         fi
 
@@ -160,14 +159,8 @@ function save_kissparms() {
             if [ $retcode -ne 0 ] ; then
                 echo "${FUNCNAME[0]}(): sed error for txtail."
             fi
-
             TXTAIL=$txtail
         fi
-
-#            TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
-#            TXTAIL=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txtail" | cut -f2 -d'=')
-#            T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
-#            T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
     else
             echo "NO PORTSPEED found, use split channel config, HF on channel udr$portnumber"
    fi
@@ -212,6 +205,7 @@ function set_kissparms() {
 }
 
 # ===== function get_kissparms
+# Read kiss parameters from /etc/ax25/port.conf file
 
 function get_kissparms() {
 
@@ -323,7 +317,6 @@ case $APP_ARG in
     -s)
 #        set_kissparms $PORTNUM
         save_kissparms $PORTNUM
-        exit 0
    ;;
    --port)
         # value range 0 or 1
@@ -459,11 +452,11 @@ esac
 shift # past argument
 done
 
-set_kissparms $PORTNUM
-display_kissparms $PORTNUM
+# set_kissparms $PORTNUM
+#display_kissparms $PORTNUM
 
 # Set kissparms
 
-printf "KISSPARMS set to:\nport: %d, speed: %d, slottime: %3d, txdelay: %d, txtail: %d, persist: %d, t1 timeout: %d, t2 timeout: %4d\n" "$portnumber" "$PORTSPEED" "$SLOTTIME" "$TXDELAY" "$TXTAIL" "$PERSIST" "$T1_TIMEOUT" "$T2_TIMEOUT"
+printf "KISSPARMS set to:\nport: %d, speed: %d, slottime: %3d, txdelay: %d, txtail: %d, persist: %d, t1 timeout: %d, t2 timeout: %4d\n" "$portnumber" "$PORTSPEED" "$slottime" "$txdelay" "$txtail" "$persist" "$T1_TIMEOUT" "$T2_TIMEOUT"
 
-$KISSPARMS -p ${portname} -f no -l $TXTAIL -r $PERSIST -s $SLOTTIME -t $TXDELAY
+$KISSPARMS -p ${portname} -f no -l $txtail -r $persist -s $slottime -t $txdelay
