@@ -19,14 +19,25 @@ The algorithm used with the PERSIST and SLOTTIME parameters helps avoid
 collisions by randomizing the wait time before transmitting. The more random the timing
 the less chance of two TNCs transmitting at the same time and colliding.
 
+* An example for calculating PERSIST value based upon number of users of the channel
+  * PERSIST = (256/users)-1; (from: A handbook for K9NG protocol 9600 baud packet Version 2.0, June 13, 1994)
+  * if channel is clean, 63 is a reasonable PERSIST value;
+  * if channel is busy, guesstimate the average number of users active at one time,
+    * divide 256 by this number, then subtract 1, i.e. 4 users = (256/4) =64 -1 = 63
+
 ##### TXDELAY
 * TXDELAY - Sets the time delay between Push-to-Talk and the beginning of data.
 * How long after bringing the transmitter up to wait before sending data.
-
-TXDELAY should be adjusted to allow radio sufficient time to switch from receive mode to transmit mode and develop full power output.
+* should be adjusted to allow radio sufficient time to switch from receive mode to transmit mode and develop full power output.
+  * depends on your radio and recovery time of the slowest station on channel that you wish to work;
+    * set for best throughput with all radios involved on channel
+* 1200 baud: 100-700
+* 9600 baud: 50-150
 
 ##### TXTAIL
-* How long to hold up the transmitter after data has been sent
+* How long to hold the transmitter on after data has been sent
+* 1200 baud: 100
+* 9600 baud: 50
 
 ## Script Descriptions
 
@@ -34,6 +45,7 @@ TXDELAY should be adjusted to allow radio sufficient time to switch from receive
 
 * This script only manuplates kiss parameters: PERSIST, SLOTTIME TXDELAY & TXTAIL
   * To change AX.25 parameters T1_TIMEOUT & T2_TIMEOUT edit _/etc/ax25/port.conf_ file
+  * kiss parameters are save to file: _/etc/ax25/port.conf_
 
 * Uses program _kissparms_ to dynamically configure KISS settings that have been setup for AX.25 use by kissattach.
   * See _man kissparms_ to learn more about that program
