@@ -1,5 +1,12 @@
 # AX.25 Script Utilities
 
+### Script Index
+* [ax25-setcfg.sh](#ax25-setcfgsh)
+* [ax25-reset.sh](#ax25-resetsh)
+* [ax25-showcfg.sh](#ax25-showcfgsh)
+
+### Install / Refresh
+
 * To get latest version of scripts
 ```
 cd
@@ -23,7 +30,7 @@ the less chance of two TNCs transmitting at the same time and colliding.
   * PERSIST = (256/users)-1; (from: A handbook for K9NG protocol 9600 baud packet Version 2.0, June 13, 1994)
   * if channel is clean, 63 is a reasonable PERSIST value;
   * if channel is busy, guesstimate the average number of users active at one time,
-    * divide 256 by this number, then subtract 1, i.e. 4 users = (256/4) =64 -1 = 63
+    * divide 256 by this number, then subtract 1, i.e. 4 users = (256/4) = 64 -1 = 63
 
 ##### TXDELAY
 * TXDELAY - Sets the time delay between Push-to-Talk and the beginning of data.
@@ -43,7 +50,7 @@ the less chance of two TNCs transmitting at the same time and colliding.
 
 #### ax25-setcfg.sh
 
-* This script only manuplates kiss parameters: PERSIST, SLOTTIME TXDELAY & TXTAIL
+* This script only manipulates kiss parameters: PERSIST, SLOTTIME TXDELAY & TXTAIL
   * To change AX.25 parameters T1_TIMEOUT & T2_TIMEOUT edit _/etc/ax25/port.conf_ file
   * kiss parameters are save to file: _/etc/ax25/port.conf_
 
