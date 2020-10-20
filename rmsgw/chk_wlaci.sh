@@ -5,7 +5,6 @@
 # DEBUG=1
 
 scriptname="`basename $0`"
-USER="pi"
 
 AX25_CFGDIR="/usr/local/etc/ax25"
 AXPORTS_FILE="$AX25_CFGDIR/axports"
