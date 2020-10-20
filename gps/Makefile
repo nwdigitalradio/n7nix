@@ -14,6 +14,8 @@ OBJS = gp_testport.o
 HDRS	=
 
 CFLAGS += -I/usr/local/include
+CFLAGS += -g -O2 -D_LARGEFILE64_SOURCE -pthread -I/usr/include/gmime-2.6 -I/usr/include/glib-2.0 -I/usr/include/glib-2.0
+#CFLAGS += -I/usr/lib/x86_64-linux-gnu/glib-2.0/include
 
 SYSTYPE := $(shell uname -s)
 
