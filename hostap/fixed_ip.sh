@@ -148,8 +148,8 @@ fi
 grep -i "iface $iface inet static" $if_file > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
    sudo tee $if_file > /dev/null <<EOT
-allow-hotplug wlan0
-iface wlan0 inet static
+allow-hotplug $iface
+iface $iface inet static
   address $ip_addr
   netmask 255.255.255.0
   network $network_addr
