@@ -1,8 +1,13 @@
 #!/bin/bash
 #
+# Access point start-up program
+#
 # Script to start up host access point services
 # The script enables & starts the services
 
+scriptname="`basename $0`"
+
+# Host access point service names
 SERVICE_LIST="hostapd.service dnsmasq.service"
 
 # ===== function start_service
