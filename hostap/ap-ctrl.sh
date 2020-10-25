@@ -168,14 +168,45 @@ function status_service() {
 # ===== device_status
 
 device_status() {
-    wifi_status=$(ip a show wlan0 | sed -n -e 's/^.*state //p' | cut -d' ' -f1)
-    echo "==== wifi device is $wifi_status"
+    wifi_status=$(ip a show $wifidev | sed -n -e 's/^.*state //p' | cut -d' ' -f1)
+    ipaddr2=$(ip a show $wifidev | grep "inet " | tr -s " " | cut -d ' ' -f3)
+    ipaddr_str=
+    if [ "$wifi_status" != "DOWN" ] ; then
+        ipaddr_str=", with IP address of: $ipaddr2"
+    fi
+    echo "==== wifi device: $wifidev is $wifi_status$ipaddr_str"
 }
 
 # ===== ap_debugstatus
+# For debugging a WiFi client connections
 
 function ap_debugstatus() {
-    echo "Not done yet."
+    echo "====  ${FUNCNAME[0]}"
+
+    echo
+    echo " === wpa_supplicant.conf"
+    cat /etc/wpa_supplicant/wpa_supplicant.conf
+
+    echo
+    echo " === rfkill list"
+    rfkill list all
+
+    echo
+    echo " === ifconfig"
+    ip a show $wifidev
+
+    #echo
+    #echo " === lspci"
+    #lspci
+    echo
+    echo " === lsusb"
+    lsusb
+    echo
+    echo " === dmesg"
+    dmesg | grep -i $wifidev
+    echo
+    echo " === iwconfig"
+    iwconfig $wifidev
 }
 
 # ===== ap_status
@@ -224,7 +255,7 @@ function display_ip() {
         (ifconfig $device | grep "inet ")
     fi
 
-    ipaddr2=$(ip a show wlan0 | grep "inet " | tr -s " " | cut -d ' ' -f3)
+    ipaddr2=$(ip a show $device | grep "inet " | tr -s " " | cut -d ' ' -f3)
     retcode="$?"
 
     dbgecho "2 $ipaddr2, ret: $retcode"
@@ -234,7 +265,7 @@ function display_ip() {
     else
         echo "ip a show failed with ret: $?"
         echo "Command: $ipcmd"
-        (ip a show $wifidev | grep "inet ")
+        (ip a show $device | grep "inet ")
     fi
 }
 
@@ -355,6 +386,7 @@ case $APP_ARG in
     ;;
     status)
         device_status
+        check_wpa_supp
         ap_status
         check_ipforward
         check_packages
