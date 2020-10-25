@@ -23,9 +23,11 @@ do_it_flag=false
 silent=false
 DEBUG=
 
+# parameters for Winlink Web Service call
 max_distance=30        # default max distance of RMS Gateways
 include_history=48     # default number of history hours
 grid_square="cn88nl"   # default grid square location or origin
+service="PUBLIC,EMCOMM"
 
 # grid square location for Lopez Island, WA
 # grid square location for 414 N Prom, Seaside, OR 97138
@@ -171,8 +173,11 @@ if $do_it_flag ; then
     # V3 Winlink Web Services
 #   curl -s http://server.winlink.org:8085"/json/reply/GatewayProximity?GridSquare=$grid_square&MaxDistance=$max_distance" > $RMS_PROXIMITY_FILE_RAW
     # V5 Winlink Web Services
-#    svc_url="https://api.winlink.org/gateway/proximity?GridSquare=$grid_square&MaxDistance=$max_distance&Key=$WL_KEY&format=json"
-    svc_url="https://api.winlink.org/gateway/proximity?GridSquare=$grid_square&MaxDistance=$max_distance&Key=$WL_KEY&format=json"
+#
+# svc_url="https://api.winlink.org/gateway/proximity?GridSquare=$grid_square&MaxDistance=$max_distance&Key=$WL_KEY&format=json"
+
+# Add service codes: PUBLIC & EMCOMM
+    svc_url="https://api.winlink.org/gateway/proximity?GridSquare=$grid_square&ServiceCodes=$service&MaxDistance=$max_distance&Key=$WL_KEY&format=json"
 
     dbgecho "Using URL: $svc_url"
 
@@ -231,7 +236,7 @@ if $silent ; then
 else
 
     # Print the table header
-    echo "  Callsign       Frequency  Distance    Baud"
+    echo "  Callsign       Frequency  Distance    Baud    Service"
 
     # iterate through the JSON parsed file
     for k in $(jq '.GatewayList | keys | .[]' $RMS_PROXIMITY_FILE_RAW); do
@@ -242,8 +247,9 @@ else
         frequency=$(jq -r '.Frequency' <<< $value);
         baud=$(jq -r '.Baud' <<< $value);
         distance=$(jq -r '.Distance' <<< $value);
+        service=$(jq -r '.ServiceCode' <<< $value);
 
-        printf ' %-10s\t%10s\t%s\t%4s\n' "$callsign" "$frequency" "$distance" "$baud"
+        printf ' %-10s\t%10s\t%s\t%4s\t%s\n' "$callsign" "$frequency" "$distance" "$baud" "$service"
     done 2>&1 | tee $RMS_PROXIMITY_FILE_OUT
 fi
 
