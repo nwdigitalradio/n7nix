@@ -61,6 +61,76 @@ else
 fi
 }
 
+# ===== function valid_ip
+
+# Copied from here:
+# http://www.linuxjournal.com/content/validating-ip-address-bash-script
+#
+# Test an IP address for validity:
+# Usage:
+#      valid_ip IP_ADDRESS
+#      if [[ $? -eq 0 ]]; then echo good; else echo bad; fi
+#   OR
+#      if valid_ip IP_ADDRESS; then echo good; else echo bad; fi
+#
+function valid_ip() {
+    local  ip=$1
+    local  stat=1
+
+    dbgecho "Verifying ip address: $ip"
+
+    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        OIFS=$IFS
+        IFS='.'
+        ip=($ip)
+        IFS=$OIFS
+        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
+            && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+        stat=$?
+    fi
+    dbgecho "Verifying ip address ret: $stat"
+    return $stat
+}
+
+# ===== function get_ipaddr
+
+function get_ipaddr() {
+
+    wifi_intface=$1
+    retcode=1
+    ip_addr=
+    # clear the read buffer
+    read -t 1 -n 10000 discard
+
+    echo -n "Enter ip address for WiFi interface $wifi_intface followed by [enter]"
+
+    # -p display PROMPT without a trailing new line
+    # -e readline is used to obtain the line
+    read -ep ": " ip_addr
+
+    if [ ! -z "$ip_addr" ] ; then
+
+        count_dots=$(grep -o "\." <<< "$ip_addr" | wc -l)
+        if (( count_dots != 3 )) ; then
+            dbgecho "Error: Wrong number of dots in ipaddr: $ip_addr $count_dots"
+            return 1
+        fi
+        valid_ip $ip_addr
+        retcode=$?
+        if [ $retcode -eq 1 ] ; then
+            echo "INVALID IP address: $ip_addr"
+            retcode=1
+        else
+            echo "Valid ip address: $ip_addr"
+            retcode=0
+        fi
+    else
+        # Return code for no ip address inputted.
+        retcode=0
+    fi
+    return $retcode
+}
+
 # ===== function copy_dnsmasq
 function copy_dnsmasq() {
 
@@ -291,6 +361,19 @@ if [ $? -ne "0" ] ; then
 fi
 
 dbgecho "== Found WiFi"
+
+# Prompt for a WiFi ip address
+echo "Current WiFi ip addresses:  $fixed_ip_address"
+echo "If you do not understand or care about the following just hit enter for default values"
+
+while  ! get_ipaddr wlan0 ; do
+    echo "Input error, try again"
+done
+if [ ! -z "$ip_addr" ] ; then
+    fixed_ip_address="$ip_addr"
+    ip_root=${fixed_ip_addr%.*}
+    echo "Setting wlan0 ip address to: $fixed_ip_address, ip address root to: $ip_root"
+fi
 
 echo "== Configuring: hostapd.conf"
 hostapd_config
