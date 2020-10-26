@@ -6,6 +6,7 @@
 # The script enables & starts the services
 
 scriptname="`basename $0`"
+# WiFi device name
 wifidev="wlan0"
 
 FORCE_UPDATE=
@@ -214,7 +215,6 @@ function ap_debugstatus() {
 function ap_status() {
     if [ ! -z $DEBUG ] ; then
         ap_debugstatus
-        return
     fi
     for service in `echo ${SERVICE_LIST}` ; do
         status_service $service
@@ -315,7 +315,7 @@ function ap_stop() {
     display_ip $wifidev
 
     #ifconfig $wifidev | grep "inet "
-    #ip a show wlan0
+    #ip a show $wifidev
 }
 
 # ==== function display arguments used by this script
@@ -323,13 +323,13 @@ function ap_stop() {
 usage () {
 	(
 	echo "Usage: $scriptname [-f][-d][-h][status][stop][start][restart]"
-        echo "                  No args will show status of access point daemons"
+        echo "                  No args will show status WiFi device"
         echo "                  args with dashes must come before other arguments"
-        echo "  start           start required access point processes"
-        echo "  stop            stop all access point processes"
-        echo "  status          display status of all access point processes"
-        echo "  restart         stop access pint then restart"
-        echo "  -f | --force    Update all systemd unit files"
+        echo "  start           start required Access Point processes"
+        echo "  stop            stop all Access Point processes, enables client WiFi"
+        echo "  status          display status of WiFi device"
+        echo "  restart         stop Access Point then restart"
+        echo "  -f | --force    Update all hostapd systemd unit files"
         echo "  -d              Set DEBUG flag"
         echo "  -h              Display this message."
         echo
