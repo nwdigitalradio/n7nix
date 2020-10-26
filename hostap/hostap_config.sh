@@ -13,12 +13,17 @@
 # == start services: hostapd, dnsmasq
 
 DEBUG=1
+# Set this to 'true' to input a console address
+INPUT_IPADDR=false
+
+scriptname="`basename $0`"
+# WiFi device name
+wifidev="wlan0"
 
 DNSMASQ_CFG_FILE="/etc/dnsmasq.conf"
 fixed_ip_address="10.0.40.4"
 ip_root=${fixed_ip_addr%.*}
 
-scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 SSID="NOT_SET"
 SERVICELIST="hostapd.service dnsmasq.service"
@@ -142,7 +147,7 @@ function copy_dnsmasq() {
 
     # Add to end of file
     sudo tee "$DNSMASQ_CFG_FILE" > /dev/null << EOT
-interface=wlan0 # Listening interface
+interface=$wifidev # Listening interface
 dhcp-range=${ip_root}.100,${ip_root}.200,255.255.255.0,24h
                 # Pool of IP addresses served via DHCP
 domain=wlan     # Local wireless DNS domain
@@ -155,7 +160,7 @@ EOT
 
     # Create a new file
     sudo tee $1/dnsmasq.conf > /dev/null << EOT
-interface=wlan0      # Use interface wlan0
+interface=$wifidev   # Use WiFi interface $wifidev
 dhcp-range=${ip_root}.201,${ip_root}.239,12h
 listen-address=$fixed_ip_address
 bind-interfaces      # Bind to the interface to be sure we aren't sending things elsewhere
@@ -186,7 +191,7 @@ function copy_hostapd() {
 
     sudo tee $1/hostapd.conf > /dev/null <<EOT
 country_code=US
-interface=wlan0
+interface=$wifidev
 ssid=snout
 hw_mode=g
 channel=7
@@ -203,7 +208,7 @@ EOT
 # Disable this config
 if [ 1 -eq 0 ] ; then
     sudo tee $1/hostapd.conf > /dev/null <<EOT
-interface=wlan0
+interface=$wifidev
 
 # Use the nl80211 driver with the brcmfmac driver
 driver=nl80211
@@ -362,19 +367,6 @@ fi
 
 dbgecho "== Found WiFi"
 
-# Prompt for a WiFi ip address
-echo "Current WiFi ip addresses:  $fixed_ip_address"
-echo "If you do not understand or care about the following just hit enter for default values"
-
-while  ! get_ipaddr wlan0 ; do
-    echo "Input error, try again"
-done
-if [ ! -z "$ip_addr" ] ; then
-    fixed_ip_address="$ip_addr"
-    ip_root=${fixed_ip_addr%.*}
-    echo "Setting wlan0 ip address to: $fixed_ip_address, ip address root to: $ip_root"
-fi
-
 echo "== Configuring: hostapd.conf"
 hostapd_config
 
@@ -441,8 +433,8 @@ done
 
 if [ "$CREATE_IPTABLES" = "true" ] ; then
    iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-   iptables -A FORWARD -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
-   iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT
+   iptables -A FORWARD -i eth0 -o $wifidev -m state --state RELATED,ESTABLISHED -j ACCEPT
+   iptables -A FORWARD -i $wifidev -o eth0 -j ACCEPT
    sh -c "iptables-save > /etc/iptables/rules.ipv4.nat"
 
    iptables -t nat -S
@@ -453,12 +445,34 @@ EOF
 
 fi
 
+##############################
+### Install a fixed IP address
+##############################
+
 echo "== Give WiFi device a fixed IP address"
-currentdir=$(pwd)
-prgram="fixed_ip.sh"
-if [ -e "$currentdir/$prgram" ] ; then
-    dbgecho "Found $prgram here: $currentdir OK"
-    ./$currentdir/$prgram -w $fixed_ip_addr > /dev/null 2>&1
+
+if [ "$INPUT_IPADDR" = "true" ] ; then
+    # Prompt for a WiFi IP address
+    echo "Current WiFi ip addresses:  $fixed_ip_address"
+    echo "If you do not understand or care about the following just hit enter for default values"
+
+    # Input IP address for WiFi from console
+    while  ! get_ipaddr $wifidev ; do
+        echo "Input error, try again"
+    done
+    if [ ! -z "$ip_addr" ] ; then
+        fixed_ip_address="$ip_addr"
+        ip_root=${fixed_ip_addr%.*}
+        echo "Setting $wifidev ip address to: $fixed_ip_address, ip address root to: $ip_root"
+    fi
+else
+    # Derive an IP address from LAN network address
+    currentdir=$(pwd)
+    prgram="fixed_ip.sh"
+    if [ -e "$currentdir/$prgram" ] ; then
+        dbgecho "Found $prgram here: $currentdir OK"
+        ./$currentdir/$prgram -w $fixed_ip_addr > /dev/null 2>&1
+    fi
 fi
 
 # May need to unmask hostapd first
@@ -484,7 +498,7 @@ for service_name in `echo ${SERVICELIST}` ; do
    fi
 done
 
-echo " === NEED to REBOOT ==="
+echo "$(tput setaf 1) === NEED to REBOOT ===$(tput sgr0)"
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: hostap config script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
