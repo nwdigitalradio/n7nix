@@ -77,3 +77,31 @@ TTCMD /root/dw-ttcmd.sh
 * Found a python program on github that supports numbers, ABCD and '*'
   * [cleversonahum / dtmf-generator](https://github.com/cleversonahum/dtmf-generator/blob/main/dtmf-generator.py)
 
+* To install
+
+```
+git clone https://github.com/cleversonahum/dtmf-generator
+python3.7 -m pip install scipy
+python3.7 -m pip install -U matplotlib
+
+```
+* This program would not run without modifying.
+  * Reference: [.wav file doesn't play any sounds](https://stackoverflow.com/questions/10558377/wav-file-doesnt-play-any-sounds)
+  * Initially got this error
+```
+ aplay test.wav
+aplay: test_wavefile:1130:  can't play WAVE-files with sample 64 bits wide
+```
+* __Had to modify this line__
+```
+        wav.write(args.output, args.samplefrequency, dtmf.signal)
+```
+* to this
+```
+       wav.write(args.output, args.samplefrequency, dtmf.signal.astype(np.dtype('i2')))
+```
+
+* To run
+```
+python3.7 dtmf-generator.py -p BA236288*A6B76B4C9B7# -f 20000 -t 0.08 -s 0.08 -o test.wav -a 90 -d
+```
