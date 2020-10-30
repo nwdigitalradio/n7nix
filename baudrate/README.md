@@ -53,6 +53,14 @@ Push buttons for fixed length 10 digit callsign:
 BA236288 * A6B76B4C9B7
 ```
 #### Changes to Direwolf config file
+* From direwolf manual
+
+The APRStt Gateway function allows a user, equipped with only a DTMF (_touch tone_) pad, to enter
+information into the global APRS network. Various configuration options determine how the touch tone
+sequences get translated to APRS "object" packets
+
+* See [APRStt Implementation Notes](https://github.com/wb2osz/direwolf/blob/master/doc/APRStt-Implementation-Notes.pdf)
+
 ###### In Channel 0 section
 ```
 DTMF
@@ -77,3 +85,10 @@ TTCMD /root/dw-ttcmd.sh
 * [Audio Notes using play](http://www.noah.org/wiki/audio_notes)
 * http://www.noah.org/wiki/audio_notes#DTMF:_mix_some_tones_to_dial_a_phone
 * https://cloudacm.com/?p=3147
+
+* Used sox _play_ command to synthesize frequency of each character.
+```
+play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2 2> /dev/null
+```
+
+#### end of document
