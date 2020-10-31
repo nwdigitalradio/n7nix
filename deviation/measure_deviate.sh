@@ -15,6 +15,7 @@
 
 scriptname="`basename $0`"
 USER=
+DEBUG=
 
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
@@ -37,7 +38,7 @@ gpio_pin=12
 trap ctrl_c INT
 # ===== function usage
 function usage() {
-   echo "Usage: $scriptname [-f <tone_frequency][-c <connector>[-l <tone_duration>][-h]" >&2
+   echo "Usage: $scriptname [-f <tone_frequency][-c <connector>][-l <tone_duration>][-h]" >&2
    echo "   -f tone frequency in Hz (10 - 20000), default: 2200"
    echo "   -c connector location, either left (mDin6) or right (hd15/mDin6), default: right"
    echo "   -l length of tone in seconds, default 30"
