@@ -19,7 +19,7 @@ CALLSIGN="N0ONE"
 AX25_CFGDIR="/usr/local/etc/ax25"
 AXPORTS_FILE="$AX25_CFGDIR/axports"
 
-# use left connector on a draws hat
+# default connector location, use left connector on a draws hat
 udrc_prod_id=4
 connector="left"
 
@@ -30,6 +30,8 @@ wavefile="dtmfcmd.wav"
 #default to left channel on a DRAWS hat
 # gpio_pin can be either 12 or 23
 gpio_pin=12
+# default baudrate
+baudrate="1200"
 
 CMDSTR="BA236288*A6B76B4C9B7#"
 declare -A dmtffreq=( \
@@ -41,14 +43,6 @@ declare -A dmtffreq=( \
 # trap ctrl-c and call ctrl_c()
 trap ctrl_c INT
 
-# ===== function usage
-function usage() {
-   echo "Usage: $scriptname [-c <connector>][-h]" >&2
-   echo "   -c connector location, either left (mDin6) or right (hd15/mDin6), default: right"
-   echo "   -d set debug flag"
-   echo "   -h no arg, display this message"
-   echo
-}
 # ===== function debugecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -157,7 +151,8 @@ function get_axports_callsign() {
     #axports_line=$(tail -n3 $AXPORTS_FILE | grep -v "#" | grep -v "N0ONE" |  head -n 1)
     axports_line=$(tail -n3 $AXPORTS_FILE | grep -vE "^#|N0ONE" |  head -n 1)
 
-    echo "Using axports line: $axports_line"
+    dbgecho "Using call sign from axports line: $axports_line"
+
     port=$(echo $axports_line | cut -d' ' -f1)
     # get rid of SSID
     callsign=$(echo $axports_line | tr -s '[[:space:]]' | cut -d' ' -f2 | cut -d '-' -f1)
@@ -220,8 +215,18 @@ fi
 # Verify that sound card device exists
 
 function device_name_verify() {
-retcode=0
-return $retcode
+    retcode=0
+    return $retcode
+}
+
+# ===== function usage
+function usage() {
+   echo "Usage: $scriptname [-c <connector>][-b <baudrate>][-h]" >&2
+   echo "   -b <baudrate>           either 1200 or 9600 baud, default 1200"
+   echo "   -c <connector_location> either left (mDin6) or right (hd15/mDin6), default: left"
+   echo "   -d                      set debug flag"
+   echo "   -h                      no arg, display this message"
+   echo
 }
 
 # ===== main
@@ -252,6 +257,10 @@ while [[ $# -gt 0 ]] ; do
 key="$1"
 
 case $key in
+   -b|--baudrate)
+      baudrate="$2"
+      shift # past argument
+   ;;
    -c|--connector)
       connector="$2"
       shift # past argument
@@ -281,7 +290,7 @@ done
 
 get_axports_callsign
 retcode="$?"
-echo "retcode: $retcode from get_axports_callsign"
+dbgecho "retcode: $retcode from get_axports_callsign"
 
 if [ $retcode -ne 0 ] ; then
 
@@ -293,15 +302,40 @@ if [ $retcode -ne 0 ] ; then
     done
 fi
 
-## Have a call sign convert it into TouchTone string
-text2tt N7NIX
-call_ttones=$((grep -A 1 "two-key method.*" <<< $(text2tt N7NIX)) | tail -n1)
-echo "tt1: $call_ttones"
+# For reference, below is an example string with valid TTOBJ format
+# CMDSTR="BA236288*A6B76B4C9B7#"
+# CMDSTR="BA${$ttbaudrate}*A${ttcallsign}${checksum}#
+
+## Convert callsign into TouchTone string
+# Debug only
+#text2tt $CALLSIGN
+
+call_ttones=$((grep -A 1 "two-key method.*" <<< $(text2tt $CALLSIGN)) | tail -n1)
+dbgecho "tt1: $call_ttones"
 tt_str1=$(echo $call_ttones | cut -f2 -d'"')
+# parse the checksum
 tt_str2=$(echo $call_ttones | cut -f2 -d'=')
 # squish all the spaces
-tt_str2=$(echo $tt_str2 |tr -s '[[:space:]]')
-ttcallsign="A$tt_str1$tt_str2"
+checksum=$(echo $tt_str2 |tr -s '[[:space:]]')
+ttcallsign="A$tt_str1$checksum"
+
+## Convert requested baudrate into TouchTone string
+# baudrate should only be 12 or 96 for 1200 baud & 9600 baud
+if (( ${#baudrate} > 2 )) ; then
+    baudrate=$(echo $baudrate | cut -c1-2)
+fi
+echo "DEBUG: Using baud rate: $baudrate"
+
+encoded_br="CN$baudrate"
+tt_str1=$(text2tt $encoded_br | grep -A1 "Maidenhead Grid Square" | tail -n 1)
+
+# Remove surrounding double quotes
+ttbaudrate=${tt_str1%\"}
+ttbaudrate=${ttbaudrate#\"}
+ttbaudrate="BA${ttbaudrate}"
+
+echo "Touch Tone string check: ${ttbaudrate}*${ttcallsign}#"
+echo "                 CMDSTR: BA236288*A6B76B4C9B7#"
 
 dbgecho "Verify required programs"
 use_sox
@@ -382,10 +416,10 @@ gpio -g write $gpio_pin 1
 export AUDIODEV=plughw:CARD=udrc,DEV=0
 echo "Using audio device $AUDIODEV with play"
 
-#play $wavefile
-CMDSTR="BA23"
-CMDSTR="BA236288*${ttcallsign}#"
+# play touch tones
+CMDSTR="${ttbaudrate}*${ttcallsign}#"
 echo "Sending command string: $CMDSTR"
+# Perform a 'for' loop on each character in a string in Bash
 for (( i=0; i < ${#CMDSTR}; i++)) ; do
   tonechar="${CMDSTR:$i:1}"
   if [ -z ${dmtffreq[$tonechar 1]} ] || [ -z ${dmtffreq[$tonechar 2]} ] ; then
