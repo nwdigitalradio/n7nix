@@ -139,7 +139,7 @@ function set_baudrate() {
     baudrate="$2"
     receive_out="$3"
 
-    echo "=== set port.conf baud rate to: $baudrate"
+    echo "=== set $PORT_CFG_FILE baud rate to: $baudrate"
     # Switch speeds in port config file
     sudo sed -i -e "/\[port$portnum\]/,/\[/ s/^speed=.*/speed=$baudrate/" $PORT_CFG_FILE
     # Set audio/disc in port config file
@@ -147,8 +147,8 @@ function set_baudrate() {
 
     direwolf_set_baud $baudrate
 }
-# function get_baudrate
-function get_baudrate() {
+# function get_baudrates
+function get_baudrates() {
     # Initialize baud rates for each device
     ax25_udr0_baud=0
     ax25_udr1_baud=0
@@ -170,7 +170,7 @@ function get_baudrate() {
 
 function switch_config() {
 
-    get_current_baudrates
+    get_baudrates
 
     case "$ax25_udr0_baud" in
         1200)
@@ -237,7 +237,7 @@ while [[ $# -gt 0 ]] ; do
             shift  # past argument
             # set variables ax25_udr0_baud, ax25_udr1_baud=0
 
-            get_baudrate
+            get_baudrates
             dbgecho " === set baudrate to: $baudrate"
             if [ "$baudrate" = "$ax25_udr0_baud" ] && [ $(pidof direwolf) ] ; then
                 echo " === baud rate already set & direwolf is running"
@@ -251,7 +251,7 @@ while [[ $# -gt 0 ]] ; do
             if [ $? -eq 0 ] ; then
                 echo "Direwolf is running with pid of $pid"
             else
-                echo "Direwolf is NOT running. starting now, from test path"
+                echo "Direwolf is NOT running. Starting NOW ..."
                 $BIN_PATH/ax25-start -q
             fi
 
@@ -278,7 +278,7 @@ switch_config
 
 # DEBUG ONLY
 echo "Verify port.conf"
-grep -i "speed" $PORT_CFG_FILE
+grep -i "^speed" $PORT_CFG_FILE
 echo
 echo "Verify direwolf.conf"
 grep -i "^MODEM" /etc/direwolf.conf
