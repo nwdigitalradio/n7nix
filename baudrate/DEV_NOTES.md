@@ -55,7 +55,7 @@ python3.7 dtmf-generator.py -p BA236288*A6B76B4C9B7# -f 20000 -t 0.08 -s 0.08 -o
 
 #### Use program gen to generate wav file
 * [gen-ng reference](https://github.com/EliasOenal/multimon-ng/blob/master/gen.c)
-* Should promise **but needs ALOT of work**
+* Showed promise **but needs ALOT of work**
 
 * Found this from KB9mwr which uses SoX:
 [Two-Tone Pager Decoder Using Multimon](https://www.qsl.net/kb9mwr/projects/pager/Two-Tone%20Pager%20Decoding%20Using%20Multimon.pdf)
