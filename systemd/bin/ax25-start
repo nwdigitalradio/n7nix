@@ -4,6 +4,8 @@
 # The script enables & starts the services
 
 scriptname="`basename $0`"
+DEBUG=
+QUIET=
 
 USER=
 AX25_CFGDIR="/usr/local/etc/ax25"
@@ -11,17 +13,20 @@ PORT_CFG_FILE="$AX25_CFGDIR/port.conf"
 SERVICE_LIST="direwolf.service ax25dev.path ax25dev.service ax25-mheardd.service ax25d.service"
 SYSTEMCTL="systemctl"
 
+# if DEBUG is defined then echo
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+# if QUIET is defined the DO NOT echo
+function quietecho { if [ -z "$QUIET" ] ; then echo "$*"; fi }
 
 # ===== function start_service
 
 function start_service() {
     service="$1"
-    echo "Starting: $service"
+    quietecho "Starting: $service"
 
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
-        echo "ENABLING $service"
+        quietecho "ENABLING $service"
         $SYSTEMCTL enable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem ENABLING $service"
@@ -92,6 +97,12 @@ function change_icon() {
 
 # ===== main
 
+# Check if there are any args on command line
+# Use to quiet output
+if (( $# != 0 )) ; then
+   QUIET=1
+fi
+
 # Check if direwolf is already running.
 pid=$(pidof direwolf)
 if [ $? -eq 0 ] ; then
@@ -105,10 +116,19 @@ USERLIST="$(echo $USERLIST | tr '\n' ' ')"
 
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
-    echo "set sudo"
-    SYSTEMCTL="sudo systemctl"
+    quietecho "set sudo"
+    if [ -z $QUIET ] ; then
+        SYSTEMCTL="sudo systemctl"
+    else
+        SYSTEMCTL="sudo systemctl --quiet"
+    fi
     USER=$(whoami)
 else
+    if [ -z $QUIET ] ; then
+        SYSTEMCTL="systemctl"
+    else
+        SYSTEMCTL="systemctl --quiet"
+    fi
     get_user
     check_user
 fi
@@ -131,25 +151,25 @@ else
     echo "Port config file: $PORT_CFG_FILE NOT found."
 fi
 
-echo
-echo "STARTING AX.25/Direwolf: port 0: $ax25_udr0_baud & port1: $ax25_udr1_baud baud modems."
+quietecho
+quietecho "STARTING AX.25/Direwolf: port 0: $ax25_udr0_baud & port1: $ax25_udr1_baud baud modems."
 
 for service in `echo ${SERVICE_LIST}` ; do
     start_service $service
 done
 
-echo
-echo "== Verify IPtables"
+quietecho
+quietecho "== Verify IPtables"
 
 rule_count=$(grep -c "\-A OUTPUT" /etc/iptables/rules.ipv4.ax25)
-echo "Number of ax25 iptables rules found: $rule_count"
+quietecho "Number of ax25 iptables rules found: $rule_count"
 
 CREATE_IPTABLES=false
 IPTABLES_FILES="/etc/iptables/rules.ipv4.ax25 /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
 for ipt_file in `echo ${IPTABLES_FILES}` ; do
 
    if [ -f $ipt_file ] ; then
-      echo "iptables file: $ipt_file exists"
+      quietecho "iptables file: $ipt_file exists"
    else
       echo "Need to create iptables file: $ipt_file"
       CREATE_IPTABLES=true

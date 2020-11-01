@@ -9,7 +9,10 @@ PORT_CFG_FILE="/etc/ax25/port.conf"
 SERVICE_LIST="ax25dev.service ax25dev.path direwolf.service ax25-mheardd.service ax25d.service"
 SYSTEMCTL="systemctl"
 
+# if DEBUG is defined then echo
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+# if QUIET is defined the DO NOT echo
+function quietecho { if [ -z "$QUIET" ] ; then echo "$*"; fi }
 
 # ===== function stop_service
 
@@ -17,7 +20,7 @@ function stop_service() {
     service="$1"
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -eq 0 ] ; then
-        echo "DISABLING $service"
+        quietecho "DISABLING $service"
         $SYSTEMCTL disable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem DISABLING $service"
@@ -85,16 +88,31 @@ function change_icon() {
 
 # ===== main
 
+# Check if there are any args on command line
+# Use to quiet output
+if (( $# != 0 )) ; then
+   QUIET=1
+fi
+
 # Get list of users with home directories
 USERLIST="$(ls /home)"
 USERLIST="$(echo $USERLIST | tr '\n' ' ')"
 
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
-   echo "set sudo"
-   SYSTEMCTL="sudo systemctl"
+    quietecho "set sudo"
+    if [ -z $QUIET ] ; then
+        SYSTEMCTL="sudo systemctl"
+    else
+        SYSTEMCTL="sudo systemctl --quiet"
+    fi
     USER=$(whoami)
 else
+    if [ -z $QUIET ] ; then
+        SYSTEMCTL="systemctl"
+    else
+        SYSTEMCTL="systemctl --quiet"
+    fi
     get_user
     check_user
 fi
@@ -110,9 +128,8 @@ else
     echo "Port config file: $PORT_CFG_FILE NOT found."
 fi
 
-echo
-echo "STOPPING AX.25/Direwolf: port 0: $ax25_udr0_baud & port1: $ax25_udr1_baud baud modems."
-
+quietecho
+quietecho "STOPPING AX.25/Direwolf: port 0: $ax25_udr0_baud & port1: $ax25_udr1_baud baud modems."
 
 for service in `echo ${SERVICE_LIST}` ; do
 #    echo "DEBUG: Stopping service: $service"
