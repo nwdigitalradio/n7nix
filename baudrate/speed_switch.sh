@@ -73,6 +73,15 @@ function speed_status() {
     TXDELAY=
     T1_TIMEOUT=
     T2_TIMEOUT=
+    declare -A devicestat=([ax0]="exists" [ax1]="exists")
+
+    # Check if direwolf is already running.
+    pid=$(pidof direwolf)
+    if [ $? -eq 0 ] ; then
+        echo "Direwolf is running with pid of $pid"
+    else
+        echo "Direwolf is NOT running"
+    fi
 
     for devnum in 0 1 ; do
         # Set variables: portname, portcfg, PORTSPEED
@@ -91,11 +100,12 @@ function speed_status() {
             T1_TIMEOUT=$(cat $PARMDIR/t1_timeout)
             T2_TIMEOUT=$(cat $PARMDIR/t2_timeout)
         else
-            echo "Device: $devname does NOT exist"
+            devicestat[$devname]="does NOT exist"
         fi
         echo "port: $devnum, speed: $PORTSPEED, slottime: $SLOTTIME, txdelay: $TXDELAY, t1 timeout: $T1_TIMEOUT, t2 timeout: $T2_TIMEOUT"
-
     done
+    # Use a single line for device status
+    echo "Device: ax0 ${devicestat[ax0]}, Device: ax1 ${devicestat[ax1]}"
 }
 
 # ===== function direwolf_set_baud
@@ -106,8 +116,7 @@ function direwolf_set_baud() {
 
     modem_speed="$1"
 
-    echo
-    echo "=== set direwolf $modem_speed baud speed"
+    echo "=== set $DIREWOLF_CFGFILE baud rate to: $modem_speed"
 
     # Modify first occurrence of MODEM configuration line
     sudo sed -i "0,/^MODEM/ s/^MODEM .*/MODEM $modem_speed/" $DIREWOLF_CFGFILE
@@ -119,12 +128,31 @@ function direwolf_set_baud() {
     # sudo sed -i "/^MODEM/ s/^MODEM .*/MODEM $modem_speed/" $DIREWOLF_CFGFILE
 }
 
-# ===== function switch_config
+# ==== function set_baudrate
+# Requires 3 arguments:
+#   port number (0 or 1),
+#   baudrate (1200 or 9600),
+#   receive output (either audio or disc)
 
-# Switch a single port based upon config file setting.
-# NOTE: only switches port 0
+function set_baudrate() {
+    portnum="$1"
+    baudrate="$2"
+    receive_out="$3"
 
-function switch_config() {
+    echo "=== set port.conf baud rate to: $baudrate"
+    # Switch speeds in port config file
+    sudo sed -i -e "/\[port$portnum\]/,/\[/ s/^speed=.*/speed=$baudrate/" $PORT_CFG_FILE
+    # Set audio/disc in port config file
+    sudo sed -i -e "/\[port$portnum\]/,/\[/ s/^receive_out=.*/receive_out=$receive_out/" $PORT_CFG_FILE
+
+    direwolf_set_baud $baudrate
+}
+# function get_baudrate
+function get_baudrate() {
+    # Initialize baud rates for each device
+    ax25_udr0_baud=0
+    ax25_udr1_baud=0
+
     if [ -e $PORT_CFG_FILE ] ; then
         ax25_udr0_baud=$(sed -n '/\[port0\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
         ax25_udr1_baud=$(sed -n '/\[port1\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
@@ -133,6 +161,16 @@ function switch_config() {
         echo "Port config file: $PORT_CFG_FILE NOT found."
         return;
     fi
+}
+
+# ===== function switch_config
+
+# Switch a single port based upon config file setting.
+# NOTE: only switches port 0
+
+function switch_config() {
+
+    get_current_baudrates
 
     case "$ax25_udr0_baud" in
         1200)
@@ -154,23 +192,19 @@ function switch_config() {
         ;;
     esac
 
-    echo "=== set port.conf $newspeed_port0 baud rate"
-    # Switch speeds in port config file
-    sudo sed -i -e "/\[port0\]/,/\[/ s/^speed=.*/speed=$newspeed_port0/" $PORT_CFG_FILE
-    # Set audio/disc in port config file
-    sudo sed -i -e "/\[port0\]/,/\[/ s/^receive_out=.*/receive_out=$newreceive_out0/" $PORT_CFG_FILE
+    set_baudrate 0 $newspeed_port0 $newreceive_out0
 
-    direwolf_set_baud $newspeed_port0
 }
 
 
 # ===== function usage
 
 function usage() {
-   echo "Usage: $scriptname [-s]" >&2
-   echo "   -s      Display current status of speed."
-   echo "   -d      Set flag for verbose output"
-   echo "   -h      Display this message"
+   echo "Usage: $scriptname [-b <speed>][-s][-d][-h]" >&2
+   echo "   -b <baudrate>  Set baud rate speed, 1200 or 9600"
+   echo "   -s             Display current status of devices & ports"
+   echo "   -d             Set flag for verbose output"
+   echo "   -h             Display this message"
    echo
 }
 
@@ -198,6 +232,31 @@ while [[ $# -gt 0 ]] ; do
             speed_status
             exit 0
         ;;
+        -b|--baudrate)
+            baudrate="$2"
+            shift  # past argument
+            # set variables ax25_udr0_baud, ax25_udr1_baud=0
+
+            get_baudrate
+            dbgecho " === set baudrate to: $baudrate"
+            if [ "$baudrate" = "$ax25_udr0_baud" ] && [ $(pidof direwolf) ] ; then
+                echo " === baud rate already set & direwolf is running"
+                exit 0
+            fi
+
+            # default receive to discriminator
+            set_baudrate 0 $baudrate "disc"
+            # Check if direwolf is already running.
+            pid=$(pidof direwolf)
+            if [ $? -eq 0 ] ; then
+                echo "Direwolf is running with pid of $pid"
+            else
+                echo "Direwolf is NOT running. starting now, from test path"
+                $BIN_PATH/ax25-start -q
+            fi
+
+            exit 0
+        ;;
         -d)
             echo "Verbose output"
             DEBUG=1
@@ -214,6 +273,7 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument
 done
 
+# default to toggling baud rate between 1200 & 9600
 switch_config
 
 # DEBUG ONLY
@@ -234,4 +294,4 @@ fi
 
 echo
 echo "=== reset direwolf & ax25 parms"
-$BIN_PATH/ax25-reset.sh
+$BIN_PATH/ax25-reset.sh -q
