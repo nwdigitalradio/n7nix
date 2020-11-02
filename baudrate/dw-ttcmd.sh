@@ -7,14 +7,78 @@ USER=pi
 
 DW_TT_LOG_FILE="/home/$USER/tmp/dw-log.txt"
 DW_LOG_FILE="/var/log/direwolf/direwolf.log"
+PORT_CFG_FILE="/etc/ax25/port.conf"
 
 # ===== function debugecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function verify_baud
+# Verify current baud rate
+function verify_baud() {
+modem_cnt=$(sed -n "0,/^MODEM/! {/^MODEM/p}" /etc/direwolf.conf | wc -l)
+if (( $modem_cnt > 2 )) || (( $modem_cnt == 0 )) ; then
+    echo "ERROR: MODEM entry count: $modem_cnt"
+    echo "Check /etc/direwolf.conf file."
+    exit 1
+fi
+    # get baud rate from direwolf config file
+    dw_baudrate0=$(sed -n "0,/^MODEM/! {/^MODEM/p}" /etc/direwolf.conf | head -n 1 | cut -d' ' -f2)
+    dw_baudrate1=$(sed -n "0,/^MODEM/! {/^MODEM/p}" /etc/direwolf.conf | tail -n 1 | cut -d' ' -f2)
+
+    # Get baud rate from port config file
+    portcfg=port0
+    pc_baudrate0=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    portcfg=port1
+    pc_baudrate1=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+
+    dbgecho "DEBUG: dw: 0 $dw_baudrate0, 1 $dw_baudrate0, port cfg: 0 $pc_baudrate0 1 $pc_baudrate1"
+
+    if (( $dw_baudrate0 != $pc_baudrate0 )) ; then
+        echo "ERROR: baud rates do not match: direwolf: $dw_baudrate0, port: $pc_baudrate0"
+        exit 1
+    else
+        echo "Direwolf & port config OK"
+    fi
+}
+
+# ===== function usage
+function usage() {
+   echo "Usage: $scriptname [-d][-h]" >&2
+   echo "   -d                      set debug flag"
+   echo "   -h                      no arg, display this message"
+   echo
+}
 
 # ===== main
 
 # First entry to log file
 echo -n "$(date) ttcmd: " | tee -a $DW_TT_LOG_FILE
+
+while [[ $# -gt 0 ]] ; do
+key="$1"
+
+case $key in
+   -d|--debug)
+      DEBUG=1
+      echo "Debug mode on"
+   ;;
+   -h|--help|?)
+      usage
+      exit 0
+   ;;
+   *)
+      # unknown option
+      echo "Unknow option: $key"
+      usage
+      exit 1
+   ;;
+esac
+shift # past argument or value
+done
+
+# Verify operating baudrate
+verify_baud
+
 
 FILESIZE=$(stat -c %s $DW_LOG_FILE)
 if [ $FILESIZE -eq 0 ] ; then
@@ -84,13 +148,10 @@ searchstring="\[CN"
 # Get string after match string
 baudrate=$(echo "${ttstring#*$searchstring}" | cut -f1 -d ']')
 if [ "$baudrate" = "$ttbrate" ] ; then
-    dbgecho "Baud rates confirm"
+    dbgecho "APRS object & raw tt data Baud rates confirm"
 else
     echo "Error: baudrates do not match: Method 1: $ttbrate, Method 2: $buadrate"
 fi
-
-# last entry to log file
-echo "baudrate: $ttbrate00, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
 
 # Check speed control file
 # baud rate for left connector
@@ -99,7 +160,9 @@ curr_speed=$(grep -i "^speed=" /usr/local/etc/ax25/port.conf | head -n 1)
 curr_speed="${curr_speed#*=}"
 
 if [ "$curr_speed" = "${ttbrate}00" ] ; then
-    echo "speed already set to $curr_speed"
+    # last entry to log file
+    echo "No config necessary: baudrate: ${ttbrate}00, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
 else
-    echo "Configuring direwolf for new speed ${ttbrate}00"
+    # last entry to log file
+    echo "Will config: baudrate: ${ttbrate}00, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
 fi
