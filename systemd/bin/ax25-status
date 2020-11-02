@@ -1,5 +1,6 @@
 #!/bin/bash
 #
+PORT_CFG_FILE="/etc/ax25/port.conf"
 scriptname="`basename $0`"
 
 
