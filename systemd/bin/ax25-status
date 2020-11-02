@@ -115,6 +115,51 @@ function ax25_debugstatus() {
     netstat --ax25
 }
 
+# ===== function speed_status
+
+# Display parameters used for kissattach & AX.25 device
+
+function speed_status() {
+
+    SLOTTIME=
+    TXDELAY=
+    T1_TIMEOUT=
+    T2_TIMEOUT=
+    declare -A devicestat=([ax0]="exists" [ax1]="exists")
+
+    # Check if direwolf is already running.
+    pid=$(pidof direwolf)
+    if [ $? -eq 0 ] ; then
+        echo "Direwolf is running with pid of $pid"
+    else
+        echo "Direwolf is NOT running"
+    fi
+
+    for devnum in 0 1 ; do
+        # Set variables: portname, portcfg, PORTSPEED
+        get_port_speed $devnum
+        baudrate_parm="baud_$PORTSPEED"
+        if [ "$PORTSPEED" != "off" ] && [ ! -z "$PORTSPEED" ] ; then
+            SLOTTIME=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^slottime" | cut -f2 -d'=')
+            TXDELAY=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^txdelay" | cut -f2 -d'=')
+        fi
+
+        devname="ax$devnum"
+        PARMDIR="/proc/sys/net/ax25/$devname"
+        if [ -d "$PARMDIR" ] ; then
+            dbgecho "Parameters for device $devname"
+
+            T1_TIMEOUT=$(cat $PARMDIR/t1_timeout)
+            T2_TIMEOUT=$(cat $PARMDIR/t2_timeout)
+        else
+            devicestat[$devname]="does NOT exist"
+        fi
+        echo "port: $devnum, speed: $PORTSPEED, slottime: $SLOTTIME, txdelay: $TXDELAY, t1 timeout: $T1_TIMEOUT, t2 timeout: $T2_TIMEOUT"
+    done
+    # Use a single line for device status
+    echo "Device: ax0 ${devicestat[ax0]}, Device: ax1 ${devicestat[ax1]}"
+}
+
 # ===== main
 
 # Be sure we're running as root
@@ -130,6 +175,7 @@ while [[ $# -gt 0 ]] ; do
         -d)
             echo "AX25 Debug Status"
             ax25_debugstatus
+            speed_status
             exit 0
         ;;
         *)
@@ -143,4 +189,5 @@ done
 
 
 ax25_status
+speed_status
 exit 0
