@@ -2,6 +2,12 @@
 #
 scriptname="`basename $0`"
 
+
+# ===== function dbgecho
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+
 # ===== function status_service
 
 function status_service() {
@@ -113,6 +119,53 @@ function ax25_debugstatus() {
     echo
     echo "== netstat ax25 =="
     netstat --ax25
+}
+
+# ===== function get_port_speed
+
+# Needs arg of port number, either 0 or 1
+# Uses port.conf file for:
+#  - port speed, kissattach parms & ax.25 parms
+#  - enabling split channel
+
+function get_port_speed() {
+    retcode=0
+    if [ -e $PORT_CFG_FILE ] ; then
+        dbgecho " ax25 port file exists"
+        portnumber=$1
+        if [ -z $portnumber ] ; then
+            echo "Need to supply a port number in get_port_speed"
+            return 1
+        fi
+
+        portname="udr$portnumber"
+        portcfg="port$portnumber"
+
+#        echo "Debug: portname=$portname, portcfg=$portcfg"
+
+        PORTSPEED=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+        dbgecho "AX.25: $portname speed: $PORTSPEED"
+
+        case $PORTSPEED in
+            1200)
+                dbgecho "parse baud_1200 section for $portname"
+            ;;
+            9600)
+                dbgecho "parse baud_9600 section for $portname"
+            ;;
+            off)
+                echo "Using split channel, port: $portname is off"
+            ;;
+            *)
+                echo "Invalid speed parameter: $PORTSPEED, found in $PORT_CFG_FILE"
+                retcode=1
+            ;;
+        esac
+    else
+        echo "ax25 port file: $PORT_CFG_FILE does not exist"
+        retcode=1
+    fi
+    return $retcode
 }
 
 # ===== function speed_status
