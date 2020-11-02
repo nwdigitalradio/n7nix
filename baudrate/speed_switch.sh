@@ -240,7 +240,7 @@ while [[ $# -gt 0 ]] ; do
             get_baudrates
             dbgecho " === set baudrate to: $baudrate"
             if [ "$baudrate" = "$ax25_udr0_baud" ] && [ $(pidof direwolf) ] ; then
-                echo " === baud rate already set & direwolf is running"
+                echo " === baud rate already set to $baudrate & direwolf is running"
                 exit 0
             fi
 
