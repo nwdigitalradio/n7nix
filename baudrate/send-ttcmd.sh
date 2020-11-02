@@ -193,6 +193,7 @@ function id_check() {
 function use_sox() {
 # Verify required programs are installed
 for prog_name in `echo ${PROGLIST}` ; do
+   echo "DEBUG: is program: $prog_name installed"
    type -P $prog_name &> /dev/null
    if [ $? -ne 0 ] ; then
       echo "$scriptname: Need to Install $prog_name program"
@@ -202,7 +203,7 @@ done
 if [ "$NEEDPKG_FLAG" = "true" ] ; then
    echo "Installing required packages"
    dbgecho "Debian packages: for aplay install alsa-utils, for gpio, install wiringpi"
-   sudo apt-get -y -q install alsa-utils
+   sudo apt-get -y -q install alsa-utils sox
    if [ ! -e "/usr/local/src/wiringpi-latest.deb" ] ; then
        # Need wiringPi version 2.52 for Raspberry Pi 4 which is not yet in Debian repos.
        wget -P /usr/local/src https://project-downloads.drogon.net/wiringpi-latest.deb
