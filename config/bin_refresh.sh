@@ -83,10 +83,16 @@ cp -u /usr/local/src/paclink-unix/test_scripts/chk_perm.sh $userbindir
 cp -u /home/$USER/n7nix/hostap/ap-*.sh $userbindir
 cp -u /home/$USER/n7nix/hostap/fixed_ip.sh $userbindir
 
+# Copy ardop & track file to local bin
 cp -u /home/$USER/n7nix/ardop/ardop-* $userbindir
 cp -u /home/$USER/n7nix/ardop/ardoplist.sh $userbindir
 cp -u /home/$USER/n7nix/tracker/tracker-* $userbindir
 cp -u /home/$USER/n7nix/tracker/updown_log.sh $userbindir
+
+# Copy baud rate chanage files to local bin
+cp -u /home/$USER/n7nix/baudrate/speed_switch.sh $userbindir
+cp -u /home/$USER/n7nix/baudrate/dw-ttcmd.sh $userbindir
+cp -u /home/$USER/n7nix/baudrate/send-ttcmd.sh $userbindir
 
 cp -u /home/$USER/n7nix/config/bin_refresh.sh $userbindir
 cp -u /home/$USER/n7nix/config/sensor_update.sh $userbindir
