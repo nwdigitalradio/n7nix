@@ -4,8 +4,9 @@
 # Switch for 1200 baud and 9600 baud packet speed
 #
 DEBUG=
-
 USER=$(whoami)
+scriptname="`basename $0`"
+
 BIN_PATH="/home/$USER/bin"
 
 PORT_CFG_FILE="/etc/ax25/port.conf"
@@ -201,9 +202,10 @@ function switch_config() {
 
 function usage() {
    echo "Usage: $scriptname [-b <speed>][-s][-d][-h]" >&2
+   echo " Default to toggling baud rate when no command line arguments found."
    echo "   -b <baudrate>  Set baud rate speed, 1200 or 9600"
    echo "   -s             Display current status of devices & ports"
-   echo "   -d             Set flag for verbose output"
+   echo "   -d             Set debug flag for verbose output"
    echo "   -h             Display this message"
    echo
 }
@@ -215,7 +217,7 @@ if [[ $EUID == 0 ]] ; then
    echo "Must NOT be root"
    exit 1
 fi
-
+USER=$(whoami)
 
 # If no port config file found create one
 if [ ! -f $PORT_CFG_FILE ] ; then
