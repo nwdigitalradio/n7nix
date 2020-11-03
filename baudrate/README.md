@@ -2,14 +2,62 @@
 
 # PRELIMINARY
 
+Use the following 3 scripts to change the direwolf baud rate of a remote
+machine.  _speed_switch.sh_ runs on both the local & remote machines
+to set the requested baud rate (either 1200 or 9600)
+
+
+* On the local machine:
+
+Use the _send-ttcmd.sh_ script to send a DTMF sequence that contains your
+call sign and the requested baud rate.
+
+* On the remote machine:
+
+When direwolf is configured properly it will call an external program.
+Use the _dw-ttcmd.sh_ script, called by direwolf, to set the requested
+baud rate.
+
+
 ### Scripts
 
 #### speed_switch.sh
 * Set parameters for kissattach & ax25parms for either 1200 or 9600 baud rates
   * Depends on file: /usr/local/etc/ax25/port.conf
+  * Runs on both local & remote stations
+  * Can be run manually from the command line
+    * Used by both _dw-ttcmd.sh_ and _send-ttcmd.sh_
 
 ```
-Usage:
+Usage: speed_switch.sh [-b <speed>][-s][-d][-h]
+ Default to toggling baud rate when no command line arguments found.
+   -b <baudrate>  Set baud rate speed, 1200 or 9600
+   -s             Display current status of devices & ports
+   -d             Set flag for verbose output
+   -h             Display this message
+```
+
+#### dw-ttcmd.sh
+
+* Script called from _direwolf_ when a proper DTMF sequence is
+detected on the remote station
+  * This script will call _speed_switch.sh_
+
+```
+Usage: dw-ttcmd.sh [-d][-h]
+   -d           set debug flag
+   -h           no arg, display this message
+```
+#### send-ttcmd.sh
+* Script run from local station that sends the DTMF tones to initiate baud rate change on remote station
+  * This script will call _speed_switch.sh_
+
+```
+Usage: send-ttcmd.sh [-c <connector>][-b <baudrate>][-h]
+   -b <baudrate>           either 1200 or 9600 baud, default 1200
+   -c <connector_location> either left (mDin6) or right (hd15/mDin6), default: left
+   -d                      set debug flag
+   -h                      no arg, display this message
 ```
 
 ### Using DTMF to switch a remote machine
@@ -90,5 +138,9 @@ TTCMD /root/dw-ttcmd.sh
 ```
 play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2 2> /dev/null
 ```
+* Unfortunately calling play for each tone pair is much slower than playing a generated wav file.
+
+* The programs I tried which did generate DTMF wav files did not
+generate a file that worked for the codec used with DRAWS
 
 #### end of document
