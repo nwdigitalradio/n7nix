@@ -3,7 +3,8 @@
 # dw-ttcmd.sh
 # Direwolf ttcmd to switch baud rate
 DEBUG=
-USER=pi
+USER=$(whoami)
+scriptname="`basename $0`"
 
 DW_TT_LOG_FILE="/home/$USER/tmp/dw-log.txt"
 DW_LOG_FILE="/var/log/direwolf/direwolf.log"
@@ -51,8 +52,15 @@ function usage() {
 
 # ===== main
 
-# First entry to log file
-echo -n "$(date) ttcmd: " | tee -a $DW_TT_LOG_FILE
+# Check if running as root
+if [[ $EUID != 0 ]] ; then
+   USER=$(whoami)
+   dbgecho "Running as user: $USER"
+else
+    echo
+    echo "Not required to be root to run this script."
+    exit 1
+fi
 
 while [[ $# -gt 0 ]] ; do
 key="$1"
@@ -75,6 +83,9 @@ case $key in
 esac
 shift # past argument or value
 done
+
+# First entry to log file
+echo -n "$(date) ttcmd: " | tee -a $DW_TT_LOG_FILE
 
 # Verify operating baudrate
 verify_baud

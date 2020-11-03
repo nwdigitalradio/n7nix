@@ -10,9 +10,10 @@
 # python3.7 dtmf-generator.py -p BA236288*A6B76B4C9B7# -f 20000 -t 0.08 -s 0.08 -o dtmfcmd.wav -a 90 -d
 #
 
-scriptname="`basename $0`"
-USER=
 DEBUG=
+USER=
+scriptname="`basename $0`"
+
 # Force generation of wav file even if it already exists.
 FORCE_GEN=
 CALLSIGN="N0ONE"
@@ -54,56 +55,6 @@ function ctrl_c() {
 	gpio -g write 12 0
 	gpio -g write 23 0
 	exit
-}
-
-# ===== function get_user
-
-function get_user() {
-   # Check if there is only a single user on this system
-   if (( `ls /home | wc -l` == 1 )) ; then
-      USER=$(ls /home)
-   else
-      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-      read -e USER
-   fi
-}
-
-# ==== function check_user
-# verify user name is legit
-
-function check_user() {
-   userok=false
-   dbgecho "$scriptname: Verify user name: $USER"
-   for username in $USERLIST ; do
-      if [ "$USER" = "$username" ] ; then
-         userok=true;
-      fi
-   done
-
-   if [ "$userok" = "false" ] ; then
-      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
-      exit 1
-   fi
-
-   dbgecho "using USER: $USER"
-}
-
-# ===== function get_user_name
-function get_user_name() {
-
-    # Verify user name
-    # Get list of users with home directories
-    USERLIST="$(ls /home)"
-    USERLIST="$(echo $USERLIST | tr '\n' ' ')"
-
-    # Check if user name was supplied on command line
-    if [ -z "$USER" ] ; then
-        # prompt for call sign & user name
-        # Check if there is only a single user on this system
-        get_user
-    fi
-    # Verify user name
-    check_user
 }
 
 # ===== function validate_callsign
@@ -240,11 +191,8 @@ if [[ $EUID != 0 ]] ; then
    USER=$(whoami)
    dbgecho "Running as user: $USER"
 else
-    # Running as root, get a user name
-    get_user_name
     echo
     echo "Not required to be root to run this script."
-    echo
     exit 1
 fi
 
