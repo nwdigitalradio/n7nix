@@ -2,20 +2,24 @@
 
 ### Introduction
 
-The following feature was requested by J P Watters KC9KKO. Until there
-is successful detection of both 1200 & 9600 baud packets on a single
-channel provide a way to configure a remote gateway to handle a
-requested baud rate.
+The following feature was requested by J P Watters KC9KKO.
+
+If we had support for simultaneous 1200 & 9600 baud packet with a
+single radio on a channel that would be idea. With the current way
+that Direwolf works it is not clear how that is possible.
+
+Until there is successful detection of both 1200 & 9600 baud packets
+on a single channel the method descibed below is a way to configure a
+remote gateway (Winlink, APRS) to handle a requested baud rate.
 
 Since direwolf can decode DTMF, use DTMF tones as the mechanism to
 change packet baud rate on the remote gateway.
 
 A script (send_ttcmd.sh) is run on a local station that specifies call
-sign & requested baud rate.  The request is encoded as a Touch Tone
-APRS object.
-
-Direwolf decodes the DTMF request, verifies the call sign is in a
-white list and configures itself to decode the specified baud rate.
+sign & requested baud rate for a remote gateway.  The request is
+encoded as a Touch Tone APRS object. On the remote station Direwolf
+decodes the DTMF request, verifies the call sign is found in a white
+list and configures itself to decode the specified baud rate.
 
 ### Script descriptions
 
@@ -62,7 +66,7 @@ Usage: speed_switch.sh [-b <speed>][-s][-d][-h]
 
 * Script called from _direwolf_ when a proper DTMF sequence is
 detected on the remote station
-  * This script will call _speed_switch.sh_
+  * This script will call _speed_switch.sh_ to set the baud rate on the remote machine.
 
 ```
 Usage: dw-ttcmd.sh [-d][-h]
@@ -71,7 +75,7 @@ Usage: dw-ttcmd.sh [-d][-h]
 ```
 ##### send-ttcmd.sh
 * Script run from local station that sends the DTMF tones to initiate baud rate change on remote station
-  * This script will call _speed_switch.sh_
+  * This script will call _speed_switch.sh_ to set the baud rate on the local machine.
 
 ```
 Usage: send-ttcmd.sh [-c <connector>][-b <baudrate>][-h]
@@ -153,7 +157,7 @@ TTCMD /home/$USER/bin/dw-ttcmd.sh
 * It is way too tedious to punch in the DTMF codes for each test run.
 * Unfortunately rigctl does not support setting DTMF codes for the Kenwood TM-V71a
 
-#### Use sox (play) from a shell script
+#### Use sox (play) from a shell script (send-ttcmd.sh)
 
 * [Audio Notes using play](http://www.noah.org/wiki/audio_notes)
 * http://www.noah.org/wiki/audio_notes#DTMF:_mix_some_tones_to_dial_a_phone
