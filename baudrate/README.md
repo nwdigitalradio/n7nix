@@ -38,7 +38,7 @@ When direwolf is configured properly on receipt of the APRS Touch Tone
 object it will call an external program, the _dw-ttcmd.sh_ script, to
 set the requested baud rate.
 
-[Installation notes](#Installation)
+[Installation Notes](#installation-notes)
 
 #### Scripts
 
@@ -81,9 +81,8 @@ Usage: send-ttcmd.sh [-c <connector>][-b <baudrate>][-h]
    -h                      no arg, display this message
 ```
 
-### Using DTMF to switch baud rate on a remote machine
+### Using Direwolf DTMF to switch baud rate on a remote machine
 
-#### Changes to direwolf config
 * Direwolf DTMF is meant to generate an APRS Object Report packet
   * Find the minimum required config to generate a Report packet so that an external program is called.
 
@@ -110,7 +109,6 @@ Push buttons for satellite gridsquare:
 * To determine the required Touch Tone sequence for the call sign
   * Output of the command: ```text2tt N7NIX```
 ```
-pi@testit2:/usr/local/src/direwolf-dev/build $ text2tt N7NIX
 Push buttons for multi-press method:
 "66777776644499"    checksum for call = 9
 Push buttons for two-key method:
@@ -119,18 +117,20 @@ Push buttons for fixed length 10 digit callsign:
 "6764902233"
 ```
 
-* Only criteria for DTMF string was to execute TTCMD
-  * The following is 4 character Maidenhead  and call sign string
+* Only criteria for DTMF string was to get command specified by TTCMD to run
+  * The following is 4 character Maidenhead  and call sign string used to create the DTMF tones.
 
 ```
 BA236212 * A6B76B4C9B7
 ```
 #### Changes to Direwolf config file
-* From direwolf manual
 
-The APRStt Gateway function allows a user, equipped with only a DTMF (_touch tone_) pad, to enter
-information into the global APRS network. Various configuration options determine how the touch tone
-sequences get translated to APRS "object" packets
+* __Note:__ all required modifications to the direwolf config file are done by executing the _tt_install.sh_ script.
+* From direwolf manual:
+
+> The APRStt Gateway function allows a user, equipped with only a DTMF (_touch tone_) pad, to enter
+> information into the global APRS network. Various configuration options determine how the touch tone
+> sequences get translated to APRS "object" packets
 
 * See [APRStt Implementation Notes](https://github.com/wb2osz/direwolf/blob/master/doc/APRStt-Implementation-Notes.pdf)
 
@@ -164,6 +164,7 @@ TTCMD /home/$USER/bin/dw-ttcmd.sh
 play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2 2> /dev/null
 ```
 * Unfortunately calling play for each tone pair is much slower than playing a generated wav file.
+  * Needs more research
 
 * The programs I tried which did generate DTMF wav files did not
 generate a file that worked for the codec used with DRAWS
