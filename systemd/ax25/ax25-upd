@@ -13,8 +13,6 @@ KISSPARMS="$SBINDIR/kissparms"
 
 PORT_CFG_FILE="/etc/ax25/port.conf"
 
-UDRCII=false
-
 # portname set in /etc/ax25/axports
 PORTNAME_1="udr0"
 PORTNAME_2="udr1"
