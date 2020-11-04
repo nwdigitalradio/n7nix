@@ -8,7 +8,7 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 pkgname="direwolf"
 
 #DW_VER="1.5"
-DW_VER="dev"
+DW_VER="1.6"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
