@@ -9,8 +9,10 @@ single radio on a channel that would be idea. With the current way
 that Direwolf works it is not clear how that is possible.
 
 Until there is successful detection of both 1200 & 9600 baud packets
-on a single channel the method descibed below is a way to configure a
-remote gateway (Winlink, APRS) to handle a requested baud rate.
+on a single channel there needs to be a methed to configure a remote
+gateway to handle a remotely requested baud rate. The method described
+below is a way to configure a remote gateway (Winlink, APRS) to handle
+a requested baud rate.
 
 Since direwolf can decode DTMF, use DTMF tones as the mechanism to
 change packet baud rate on the remote gateway.
