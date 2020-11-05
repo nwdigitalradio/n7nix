@@ -237,7 +237,7 @@ if [ $? -ne 0 ] ; then
     else
         set_dtoverlay="dtoverlay=udrc"
     fi
-    # Add to bottom of file
+    # Add to end of file
     cat << EOT >> /boot/config.txt
 
 # Flush all overlays, ie. deprecated overlays loaded from eeprom
