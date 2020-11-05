@@ -20,9 +20,9 @@ function is_pkg_installed() {
 
 function start_service() {
     service="$1"
-    echo "Starting: $service"
+    echo "Checking service: $service"
 
-    systemctl is-enabled "$service" > /dev/null 2>&1
+    systemctl is-enabled --quiet "$service"
     if [ $? -ne 0 ] ; then
         echo "ENABLING $service"
         $SYSTEMCTL enable "$service"
@@ -32,11 +32,16 @@ function start_service() {
         fi
     fi
 
-    $SYSTEMCTL --no-pager start "$service"
-    if [ "$?" -ne 0 ] ; then
-        echo "Problem starting $service"
-        systemctl status $service
-        exit
+    if systemctl is-active --quiet "$service" ; then
+        echo "Service: $service is already running"
+    else
+
+        $SYSTEMCTL --no-pager start "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem starting $service"
+            systemctl status $service
+            exit
+        fi
     fi
 }
 
@@ -94,6 +99,8 @@ fi
 
 echo "=== enable watchdog systemd service"
 
-start_service watchdog
-
-systemctl --no-pager status watchdog
+service="watchdog"
+start_service $service
+echo
+echo "Service: $service status"
+systemctl --no-pager status $service
