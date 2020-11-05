@@ -192,7 +192,7 @@ function switch_config() {
             return;
         ;;
     esac
-
+    # port number, speed (1200/9600) receive_out (audio/disc)
     set_baudrate 0 $newspeed_port0 $newreceive_out0
 
 }
@@ -203,10 +203,10 @@ function switch_config() {
 function usage() {
    echo "Usage: $scriptname [-b <speed>][-s][-d][-h]" >&2
    echo " Default to toggling baud rate when no command line arguments found."
-   echo "   -b <baudrate>  Set baud rate speed, 1200 or 9600"
-   echo "   -s             Display current status of devices & ports"
-   echo "   -d             Set debug flag for verbose output"
-   echo "   -h             Display this message"
+   echo "   -b | --baudrate <baudrate>  Set baud rate speed, 1200 or 9600"
+   echo "   -s | --status          Display current status of devices & ports"
+   echo "   -d | --debug           Set debug flag for verbose output"
+   echo "   -h | --help            Display this message"
    echo
 }
 
@@ -229,7 +229,7 @@ while [[ $# -gt 0 ]] ; do
     APP_ARG="$1"
 
     case $APP_ARG in
-        -s)
+        -s|--status|status)
             echo " === AX.25 baudrate status"
             speed_status
             exit 0
@@ -247,7 +247,9 @@ while [[ $# -gt 0 ]] ; do
             fi
 
             # default receive to discriminator
+            # port number, speed (1200/9600) receive_out (audio/disc)
             set_baudrate 0 $baudrate "disc"
+
             # Check if direwolf is already running.
             pid=$(pidof direwolf)
             if [ $? -eq 0 ] ; then
@@ -259,7 +261,7 @@ while [[ $# -gt 0 ]] ; do
 
             exit 0
         ;;
-        -d)
+        -d|--debug)
             echo "Verbose output"
             DEBUG=1
        ;;
@@ -282,8 +284,15 @@ switch_config
 echo "Verify port.conf"
 grep -i "^speed" $PORT_CFG_FILE
 echo
-echo "Verify direwolf.conf"
-grep -i "^MODEM" /etc/direwolf.conf
+echo "Verify $DIREWOLF_CFGFILE"
+speed_cnt=$(grep "^MODEM" $DIREWOLF_CFGFILE | wc -l)
+if [ $speed cnt > 0 ] && [ $speed_cnt <= 2 ] ; then
+    dbgecho "There are $speed_cnt instances of MODEM speed."
+else
+    echo "Error: Wrong count of MODEM speed instances: $speed_cnt"
+
+fi
+grep -i "^MODEM" $DIREWOLF_CFGFILE
 
 echo
 echo "=== set alsa config"
