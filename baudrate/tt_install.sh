@@ -49,18 +49,30 @@ if [ "$NEEDPKG_FLAG" = "true" ] ; then
 fi
 
 
-# Edit direwolf.conf
+## Edit direwolf.conf
 # Changes to Channel(0,1) section
 #  Add these lines
 #   DTMF
 #   TTOBJ 0 1 WIDE1-1
 
-sed '/^CHANNEL 0=.*/a DTMF\nTTOBJ 0 1 WIDE-1' $DIREWOLF_CFGFILE
+grep -q "^DTMF" $DIREWOLF_CFGFILE
+if [ ! "$?" ] ; then
+    sudo sed -i -e '/^CHANNEL 0.*/a DTMF\nTTOBJ 0 1 WIDE-1' $DIREWOLF_CFGFILE
+else
+    echo "DTMF already configured in $DIREWOLF_CFGFILE"
+fi
 
 # Changes in DTMF section
 # Add these lines
 #   TTMHEAD BAxxxxxx
 #   TTCMD /home/$USER/bin/dw-ttcmd.sh
+
+grep -q "^TTCMD" $DIREWOLF_CFGFILE
+if [ ! "$?" ] ; then
+    sudo sed -i -e "/^#DWAIT.*/a TTMHEADBAxxxxxx\nTTCMD /home/$USER/bin/dw-ttcmd.sh" $DIREWOLF_CFGFILE
+else
+    echo "TTCMD already configured in $DIREWOLF_CFGFILE"
+fi
 
 
 # Copy baud rate change scripts to local bin
