@@ -5,7 +5,7 @@
 The following feature was requested by J P Watters KC9KKO.
 
 If we had support for simultaneous 1200 & 9600 baud packet with a
-single radio on a channel that would be idea. With the current way
+single radio on a channel that would be ideal. With the current way
 that Direwolf works it is not clear how that is possible.
 
 Until there is successful detection of both 1200 & 9600 baud packets
