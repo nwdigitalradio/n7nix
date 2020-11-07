@@ -42,6 +42,64 @@ fi
     fi
 }
 
+# ===== function check_speed_config
+# arg1 - requested baud rate
+# Check modem baud rate amoung:
+#   port.conf,
+#   direwold config file
+#   Touch Tone requested speed
+
+function check_speed_config() {
+
+    req_brate="$1"
+    
+    # from port config file: baud rate for left connector
+    port_speed=$(grep -i "^speed=" $PORT_CFG_FILE | head -n 1)
+    # Get string after match string (equal sign)
+    port_speed="${port_speed#*=}"
+
+    # from direwolf config file: baud rate for channel 0
+    # first occurrence of MODEM keyword
+    dw_speed0=$(grep  "^MODEM" /etc/direwolf.conf | sed -n '1 s/.* //p')
+
+    # Reference
+    # baud rate for channel 1 in direwolf config file
+    # second occurrence
+    #dw_speed1=$(grep  "^MODEM" /etc/direwolf.conf | sed -n '2 s/.* //p')
+
+    change_brate=false
+    # Check baud rate against port.conf file
+    if [ "$port_speed" = "${req_brate}" ] ; then
+        # last entry to log file
+        echo "No config necessary: baudrate: ${req_brate}, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
+    else
+        # last entry to log file
+        echo "Need to change buadrate: baudrate: ${req_brate}, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
+        change_brate=true
+    fi
+
+    # Check baud rate against direwolf config file
+    if [ "$dw_speed0" = "${req_brate}" ] ; then
+        # last entry to log file
+        echo "No config necessary: baudrate: ${req_brate}, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
+        # Verify with port file
+        if [ $change_brate -eq true ] ; then
+            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed) & direwolf.conf ($dw_speed0)"
+        fi
+    else
+        # last entry to log file
+        echo "Need to change buadrate: baudrate: ${req_brate}, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
+        # Verify with port file
+        if [ $change_brate -eq false ] ; then
+            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed) & direwolf.conf ($dw_speed0)"
+        fi
+
+        change_brate=true
+    fi
+
+    
+}
+
 # ===== function usage
 function usage() {
    echo "Usage: $scriptname [-d][-h]" >&2
@@ -102,7 +160,7 @@ if [ $FILESIZE -eq 0 ] ; then
     fi
 fi
 
-# Get call sign & baudrate from direwolf log file
+# Verify baud rate in object sent via touch tones
 
 ### Method 1: use raw touch tone data
 
@@ -164,16 +222,5 @@ else
     echo "Error: baudrates do not match: Method 1: $ttbrate, Method 2: $buadrate"
 fi
 
-# Check speed control file
-# baud rate for left connector
-curr_speed=$(grep -i "^speed=" /usr/local/etc/ax25/port.conf | head -n 1)
-# Get string after match string (equal sign)
-curr_speed="${curr_speed#*=}"
-
-if [ "$curr_speed" = "${ttbrate}00" ] ; then
-    # last entry to log file
-    echo "No config necessary: baudrate: ${ttbrate}00, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
-else
-    # last entry to log file
-    echo "Will config: baudrate: ${ttbrate}00, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
-fi
+# Check if current speed config needs to change
+check_speed_config "${ttbrate}00"
