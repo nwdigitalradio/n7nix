@@ -16,10 +16,11 @@ DEBUG=1
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
-REPO_BASE_DIR="$HOME/dev/github"
+REPO_BASE_DIR="/usr/local/src"
 RMSGW_BUILD_DIR="$REPO_BASE_DIR/rmsgw"
 
 PKG_REQUIRE="xutils-dev libxml2 libxml2-dev python-requests"
+BUILD_PKG_REQUIRE="build-essential autoconf automake libtool"
 RMS_BUILD_FILE="rmsbuild.txt"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -98,9 +99,45 @@ fi
 
 check_user
 
+# check if build packages are installed
+dbgecho "Check build packages: $BUILD_PKG_REQUIRE"
+needs_pkg=false
+
+for pkg_name in `echo ${BUILD_PKG_REQUIRE}` ; do
+
+   is_pkg_installed $pkg_name
+   if [ $? -ne 0 ] ; then
+      echo "$scriptname: Will Install $pkg_name package"
+      needs_pkg=true
+      break
+   fi
+done
+
+if [ "$needs_pkg" = "true" ] ; then
+   echo
+   echo -e "=== Installing build tools"
+
+   apt-get install -y -q $BUILD_PKG_REQUIRE
+   if [ "$?" -ne 0 ] ; then
+      echo "Build tool install failed. Please try this command manually:"
+      echo "apt-get -y $BUILD_PKG_REQUIRE"
+      exit 1
+   fi
+fi
+
 # check if required packages are installed
 dbgecho "Check packages: $PKG_REQUIRE"
 needs_pkg=false
+
+sudo apt-get install -y -q python3-pip
+ 
+# python-requests package does not exist in Ubuntu 20.04
+hostnamectl | grep -iq "ubuntu 20.04"
+retcode=$?
+if [ $retcode -eq 0 ] ; then
+    PKG_REQUIRE="xutils-dev libxml2 libxml2-dev"
+    sudo python3 -m pip install requests
+fi
 
 for pkg_name in `echo ${PKG_REQUIRE}` ; do
 
@@ -136,7 +173,7 @@ find "$HOME" -type d -name "rmsgw" -printf "%d %p\n" | sort -n | cut -d' ' -f2 |
 
 # Does repo directory exist?
 if [ ! -d $REPO_BASE_DIR ] ; then
-   mkdir -p $REPO_BASE_DIR
+   sudo mkdir -p $REPO_BASE_DIR
    if [ "$?" -ne 0 ] ; then
       echo "Problems creating repo directory: $REPO_BASE_DIR"
       exit 1
@@ -149,7 +186,7 @@ fi
 if [ ! -d "$RMSGW_BUILD_DIR" ] ; then
    # repo not there so clone it
    cd $REPO_BASE_DIR
-   git clone https://github.com/nwdigitalradio/rmsgw
+   sudo git clone https://github.com/nwdigitalradio/rmsgw
    if [ "$?" -ne 0 ] ; then
       echo "$(tput setaf 1)Problem cloning repository rmsgw$(tput setaf 7)"
       exit 1
@@ -202,8 +239,17 @@ fi
 
 # rm /etc/rmsgw/stat/.*
 
+# Check if rmsgw group exists
+groupname="rmsgw"
+if [ $(getent group $groupname) ]; then
+  echo "group $groupname already exists."
+else
+  echo "Adding group: $groupname"
+  sudo groupadd $groupname
+fi
+
 # Assume user rmsgw does not exist
-adduser --no-create-home --system rmsgw
+sudo adduser --system --no-create-home --ingroup rmsgw rmsgw
 
 # Set proper permissions for channel & version aging files.
 sudo chown rmsgw:rmsgw /etc/rmsgw/stat
