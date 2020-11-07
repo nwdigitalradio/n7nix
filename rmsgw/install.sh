@@ -78,10 +78,14 @@ if [[ $EUID == 0 ]] ; then
    exit 1
 fi
 
+USER=$(whoami)
+
 # Get list of users with home directories
 USERLIST="$(ls /home)"
 USERLIST="$(echo $USERLIST | tr '\n' ' ')"
 
+# Do not look at passed args
+if [ 1 -eq 0 ] ; then
 # if there are any args on command line assume it's
 # user name & callsign
 if (( $# != 0 )) ; then
@@ -89,6 +93,11 @@ if (( $# != 0 )) ; then
 else
    get_user
 fi
+
+fi # end: do not run
+
+echo "DEBUG: user: $USER, running: $(whoami), arg: $1"
+
 
 if [ -z "$USER" ] ; then
    echo "USER string is null, get_user"
