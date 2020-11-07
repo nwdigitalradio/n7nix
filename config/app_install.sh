@@ -120,5 +120,5 @@ case $APP_SELECT in
 esac
 
 echo
-echo "$(date "+%Y %m %d %T %Z"): $scriptname: app install ($APP_SELECT) script FINISHED" | tee -a  $UDR_INSTALL_LOGFILE
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: app install ($APP_SELECT) script FINISHED" | sudo tee -a  $UDR_INSTALL_LOGFILE
 echo
