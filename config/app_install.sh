@@ -16,15 +16,22 @@ APP_SELECT="rmsgw"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function check_user
+# Not all installation scripts have running as root as a requirement
+
+function check_user() {
+
+    # Be sure we're running as root
+    if [[ $EUID != 0 ]] ; then
+        echo "$scriptname: Must be root"
+        exit 1
+    fi
+}
+
 # ===== main
 
 echo "$scriptname: script start"
 
-# Be sure we're running as root
-if [[ $EUID != 0 ]] ; then
-   echo "$scriptname: Must be root"
-   exit 1
-fi
 
 # Check if there are any args on command line
 if (( $# != 0 )) ; then
@@ -37,7 +44,8 @@ fi
 case $APP_SELECT in
    core)
       echo "$scriptname: Install core"
-
+      check_user # Verify running as root
+      
       # install systemd files
       pushd ../systemd
       /bin/bash ./install.sh
@@ -54,6 +62,8 @@ case $APP_SELECT in
    ;;
    plu)
       # install paclink-unix basic
+      check_user # Verify running as root
+      
       echo "$scriptname: Install paclink-unix"
       pushd ../plu
       source ./plu_install.sh
@@ -63,26 +73,32 @@ case $APP_SELECT in
    pluimap)
 #      echo "$scriptname: Install paclink-unix with imap"
       echo  "$scriptname: pluimap is under development, just use 'plu'"
+      check_user # Verify running as root   
+      
       pushd ../plu
-
       source ./plu_install.sh
-
       popd > /dev/null
    ;;
    uronode)
       echo "$scriptname: Install uronode"
+      check_user # Verify running as root
+      
       pushd ../uronode
       source ./uro_install.sh
       popd > /dev/null
    ;;
    tracker)
       echo "$scriptname: Install tracker (nix or dan)"
+      check_user # Verify running as root   
+      
       pushd ../tracker
       source ./tracker_install.sh
       popd > /dev/null
    ;;
    messanger)
-   # Install pluimap & nixtracker
+      # Install pluimap & nixtracker
+      check_user # Verify running as root
+      
       echo "$scriptname: Install messanger appliance"
       pushd ../plu
       # Command line arg prevents installation of pluweb.service
