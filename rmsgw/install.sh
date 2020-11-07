@@ -20,6 +20,7 @@ REPO_BASE_DIR="/usr/local/src"
 RMSGW_BUILD_DIR="$REPO_BASE_DIR/rmsgw"
 
 PKG_REQUIRE="xutils-dev libxml2 libxml2-dev python-requests"
+
 BUILD_PKG_REQUIRE="build-essential autoconf automake libtool"
 RMS_BUILD_FILE="rmsbuild.txt"
 
@@ -135,19 +136,27 @@ if [ "$needs_pkg" = "true" ] ; then
 fi
 
 # check if required packages are installed
-dbgecho "Check packages: $PKG_REQUIRE"
-needs_pkg=false
+PKG_REQUIRE="xutils-dev libxml2 libxml2-dev python-requests"
 
 sudo apt-get install -y -q python3-pip
  
 # python-requests package does not exist in Ubuntu 20.04
-hostnamectl | grep -iq "ubuntu 20.04"
+# hostnamectl | grep -iq "ubuntu 20.04"
+# Is there a policy for package: python-requests
+# policy_requests=$(apt-cache policy python-requests)
+
+
+package="python-requests"
+apt-cache policy $package 2>&1 | grep -qi "$package"
 retcode=$?
-if [ $retcode -eq 0 ] ; then
+if [ $retcode -ne 0 ] ; then
     PKG_REQUIRE="xutils-dev libxml2 libxml2-dev"
     sudo python3 -m pip install requests
 fi
 
+dbgecho "Check packages: $PKG_REQUIRE"
+
+needs_pkg=false
 for pkg_name in `echo ${PKG_REQUIRE}` ; do
 
    is_pkg_installed $pkg_name
@@ -178,9 +187,7 @@ echo "All required packages installed."
 # Find shortest path to rmsgw dir - not used
 find "$HOME" -type d -name "rmsgw" -printf "%d %p\n" | sort -n | cut -d' ' -f2 | head -1
 
-# go to repo dir $REPO_BASE_DIR
-
-# Does repo directory exist?
+# Does repo base directory exist?
 if [ ! -d $REPO_BASE_DIR ] ; then
    sudo mkdir -p $REPO_BASE_DIR
    if [ "$?" -ne 0 ] ; then
@@ -203,6 +210,7 @@ if [ ! -d "$RMSGW_BUILD_DIR" ] ; then
    # Change permissions to USER for build
    sudo chown -R $USER:$USER $RMSGW_BUILD_DIR
 else
+   # Get here to update local rmsgw repository
    echo "Directory rmsgw already exists, attempting to update"
    cd $RMSGW_BUILD_DIR
    # Test if this diretory is really a git repo
