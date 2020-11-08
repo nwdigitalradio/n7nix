@@ -19,6 +19,8 @@ FORCE_GEN=
 CALLSIGN="N0ONE"
 AX25_CFGDIR="/usr/local/etc/ax25"
 AXPORTS_FILE="$AX25_CFGDIR/axports"
+PORT_CFG_FILE="/etc/ax25/port.conf"
+DW_TT_LOG_FILE="/$HOME/tmp/dw-log.txt"
 
 # default connector location, use left connector on a draws hat
 udrc_prod_id=4
@@ -142,25 +144,25 @@ function id_check() {
 }
 
 function use_sox() {
-# Verify required programs are installed
-for prog_name in `echo ${PROGLIST}` ; do
-   echo "DEBUG: is program: $prog_name installed"
-   type -P $prog_name &> /dev/null
-   if [ $? -ne 0 ] ; then
-      echo "$scriptname: Need to Install $prog_name program"
-      NEEDPKG_FLAG=true
-   fi
-done
-if [ "$NEEDPKG_FLAG" = "true" ] ; then
-   echo "Installing required packages"
-   dbgecho "Debian packages: for aplay install alsa-utils, for gpio, install wiringpi"
-   sudo apt-get -y -q install alsa-utils sox
-   if [ ! -e "/usr/local/src/wiringpi-latest.deb" ] ; then
-       # Need wiringPi version 2.52 for Raspberry Pi 4 which is not yet in Debian repos.
-       wget -P /usr/local/src https://project-downloads.drogon.net/wiringpi-latest.deb
-   fi
-   sudo dpkg -i /usr/local/src/wiringpi-latest.deb
-fi
+    # Verify required programs are installed
+    for prog_name in `echo ${PROGLIST}` ; do
+         dbgecho "DEBUG: is program: $prog_name installed"
+         type -P $prog_name &> /dev/null
+         if [ $? -ne 0 ] ; then
+             echo "$scriptname: Need to Install $prog_name program"
+             NEEDPKG_FLAG=true
+         fi
+    done
+    if [ "$NEEDPKG_FLAG" = "true" ] ; then
+        echo "Installing required packages"
+        dbgecho "Debian packages: for aplay install alsa-utils, for gpio, install wiringpi"
+        sudo apt-get -y -q install alsa-utils sox
+        if [ ! -e "/usr/local/src/wiringpi-latest.deb" ] ; then
+            # Need wiringPi version 2.52 for Raspberry Pi 4 which is not yet in Debian repos.
+            wget -P /usr/local/src https://project-downloads.drogon.net/wiringpi-latest.deb
+        fi
+        sudo dpkg -i /usr/local/src/wiringpi-latest.deb
+    fi
 }
 
 # ===== function device_name_verify
@@ -169,6 +171,65 @@ fi
 function device_name_verify() {
     retcode=0
     return $retcode
+}
+
+# ===== function check_speed_config
+# arg1 - requested baud rate
+# Check modem baud rate amoung:
+#   port.conf,
+#   direwold config file
+#   Touch Tone requested speed
+
+function check_speed_config() {
+
+    req_brate="$1"
+
+    # Initialize baudrate boolean to false
+    change_brate=0
+
+    # from port config file: baud rate for left connector
+    port_speed0=$(grep -i "^speed=" $PORT_CFG_FILE | head -n 1)
+    # Get string after match string (equal sign)
+    port_speed0="${port_speed0#*=}"
+
+    # from direwolf config file: baud rate for channel 0
+    # first occurrence of MODEM keyword
+    dw_speed0=$(grep  "^MODEM" /etc/direwolf.conf | sed -n '1 s/.* //p')
+
+    # Reference
+    # baud rate for channel 1 in direwolf config file
+    # second occurrence
+    #dw_speed1=$(grep  "^MODEM" /etc/direwolf.conf | sed -n '2 s/.* //p')
+
+    # Check baud rate against port.conf file
+    if [ "$port_speed0" = "${req_brate}" ] ; then
+        # last entry to log file
+        dbgecho "port.conf: No config necessary: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+    else
+        # log file entry
+        dbgecho "port.conf: Requested baudrate change: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+        change_brate=1
+    fi
+
+    # Check baud rate against direwolf config file
+    if [ "$dw_speed0" = "${req_brate}" ] ; then
+        # log file entry
+        dbgecho "direwolf.conf: No config necessary: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+        # Verify with port file
+        if [ $change_brate -eq 1 ] ; then
+            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed0) & direwolf.conf ($dw_speed0)" | tee -a $DW_TT_LOG_FILE
+        fi
+    else
+        # log file entry
+        dbgecho "direwolf.conf: Requested baudrate change: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+        # Verify with port file
+        if [ $change_brate -eq 0 ] ; then
+            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed0) & direwolf.conf ($dw_speed0)" | tee -a $DW_TT_LOG_FILE
+        fi
+
+        change_brate=1
+    fi
+    return $change_brate
 }
 
 # ===== function usage
@@ -196,7 +257,7 @@ else
     exit 1
 fi
 
-bin="/home/$USER/bin"
+bin="/$HOME/bin"
 
 dbgecho "Parse command line args"
 # Command line args are passed with a dash & single letter
@@ -209,6 +270,7 @@ case $key in
    -b|--baudrate)
       baudrate="$2"
       shift # past argument
+      dbgecho "Command Line: Setting baudrate to $baudrate"
    ;;
    -c|--connector)
       connector="$2"
@@ -220,6 +282,10 @@ case $key in
    -d|--debug)
       DEBUG=1
       echo "Debug mode on"
+   ;;
+   -D|--debug1)
+      DEBUG1=1
+      echo "Debug 1 mode on"
    ;;
    -h|--help|?)
       usage
@@ -234,6 +300,14 @@ case $key in
 esac
 shift # past argument or value
 done
+
+## Verify a UDRC HAT is installed
+id_check
+id_check_ret=$?
+if [ $id_check_ret -eq 0 ] || [ $id_check_ret -eq 1 ] ; then
+   echo "No UDRC or DRAWS found, id_check=$id_check_ret exiting ..."
+   exit 1
+fi
 
 ## Get a valid callsign
 
@@ -273,7 +347,7 @@ ttcallsign="A$tt_str1$checksum"
 if (( ${#baudrate} > 2 )) ; then
     baudrate=$(echo $baudrate | cut -c1-2)
 fi
-echo "DEBUG: Using baud rate: $baudrate"
+dbgecho "For Touch Tone request baud rate: $baudrate"
 
 encoded_br="CN$baudrate"
 tt_str1=$(text2tt $encoded_br | grep -A1 "Maidenhead Grid Square" | tail -n 1)
@@ -288,14 +362,6 @@ echo "                 CMDSTR: BA236288*A6B76B4C9B7#"
 
 dbgecho "Verify required programs"
 use_sox
-
-# Verify a UDRC HAT is installed
-id_check
-id_check_ret=$?
-if [ $id_check_ret -eq 0 ] || [ $id_check_ret -eq 1 ] ; then
-   echo "No UDRC or DRAWS found, id_check=$id_check_ret exiting ..."
-   exit 1
-fi
 
 # Validate channel location
 # Set correct PTT gpio for channel 0 or 1
@@ -354,6 +420,8 @@ echo "Test with PTT GPIO $gpio_pin"
 gpio -g mode $gpio_pin out
 gpio -g write $gpio_pin 1
 
+# end DEBUG test
+
 # This does not work
 #aplay -vv -D hw:CARD=udrc,DEV=0 $wavefile
 # this works
@@ -369,6 +437,7 @@ echo "Using audio device $AUDIODEV with play"
 CMDSTR="${ttbaudrate}*${ttcallsign}#"
 echo "Sending command string: $CMDSTR"
 # Perform a 'for' loop on each character in a string in Bash
+if [ ! -z $DEBUG  ] ; then
 for (( i=0; i < ${#CMDSTR}; i++)) ; do
   tonechar="${CMDSTR:$i:1}"
   if [ -z ${dmtffreq[$tonechar 1]} ] || [ -z ${dmtffreq[$tonechar 2]} ] ; then
@@ -379,9 +448,33 @@ for (( i=0; i < ${#CMDSTR}; i++)) ; do
   # dbgecho "Return code from aplay: $?"
 done
 
+else
+
+    if [ ! -z $DEBUG1 ] ; then
+       echo "play individual"
+       for (( i=0; i < ${#CMDSTR}; i++)) ; do
+           tonechar="${CMDSTR:$i:1}"
+           play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2  2> /dev/null
+       done
+    else
+        echo "play one big file"
+        play -q ttcmd_big.wav
+#       play  ttcmd_big.wav
+    fi
+
+
+fi
 # Turn off PTT
 gpio -g write $gpio_pin 0
 
-echo "Is carrier turned off gpio 12: $(gpio -g read 12), gpio 23: $(gpio -g read 23)?"
+dbgecho "Is carrier turned off gpio 12: $(gpio -g read 12), gpio 23: $(gpio -g read 23)?"
+
+# Check if local speed config needs to change
+check_speed_config $baudrate
+if [ $? -eq 1 ] ; then
+    echo "Requested LOCAL baudrate change: baudrate: ${baudrate}" | tee -a $DW_TT_LOG_FILE
+else
+   echo "No LOCAL baud rate change required: $dw_speed0"
+fi
 
 exit 0

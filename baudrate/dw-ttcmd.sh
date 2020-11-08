@@ -53,6 +53,9 @@ function check_speed_config() {
 
     req_brate="$1"
     
+    # Initialize baudrate boolean to false
+    change_brate=0
+    
     # from port config file: baud rate for left connector
     port_speed=$(grep -i "^speed=" $PORT_CFG_FILE | head -n 1)
     # Get string after match string (equal sign)
@@ -67,44 +70,42 @@ function check_speed_config() {
     # second occurrence
     #dw_speed1=$(grep  "^MODEM" /etc/direwolf.conf | sed -n '2 s/.* //p')
 
-    change_brate=false
     # Check baud rate against port.conf file
     if [ "$port_speed" = "${req_brate}" ] ; then
         # last entry to log file
-        echo "No config necessary: baudrate: ${req_brate}, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
+        dbgecho "port.conf: No config necessary: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
     else
-        # last entry to log file
-        echo "Need to change buadrate: baudrate: ${req_brate}, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
-        change_brate=true
+        # log file entry
+        dbgecho "port.conf: Requested baudrate change: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+        change_brate=1
     fi
 
     # Check baud rate against direwolf config file
     if [ "$dw_speed0" = "${req_brate}" ] ; then
-        # last entry to log file
-        echo "No config necessary: baudrate: ${req_brate}, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
+        # log file entry
+        dbgecho "direwolf.conf: No config necessary: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
         # Verify with port file
-        if [ $change_brate -eq true ] ; then
-            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed) & direwolf.conf ($dw_speed0)"
+        if [ $change_brate -eq 1 ] ; then
+            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed) & direwolf.conf ($dw_speed0)" | tee -a $DW_TT_LOG_FILE
         fi
     else
-        # last entry to log file
-        echo "Need to change buadrate: baudrate: ${req_brate}, call sign: $ttcallsign" | tee -a $DW_TT_LOG_FILE
+        # log file entry
+        dbgecho "direwolf.conf: Requested baudrate change: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
         # Verify with port file
-        if [ $change_brate -eq false ] ; then
-            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed) & direwolf.conf ($dw_speed0)"
+        if [ $change_brate -eq 0 ] ; then
+            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed) & direwolf.conf ($dw_speed0)" | tee -a $DW_TT_LOG_FILE
         fi
 
-        change_brate=true
+        change_brate=1
     fi
-
-    
+    return $change_brate
 }
 
 # ===== function usage
 function usage() {
    echo "Usage: $scriptname [-d][-h]" >&2
-   echo "   -d                      set debug flag"
-   echo "   -h                      no arg, display this message"
+   echo "   -d         set debug flag"
+   echo "   -h         no arg, display this message"
    echo
 }
 
