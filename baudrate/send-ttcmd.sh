@@ -232,11 +232,129 @@ function check_speed_config() {
     return $change_brate
 }
 
+# ===== function send_ttones_individ
+# Send individually generated Touch Tone
+
+function send_ttones_individ() {
+
+    # This does not work
+    #aplay -vv -D hw:CARD=udrc,DEV=0 $wavefile
+    # *this works*
+    ### aplay -vv -f s16_LE -D plughw:CARD=udrc,DEV=0 $wavefile
+
+    #aplay -vv -D "plughw:1,0" $wavefile
+    #aplay -vv -f s32_LE -c 2 -d 20 -D plughw:2,0 $wavefile
+
+    # play touch tones individually
+
+    echo "Sending command string: $CMDSTR"
+
+    # Perform a 'for' loop on each character in a string in Bash
+    if [ ! -z $DEBUG  ] ; then
+        for (( i=0; i < ${#CMDSTR}; i++)) ; do
+            tonechar="${CMDSTR:$i:1}"
+            if [ -z ${dmtffreq[$tonechar 1]} ] || [ -z ${dmtffreq[$tonechar 2]} ] ; then
+                echo "Frequencies for DTMF char $tonechar is not defined"
+            fi
+            dbgecho "$tonechar First: ${dmtffreq[$tonechar 1]} Second: ${dmtffreq[$tonechar 2]}"
+            play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2 2> /dev/null
+            # dbgecho "Return code from aplay: $?"
+        done
+
+    else
+        if [ ! -z $DEBUG1 ] ; then
+            echo "play individual"
+            for (( i=0; i < ${#CMDSTR}; i++)) ; do
+                tonechar="${CMDSTR:$i:1}"
+                play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2  2> /dev/null
+            done
+        else
+            echo "play one big file"
+            play -q ttcmd_big.wav
+        fi
+    fi
+}
+
+# ===== function draws_setup
+
+function draws_setup() {
+
+    ## Verify a UDRC HAT is installed
+    id_check
+    id_check_ret=$?
+    if [ $id_check_ret -eq 0 ] || [ $id_check_ret -eq 1 ] ; then
+        echo "No UDRC or DRAWS found, id_check=$id_check_ret exiting ..."
+        exit 1
+    fi
+
+    # Validate channel connector location
+    # Set correct PTT gpio for channel 0 or 1
+    # DRAWS Hat has channel 0 on left & channel 1 on right connector
+    case $connector in
+       left)
+          # Check for UDRC II
+          if [ $udrc_prod_id == 3 ]  ; then
+             # uses audio channel 1 PTT gpio
+             gpio_pin=23
+          else
+             # Original UDRC & DRAWS HAT use chan 0 PTT gpio
+             gpio_pin=12
+          fi
+       ;;
+       right)
+          if [ $udrc_prod_id == 4 ] ; then
+              # use channel 1 PTT gpio
+              gpio_pin=23
+          else
+              # Original UDRC & UDRC II use chan 0 PTT gpio
+              gpio_pin=12
+          fi
+       ;;
+       *)
+          echo "Wrong din connector location specified: $connector"
+          usage
+          exit 1
+       ;;
+    esac
+
+    # Won't work unless gpio 4 is set to ALT 0
+    # gpio 4 (BCM) is calld gpio. 7 by WiringPi
+    mode_gpio7="$(gpio readall | grep -i "gpio. 7" | cut -d "|" -f 5 | tr -d '[:space:]')"
+    if [ "$mode_gpio7" != "ALT0" ] ; then
+        echo
+        echo "  gpio 7 is in wrong mode: |$mode_gpio7|, should be: ALT0"
+        echo "  Setting gpio set to mode ALT0"
+        gpio mode 7 ALT0
+        echo
+    fi
+
+    export AUDIODEV=plughw:CARD=udrc,DEV=0
+    echo "Using audio device $AUDIODEV with play"
+}
+
+# ===== function draws_gpio_on
+
+function draws_gpio_on() {
+    echo "Using PTT GPIO $gpio_pin"
+
+    # Enable PTT
+    gpio -g mode $gpio_pin out
+    gpio -g write $gpio_pin 1
+}
+
+# ===== function draws_gpio_off
+
+function draws_gpio_off() {
+    # Turn off PTT
+    gpio -g write $gpio_pin 0
+    dbgecho "Is carrier turned off gpio 12: $(gpio -g read 12), gpio 23: $(gpio -g read 23)?"
+}
+
 # ===== function usage
 function usage() {
    echo "Usage: $scriptname [-c <connector>][-b <baudrate>][-h]" >&2
    echo "   -b <baudrate>           either 1200 or 9600 baud, default 1200"
-   echo "   -c <connector_location> either left (mDin6) or right (hd15/mDin6), default: left"
+   echo "   -c <connector_location> DRAWS left (mDin6) or right (hd15/mDin6), default: left"
    echo "   -d                      set debug flag"
    echo "   -h                      no arg, display this message"
    echo
@@ -301,14 +419,6 @@ esac
 shift # past argument or value
 done
 
-## Verify a UDRC HAT is installed
-id_check
-id_check_ret=$?
-if [ $id_check_ret -eq 0 ] || [ $id_check_ret -eq 1 ] ; then
-   echo "No UDRC or DRAWS found, id_check=$id_check_ret exiting ..."
-   exit 1
-fi
-
 ## Get a valid callsign
 
 get_axports_callsign
@@ -363,36 +473,6 @@ echo "                 CMDSTR: BA236288*A6B76B4C9B7#"
 dbgecho "Verify required programs"
 use_sox
 
-# Validate channel location
-# Set correct PTT gpio for channel 0 or 1
-# DRAWS Hat has channel 0 on left & channel 1 on right connector
-case $connector in
-   left)
-      # Check for UDRC II
-      if [ $udrc_prod_id == 3 ]  ; then
-         # uses audio channel 1 PTT gpio
-         gpio_pin=23
-      else
-         # Original UDRC & DRAWS HAT use chan 0 PTT gpio
-         gpio_pin=12
-      fi
-   ;;
-   right)
-      if [ $udrc_prod_id == 4 ] ; then
-          # use channel 1 PTT gpio
-          gpio_pin=23
-      else
-          # Original UDRC & UDRC II use chan 0 PTT gpio
-          gpio_pin=12
-      fi
-   ;;
-   *)
-      echo "Wrong connector location specified: $connector"
-      usage
-      exit 1
-   ;;
-esac
-
 # Need path to ax25-stop script
 # - $USER variable should be set
 # aplay will NOT work if direwolf or any other sound card program is running
@@ -403,71 +483,14 @@ if [ $? -eq 0 ] ; then
    sudo $bin/ax25-stop
 fi
 
-# Won't work unless gpio 4 is set to ALT 0
-# gpio 4 (BCM) is calld gpio. 7 by WiringPi
-mode_gpio7="$(gpio readall | grep -i "gpio. 7" | cut -d "|" -f 5 | tr -d '[:space:]')"
-if [ "$mode_gpio7" != "ALT0" ] ; then
-   echo
-   echo "  gpio 7 is in wrong mode: |$mode_gpio7|, should be: ALT0"
-   echo "  Setting gpio set to mode ALT0"
-   gpio mode 7 ALT0
-   echo
-fi
+draws_setup
+draws_gpio_on
 
-echo "Test with PTT GPIO $gpio_pin"
-
-# Enable PTT
-gpio -g mode $gpio_pin out
-gpio -g write $gpio_pin 1
-
-# end DEBUG test
-
-# This does not work
-#aplay -vv -D hw:CARD=udrc,DEV=0 $wavefile
-# this works
-### aplay -vv -f s16_LE -D plughw:CARD=udrc,DEV=0 $wavefile
-
-#aplay -vv -D "plughw:1,0" $wavefile
-#aplay -vv -f s32_LE -c 2 -d 20 -D plughw:2,0 $wavefile
-
-export AUDIODEV=plughw:CARD=udrc,DEV=0
-echo "Using audio device $AUDIODEV with play"
-
-# play touch tones
 CMDSTR="${ttbaudrate}*${ttcallsign}#"
-echo "Sending command string: $CMDSTR"
-# Perform a 'for' loop on each character in a string in Bash
-if [ ! -z $DEBUG  ] ; then
-for (( i=0; i < ${#CMDSTR}; i++)) ; do
-  tonechar="${CMDSTR:$i:1}"
-  if [ -z ${dmtffreq[$tonechar 1]} ] || [ -z ${dmtffreq[$tonechar 2]} ] ; then
-      echo "Frequencies for DTMF char $tonechar is not defined"
-  fi
-  dbgecho "$tonechar First: ${dmtffreq[$tonechar 1]} Second: ${dmtffreq[$tonechar 2]}"
-  play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2 2> /dev/null
-  # dbgecho "Return code from aplay: $?"
-done
+echo "DEBUG 1: cmdstr: $CMDSTR, baud: ${ttbaudrate}"
+send_ttones_individ
 
-else
-
-    if [ ! -z $DEBUG1 ] ; then
-       echo "play individual"
-       for (( i=0; i < ${#CMDSTR}; i++)) ; do
-           tonechar="${CMDSTR:$i:1}"
-           play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2  2> /dev/null
-       done
-    else
-        echo "play one big file"
-        play -q ttcmd_big.wav
-#       play  ttcmd_big.wav
-    fi
-
-
-fi
-# Turn off PTT
-gpio -g write $gpio_pin 0
-
-dbgecho "Is carrier turned off gpio 12: $(gpio -g read 12), gpio 23: $(gpio -g read 23)?"
+draws_gpio_off
 
 # Check if local speed config needs to change
 check_speed_config $baudrate
