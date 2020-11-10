@@ -1,9 +1,15 @@
 #!/bin/bash
-# Change trigger method for one of the RPi leds
+#
+# There are two LEDs on a Raspberry Pi
+#  PWR
+#  ACT
+#
+# Change trigger method for the activity RPi led
+# How to turn off the power led
+DEBUG=
 
-DEBUG=1
 scriptname="`basename $0`"
-# Set led to act on
+# Select led 0=green activity LED, 1=red power LED
 LED_N="0"
 
 # Read current trigger method
@@ -17,7 +23,7 @@ function dbgecho  { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 #
 usage () {
 	(
-	echo "Usage: $scriptname [heartbeat][mmc][timer]"
+	echo "Usage: $scriptname [-l <led_id>][heartbeat][mmc][timer][on][off]"
         ) 1>&2
         exit 1
 }
@@ -27,22 +33,78 @@ usage () {
 # Check for any command line arguments
 if [[ $# -gt 0 ]] ; then
 
+while [[ $# -gt 0 ]] ; do
+key="$1"
+
     key="$1"
-    echo "Found argument $key"
+    dbgecho "Found argument $key"
 
     case $key in
-          timer)
-            dbgecho "Changing led trigger from $trigger to timer"
-             echo timer | sudo tee /sys/class/leds/led$LED_N/trigger
+        -l)
+	    # Select either led 0 or 1
+	    LED_N=$2
+            shift # past argument
+	    if [ $LED_N -ne 0 ] && [ $LED_N -ne 1 ] ; then
+	        echo "Invalid LED id, must be either 0 or 1"
+		usage
+	    fi
+	;;
+        timer)
+            # Read current trigger method
+            trigger=$(cat /sys/class/leds/led$LED_N/trigger | cut -d '[' -f 2 | cut -d ']' -f1)
+
+            echo "Changing led trigger from $trigger to timer"
+            echo timer | sudo tee /sys/class/leds/led$LED_N/trigger > /dev/null
         ;;
         heartbeat)
-            dbgecho "Changing led trigger from $trigger to heartbeat blink"
-             echo heartbeat | sudo tee /sys/class/leds/led$LED_N/trigger
+            # Read current trigger method
+            trigger=$(cat /sys/class/leds/led$LED_N/trigger | cut -d '[' -f 2 | cut -d ']' -f1)
+
+            echo "Changing led trigger from $trigger to heartbeat blink"
+            echo heartbeat | sudo tee /sys/class/leds/led$LED_N/trigger > /dev/null
         ;;
         mmc)
-            dbgecho "Changing led trigger from $trigger to ssd card activity"
-            echo mmc0 | sudo tee /sys/class/leds/led$LED_N/trigger
+            # Read current trigger method
+            trigger=$(cat /sys/class/leds/led$LED_N/trigger | cut -d '[' -f 2 | cut -d ']' -f1)
+
+            echo "Changing led trigger from $trigger to ssd memory card activity"
+            echo mmc0 | sudo tee /sys/class/leds/led$LED_N/trigger > /dev/null
         ;;
+	on)
+            # Read current brightness value
+            brightness=$(cat /sys/class/leds/led$LED_N/brightness)
+
+	    if [ $LED_N = 1 ] ; then
+                echo "Changing led brightness from $brightness to full on"
+                echo 255 | sudo tee /sys/class/leds/led$LED_N/brightness > /dev/null
+		echo "default-on" | sudo tee /sys/class/leds/led$LED_N/trigger > /dev/null
+            else
+                # Read current trigger method
+                trigger=$(cat /sys/class/leds/led$LED_N/trigger | cut -d '[' -f 2 | cut -d ']' -f1)
+
+                echo "Changing led trigger from $trigger to heartbeat"
+                echo heartbeat | sudo tee /sys/class/leds/led$LED_N/trigger  > /dev/null
+	    fi
+	;;
+	off)
+	    if [ $LED_N = 1 ] ; then
+                # Read current brightness value
+                brightness=$(cat /sys/class/leds/led$LED_N/brightness)
+                echo "Changing led brightness from $brightness to off"
+                echo 0 | sudo tee /sys/class/leds/led$LED_N/brightness  > /dev/null
+            else
+                # Read current trigger method
+                trigger=$(cat /sys/class/leds/led$LED_N/trigger | cut -d '[' -f 2 | cut -d ']' -f1)
+
+                echo "Changing led trigger from $trigger to none"
+                echo none | sudo tee /sys/class/leds/led$LED_N/trigger > /dev/null
+	    fi
+	;;
+        -d|--debug)
+            DEBUG=1
+            echo "Debug mode on"
+        ;;
+
         -h)
             usage
             exit 1
@@ -53,6 +115,15 @@ if [[ $# -gt 0 ]] ; then
             exit 1
         ;;
     esac
+shift # past argument or value
+done
 else
-    echo "led$LED_N triggers on: $trigger"
+    LED_N=0
+    trigger=$(cat /sys/class/leds/led$LED_N/trigger | cut -d '[' -f 2 | cut -d ']' -f1)
+    brightness=$(cat /sys/class/leds/led$LED_N/brightness)
+    echo "led$LED_N triggers on: $trigger, brightness: $brightness"
+    LED_N=1
+    trigger=$(cat /sys/class/leds/led$LED_N/trigger | cut -d '[' -f 2 | cut -d ']' -f1)
+    brightness=$(cat /sys/class/leds/led$LED_N/brightness)
+    echo "led$LED_N triggers on: $trigger, brightness: $brightness"
 fi
