@@ -26,6 +26,9 @@ DW_TT_LOG_FILE="/$HOME/tmp/dw-log.txt"
 udrc_prod_id=4
 connector="left"
 
+# Set default Touch Tone generation method
+tone_gen_method="file"
+
 PROD_ID_NAMES=("INVALID" "INVALID" "UDRC" "UDRC II" "DRAWS" "1WSpot")
 NWDIG_VENDOR_NAME="NW Digital Radio"
 
@@ -232,6 +235,53 @@ function check_speed_config() {
     return $change_brate
 }
 
+# ===== function gen_wave_file
+# Generate a single Touch Tone wave file
+# Plays a little faster than the individual playing of each touch tone
+
+function gen_wave_file() {
+    ## Generate individual Two Tone files
+    for (( i=0; i < ${#CMDSTR}; i++)) ; do
+        tonechar="${CMDSTR:$i:1}"
+
+        # play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2 2> /dev/null
+
+        output_name="ttcmd_$i.wav"
+        # sox -n $output_name synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2 silence 1 0.50 0.1%
+        sox -n $output_name synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2
+    done
+
+    # generate 0.1 second of silence for space between each tone pair
+    #sox -n -r 44100 -c 2 silence.wav trim 0.0 0.5
+    sox -n silence.wav trim 0.0 0.1
+
+    ## Concatenate all the individual Two Tone files into one wav file
+    # sox short.au long.au longer.au
+    # sox ttcmd_0.wav silence.wav ttcmd_1.wav ttcmd_big.wav
+    # Start with silence
+    cp silence.wav ttcmd_big.wav
+
+    # Concatenate all required tones for the Touch Tone command
+    for (( i=0; i < ${#CMDSTR}; i++)) ; do
+        sox ttcmd_big.wav ttcmd_$i.wav silence.wav ttcmd_tmp.wav
+        mv ttcmd_tmp.wav ttcmd_big.wav
+    done
+}
+
+# ===== function send_ttones_file
+# Generate a single wave file & play one file only
+function send_ttones_file() {
+
+   echo "generate one wav file"
+   gen_wave_file
+
+   echo "play one wav file"
+   play -q ttcmd_big.wav
+
+}
+
+function send_ttones_individ() {
+
 # ===== function send_ttones_individ
 # Send individually generated Touch Tone
 
@@ -262,16 +312,11 @@ function send_ttones_individ() {
         done
 
     else
-        if [ ! -z $DEBUG1 ] ; then
-            echo "play individual"
-            for (( i=0; i < ${#CMDSTR}; i++)) ; do
-                tonechar="${CMDSTR:$i:1}"
-                play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2  2> /dev/null
-            done
-        else
-            echo "play one big file"
-            play -q ttcmd_big.wav
-        fi
+        echo "play individual"
+        for (( i=0; i < ${#CMDSTR}; i++)) ; do
+            tonechar="${CMDSTR:$i:1}"
+            play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2  2> /dev/null
+        done
     fi
 }
 
@@ -355,6 +400,7 @@ function usage() {
    echo "Usage: $scriptname [-c <connector>][-b <baudrate>][-h]" >&2
    echo "   -b <baudrate>           either 1200 or 9600 baud, default 1200"
    echo "   -c <connector_location> DRAWS left (mDin6) or right (hd15/mDin6), default: left"
+   echo "   -t <tone_gen>           Tone generation method, either individ, file, default: file"
    echo "   -d                      set debug flag"
    echo "   -h                      no arg, display this message"
    echo
@@ -401,9 +447,14 @@ case $key in
       DEBUG=1
       echo "Debug mode on"
    ;;
-   -D|--debug1)
-      DEBUG1=1
-      echo "Debug 1 mode on"
+   -t|--tone)
+       tone_gen_method="$2"
+       shift # past argument
+       if [ $tone_gen_method -ne "individ" ] && [ $tone_gen_method -ne "file" ] ; then
+           echo "Invalid tone generation method, must be either 'individ' or 'file'"
+           usage
+           exit 1
+       fi
    ;;
    -h|--help|?)
       usage
@@ -488,6 +539,8 @@ draws_gpio_on
 
 CMDSTR="${ttbaudrate}*${ttcallsign}#"
 echo "DEBUG 1: cmdstr: $CMDSTR, baud: ${ttbaudrate}"
+
+
 send_ttones_individ
 
 draws_gpio_off
