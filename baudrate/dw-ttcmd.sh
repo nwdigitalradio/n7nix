@@ -2,16 +2,26 @@
 #
 # dw-ttcmd.sh
 # Direwolf ttcmd to switch baud rate
+#
 DEBUG=
-USER=$(whoami)
+
 scriptname="`basename $0`"
 
-DW_TT_LOG_FILE="/home/$USER/tmp/dw-log.txt"
+DW_TT_LOG_FILE="/var/log/direwolf/dw-log.txt"
 DW_LOG_FILE="/var/log/direwolf/direwolf.log"
 PORT_CFG_FILE="/etc/ax25/port.conf"
 
+# For display to console
+#TEE_CMD="sudo tee -a $DW_TT_LOG_FILE"
+
+# For logging to log file only!
+# If you do not suppress stdout, direwolf will output it to radio in
+# Morse Code.
+TEE_CMD="sudo dd status=none of=$DW_TT_LOG_FILE oflag=append conv=notrunc"
+
+
 # ===== function debugecho
-function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*" | $TEE_CMD; fi }
 
 # ===== function verify_baud
 # Verify current baud rate
@@ -23,7 +33,7 @@ if (( $modem_cnt > 2 )) || (( $modem_cnt == 0 )) ; then
     exit 1
 fi
     # get baud rate from direwolf config file
-    dw_baudrate0=$(sed -n "0,/^MODEM/! {/^MODEM/p}" /etc/direwolf.conf | head -n 1 | cut -d' ' -f2)
+    dw_baudrate0=$(sed -n "0,/^MODEM/ {/^MODEM/p}" /etc/direwolf.conf | head -n 1 | cut -d' ' -f2)
     dw_baudrate1=$(sed -n "0,/^MODEM/! {/^MODEM/p}" /etc/direwolf.conf | tail -n 1 | cut -d' ' -f2)
 
     # Get baud rate from port config file
@@ -35,10 +45,10 @@ fi
     dbgecho "DEBUG: dw: 0 $dw_baudrate0, 1 $dw_baudrate0, port cfg: 0 $pc_baudrate0 1 $pc_baudrate1"
 
     if (( $dw_baudrate0 != $pc_baudrate0 )) ; then
-        echo "ERROR: baud rates do not match: direwolf: $dw_baudrate0, port: $pc_baudrate0"
+        echo "ERROR: baud rates do not match: direwolf: $dw_baudrate0, port: $pc_baudrate0" | $TEE_CMD
         exit 1
     else
-        echo "Direwolf & port config OK"
+        dbgecho "Direwolf & port config OK"
     fi
 }
 
@@ -52,10 +62,10 @@ fi
 function check_speed_config() {
 
     req_brate="$1"
-    
+
     # Initialize baudrate boolean to false
     change_brate=0
-    
+
     # from port config file: baud rate for left connector
     port_speed=$(grep -i "^speed=" $PORT_CFG_FILE | head -n 1)
     # Get string after match string (equal sign)
@@ -73,27 +83,27 @@ function check_speed_config() {
     # Check baud rate against port.conf file
     if [ "$port_speed" = "${req_brate}" ] ; then
         # last entry to log file
-        dbgecho "port.conf: No config necessary: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+        dbgecho "port.conf: No config necessary: baudrate: ${req_brate}"
     else
         # log file entry
-        dbgecho "port.conf: Requested baudrate change: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+        dbgecho "port.conf: Requested baudrate change: baudrate: ${req_brate}"
         change_brate=1
     fi
 
     # Check baud rate against direwolf config file
     if [ "$dw_speed0" = "${req_brate}" ] ; then
         # log file entry
-        dbgecho "direwolf.conf: No config necessary: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+        dbgecho "direwolf.conf: No config necessary: baudrate: ${req_brate}"
         # Verify with port file
         if [ $change_brate -eq 1 ] ; then
-            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed) & direwolf.conf ($dw_speed0)" | tee -a $DW_TT_LOG_FILE
+            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed) & direwolf.conf ($dw_speed0)" | $TEE_CMD
         fi
     else
         # log file entry
         dbgecho "direwolf.conf: Requested baudrate change: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
         # Verify with port file
         if [ $change_brate -eq 0 ] ; then
-            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed) & direwolf.conf ($dw_speed0)" | tee -a $DW_TT_LOG_FILE
+            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed) & direwolf.conf ($dw_speed0)" | $TEE_CMD
         fi
 
         change_brate=1
@@ -114,11 +124,7 @@ function usage() {
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
    USER=$(whoami)
-   dbgecho "Running as user: $USER"
-else
-    echo
-    echo "Not required to be root to run this script."
-    exit 1
+   echo "Running user: $USER" | $TEE_CMD
 fi
 
 while [[ $# -gt 0 ]] ; do
@@ -127,7 +133,7 @@ key="$1"
 case $key in
    -d|--debug)
       DEBUG=1
-      echo "Debug mode on"
+      echo "Debug mode on" | $TEE_CMD
    ;;
    -h|--help|?)
       usage
@@ -135,7 +141,7 @@ case $key in
    ;;
    *)
       # unknown option
-      echo "Unknow option: $key"
+      echo "Unknow option: $key"  | $TEE_CMD
       usage
       exit 1
    ;;
@@ -143,20 +149,17 @@ esac
 shift # past argument or value
 done
 
-# First entry to log file
-echo -n "$(date) ttcmd: " | tee -a $DW_TT_LOG_FILE
-
 # Verify operating baudrate
 verify_baud
 
 
 FILESIZE=$(stat -c %s $DW_LOG_FILE)
 if [ $FILESIZE -eq 0 ] ; then
-    echo "Direwolf log file: $DW_LOG_FILE empty"
+    echo "Direwolf log file: $DW_LOG_FILE empty"  | $TEE_CMD
     DW_LOG_FILE="${DW_LOG_FILE}.1"
     FILESIZE=$(stat -c %s $DW_LOG_FILE)
     if [ $FILESIZE -eq 0 ] ; then
-        echo "Direwolf log file: $DW_LOG_FILE empty"
+        echo "Direwolf log file: $DW_LOG_FILE empty"  | $TEE_CMD
         exit 1
     fi
 fi
@@ -169,7 +172,7 @@ ttstring=$(grep -A 1 -i "Raw Touch Tone Data" $DW_LOG_FILE)
 retcode="$?"
 dbgecho "DEBUG: Search for 'Raw Touch Tone Data': ret: $retcode"
 if [ "$retcode" -ne 0 ] ; then
-    echo "No Touch Tone entries found in direwolf log file."
+    echo "No Touch Tone entries found in direwolf log file." | $TEE_CMD
     exit 1
 fi
 lines=$(wc -l <<< $ttstring)
@@ -205,7 +208,7 @@ ttstring=$(grep -i "aprstt" $DW_LOG_FILE)
 retcode="$?"
 dbgecho "DEBUG: Search for aprstt: ret: $retcode"
 if [ "$retcode" -ne 0 ] ; then
-    echo "No Touch Tone entries found in direwolf log file."
+    echo "No Touch Tone entries found in direwolf log file." | $TEE_CMD
     exit 1
 fi
 lines=$(wc -l <<< $ttstring)
@@ -220,8 +223,13 @@ baudrate=$(echo "${ttstring#*$searchstring}" | cut -f1 -d ']')
 if [ "$baudrate" = "$ttbrate" ] ; then
     dbgecho "APRS object & raw tt data Baud rates confirm"
 else
-    echo "Error: baudrates do not match: Method 1: $ttbrate, Method 2: $buadrate"
+    echo "Error: baud rates do not match: Method 1: $ttbrate, Method 2: $baudrate" | $TEE_CMD
 fi
 
 # Check if current speed config needs to change
 check_speed_config "${ttbrate}00"
+if [ $? -eq 1 ] ; then
+    echo "$(date) ttcmd request baudrate: ${baudrate}00 change" | $TEE_CMD
+else
+    echo "$(date) ttcmd request baudrate: ${dw_speed0}, NO change" | $TEE_CMD
+fi
