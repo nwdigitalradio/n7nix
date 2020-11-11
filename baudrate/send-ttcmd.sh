@@ -11,7 +11,7 @@
 #
 
 DEBUG=
-DEBUG1=1
+DEBUG1=
 USER=
 scriptname="`basename $0`"
 
@@ -135,10 +135,10 @@ function get_axports_callsign() {
     return $retcode
 }
 
-# function id_check
+# function draws_id_check
 # Verify the required sound card exists
 
-function id_check() {
+function draws_id_check() {
 
     retcode=0 # error ret code
     # Verify that aplay enumerates udrc sound card
@@ -345,7 +345,7 @@ function send_ttones_individ() {
 function draws_setup() {
 
     ## Verify a UDRC HAT is installed
-    id_check
+    draws_id_check
     id_check_ret=$?
     if [ $id_check_ret -eq 0 ] || [ $id_check_ret -eq 1 ] ; then
         echo "ERROR: No UDRC or DRAWS found, id_check=$id_check_ret exiting ..."
