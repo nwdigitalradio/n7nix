@@ -52,12 +52,24 @@ fi
 ## Edit direwolf.conf
 # Changes to Channel(0,1) section
 #  Add these lines
+#   ARATE 48000
 #   DTMF
-#   TTOBJ 0 1 WIDE1-1
+#   TTOBJ 0 APP
+
+# SetARATE 48000 if not already set
+dbgecho "Verify direwolf configuration"
+grep -q "^ARATE 48000" $DIREWOLF_CFGFILE
+if [ "$?" -ne 0 ] ; then
+    # Add ARATE config after ACHANNELS command
+    sudo sed -i -e '/^ACHANNELS .*/a ARATE 48000' $DIREWOLF_CFGFILE
+else
+    echo "ARATE parameter already set to 48000 in direwolf config file."
+fi
 
 grep -q "^DTMF" $DIREWOLF_CFGFILE
-if [ ! "$?" ] ; then
-    sudo sed -i -e '/^CHANNEL 0.*/a DTMF\nTTOBJ 0 1 WIDE-1' $DIREWOLF_CFGFILE
+if [ "$?" -ne 0 ] ; then
+#    sudo sed -i -e '/^CHANNEL 0.*/a DTMF\nTTOBJ 0 1 WIDE-1' $DIREWOLF_CFGFILE
+    sudo sed -i -e '/^CHANNEL 0.*/a DTMF\nTTOBJ 0 APP' $DIREWOLF_CFGFILE
 else
     echo "DTMF already configured in $DIREWOLF_CFGFILE"
 fi
@@ -68,8 +80,8 @@ fi
 #   TTCMD /home/$USER/bin/dw-ttcmd.sh
 
 grep -q "^TTCMD" $DIREWOLF_CFGFILE
-if [ ! "$?" ] ; then
-    sudo sed -i -e "/^#DWAIT.*/a TTMHEADBAxxxxxx\nTTCMD /home/$USER/bin/dw-ttcmd.sh" $DIREWOLF_CFGFILE
+if [ "$?" -ne 0 ] ; then
+    sudo sed -i -e "/^#DWAIT.*/a TTMHEAD BAxxxxxx\nTTCMD /home/$USER/bin/dw-ttcmd.sh" $DIREWOLF_CFGFILE
 else
     echo "TTCMD already configured in $DIREWOLF_CFGFILE"
 fi
