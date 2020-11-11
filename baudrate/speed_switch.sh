@@ -286,7 +286,7 @@ grep -i "^speed" $PORT_CFG_FILE
 echo
 echo "Verify $DIREWOLF_CFGFILE"
 speed_cnt=$(grep "^MODEM" $DIREWOLF_CFGFILE | wc -l)
-if [ $speed_cnt > 0 ] && [ $speed_cnt <= 2 ] ; then
+if (( speed_cnt > 0 )) && (( speed_cnt <= 2 )) ; then
     dbgecho "There are $speed_cnt instances of MODEM speed."
 else
     echo "Error: Wrong count of MODEM speed instances: $speed_cnt"
