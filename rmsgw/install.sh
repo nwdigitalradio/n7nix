@@ -139,7 +139,7 @@ fi
 PKG_REQUIRE="xutils-dev libxml2 libxml2-dev python-requests"
 
 sudo apt-get install -y -q python3-pip
- 
+
 # python-requests package does not exist in Ubuntu 20.04
 # hostnamectl | grep -iq "ubuntu 20.04"
 # Is there a policy for package: python-requests
@@ -183,9 +183,6 @@ echo "All required packages installed."
 #
 # Use git to either get the rmsgw repo or update it.
 #
-
-# Find shortest path to rmsgw dir - not used
-find "$HOME" -type d -name "rmsgw" -printf "%d %p\n" | sort -n | cut -d' ' -f2 | head -1
 
 # Does repo base directory exist?
 if [ ! -d $REPO_BASE_DIR ] ; then
