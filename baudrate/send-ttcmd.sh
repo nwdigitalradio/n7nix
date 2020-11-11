@@ -11,6 +11,7 @@
 #
 
 DEBUG=
+DEBUG1=1
 USER=
 scriptname="`basename $0`"
 
@@ -26,7 +27,7 @@ DW_TT_LOG_FILE="/$HOME/tmp/dw-log.txt"
 udrc_prod_id=4
 connector="left"
 
-# Set default Touch Tone generation method
+# Set default Touch Tone generation method to one wav file
 tone_gen_method="file"
 
 PROD_ID_NAMES=("INVALID" "INVALID" "UDRC" "UDRC II" "DRAWS" "1WSpot")
@@ -60,6 +61,15 @@ function ctrl_c() {
 	gpio -g write 12 0
 	gpio -g write 23 0
 	exit
+}
+
+# ===== function error_exit
+
+function error_exit() {
+    errmsg=$1
+    echo "ERROR: $errmsg"
+    usage
+    exit 1
 }
 
 # ===== function validate_callsign
@@ -210,7 +220,7 @@ function check_speed_config() {
         dbgecho "port.conf: No config necessary: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
     else
         # log file entry
-        dbgecho "port.conf: Requested baudrate change: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+        dbgecho "port.conf: Requested baudrate: ${req_brate}, current baudrate: $port_speed0" | tee -a $DW_TT_LOG_FILE
         change_brate=1
     fi
 
@@ -224,7 +234,7 @@ function check_speed_config() {
         fi
     else
         # log file entry
-        dbgecho "direwolf.conf: Requested baudrate change: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+        dbgecho "direwolf.conf: Requested baudrate: ${req_brate}, current baudrate: $dw_speed0" | tee -a $DW_TT_LOG_FILE
         # Verify with port file
         if [ $change_brate -eq 0 ] ; then
             echo "ERROR: Mismatch in baud rates between port.conf ($port_speed0) & direwolf.conf ($dw_speed0)" | tee -a $DW_TT_LOG_FILE
@@ -246,7 +256,7 @@ function gen_wave_file() {
 
         # play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2 2> /dev/null
 
-        output_name="ttcmd_$i.wav"
+        output_name="tmp_ttcmd_$i.wav"
         # sox -n $output_name synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2 silence 1 0.50 0.1%
         sox -n $output_name synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2
     done
@@ -257,30 +267,39 @@ function gen_wave_file() {
 
     ## Concatenate all the individual Two Tone files into one wav file
     # sox short.au long.au longer.au
-    # sox ttcmd_0.wav silence.wav ttcmd_1.wav ttcmd_big.wav
-    # Start with silence
-    cp silence.wav ttcmd_big.wav
+    # sox ttcmd_0.wav silence.wav ttcmd_1.wav ttcmd_final.wav
 
-    # Concatenate all required tones for the Touch Tone command
-    for (( i=0; i < ${#CMDSTR}; i++)) ; do
-        sox ttcmd_big.wav ttcmd_$i.wav silence.wav ttcmd_tmp.wav
-        mv ttcmd_tmp.wav ttcmd_big.wav
-    done
+    # Start with silence
+    ttcmd_output_file="ttcmd_${CALLSIGN}_${baudrate}00.wav"
+    if [ ! -e $ttcmd_output_file ] ; then
+        dbgecho "ttcmd wav file: $ttcmd_output_file does NOT exist, creating ..."
+
+        cp silence.wav $ttcmd_output_file
+
+        # Concatenate all required tones for the Touch Tone command
+        for (( i=0; i < ${#CMDSTR}; i++)) ; do
+            sox $ttcmd_output_file tmp_ttcmd_$i.wav silence.wav ttcmd_tmp.wav
+            mv ttcmd_tmp.wav $ttcmd_output_file
+        done
+    else
+        dbgecho "Required ttcmd wav file: $ttcmd_output_file exists"
+    fi
 }
 
 # ===== function send_ttones_file
 # Generate a single wave file & play one file only
 function send_ttones_file() {
 
-   echo "generate one wav file"
+   echo " == generate one wav file"
    gen_wave_file
+   rm tmp_ttcmd_*.wav
 
-   echo "play one wav file"
-   play -q ttcmd_big.wav
+   echo " == play one wav file"
+   if [ -z $DEBUG1 ] ; then
+       play -q $ttcmd_output_file
+   fi
 
 }
-
-function send_ttones_individ() {
 
 # ===== function send_ttones_individ
 # Send individually generated Touch Tone
@@ -297,7 +316,7 @@ function send_ttones_individ() {
 
     # play touch tones individually
 
-    echo "Sending command string: $CMDSTR"
+    echo " == play individual tones"
 
     # Perform a 'for' loop on each character in a string in Bash
     if [ ! -z $DEBUG  ] ; then
@@ -307,12 +326,13 @@ function send_ttones_individ() {
                 echo "Frequencies for DTMF char $tonechar is not defined"
             fi
             dbgecho "$tonechar First: ${dmtffreq[$tonechar 1]} Second: ${dmtffreq[$tonechar 2]}"
-            play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2 2> /dev/null
+            if [ -z $DEBUG1 ] ; then
+                play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2 2> /dev/null
+            fi
             # dbgecho "Return code from aplay: $?"
         done
 
     else
-        echo "play individual"
         for (( i=0; i < ${#CMDSTR}; i++)) ; do
             tonechar="${CMDSTR:$i:1}"
             play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2  2> /dev/null
@@ -328,7 +348,7 @@ function draws_setup() {
     id_check
     id_check_ret=$?
     if [ $id_check_ret -eq 0 ] || [ $id_check_ret -eq 1 ] ; then
-        echo "No UDRC or DRAWS found, id_check=$id_check_ret exiting ..."
+        echo "ERROR: No UDRC or DRAWS found, id_check=$id_check_ret exiting ..."
         exit 1
     fi
 
@@ -356,9 +376,7 @@ function draws_setup() {
           fi
        ;;
        *)
-          echo "Wrong din connector location specified: $connector"
-          usage
-          exit 1
+          error_exit "Wrong din connector location specified: $connector"
        ;;
     esac
 
@@ -434,7 +452,10 @@ case $key in
    -b|--baudrate)
       baudrate="$2"
       shift # past argument
-      dbgecho "Command Line: Setting baudrate to $baudrate"
+       if [ $baudrate -ne "1200" ] && [ $baudrate -ne "9600" ] ; then
+           error_exit "Invalid baud rate selected, must be either '1200' or '9600'"
+       fi
+       dbgecho "Command Line: Setting baudrate to $baudrate"
    ;;
    -c|--connector)
       connector="$2"
@@ -450,11 +471,14 @@ case $key in
    -t|--tone)
        tone_gen_method="$2"
        shift # past argument
-       if [ $tone_gen_method -ne "individ" ] && [ $tone_gen_method -ne "file" ] ; then
-           echo "Invalid tone generation method, must be either 'individ' or 'file'"
-           usage
-           exit 1
-       fi
+
+      if [ -z $tone_gen_method ] ; then
+          error_exit "Invalid tone generation method ($tone_gen_method), must be either 'individ' or 'file'"
+      elif [ $tone_gen_method != "individ" ] && [ $tone_gen_method != "file" ]  ; then
+          error_exit "Invalid tone generation method ($tone_gen_method), must be either 'individ' or 'file'"
+      else
+          dbgecho "Tone method OK"
+      fi
    ;;
    -h|--help|?)
       usage
@@ -462,9 +486,7 @@ case $key in
    ;;
    *)
       # unknown option
-      echo "Unknow option: $key"
-      usage
-      exit 1
+      error_exit "Unknow option: $key"
    ;;
 esac
 shift # past argument or value
@@ -538,17 +560,25 @@ draws_setup
 draws_gpio_on
 
 CMDSTR="${ttbaudrate}*${ttcallsign}#"
-echo "DEBUG 1: cmdstr: $CMDSTR, baud: ${ttbaudrate}"
+
+echo "Sending command string: $CMDSTR"
+echo "DEBUG: cmdstr: $CMDSTR, baud: ${ttbaudrate}. call sign: $CALLSIGN"
 
 
-send_ttones_individ
+if [ "$tone_gen_method" = "individ" ] ; then
+    send_ttones_individ
+elif [ "$tone_gen_method" = "file" ] ; then
+    send_ttones_file
+else
+    error_exit "Do not recognize tone generating method $tone_gen_method"
+fi
 
 draws_gpio_off
 
 # Check if local speed config needs to change
-check_speed_config $baudrate
+check_speed_config ${baudrate}00
 if [ $? -eq 1 ] ; then
-    echo "Requested LOCAL baudrate change: baudrate: ${baudrate}" | tee -a $DW_TT_LOG_FILE
+    echo "Requested baudrate: ${baudrate}00" | tee -a $DW_TT_LOG_FILE
 else
    echo "No LOCAL baud rate change required: $dw_speed0"
 fi
