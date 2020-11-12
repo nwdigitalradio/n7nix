@@ -3,6 +3,8 @@
 # dw-ttcmd.sh
 # Direwolf ttcmd to switch baud rate
 #
+# This script is called from direwolf running as root
+#
 DEBUG=
 
 scriptname="`basename $0`"
@@ -23,13 +25,59 @@ TEE_CMD="sudo dd status=none of=$DW_TT_LOG_FILE oflag=append conv=notrunc"
 # ===== function debugecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*" | $TEE_CMD; fi }
 
+# ===== function get_user
+# When running as root need to find a valid local bin directory
+
+function get_user() {
+    # Check if there is only a single user on this system
+    if (( `ls /home | wc -l` == 1 )) ; then
+        USER=$(ls /home)
+    else
+        USER=
+        # Get here when there is more than one user on this system,
+        # find the local bin that has the requested program
+
+        REQUIRED_PROGRAM="speed_switch.sh"
+
+        echo "DEBUG: check list: $(ls /home | tr '\n' ' ')"
+        for DIR in $(ls /home | tr '\n' ' ') ; do
+             if [ -d "/home/$DIR" ] && [ -e "/home/$DIR/bin/$REQUIRED_PROGRAM" ] ; then
+                USER="$DIR"
+                echo "DEBUG: found dir: /home/$DIR, user: $USER"
+
+                break
+            fi
+        done
+    fi
+}
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
+
 # ===== function verify_baud
 # Verify current baud rate
 function verify_baud() {
 modem_cnt=$(sed -n "0,/^MODEM/! {/^MODEM/p}" /etc/direwolf.conf | wc -l)
 if (( $modem_cnt > 2 )) || (( $modem_cnt == 0 )) ; then
-    echo "ERROR: MODEM entry count: $modem_cnt"
-    echo "Check /etc/direwolf.conf file."
+    echo "ERROR: MODEM entry count: $modem_cnt" | $TEE_CMD
+    echo "Check /etc/direwolf.conf file." | $TEE_CMD
     exit 1
 fi
     # get baud rate from direwolf config file
@@ -45,7 +93,7 @@ fi
     dbgecho "DEBUG: dw: 0 $dw_baudrate0, 1 $dw_baudrate0, port cfg: 0 $pc_baudrate0 1 $pc_baudrate1"
 
     if (( $dw_baudrate0 != $pc_baudrate0 )) ; then
-        echo "ERROR: baud rates do not match: direwolf: $dw_baudrate0, port: $pc_baudrate0" | $TEE_CMD
+        echo "$(date): ERROR: baud rates do not match: direwolf: $dw_baudrate0, port: $pc_baudrate0" | $TEE_CMD
         exit 1
     else
         dbgecho "Direwolf & port config OK"
@@ -123,9 +171,20 @@ function usage() {
 
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
-   USER=$(whoami)
-   echo "Running user: $USER" | $TEE_CMD
+    # NOT running as root
+    USER=$(whoami)
+    echo "Running as user: $USER" | $TEE_CMD
+else
+    # Running as root, find the correct /home/$USER/bin directory
+    # Get list of users with home directories
+    USERLIST="$(ls /home)"
+    USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+    get_user
+    check_user
 fi
+
+localbin="/home/$USER/bin"
 
 while [[ $# -gt 0 ]] ; do
 key="$1"
@@ -159,7 +218,7 @@ if [ $FILESIZE -eq 0 ] ; then
     DW_LOG_FILE="${DW_LOG_FILE}.1"
     FILESIZE=$(stat -c %s $DW_LOG_FILE)
     if [ $FILESIZE -eq 0 ] ; then
-        echo "Direwolf log file: $DW_LOG_FILE empty"  | $TEE_CMD
+        echo "$(date): Direwolf log file: $DW_LOG_FILE empty"  | $TEE_CMD
         exit 1
     fi
 fi
@@ -172,7 +231,7 @@ ttstring=$(grep -A 1 -i "Raw Touch Tone Data" $DW_LOG_FILE)
 retcode="$?"
 dbgecho "DEBUG: Search for 'Raw Touch Tone Data': ret: $retcode"
 if [ "$retcode" -ne 0 ] ; then
-    echo "No Touch Tone entries found in direwolf log file." | $TEE_CMD
+    echo "$(date): No Touch Tone entries found in direwolf log file." | $TEE_CMD
     exit 1
 fi
 lines=$(wc -l <<< $ttstring)
@@ -208,7 +267,7 @@ ttstring=$(grep -i "aprstt" $DW_LOG_FILE)
 retcode="$?"
 dbgecho "DEBUG: Search for aprstt: ret: $retcode"
 if [ "$retcode" -ne 0 ] ; then
-    echo "No Touch Tone entries found in direwolf log file." | $TEE_CMD
+    echo "$(date): No Touch Tone entries found in direwolf log file." | $TEE_CMD
     exit 1
 fi
 lines=$(wc -l <<< $ttstring)
@@ -229,7 +288,8 @@ fi
 # Check if current speed config needs to change
 check_speed_config "${ttbrate}00"
 if [ $? -eq 1 ] ; then
-    echo "$(date) ttcmd request baudrate: ${baudrate}00 change" | $TEE_CMD
+    echo "$(date): ttcmd requested baudrate: ${baudrate}00 change" | $TEE_CMD
+    $localbin/speed_switch.sh -b ${baudrate}00
 else
-    echo "$(date) ttcmd request baudrate: ${dw_speed0}, NO change" | $TEE_CMD
+    echo "$(date): ttcmd requested baudrate: ${dw_speed0}, NO change" | $TEE_CMD
 fi
