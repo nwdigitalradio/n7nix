@@ -439,7 +439,7 @@ else
     exit 1
 fi
 
-bin="/$HOME/bin"
+localbin="/$HOME/bin"
 
 dbgecho "Parse command line args"
 # Command line args are passed with a dash & single letter
@@ -553,7 +553,7 @@ pid=$(pidof direwolf)
 if [ $? -eq 0 ] ; then
    echo "Direwolf is running, with a pid of $pid"
    echo "Stopping this process"
-   sudo $bin/ax25-stop
+   sudo $localbin/ax25-stop
 fi
 
 draws_setup
@@ -578,9 +578,10 @@ draws_gpio_off
 # Check if local speed config needs to change
 check_speed_config ${baudrate}00
 if [ $? -eq 1 ] ; then
-    echo "Requested baudrate: ${baudrate}00" | tee -a $DW_TT_LOG_FILE
+    echo "Requested baudrate: ${baudrate}00 change" | tee -a $DW_TT_LOG_FILE
+    $localbin/speed_switch.sh -b ${baudrate}00
 else
-   echo "No LOCAL baud rate change required: $dw_speed0"
+   echo "Requested baudrage: $dw_speed0, NO change required"
 fi
 
 exit 0
