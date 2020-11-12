@@ -100,15 +100,6 @@ cd config
 ./bin_refresh.sh
 ```
 
-* If you previously put a hold on kernel upgrades (July 2020) then remove the hold
-  * Previous sensor driver problems have been fixed in this kernel:
-    *  ```Linux raspberrypi 5.4.51-v7l+ #1333 #SMP Mon Aug 10 16:51:40```
-
-```
-sudo su
-apt-mark unhold $(apt-mark showhold)
-```
-
 #### Update Raspberry Pi OS package information and their dependencies
 
 ```
