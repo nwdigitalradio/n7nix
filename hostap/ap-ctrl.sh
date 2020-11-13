@@ -318,6 +318,47 @@ function ap_stop() {
     #ip a show $wifidev
 }
 
+# ===== Function check_dnsmasq
+function check_dnsmasq() {
+    service_name="dnsmasq"
+    if systemctl is-active --quiet $service_name ; then
+        echo "$service_name IS running"
+    else
+        echo "$service_name is NOT running"
+    fi
+}
+
+# ===== Function check_wifi
+function check_wifi() {
+    echo "Checking WiFi connection ..."
+    sleep 15 #give time for connection to be completed to router
+    if ! wpa_cli -i "$wifidev" status | grep 'ip_address' >/dev/null 2>&1 ; then
+        #Failed to connect to wifi (check your wifi settings, password etc)
+	echo "WiFi client failed to connect"
+    fi
+}
+
+# ===== Function client_hostap
+# Check if hostap or WiFi client is running
+function client_hostap() {
+
+    if systemctl list-units --full --all | grep -Fq hostap ; then
+        # Why not just check the return code?
+        if systemctl status hostapd | grep "(running)" >/dev/null 2>&1 ; then
+            echo "hostap IS running, $(check_dnsmasq)"
+        else
+            echo "Hostap service is loaded but not running, $(check_dnsmasq)"
+        fi
+    elif { wpa_cli -i "$wifidev" status | grep 'ip_address'; } >/dev/null 2>&1 ; then
+        #Already connected
+        echo "WiFi client up and connected to a network, $(check_dnsmasq)"
+    else
+        echo "WiFi client enabled & in process of connecting, $(check_dnsmasq)"
+        wpa_supplicant -B -i "$wifidev" -c /etc/wpa_supplicant/wpa_supplicant.conf >/dev/null 2>&1
+        check_wifi
+    fi
+}
+
 # ==== function display arguments used by this script
 
 usage () {
@@ -387,6 +428,8 @@ case $APP_ARG in
     status)
         device_status
         check_wpa_supp
+        # Check if hostap or WiFi client is running
+        client_hostap
         ap_status
         check_ipforward
         check_packages
@@ -403,8 +446,11 @@ esac
 shift # past argument
 done
 
+# Display status for WiFi client/hostap
 device_status
 check_wpa_supp
+# Check if hostap or WiFi client is running
+client_hostap
 ap_status
 check_ipforward
 check_packages
@@ -412,3 +458,4 @@ if [ $? -eq 0 ] ; then
     unitfile_check
 fi
 
+exit 0
