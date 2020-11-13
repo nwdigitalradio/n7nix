@@ -159,6 +159,39 @@ function check_speed_config() {
     return $change_brate
 }
 
+# ===== check_console
+# Check if this script is running from a console
+function check_console() {
+
+    if [ -z "$PS1" ] ; then
+        set_ps1flag=0
+    else
+        set_ps1flag=1
+    fi
+
+    # Cron does not by default allocate a tty to a script
+    if [ -t 0 ] ; then
+        set_ttyflag=1
+    else
+        set_ttyflag=0
+    fi
+
+    #PID test
+    set_dwflag=0
+    # Get parent pid of parent
+    PPPID=$(ps h -o ppid= $PPID)
+    # get name of the command
+    P_COMMAND=$(ps h -o %c $PPPID)
+
+    echo "P_COMMAND: $P_COMMAND" | $TEE_CMD
+    # Test name against cron
+    if [ "$P_COMMAND" == "direwolf" ]; then
+        set_dwflag=1
+    fi
+
+    echo "$scriptname Start: $(date "+%Y %m %d %T %Z"): Options: $(echo $-), ps1: $set_ps1flag, tty: $set_ttyflag, dw: $set_dwflag" | $TEE_CMD
+}
+
 # ===== function usage
 function usage() {
    echo "Usage: $scriptname [-d][-h]" >&2
@@ -284,6 +317,8 @@ if [ "$baudrate" = "$ttbrate" ] ; then
 else
     echo "Error: baud rates do not match: Method 1: $ttbrate, Method 2: $baudrate" | $TEE_CMD
 fi
+
+check_console
 
 # Check if current speed config needs to change
 check_speed_config "${ttbrate}00"

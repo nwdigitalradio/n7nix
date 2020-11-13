@@ -402,13 +402,30 @@ quietecho "=== reset direwolf & ax25 parms"
 
 QUIET="-q"
 
-# Check if direwolf is already running.
-pid=$(pidof direwolf)
-if [ $? -eq 0 ] ; then
-    sudo $LOCAL_BIN_PATH/ax25-stop $QUIET
-    sleep 1
+# direwolf will not allocate a tty to spawned script
+if [ -t 0 ] ; then
+    echo "running from a console" | $TEE_CMD
+else
+   # Get parent pid of parent
+    PPPID=$(ps h -o ppid= $PPID)
+    # get name of the command
+    P_COMMAND=$(ps h -o %c $PPPID)
+
+    echo "running from direwolf ($P_COMMAND)" | $TEE_CMD
+    # Wait until direwolf completes its morse response
+    #sleep 4
+    #echo "restart direwolf" | $TEE_CMD
 fi
 
-sudo $LOCAL_BIN_PATH/ax25-start $QUIET
+if [ 1 -eq 0 ] ; then
+    # Check if direwolf is already running.
+    pid=$(pidof direwolf)
+    if [ $? -eq 0 ] ; then
+        sudo $LOCAL_BIN_PATH/ax25-stop $QUIET
+        sleep 1
+    fi
+
+    sudo $LOCAL_BIN_PATH/ax25-start $QUIET
+fi
 
 exit 0
