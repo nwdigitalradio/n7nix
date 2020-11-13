@@ -34,15 +34,31 @@ function stop_service() {
     fi
 }
 # ===== function get_user
+# When running as root need to find a valid local bin directory
+# Set USER based on finding a REQUIRED_PROGRAM
 
 function get_user() {
    # Check if there is only a single user on this system
    if (( `ls /home | wc -l` == 1 )) ; then
-      USER=$(ls /home)
+       USER=$(ls /home)
    else
-      echo -n "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]"
-      read -ep ": " USER
-   fi
+       USER=
+       # Get here when there is more than one user on this system,
+       # Find the local bin that has the requested program
+       # Requested program list: $LOCALBIN_LIST
+       # Assume all programs from $LOCALBIN_LIST are in same directory path
+
+       REQUIRED_PROGRAM="/home/$USER/bin/ax25-stop.desktop"
+
+       for DIR in $(ls /home | tr '\n' ' ') ; do
+          if [ -d "/home/$DIR" ] && [ -e "/home/$DIR/bin/$REQUIRED_PROGRAM" ] ; then
+              USER="$DIR"
+              dbgecho "DEBUG: found dir: /home/$DIR & /home/$DIR/bin/$REQUIRED_PROGRAM"
+
+              break
+          fi
+        done
+    fi
 }
 
 # ==== function check_user
@@ -81,7 +97,7 @@ function change_icon() {
             sudo chown $USER:$USER "$ax25_desktop_file"
         fi
 
-        cp /home/$USER/bin/ax25-${icon_action}.desktop "$ax25_desktop_file"
+        cp $LOCAL_BIN_PATH/ax25-${icon_action}.desktop "$ax25_desktop_file"
         echo "changed icon to $1"
     fi
 }
@@ -117,6 +133,7 @@ else
     check_user
 fi
 
+LOCAL_BIN_PATH="/home/$USER/bin"
 ax25_udr0_baud="not configured"
 ax25_udr1_baud="not configured"
 

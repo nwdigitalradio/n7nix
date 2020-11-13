@@ -11,6 +11,7 @@ USER=
 AX25_CFGDIR="/usr/local/etc/ax25"
 PORT_CFG_FILE="$AX25_CFGDIR/port.conf"
 SERVICE_LIST="direwolf.service ax25dev.path ax25dev.service ax25-mheardd.service ax25d.service"
+LOCALBIN_LIST="iptable-flush.sh iptable-up.sh ax25-start.desktop ax25-stop.desktop"
 SYSTEMCTL="systemctl"
 
 # if DEBUG is defined then echo
@@ -43,15 +44,31 @@ function start_service() {
 }
 
 # ===== function get_user
+# When running as root need to find a valid local bin directory
+# Set USER based on finding a REQUIRED_PROGRAM
 
 function get_user() {
-   # Check if there is only a single user on this system
-   if (( `ls /home | wc -l` == 1 )) ; then
-      USER=$(ls /home)
-   else
-      echo -n "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]"
-      read -ep ": " USER
-   fi
+    # Check if there is only a single user on this system
+    if (( `ls /home | wc -l` == 1 )) ; then
+        USER=$(ls /home)
+    else
+        USER=
+        # Get here when there is more than one user on this system,
+        # Find the local bin that has the requested program
+        # Requested program list: $LOCALBIN_LIST
+        # Assume all programs from $LOCALBIN_LIST are in same directory path
+
+        REQUIRED_PROGRAM="iptable-flush.sh"
+
+        for DIR in $(ls /home | tr '\n' ' ') ; do
+             if [ -d "/home/$DIR" ] && [ -e "/home/$DIR/bin/$REQUIRED_PROGRAM" ] ; then
+                USER="$DIR"
+                dbgecho "DEBUG: found dir: /home/$DIR & /home/$DIR/bin/$REQUIRED_PROGRAM"
+
+                break
+            fi
+        done
+    fi
 }
 
 # ==== function check_user
@@ -90,7 +107,7 @@ function change_icon() {
             sudo chown $USER:$USER "$ax25_desktop_file"
         fi
 
-        cp /home/$USER/bin/ax25-${icon_action}.desktop "$ax25_desktop_file"
+        cp $LOCAL_BIN_PATH/ax25-${icon_action}.desktop "$ax25_desktop_file"
         echo "changed icon to $1"
     fi
 }
@@ -132,7 +149,8 @@ else
     get_user
     check_user
 fi
-BIN_DIR="/home/$USER/bin"
+
+LOCAL_BIN_PATH="/home/$USER/bin"
 
 # If no port config file found create one
 if [ ! -f $PORT_CFG_FILE ] ; then
@@ -183,7 +201,7 @@ fi
 
 if [ "$CREATE_IPTABLES" = "true" ] ; then
 
-    sudo /bin/bash $BIN_DIR/iptable-flush.sh
+    sudo /bin/bash $LOCAL_BIN_PATH/iptable-flush.sh
 
     # Setup some iptable rules
     # 224.0.0.22
@@ -194,7 +212,7 @@ if [ "$CREATE_IPTABLES" = "true" ] ; then
     #  - UPnP (Universal Plug and Play)/SSDP (Simple Service Discovery Protocol) by various vendors to advertise the capabilities of (or discover) devices
     echo
     echo "== Setup iptables"
-    sudo /bin/bash $BIN_DIR/iptable-up.sh
+    sudo /bin/bash $LOCAL_BIN_PATH/iptable-up.sh
     sudo sh -c "iptables-save > /etc/iptables/rules.ipv4.ax25"
 
     grep "iptables-restore" /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 > /dev/null 2>&1
