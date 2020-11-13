@@ -21,7 +21,7 @@ CALLSIGN="N0ONE"
 AX25_CFGDIR="/usr/local/etc/ax25"
 AXPORTS_FILE="$AX25_CFGDIR/axports"
 PORT_CFG_FILE="/etc/ax25/port.conf"
-DW_TT_LOG_FILE="/$HOME/tmp/dw-log.txt"
+DW_TT_LOG_FILE="/var/log/direwolf/dw-log.txt"
 
 # default connector location, use left connector on a draws hat
 udrc_prod_id=4
@@ -217,17 +217,17 @@ function check_speed_config() {
     # Check baud rate against port.conf file
     if [ "$port_speed0" = "${req_brate}" ] ; then
         # last entry to log file
-        dbgecho "port.conf: No config necessary: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+        dbgecho "port.conf: No config necessary: baudrate: ${req_brate}" | sudo tee -a $DW_TT_LOG_FILE
     else
         # log file entry
-        dbgecho "port.conf: Requested baudrate: ${req_brate}, current baudrate: $port_speed0" | tee -a $DW_TT_LOG_FILE
+        dbgecho "port.conf: Requested baudrate: ${req_brate}, current baudrate: $port_speed0" | sudo tee -a $DW_TT_LOG_FILE
         change_brate=1
     fi
 
     # Check baud rate against direwolf config file
     if [ "$dw_speed0" = "${req_brate}" ] ; then
         # log file entry
-        dbgecho "direwolf.conf: No config necessary: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+        dbgecho "direwolf.conf: No config necessary: baudrate: ${req_brate}" | sudo tee -a $DW_TT_LOG_FILE
         # Verify with port file
         if [ $change_brate -eq 1 ] ; then
             echo "ERROR: Mismatch in baud rates between port.conf ($port_speed0) & direwolf.conf ($dw_speed0)" | tee -a $DW_TT_LOG_FILE
@@ -439,7 +439,7 @@ else
     exit 1
 fi
 
-localbin="/$HOME/bin"
+localbin="$HOME/bin"
 
 dbgecho "Parse command line args"
 # Command line args are passed with a dash & single letter
@@ -578,7 +578,7 @@ draws_gpio_off
 # Check if local speed config needs to change
 check_speed_config ${baudrate}00
 if [ $? -eq 1 ] ; then
-    echo "Requested baudrate: ${baudrate}00 change" | tee -a $DW_TT_LOG_FILE
+    echo "Requested baudrate: ${baudrate}00 change" | sudo tee -a $DW_TT_LOG_FILE
     $localbin/speed_switch.sh -b ${baudrate}00
 else
    echo "Requested baudrage: $dw_speed0, NO change required"
