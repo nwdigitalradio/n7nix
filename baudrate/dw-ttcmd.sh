@@ -64,7 +64,7 @@ function check_user() {
    done
 
    if [ "$userok" = "false" ] ; then
-      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      echo "$scriptname: User name ($USER) does not exist,  must be one of: $USERLIST"
       exit 1
    fi
 
@@ -173,7 +173,7 @@ function usage() {
 if [[ $EUID != 0 ]] ; then
     # NOT running as root
     USER=$(whoami)
-    echo "Running as user: $USER" | $TEE_CMD
+    echo "$scriptname: Running as user: $USER" | $TEE_CMD
 else
     # Running as root, find the correct /home/$USER/bin directory
     # Get list of users with home directories
