@@ -4,18 +4,44 @@
 # Switch for 1200 baud and 9600 baud packet speed
 #
 DEBUG=
-USER=$(whoami)
+QUIET=
+USER=
+set_baudrate_flag=false
+
 scriptname="`basename $0`"
 
-BIN_PATH="/home/$USER/bin"
 
 PORT_CFG_FILE="/etc/ax25/port.conf"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
+DW_TT_LOG_FILE="/var/log/direwolf/dw-log.txt"
 
 # ===== function dbgecho
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+# if DEBUG is defined then echo
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+# if QUIET is defined the DO NOT echo
+function quietecho { if [ -z "$QUIET" ] ; then echo "$*"; fi }
 
+# ==== function check_user
+# Verify user name passed on command line is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "ERROR: User name ($USER) does not exist,  must be one of: $USERLIST" | tee $DW_TT_LOG_FILE
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
 
 # ===== function get_port_speed
 
@@ -30,7 +56,7 @@ function get_port_speed() {
         dbgecho " ax25 port file exists"
         portnumber=$1
         if [ -z $portnumber ] ; then
-            echo "Need to supply a port number in get_port_speed"
+            echo "Need to supply a port number in get_port_speed" | tee $DW_TT_LOG_FILE
             return 1
         fi
 
@@ -50,15 +76,15 @@ function get_port_speed() {
                 dbgecho "parse baud_9600 section for $portname"
             ;;
             off)
-                echo "Using split channel, port: $portname is off"
+                echo "Using split channel, port: $portname is off" | tee $DW_TT_LOG_FILE
             ;;
             *)
-                echo "Invalid speed parameter: $PORTSPEED, found in $PORT_CFG_FILE"
+                echo "Invalid speed parameter: $PORTSPEED, found in $PORT_CFG_FILE" | tee $DW_TT_LOG_FILE
                 retcode=1
             ;;
         esac
     else
-        echo "ax25 port file: $PORT_CFG_FILE does not exist"
+        echo "ax25 port file: $PORT_CFG_FILE does not exist" | tee $DW_TT_LOG_FILE
         retcode=1
     fi
     return $retcode
@@ -109,6 +135,17 @@ function speed_status() {
     echo "Device: ax0 ${devicestat[ax0]}, Device: ax1 ${devicestat[ax1]}"
 }
 
+# ===== function dw_speed_cnt
+
+function dw_speed_cnt() {
+    speed_cnt=$(grep "^MODEM" $DIREWOLF_CFGFILE | wc -l)
+    if (( speed_cnt > 0 )) && (( speed_cnt <= 2 )) ; then
+        dbgecho "There are $speed_cnt instances of MODEM speed."
+    else
+        echo "Error: Wrong count of MODEM speed instances: $speed_cnt"
+    fi
+}
+
 # ===== function direwolf_set_baud
 
 # Set baud rate on MODEM line for the first modem channel
@@ -127,6 +164,10 @@ function direwolf_set_baud() {
 
     # Modify both occurrences of MODEM configuration line
     # sudo sed -i "/^MODEM/ s/^MODEM .*/MODEM $modem_speed/" $DIREWOLF_CFGFILE
+
+    # Verify number of instances of MODEM, which sets baud rate in
+    # direwolf
+    dw_speed_cnt
 }
 
 # ==== function set_baudrate
@@ -161,6 +202,48 @@ function get_baudrates() {
     else
         echo "Port config file: $PORT_CFG_FILE NOT found."
         return;
+    fi
+}
+
+# ===== function baudrate_toggle
+# toggle baud rate between 1200 & 9600
+
+function baudrate_toggle() {
+
+    switch_config
+
+    # DEBUG ONLY
+    echo "Verify port.conf"
+    grep -i "^speed" $PORT_CFG_FILE
+    echo
+    echo "Verify $DIREWOLF_CFGFILE"
+    dw_speed_cnt
+
+    grep -i "^MODEM" $DIREWOLF_CFGFILE
+}
+
+# ===== function baudrate_config
+function baudrate_config() {
+    # set variables ax25_udr0_baud, ax25_udr1_baud=0
+
+    get_baudrates
+    dbgecho " === set baudrate to: $baudrate"
+    if [ "$baudrate" = "$ax25_udr0_baud" ] && [ $(pidof direwolf) ] ; then
+        echo " === baud rate already set to $baudrate & direwolf is running"
+        exit 0
+    fi
+
+    # default receive to discriminator
+    # port number, speed (1200/9600) receive_out (audio/disc)
+    set_baudrate 0 $baudrate "disc"
+
+    # Check if direwolf is already running.
+    pid=$(pidof direwolf)
+    if [ $? -eq 0 ] ; then
+        echo "Direwolf is running with pid of $pid"
+    else
+        echo "Direwolf is NOT running. Starting NOW ..."
+        $BIN_PATH/ax25-start -q
     fi
 }
 
@@ -212,19 +295,6 @@ function usage() {
 
 # ===== main
 
-# Be sure NOT running as root
-if [[ $EUID == 0 ]] ; then
-   echo "Must NOT be root"
-   exit 1
-fi
-USER=$(whoami)
-
-# If no port config file found create one
-if [ ! -f $PORT_CFG_FILE ] ; then
-    echo "No port config file: $PORT_CFG_FILE found, copying from repo."
-    sudo cp $HOME/n7nix/ax25/port.conf $PORT_CFG_FILE
-fi
-
 while [[ $# -gt 0 ]] ; do
     APP_ARG="$1"
 
@@ -237,29 +307,7 @@ while [[ $# -gt 0 ]] ; do
         -b|--baudrate)
             baudrate="$2"
             shift  # past argument
-            # set variables ax25_udr0_baud, ax25_udr1_baud=0
-
-            get_baudrates
-            dbgecho " === set baudrate to: $baudrate"
-            if [ "$baudrate" = "$ax25_udr0_baud" ] && [ $(pidof direwolf) ] ; then
-                echo " === baud rate already set to $baudrate & direwolf is running"
-                exit 0
-            fi
-
-            # default receive to discriminator
-            # port number, speed (1200/9600) receive_out (audio/disc)
-            set_baudrate 0 $baudrate "disc"
-
-            # Check if direwolf is already running.
-            pid=$(pidof direwolf)
-            if [ $? -eq 0 ] ; then
-                echo "Direwolf is running with pid of $pid"
-            else
-                echo "Direwolf is NOT running. Starting NOW ..."
-                $BIN_PATH/ax25-start -q
-            fi
-
-            exit 0
+            set_baudrate_flag=true
         ;;
         -d|--debug)
             echo "Verbose output"
@@ -270,6 +318,8 @@ while [[ $# -gt 0 ]] ; do
             exit 0
        ;;
        *)
+            # Might be a USER name
+            USER="$1"
             break;
        ;;
     esac
@@ -277,25 +327,39 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument
 done
 
-# default to toggling baud rate between 1200 & 9600
-switch_config
-
-# DEBUG ONLY
-echo "Verify port.conf"
-grep -i "^speed" $PORT_CFG_FILE
-echo
-echo "Verify $DIREWOLF_CFGFILE"
-speed_cnt=$(grep "^MODEM" $DIREWOLF_CFGFILE | wc -l)
-if (( speed_cnt > 0 )) && (( speed_cnt <= 2 )) ; then
-    dbgecho "There are $speed_cnt instances of MODEM speed."
+# Be sure NOT running as root
+if [[ $EUID != 0 ]] ; then
+    # NOT running as root
+    USER=$(whoami)
 else
-    echo "Error: Wrong count of MODEM speed instances: $speed_cnt"
+    # Running as root,
+    QUIET=1
+    # find the correct /home/$USER/bin directory
+    # Get list of users with home directories
+    USERLIST="$(ls /home)"
+    USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+    # get_user
+    # Verify user name passed on command line
+    check_user
 fi
 
-grep -i "^MODEM" $DIREWOLF_CFGFILE
+BIN_PATH="/home/$USER/bin"
 
-echo
-echo "=== set alsa config"
+# If no port config file found create one
+if [ ! -f $PORT_CFG_FILE ] ; then
+    echo "No port config file: $PORT_CFG_FILE found, copying from repo."
+    sudo cp /home/$USER/n7nix/ax25/port.conf $PORT_CFG_FILE
+fi
+
+if [ $set_baudrate_flag = true ] ; then
+    baudrate_config
+else
+    baudrate_toggle
+fi
+
+quietecho
+quietecho "=== set alsa config"
 if [ -z "$DEBUG" ] ; then
     sudo $BIN_PATH/setalsa-tmv71a.sh > /dev/null 2>&1
 else
@@ -303,6 +367,8 @@ else
     sudo $BIN_PATH/setalsa-tmv71a.sh
 fi
 
-echo
-echo "=== reset direwolf & ax25 parms"
+quietecho
+quietecho "=== reset direwolf & ax25 parms"
 $BIN_PATH/ax25-reset.sh -q
+
+exit 0
