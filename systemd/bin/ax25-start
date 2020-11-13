@@ -4,7 +4,7 @@
 # The script enables & starts the services
 
 scriptname="`basename $0`"
-DEBUG=
+DEBUG=1
 QUIET=
 
 USER=
@@ -84,7 +84,7 @@ function check_user() {
    done
 
    if [ "$userok" = "false" ] ; then
-      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      echo "$scriptname: User name ($USER) does not exist,  must be one of: $USERLIST"
       exit 1
    fi
 
@@ -108,7 +108,7 @@ function change_icon() {
         fi
 
         cp $LOCAL_BIN_PATH/ax25-${icon_action}.desktop "$ax25_desktop_file"
-        echo "changed icon to $1"
+        quietecho "changed icon to $1"
     fi
 }
 

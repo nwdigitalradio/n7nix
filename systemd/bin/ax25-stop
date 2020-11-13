@@ -4,7 +4,10 @@
 # The script disables & stops the services
 
 scriptname="`basename $0`"
+DEBUG=1
+QUEST=
 
+USER=
 PORT_CFG_FILE="/etc/ax25/port.conf"
 SERVICE_LIST="ax25dev.service ax25dev.path direwolf.service ax25-mheardd.service ax25d.service"
 SYSTEMCTL="systemctl"
@@ -48,7 +51,7 @@ function get_user() {
        # Requested program list: $LOCALBIN_LIST
        # Assume all programs from $LOCALBIN_LIST are in same directory path
 
-       REQUIRED_PROGRAM="/home/$USER/bin/ax25-stop.desktop"
+       REQUIRED_PROGRAM="ax25-stop.desktop"
 
        for DIR in $(ls /home | tr '\n' ' ') ; do
           if [ -d "/home/$DIR" ] && [ -e "/home/$DIR/bin/$REQUIRED_PROGRAM" ] ; then
@@ -74,7 +77,7 @@ function check_user() {
    done
 
    if [ "$userok" = "false" ] ; then
-      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      echo "$scriptname: User name ($USER) does not exist,  must be one of: $USERLIST"
       exit 1
    fi
 
