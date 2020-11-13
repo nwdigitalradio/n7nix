@@ -3,6 +3,16 @@
 USER=$(whoami)
 QUIET=
 
+# Be sure NOT running as root
+if [[ $EUID != 0 ]] ; then
+    # NOT running as root
+    USER=$(whoami)
+else
+    # Running as root,
+    echo "Do NOT run as root."
+    exit 1
+fi
+
 # Check if there are any args on command line
 # Use to quiet output
 if (( $# != 0 )) ; then
