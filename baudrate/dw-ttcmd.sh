@@ -39,11 +39,10 @@ function get_user() {
 
         REQUIRED_PROGRAM="speed_switch.sh"
 
-        echo "DEBUG: check list: $(ls /home | tr '\n' ' ')"
         for DIR in $(ls /home | tr '\n' ' ') ; do
              if [ -d "/home/$DIR" ] && [ -e "/home/$DIR/bin/$REQUIRED_PROGRAM" ] ; then
                 USER="$DIR"
-                echo "DEBUG: found dir: /home/$DIR, user: $USER"
+                dbgecho "DEBUG: found dir: /home/$DIR & /home/$DIR/bin/$REQUIRED_PROGRAM"
 
                 break
             fi
@@ -231,7 +230,7 @@ ttstring=$(grep -A 1 -i "Raw Touch Tone Data" $DW_LOG_FILE)
 retcode="$?"
 dbgecho "DEBUG: Search for 'Raw Touch Tone Data': ret: $retcode"
 if [ "$retcode" -ne 0 ] ; then
-    echo "$(date): No Touch Tone entries found in direwolf log file." | $TEE_CMD
+    echo "$(date): No Raw Touch Tone entries found in direwolf log file." | $TEE_CMD
     exit 1
 fi
 lines=$(wc -l <<< $ttstring)
@@ -267,7 +266,7 @@ ttstring=$(grep -i "aprstt" $DW_LOG_FILE)
 retcode="$?"
 dbgecho "DEBUG: Search for aprstt: ret: $retcode"
 if [ "$retcode" -ne 0 ] ; then
-    echo "$(date): No Touch Tone entries found in direwolf log file." | $TEE_CMD
+    echo "$(date): No APRStt Touch Tone entries found in direwolf log file." | $TEE_CMD
     exit 1
 fi
 lines=$(wc -l <<< $ttstring)
