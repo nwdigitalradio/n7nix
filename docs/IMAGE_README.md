@@ -19,19 +19,19 @@
 
 |    Program   |  Version |  PKG  |  DW   |  AX25 |
 | :---------:  | :------: | :---: | :---: | :---: |
-| direwolf     |   dev 1.6 E  |       |       |       |
+| direwolf     |   1.6    |       |       |       |
 | libax25      |   1.1.3  |  yes  |  yes  |  yes  |
 | ax25apps     |   2.0.1  |  yes  |  yes  |  yes  |
 | ax25tools    |   1.0.5  |  yes  |  yes  |  yes  |
 | aprx         |   2.9.0  |       |  yes  |  yes  |
 | rmsgw        |   2.5.1  |       |  yes  |  yes  |
-| paclink-unix |    0.10  |       |  yes  |  yes  |
+| paclink-unix |   0.10   |       |  yes  |  yes  |
 | mutt         |   1.10.1  |  yes  |  yes  |  yes    |
 | claws-mail   |   3.14.1  |  yes  |       |       |
 | rainloop     |   1.12.1  |  yes  |       |       |
-| FBB BBS      |   7.0.9   |       |  yes  |  yes  |
-| Xastir       |   2.1.7     |    |  yes  |       |
-| YAAC           | 1.0-beta145  |      | yes  |
+| FBB BBS      |   7.0.10  |       |  yes  |  yes  |
+| Xastir       |   2.1.7   |       |  yes  |       |
+| YAAC *       | 1.0-beta145  |      | yes  |
 | dstarrepeater  | 1.20180703-4 | yes |   |   |
 | dstarrepeaterd | 1.20180703-4 | yes |   |   |
 | ircddbgateway  | 1.20180703-1 | yes |   |   |
@@ -42,9 +42,9 @@
 | wsjt-x       |  2.2.2  |  yes  |     |   |
 | hamlib       |  3.3    |      |     |   |
 | flxmlrpc lib |  0.1.4  |      |     |   |
-| fldigi       |  4.1.14 |      |     |   |
-| flrig        |  1.3.51 |      |     |   |
-| flmsg        |  4.0.16 |      |     |   |
+| fldigi       |  4.1.15 |      |     |   |
+| flrig        |  1.3.52 |      |     |   |
+| flmsg        |  4.0.17 |      |     |   |
 | flamp        |  2.2.05 |      |     |   |
 | fllog        |  1.2.6  |      |     |   |
 | iptables     |  1.8.2  |  yes |     |   |
