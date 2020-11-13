@@ -555,7 +555,7 @@ pid=$(pidof direwolf)
 if [ $? -eq 0 ] ; then
    echo "Direwolf is running, with a pid of $pid"
    echo "Stopping this process"
-   sudo $LOCAL_BIN_PATH/ax25-stop
+   sudo $LOCAL_BIN_PATH/ax25-stop -q
    DW_STOP=true
 fi
 
