@@ -4,7 +4,7 @@
 # The script enables & starts the services
 
 scriptname="`basename $0`"
-DEBUG=1
+DEBUG=
 QUIET=
 
 USER=

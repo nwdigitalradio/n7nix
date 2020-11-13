@@ -4,7 +4,7 @@
 # The script disables & stops the services
 
 scriptname="`basename $0`"
-DEBUG=1
+DEBUG=
 QUIET=
 
 USER=
@@ -101,7 +101,7 @@ function change_icon() {
         fi
 
         cp $LOCAL_BIN_PATH/ax25-${icon_action}.desktop "$ax25_desktop_file"
-        echo "changed icon to $1"
+        quietecho "changed icon to $1"
     fi
 }
 
