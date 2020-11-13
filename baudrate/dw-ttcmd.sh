@@ -27,6 +27,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*" | $TEE_CMD; fi }
 
 # ===== function get_user
 # When running as root need to find a valid local bin directory
+# Set USER based on finding a REQUIRED_PROGRAM
 
 function get_user() {
     # Check if there is only a single user on this system
@@ -183,7 +184,7 @@ else
     check_user
 fi
 
-localbin="/home/$USER/bin"
+LOCAL_BIN_PATH="/home/$USER/bin"
 
 while [[ $# -gt 0 ]] ; do
 key="$1"
@@ -288,7 +289,7 @@ fi
 check_speed_config "${ttbrate}00"
 if [ $? -eq 1 ] ; then
     echo "$(date): ttcmd requested baudrate: ${baudrate}00 change" | $TEE_CMD
-    $localbin/speed_switch.sh -b ${baudrate}00
+    $LOCAL_BIN_PATH/speed_switch.sh -b ${baudrate}00 $USER
 else
     echo "$(date): ttcmd requested baudrate: ${dw_speed0}, NO change" | $TEE_CMD
 fi

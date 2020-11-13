@@ -13,6 +13,8 @@
 DEBUG=
 DEBUG1=
 USER=
+DW_STOP=false
+
 scriptname="`basename $0`"
 
 # Force generation of wav file even if it already exists.
@@ -439,7 +441,7 @@ else
     exit 1
 fi
 
-localbin="$HOME/bin"
+LOCAL_BIN_PATH="/home/$USER/bin"
 
 dbgecho "Parse command line args"
 # Command line args are passed with a dash & single letter
@@ -553,7 +555,8 @@ pid=$(pidof direwolf)
 if [ $? -eq 0 ] ; then
    echo "Direwolf is running, with a pid of $pid"
    echo "Stopping this process"
-   sudo $localbin/ax25-stop
+   sudo $LOCAL_BIN_PATH/ax25-stop
+   DW_STOP=true
 fi
 
 draws_setup
@@ -579,9 +582,13 @@ draws_gpio_off
 check_speed_config ${baudrate}00
 if [ $? -eq 1 ] ; then
     echo "Requested baudrate: ${baudrate}00 change" | sudo tee -a $DW_TT_LOG_FILE
-    $localbin/speed_switch.sh -b ${baudrate}00
+    $LOCAL_BIN_PATH/speed_switch.sh -b ${baudrate}00
 else
-   echo "Requested baudrage: $dw_speed0, NO change required"
+   echo "Requested baudrate: $dw_speed0, NO change required"
+fi
+
+if [ "$DW_STOP" = "true" ] ; then
+    sudo $LOCAL_BIN_PATH/ax25-start
 fi
 
 exit 0
