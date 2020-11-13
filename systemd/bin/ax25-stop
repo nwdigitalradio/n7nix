@@ -5,7 +5,7 @@
 
 scriptname="`basename $0`"
 DEBUG=1
-QUEST=
+QUIET=
 
 USER=
 PORT_CFG_FILE="/etc/ax25/port.conf"
