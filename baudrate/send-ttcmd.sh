@@ -148,7 +148,7 @@ function draws_id_check() {
     CARDNO=$(aplay -l | grep -i udrc)
 
     if [ ! -z "$CARDNO" ] ; then
-        echo "udrc card number line: $CARDNO"
+        dbgecho "udrc card number line: $CARDNO"
         CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
         echo "udrc is sound card #$CARDNO"
         retcode=2
@@ -554,7 +554,7 @@ use_sox
 pid=$(pidof direwolf)
 if [ $? -eq 0 ] ; then
    echo "Direwolf is running, with a pid of $pid"
-   echo "Stopping this process"
+   echo " == Stopping Direwolf"
    sudo $LOCAL_BIN_PATH/ax25-stop -q
    DW_STOP=true
 fi
