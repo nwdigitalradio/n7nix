@@ -2,6 +2,7 @@
 # version: 1.1
 #
 # Switch for 1200 baud and 9600 baud packet speed
+# When called
 #
 DEBUG=
 QUIET=
@@ -15,12 +16,21 @@ PORT_CFG_FILE="/etc/ax25/port.conf"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 DW_TT_LOG_FILE="/var/log/direwolf/dw-log.txt"
 
+# For display to console
+#TEE_CMD="sudo tee -a $DW_TT_LOG_FILE"
+
+# For logging to log file only!
+# If you do not suppress stdout, direwolf will output it to radio in
+# Morse Code.
+TEE_CMD="sudo dd status=none of=$DW_TT_LOG_FILE oflag=append conv=notrunc"
+
+
 # ===== function dbgecho
 
-function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # if DEBUG is defined then echo
-function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
-# if QUIET is defined the DO NOT echo
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*" | $TEE_CMD; fi }
+
+# if QUIET is defined then DO NOT echo
 function quietecho { if [ -z "$QUIET" ] ; then echo "$*"; fi }
 
 # ==== function check_user
@@ -36,7 +46,7 @@ function check_user() {
    done
 
    if [ "$userok" = "false" ] ; then
-      echo "ERROR: User name ($USER) does not exist,  must be one of: $USERLIST" | tee $DW_TT_LOG_FILE
+      echo "ERROR: User name ($USER) does not exist,  must be one of: $USERLIST" | $TEE_CMD
       exit 1
    fi
 
@@ -56,7 +66,7 @@ function get_port_speed() {
         dbgecho " ax25 port file exists"
         portnumber=$1
         if [ -z $portnumber ] ; then
-            echo "Need to supply a port number in get_port_speed" | tee $DW_TT_LOG_FILE
+            echo "Need to supply a port number in get_port_speed" | $TEE_CMD
             return 1
         fi
 
@@ -76,15 +86,15 @@ function get_port_speed() {
                 dbgecho "parse baud_9600 section for $portname"
             ;;
             off)
-                echo "Using split channel, port: $portname is off" | tee $DW_TT_LOG_FILE
+                echo "Using split channel, port: $portname is off" | $TEE_CMD
             ;;
             *)
-                echo "Invalid speed parameter: $PORTSPEED, found in $PORT_CFG_FILE" | tee $DW_TT_LOG_FILE
+                echo "Invalid speed parameter: $PORTSPEED, found in $PORT_CFG_FILE" | $TEE_CMD
                 retcode=1
             ;;
         esac
     else
-        echo "ax25 port file: $PORT_CFG_FILE does not exist" | tee $DW_TT_LOG_FILE
+        echo "ax25 port file: $PORT_CFG_FILE does not exist" | $TEE_CMD
         retcode=1
     fi
     return $retcode
@@ -105,9 +115,9 @@ function speed_status() {
     # Check if direwolf is already running.
     pid=$(pidof direwolf)
     if [ $? -eq 0 ] ; then
-        echo "Direwolf is running with pid of $pid"
+        dbgecho "$(date): ${FUNCNAME[0]}: Direwolf is running with pid of $pid" | $TEE_CMD
     else
-        echo "Direwolf is NOT running"
+        echo "Direwolf is NOT running" | $TEE_CMD
     fi
 
     for devnum in 0 1 ; do
@@ -142,7 +152,7 @@ function dw_speed_cnt() {
     if (( speed_cnt > 0 )) && (( speed_cnt <= 2 )) ; then
         dbgecho "There are $speed_cnt instances of MODEM speed."
     else
-        echo "Error: Wrong count of MODEM speed instances: $speed_cnt"
+        echo "Error: Wrong count of MODEM speed instances: $speed_cnt" | $TEE_CMD
     fi
 }
 
@@ -154,7 +164,7 @@ function direwolf_set_baud() {
 
     modem_speed="$1"
 
-    echo "=== set $DIREWOLF_CFGFILE baud rate to: $modem_speed"
+    echo "$(date): set $DIREWOLF_CFGFILE baud rate to: $modem_speed" | $TEE_CMD
 
     # Modify first occurrence of MODEM configuration line
     sudo sed -i "0,/^MODEM/ s/^MODEM .*/MODEM $modem_speed/" $DIREWOLF_CFGFILE
@@ -181,7 +191,7 @@ function set_baudrate() {
     baudrate="$2"
     receive_out="$3"
 
-    echo "=== set $PORT_CFG_FILE baud rate to: $baudrate"
+    echo "$(date): set $PORT_CFG_FILE baud rate to: $baudrate" | $TEE_CMD
     # Switch speeds in port config file
     sudo sed -i -e "/\[port$portnum\]/,/\[/ s/^speed=.*/speed=$baudrate/" $PORT_CFG_FILE
     # Set audio/disc in port config file
@@ -200,7 +210,7 @@ function get_baudrates() {
         ax25_udr1_baud=$(sed -n '/\[port1\]/,/\[/p' $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
         dbgecho "AX.25: udr0 speed: $ax25_udr0_baud, udr1 speed: $ax25_udr1_baud"
     else
-        echo "Port config file: $PORT_CFG_FILE NOT found."
+        echo "Port config file: $PORT_CFG_FILE NOT found." | $TEE_CMD
         return;
     fi
 }
@@ -213,10 +223,10 @@ function baudrate_toggle() {
     switch_config
 
     # DEBUG ONLY
-    echo "Verify port.conf"
+    echo "Verify $PORT_CFG_FILE" | $TEE_CMD
     grep -i "^speed" $PORT_CFG_FILE
     echo
-    echo "Verify $DIREWOLF_CFGFILE"
+    echo "Verify $DIREWOLF_CFGFILE" | $TEE_CMD
     dw_speed_cnt
 
     grep -i "^MODEM" $DIREWOLF_CFGFILE
@@ -229,7 +239,7 @@ function baudrate_config() {
     get_baudrates
     dbgecho " === set baudrate to: $baudrate"
     if [ "$baudrate" = "$ax25_udr0_baud" ] && [ $(pidof direwolf) ] ; then
-        echo " === baud rate already set to $baudrate & direwolf is running"
+        echo " === baud rate already set to $baudrate & direwolf is running" | $TEE_CMD
         exit 0
     fi
 
@@ -240,10 +250,10 @@ function baudrate_config() {
     # Check if direwolf is already running.
     pid=$(pidof direwolf)
     if [ $? -eq 0 ] ; then
-        echo "Direwolf is running with pid of $pid"
+        dbgecho "$(date): ${FUNCNAME[0]}: Direwolf is running with pid of $pid" | $TEE_CMD
     else
-        echo "Direwolf is NOT running. Starting NOW ..."
-        $BIN_PATH/ax25-start -q
+        echo "$(date): Direwolf is NOT running. Starting NOW ..." | $TEE_CMD
+        $LOCAL_BIN_PATH/ax25-start -q
     fi
 }
 
@@ -271,7 +281,7 @@ function switch_config() {
             newspeed=off
         ;;
         *)
-            echo "Invalid speed parameter: $ax25_udr0_baud"
+            echo "Invalid speed parameter: $ax25_udr0_baud" | $TEE_CMD
             return;
         ;;
     esac
@@ -284,7 +294,7 @@ function switch_config() {
 # ===== function usage
 
 function usage() {
-   echo "Usage: $scriptname [-b <speed>][-s][-d][-h]" >&2
+   echo "Usage: $scriptname [-b <speed>][-s][-d][-h][USER]" >&2
    echo " Default to toggling baud rate when no command line arguments found."
    echo "   -b | --baudrate <baudrate>  Set baud rate speed, 1200 or 9600"
    echo "   -s | --status          Display current status of devices & ports"
@@ -309,6 +319,9 @@ while [[ $# -gt 0 ]] ; do
             shift  # past argument
             set_baudrate_flag=true
         ;;
+        -q|--quiet)
+            QUIET=1
+       ;;
         -d|--debug)
             echo "Verbose output"
             DEBUG=1
@@ -344,11 +357,11 @@ else
     check_user
 fi
 
-BIN_PATH="/home/$USER/bin"
+LOCAL_BIN_PATH="/home/$USER/bin"
 
 # If no port config file found create one
 if [ ! -f $PORT_CFG_FILE ] ; then
-    echo "No port config file: $PORT_CFG_FILE found, copying from repo."
+    echo "No port config file: $PORT_CFG_FILE found, copying from repo." | $TEE_CMD
     sudo cp /home/$USER/n7nix/ax25/port.conf $PORT_CFG_FILE
 fi
 
@@ -361,14 +374,18 @@ fi
 quietecho
 quietecho "=== set alsa config"
 if [ -z "$DEBUG" ] ; then
-    sudo $BIN_PATH/setalsa-tmv71a.sh > /dev/null 2>&1
+    sudo $LOCAL_BIN_PATH/setalsa-tmv71a.sh > /dev/null 2>&1
 else
     # Verbose output
-    sudo $BIN_PATH/setalsa-tmv71a.sh
+    sudo $LOCAL_BIN_PATH/setalsa-tmv71a.sh
 fi
 
 quietecho
 quietecho "=== reset direwolf & ax25 parms"
-$BIN_PATH/ax25-reset.sh -q
+
+QUIET="-q"
+sudo $LOCAL_BIN_PATH/ax25-stop $QUIET
+sleep 1
+sudo $LOCAL_BIN_PATH/ax25-start $QUIET
 
 exit 0
