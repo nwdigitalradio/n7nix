@@ -33,6 +33,32 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*" | $TEE_CMD; fi }
 # if QUIET is defined then DO NOT echo
 function quietecho { if [ -z "$QUIET" ] ; then echo "$*"; fi }
 
+# ===== function get_user
+# When running as root need to find a valid local bin directory
+# Set USER based on finding a REQUIRED_PROGRAM
+
+function get_user() {
+    # Check if there is only a single user on this system
+    if (( `ls /home | wc -l` == 1 )) ; then
+        USER=$(ls /home)
+    else
+        USER=
+        # Get here when there is more than one user on this system,
+        # find the local bin that has the requested program
+
+        REQUIRED_PROGRAM="ax25-stop"
+
+        for DIR in $(ls /home | tr '\n' ' ') ; do
+             if [ -d "/home/$DIR" ] && [ -e "/home/$DIR/bin/$REQUIRED_PROGRAM" ] ; then
+                USER="$DIR"
+                dbgecho "DEBUG: found dir: /home/$DIR & /home/$DIR/bin/$REQUIRED_PROGRAM"
+
+                break
+            fi
+        done
+    fi
+}
+
 # ==== function check_user
 # Verify user name passed on command line is legit
 
@@ -46,7 +72,7 @@ function check_user() {
    done
 
    if [ "$userok" = "false" ] ; then
-      echo "ERROR: User name ($USER) does not exist,  must be one of: $USERLIST" | $TEE_CMD
+      echo "$scriptname: ERROR: User name ($USER) does not exist,  must be one of: $USERLIST" | $TEE_CMD
       exit 1
    fi
 
@@ -246,15 +272,6 @@ function baudrate_config() {
     # default receive to discriminator
     # port number, speed (1200/9600) receive_out (audio/disc)
     set_baudrate 0 $baudrate "disc"
-
-    # Check if direwolf is already running.
-    pid=$(pidof direwolf)
-    if [ $? -eq 0 ] ; then
-        dbgecho "$(date): ${FUNCNAME[0]}: Direwolf is running with pid of $pid" | $TEE_CMD
-    else
-        echo "$(date): Direwolf is NOT running. Starting NOW ..." | $TEE_CMD
-        $LOCAL_BIN_PATH/ax25-start -q
-    fi
 }
 
 # ===== function switch_config
@@ -352,7 +369,7 @@ else
     USERLIST="$(ls /home)"
     USERLIST="$(echo $USERLIST | tr '\n' ' ')"
 
-    # get_user
+    get_user
     # Verify user name passed on command line
     check_user
 fi
@@ -384,8 +401,14 @@ quietecho
 quietecho "=== reset direwolf & ax25 parms"
 
 QUIET="-q"
-sudo $LOCAL_BIN_PATH/ax25-stop $QUIET
-sleep 1
+
+# Check if direwolf is already running.
+pid=$(pidof direwolf)
+if [ $? -eq 0 ] ; then
+    sudo $LOCAL_BIN_PATH/ax25-stop $QUIET
+    sleep 1
+fi
+
 sudo $LOCAL_BIN_PATH/ax25-start $QUIET
 
 exit 0

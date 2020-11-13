@@ -588,7 +588,7 @@ else
 fi
 
 if [ "$DW_STOP" = "true" ] ; then
-    sudo $LOCAL_BIN_PATH/ax25-start
+    sudo $LOCAL_BIN_PATH/ax25-start -q
 fi
 
 exit 0
