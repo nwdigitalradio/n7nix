@@ -2,7 +2,7 @@
 
 ### Script Index
 * [ax25-setcfg.sh](#ax25-setcfgsh)
-* [ax25-reset.sh](#ax25-resetsh)
+* [ax25-restart](#ax25-restart)
 * [ax25-showcfg.sh](#ax25-showcfgsh)
 
 ### Install / Refresh
@@ -125,7 +125,7 @@ KISSPARMS set to:
 port: 0, speed: 1200, slottime: 200, txdelay: 200, txtail: 50, persist: 32, t1 timeout: 3000, t2 timeout: 1000
 ```
 
-#### ax25-reset.sh
+#### ax25-restart
 
 * Stops & starts AX.25/direwolf so that any new configuration changes take effect.
 
