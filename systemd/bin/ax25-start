@@ -114,17 +114,20 @@ function change_icon() {
 
 # ===== main
 
-# Check if there are any args on command line
-# Use to quiet output
-if (( $# != 0 )) ; then
-   QUIET=1
-fi
+QUIET=
+USER=
 
 # Check if direwolf is already running.
 pid=$(pidof direwolf)
 if [ $? -eq 0 ] ; then
     echo "Direwolf already running with a pid of $pid ... exiting."
     exit 1
+fi
+
+# Check if there are any args on command line
+# Use to quiet output
+if (( $# != 0 )) ; then
+   QUIET=1
 fi
 
 # Get list of users with home directories
