@@ -15,6 +15,7 @@ scriptname="`basename $0`"
 PORT_CFG_FILE="/etc/ax25/port.conf"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 DW_TT_LOG_FILE="/var/log/direwolf/dw-log.txt"
+DW_LOG_FILE="/var/log/direwolf/direwolf.log"
 
 # For display to console
 #TEE_CMD="sudo tee -a $DW_TT_LOG_FILE"
@@ -249,13 +250,15 @@ function baudrate_toggle() {
     switch_config
 
     # DEBUG ONLY
-    echo "Verify $PORT_CFG_FILE" | $TEE_CMD
-    grep -i "^speed" $PORT_CFG_FILE
-    echo
-    echo "Verify $DIREWOLF_CFGFILE" | $TEE_CMD
-    dw_speed_cnt
+    if [ ! -z "$DEBUG" ] ; then
+        echo "Verify $PORT_CFG_FILE" | $TEE_CMD
+        grep -i "^speed" $PORT_CFG_FILE
+        echo
+        echo "Verify $DIREWOLF_CFGFILE" | $TEE_CMD
+        dw_speed_cnt
 
-    grep -i "^MODEM" $DIREWOLF_CFGFILE
+        grep -i "^MODEM" $DIREWOLF_CFGFILE
+    fi
 }
 
 # ===== function baudrate_config
@@ -306,7 +309,51 @@ function switch_config() {
     set_baudrate 0 $newspeed_port0 $newreceive_out0
 
 }
+# ===== function parent_check
+function parent_check() {
+    retcode=0
+    # direwolf will not allocate a tty to spawned script
+    if [ -t 0 ] ; then
+        echo "running from a console" | $TEE_CMD
+    else
+        # Get parent pid of parent
+        PPPID=$(ps h -o ppid= $PPID)
+        # get name of the command
+        P_COMMAND=$(ps h -o %c $PPPID)
 
+        echo "running from: $P_COMMAND" | $TEE_CMD
+        retcode=1
+    fi
+    return $retcode
+}
+# ===== function reset_stack
+function reset_stack() {
+    QUIET="-q"
+
+    echo "reset_stack arg: $1"  | $TEE_CMD
+    # If running from direwolf then wait for the morse code response
+    if [ "$1" -eq 1 ] ; then
+        wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
+        start_sec=$SECONDS
+        while [[ $wait4morse -ne 0 ]] ; do
+            wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
+        done
+        echo "Would do a direwolf reset now after $((SECONDS-startsec)) seconds"  | $TEE_CMD
+    fi
+
+    if [ 1 -eq 0 ] ; then
+    # Check if direwolf is already running.
+    pid=$(pidof direwolf)
+    if [ $? -eq 0 ] ; then
+        sudo $LOCAL_BIN_PATH/ax25-stop $QUIET
+        sleep 1
+    fi
+
+    sudo $LOCAL_BIN_PATH/ax25-start $QUIET
+    else
+    at now +1
+    fi
+}
 
 # ===== function usage
 
@@ -388,6 +435,9 @@ else
     baudrate_toggle
 fi
 
+if [ 1 -eq 0 ] ; then
+# Not sure if I need to do this.
+# Makes script dependent on a particular radio
 quietecho
 quietecho "=== set alsa config"
 if [ -z "$DEBUG" ] ; then
@@ -396,36 +446,12 @@ else
     # Verbose output
     sudo $LOCAL_BIN_PATH/setalsa-tmv71a.sh
 fi
+fi
 
 quietecho
 quietecho "=== reset direwolf & ax25 parms"
-
-QUIET="-q"
-
-# direwolf will not allocate a tty to spawned script
-if [ -t 0 ] ; then
-    echo "running from a console" | $TEE_CMD
-else
-   # Get parent pid of parent
-    PPPID=$(ps h -o ppid= $PPID)
-    # get name of the command
-    P_COMMAND=$(ps h -o %c $PPPID)
-
-    echo "running from direwolf ($P_COMMAND)" | $TEE_CMD
-    # Wait until direwolf completes its morse response
-    #sleep 4
-    #echo "restart direwolf" | $TEE_CMD
-fi
-
-if [ 1 -eq 0 ] ; then
-    # Check if direwolf is already running.
-    pid=$(pidof direwolf)
-    if [ $? -eq 0 ] ; then
-        sudo $LOCAL_BIN_PATH/ax25-stop $QUIET
-        sleep 1
-    fi
-
-    sudo $LOCAL_BIN_PATH/ax25-start $QUIET
-fi
+parent_check
+parent_retcode=$?
+(reset_stack $parent_retcode ) &
 
 exit 0
