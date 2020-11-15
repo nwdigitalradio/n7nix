@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # This script stops then starts direwolf & all AX.25 systemd services
-# Switched from bash to sh to run from at
+# Switched from bash to Bourne shell to run from at
 
 USER=
 QUIET=
