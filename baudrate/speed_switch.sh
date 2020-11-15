@@ -47,7 +47,7 @@ function get_user() {
         # Get here when there is more than one user on this system,
         # find the local bin that has the requested program
 
-        REQUIRED_PROGRAM="ax25-stop"
+        REQUIRED_PROGRAM="ax25-restart"
 
         for DIR in $(ls /home | tr '\n' ' ') ; do
              if [ -d "/home/$DIR" ] && [ -e "/home/$DIR/bin/$REQUIRED_PROGRAM" ] ; then
@@ -326,6 +326,7 @@ function parent_check() {
     fi
     return $retcode
 }
+
 # ===== function reset_stack
 function reset_stack() {
     QUIET="-q"
@@ -338,21 +339,13 @@ function reset_stack() {
         while [[ $wait4morse -ne 0 ]] ; do
             wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
         done
-        echo "Would do a direwolf reset now after $((SECONDS-startsec)) seconds"  | $TEE_CMD
+        echo "Would do a direwolf reset now after $((SECONDS-startsec)) seconds" | $TEE_CMD
+#       at now + 1 min -f /home/pi/bin/ax25-restart
+        # This used for time second resolution using 'at' command
+        at -t $(date --date="now +5 seconds" +"%Y%m%d%H%M.%S") -f /home/pi/bin/ax25-restart  > /dev/null 2>&1
     fi
 
-    if [ 1 -eq 0 ] ; then
-    # Check if direwolf is already running.
-    pid=$(pidof direwolf)
-    if [ $? -eq 0 ] ; then
-        sudo $LOCAL_BIN_PATH/ax25-stop $QUIET
-        sleep 1
-    fi
-
-    sudo $LOCAL_BIN_PATH/ax25-start $QUIET
-    else
-    at now +1
-    fi
+    echo "Exit reset_stack after $((SECONDS-startsec)) seconds" | $TEE_CMD
 }
 
 # ===== function usage
@@ -450,8 +443,11 @@ fi
 
 quietecho
 quietecho "=== reset direwolf & ax25 parms"
+
 parent_check
 parent_retcode=$?
+# Execute reset_stack in a sub shell as a forked process
 (reset_stack $parent_retcode ) &
 
+echo "$(date): $scriptname exit" | $TEE_CMD
 exit 0
