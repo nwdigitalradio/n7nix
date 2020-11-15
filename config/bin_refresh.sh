@@ -52,7 +52,6 @@ if [ ! -d "$ax25bindir" ] ; then
    exit 1
 fi
 
-sudo cp -u /home/$USER/n7nix/ax25/ax25-reset.sh $userbindir
 sudo cp -u /home/$USER/n7nix/ax25/ax25-showcfg.sh $userbindir
 sudo cp -u /home/$USER/n7nix/ax25/ax25-setcfg.sh $userbindir
 
