@@ -9,9 +9,9 @@ DEBUG=
 
 scriptname="`basename $0`"
 
+PORT_CFG_FILE="/etc/ax25/port.conf"
 DW_TT_LOG_FILE="/var/log/direwolf/dw-log.txt"
 DW_LOG_FILE="/var/log/direwolf/direwolf.log"
-PORT_CFG_FILE="/etc/ax25/port.conf"
 
 # For display to console
 #TEE_CMD="sudo tee -a $DW_TT_LOG_FILE"
@@ -318,7 +318,7 @@ else
     echo "Error: baud rates do not match: Method 1: $ttbrate, Method 2: $baudrate" | $TEE_CMD
 fi
 
-check_console
+# check_console
 
 # Check if current speed config needs to change
 check_speed_config "${ttbrate}00"
@@ -328,3 +328,6 @@ if [ $? -eq 1 ] ; then
 else
     echo "$(date): ttcmd requested baudrate: ${dw_speed0}, NO change" | $TEE_CMD
 fi
+
+echo "$(date): $scriptname exit" | $TEE_CMD
+exit 0
