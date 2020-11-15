@@ -339,13 +339,13 @@ function reset_stack() {
         while [[ $wait4morse -ne 0 ]] ; do
             wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
         done
-        echo "Would do a direwolf reset now after $((SECONDS-startsec)) seconds" | $TEE_CMD
+        echo "Would do a direwolf reset now, after $((SECONDS-startsec)) seconds" | $TEE_CMD
 #       at now + 1 min -f /home/pi/bin/ax25-restart
         # This used for time second resolution using 'at' command
         at -t $(date --date="now +5 seconds" +"%Y%m%d%H%M.%S") -f /home/pi/bin/ax25-restart  > /dev/null 2>&1
     fi
 
-    echo "Exit reset_stack after $((SECONDS-startsec)) seconds" | $TEE_CMD
+    echo "$(date): ${FUNCNAME[0]} exit, wait( $((SECONDS-startsec)) )" | $TEE_CMD
 }
 
 # ===== function usage
