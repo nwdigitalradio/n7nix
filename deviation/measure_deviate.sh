@@ -16,7 +16,7 @@
 scriptname="`basename $0`"
 USER=
 DEBUG=
-NWDR=false
+NWDR=true
 
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
@@ -37,16 +37,19 @@ gpio_pin=12
 
 # trap ctrl-c and call ctrl_c()
 trap ctrl_c INT
+
 # ===== function usage
 function usage() {
-   echo "Usage: $scriptname [-f <tone_frequency][-c <connector>][-l <tone_duration>][-h]" >&2
+   echo "Usage: $scriptname [-f <tone_frequency][-c <connector>][-l <tone_duration>][-D <device_name>][-h]" >&2
    echo "   -f tone frequency in Hz (10 - 20000), default: 2200"
    echo "   -c connector location, either left (mDin6) or right (hd15/mDin6), default: right"
    echo "   -l length of tone in seconds, default 30"
+   echo "   -D Device name, either udrc or usb, default udrc"
    echo "   -d set debug flag"
    echo "   -h no arg, display this message"
    echo
 }
+
 # ===== function debugecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
