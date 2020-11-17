@@ -16,6 +16,7 @@
 scriptname="`basename $0`"
 USER=
 DEBUG=
+NWDR=false
 
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
@@ -28,7 +29,7 @@ NWDIG_VENDOR_NAME="NW Digital Radio"
 freq=2200
 tone_length=30
 default_tone_length=30
-connector="right"
+connector="left"
 wavefile_basename="hzsin.wav"
 wavefile="$freq$wavefile_basename"
 #default to UDRC II, channel 0
@@ -53,10 +54,14 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # Shut off both PTT gpio's
 
 function ctrl_c() {
-        echo "** carrier off from trapped CTRL-C"
-	gpio -g write 12 0
-	gpio -g write 23 0
-	exit
+    echo "** carrier off from trapped CTRL-C"
+    if [ $NWDR = "true" ] ; then
+        nwdr_ptt_off 12
+        nwdr_ptt_off 23
+    else
+        usb_ptt_off 3
+    fi
+    exit
 }
 
 # ===== function get_user
@@ -180,6 +185,111 @@ dbgecho "Finished udrc/draws id check: $udrc_prod_id"
 return $udrc_prod_id
 }
 
+nwdr_id_check() {
+
+    # Verify a UDRC HAT is installed
+    id_check
+    id_check_ret=$?
+    if [ $id_check_ret -eq 0 ] || [ $id_check_ret -eq 1 ] ; then
+        echo "No UDRC or DRAWS found, id_check=$id_check_ret exiting ..."
+        exit 1
+    fi
+}
+
+# function nwdr_gpio_set
+# Validate channel location
+# Set correct PTT gpio for channel 0 or 1
+# DRAWS Hat has channel 0 on left & channel 1 on right connector
+
+nwdr_gpio_set() {
+    case $connector in
+        left)
+            # Check for UDRC II
+            if [ $udrc_prod_id == 3 ]  ; then
+                # uses audio channel 1 PTT gpio
+                gpio_pin=23
+            else
+                # Original UDRC & DRAWS HAT use chan 0 PTT gpio
+                gpio_pin=12
+            fi
+        ;;
+        right)
+            if [ $udrc_prod_id == 4 ] ; then
+                # use channel 1 PTT gpio
+                gpio_pin=23
+            else
+                # Original UDRC & UDRC II use chan 0 PTT gpio
+                gpio_pin=12
+            fi
+        ;;
+        *)
+            echo "Wrong connector location specified: $connector"
+            usage
+            exit 1
+        ;;
+    esac
+
+    # Won't work unless gpio 4 is set to ALT 0
+    # gpio 4 (BCM) is calld gpio. 7 by WiringPi
+    mode_gpio7="$(gpio readall | grep -i "gpio. 7" | cut -d "|" -f 5 | tr -d '[:space:]')"
+    if [ "$mode_gpio7" != "ALT0" ] ; then
+        echo
+        echo "  gpio 7 is in wrong mode: |$mode_gpio7|, should be: ALT0"
+        echo "  Setting gpio set to mode ALT0"
+        gpio mode 7 ALT0
+        echo
+    fi
+}
+
+nwdr_ptt_on() {
+    # Enable PTT
+    gpio=$1
+    gpio -g mode $gpio out
+    gpio -g write $gpio 1
+}
+
+nwdr_ptt_off() {
+    # Turn off PTT
+    gpio=$1
+    gpio -g write $gpio 0
+}
+
+#  Build a packet for CM108 HID to turn GPIO bit on or off.
+#  Packet is 4 bytes, preceded by a 'report number' byte
+#  0x00 report number
+#  Write data packet (from CM108 documentation)
+#  byte 0: 00xx xxxx     Write GPIO
+#  byte 1: xxxx dcba     GPIO3-0 output values (1=high)
+#  byte 2: xxxx dcba     GPIO3-0 data-direction register (1=output)
+#  byte 3: xxxx xxxx     SPDIF
+usb_ptt_on() {
+
+    gpio=$1
+    iomask=$((1 << (gpio - 1) ))
+    iodata=$((1 << (gpio - 1) ))
+
+    # echo options
+    #    -n   do not output the trailing newline
+    #    -e   enable interpretation of backslash escapes
+
+#    exec 5<> /dev/hidraw2
+#    echo -n -e \\x00\\x00\\x01\\x01\\x00 >&5
+
+    # report number, HID output report, GPIO state, data direction
+    echo -n -e \\x00\\x00\\x${iomask}\\x${iodata}\\x00 > /dev/hidraw2
+#   echo -n -e \\x00\\x00\\x04\\x04\\x00 > /dev/hidraw2
+
+#    exec 5>&-
+}
+usb_ptt_off() {
+    gpio=$1
+    iomask=$((1 << (gpio - 1) ))
+    iodata=0
+    # report number, HID output report, GPIO state, data direction
+    echo -n -e \\x00\\x00\\x${iomask}\\x${iodata}\\x00 > /dev/hidraw2
+#   echo -n -e \\x00\\x00\\x04\\x00\\x00 > /dev/hidraw2
+}
+
 # ===== main
 
 PROGLIST="gpio sox aplay"
@@ -237,6 +347,17 @@ case $key in
       connector="$2"
       shift # past argument
    ;;
+   -D|--device)
+      device="$2"
+      shift # past argument
+      if [ "$device" = "usb"] ; then
+          NWDR=false
+      elif  [ "$device" = "udrc" ] ; then
+          NWDR=true
+      else
+          echo "Invalid device name: $device, default to device=udrc"
+      fi
+   ;;
    -d|--debug)
       DEBUG=1
       echo "Debug mode on"
@@ -255,12 +376,9 @@ esac
 shift # past argument or value
 done
 
-# Verify a UDRC HAT is installed
-id_check
-id_check_ret=$?
-if [ $id_check_ret -eq 0 ] || [ $id_check_ret -eq 1 ] ; then
-   echo "No UDRC or DRAWS found, id_check=$id_check_ret exiting ..."
-   exit 1
+if [ $NWDR = "true" ] ; then
+    nwdr_id_check
+    nwdr_gpio_set
 fi
 
 # Validate tone frequency
@@ -272,36 +390,6 @@ else
   exit 1
 fi
 
-# Validate channel location
-# Set correct PTT gpio for channel 0 or 1
-# DRAWS Hat has channel 0 on left & channel 1 on right connector
-case $connector in
-   left)
-      # Check for UDRC II
-      if [ $udrc_prod_id == 3 ]  ; then
-         # uses audio channel 1 PTT gpio
-         gpio_pin=23
-      else
-         # Original UDRC & DRAWS HAT use chan 0 PTT gpio
-         gpio_pin=12
-      fi
-   ;;
-   right)
-      if [ $udrc_prod_id == 4 ] ; then
-          # use channel 1 PTT gpio
-          gpio_pin=23
-      else
-          # Original UDRC & UDRC II use chan 0 PTT gpio
-          gpio_pin=12
-      fi
-   ;;
-   *)
-      echo "Wrong connector location specified: $connector"
-      usage
-      exit 1
-   ;;
-esac
-
 # Need path to ax25-stop script
 # - $USER variable should be set
 # Sox will NOT work if direwolf or any other sound card program is running
@@ -310,17 +398,6 @@ if [ $? -eq 0 ] ; then
    echo "Direwolf is running, with a pid of $pid"
    echo "Stopping this process"
    sudo /home/$USER/bin/ax25-stop
-fi
-
-# Won't work unless gpio 4 is set to ALT 0
-# gpio 4 (BCM) is calld gpio. 7 by WiringPi
-mode_gpio7="$(gpio readall | grep -i "gpio. 7" | cut -d "|" -f 5 | tr -d '[:space:]')"
-if [ "$mode_gpio7" != "ALT0" ] ; then
-   echo
-   echo "  gpio 7 is in wrong mode: |$mode_gpio7|, should be: ALT0"
-   echo "  Setting gpio set to mode ALT0"
-   gpio mode 7 ALT0
-   echo
 fi
 
 wavefile="$freq$wavefile_basename"
@@ -344,16 +421,24 @@ fi
 echo "If using devcal from Svxlink make sure devcal line has -f$freq"
 echo "Using PTT GPIO $gpio_pin with tone of $freq Hz"
 
-# Enable PTT
-gpio -g mode $gpio_pin out
-gpio -g write $gpio_pin 1
+if [ $NWDR = "true" ] ; then
+    nwdr_ptt_on $gpio_pin
+    SND_DEVICE="udrc"
+else
+    usb_ptt_on 3
+    SND_DEVICE="Device"
+fi
 
-aplay -vv -D hw:CARD=udrc,DEV=0 $wavefile
+aplay -vv -D plughw:CARD="$SND_DEVICE",DEV=0 $wavefile
+#aplay -vv -D hw:CARD="$SND_DEVICE",DEV=0 $wavefile
 #aplay -vv -D "plughw:1,0" $wavefile
 dbgecho "Return code from aplay: $?"
 
-# Turn off PTT
-gpio -g write $gpio_pin 0
+if [ $NWDR = "true" ] ; then
+    nwdr_ptt_off $gpio_pin
+else
+    usb_ptt_off 3
+fi
 
 echo "Is carrier turned off?"
 
