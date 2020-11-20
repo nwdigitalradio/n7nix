@@ -2,8 +2,9 @@
 #
 #  tt_install.sh
 #
-# Install files to local bin and modify direwolf config to enable Touch
-# Tone commands
+# - Install scripts to local bin
+# - Modify direwolf config to enable Touch Tone commands
+# This script has NO command line options.
 #
 # Uncomment this statement for debug echos
 # DEBUG=1
@@ -32,7 +33,7 @@ userbindir="/home/$USER/bin"
 PROGLIST="gpio sox"
 NEEDPKG_FLAG=false
 
-# Verify required programs are installed
+## Verify required programs are installed
 
 for prog_name in `echo ${PROGLIST}` ; do
    echo "DEBUG: is program: $prog_name installed"
@@ -48,15 +49,15 @@ if [ "$NEEDPKG_FLAG" = "true" ] ; then
    sudo apt-get -y -q install alsa-utils sox
 fi
 
-
 ## Edit direwolf.conf
+
 # Changes to Channel(0,1) section
 #  Add these lines
 #   ARATE 48000
 #   DTMF
 #   TTOBJ 0 APP
 
-# SetARATE 48000 if not already set
+# Set ARATE 48000 if not already set
 dbgecho "Verify direwolf configuration"
 grep -q "^ARATE 48000" $DIREWOLF_CFGFILE
 if [ "$?" -ne 0 ] ; then
@@ -87,7 +88,7 @@ else
 fi
 
 
-# Copy baud rate change scripts to local bin
+## Copy baud rate change scripts to local bin
 
 # Check if local bin directory exists.
 if [ ! -d "$userbindir" ] ; then
