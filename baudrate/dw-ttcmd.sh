@@ -329,5 +329,7 @@ else
     echo "$(date): ttcmd requested baudrate: ${dw_speed0}, NO change" | $TEE_CMD
 fi
 
+echo "DEBUG: TTCALL: $TTCALL, TTCOUNT: $TTCOUNT, TTFREQ: $TTFREQ, TTLOC: $TTLOC, TTDAO: $TTDAO" | $TEE_CMD
+
 echo "$(date): $scriptname exit" | $TEE_CMD
 exit 0
