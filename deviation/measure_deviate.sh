@@ -279,7 +279,7 @@ usb_ptt_on() {
 #    echo -n -e \\x00\\x00\\x01\\x01\\x00 >&5
 
     # report number, HID output report, GPIO state, data direction
-    echo -n -e \\x00\\x00\\x${iomask}\\x${iodata}\\x00 > /dev/hidraw2
+    echo -n -e \\x00\\x00\\x${iomask}\\x${iodata}\\x00 > /dev/$HID_FILE
 #   echo -n -e \\x00\\x00\\x04\\x04\\x00 > /dev/hidraw2
 
 #    exec 5>&-
@@ -289,8 +289,34 @@ usb_ptt_off() {
     iomask=$((1 << (gpio - 1) ))
     iodata=0
     # report number, HID output report, GPIO state, data direction
-    echo -n -e \\x00\\x00\\x${iomask}\\x${iodata}\\x00 > /dev/hidraw2
+    echo -n -e \\x00\\x00\\x${iomask}\\x${iodata}\\x00 > /dev/$HID_FILE
 #   echo -n -e \\x00\\x00\\x04\\x00\\x00 > /dev/hidraw2
+}
+
+# ===== usb_hid_dev
+# Find HID raw device name for C-Media
+
+usb_hid_dev() {
+    found_hid_dev=false
+    FILES=/dev/hidraw*
+
+    for f in $FILES ; do
+        HID_FILE=${f##*/}
+        if [ -e /sys/class/hidraw/${HID_FILE}/device/uevent ] ; then
+            DEVICE="$(cat /sys/class/hidraw/${HID_FILE}/device/uevent | grep HID_NAME | cut -d '=' -f2)"
+	    grep -q "C-Media" <<< $DEVICE
+            if [ $? -eq 0 ] ; then
+                echo "Using HID device: $HID_FILE"
+                found_hid_dev=true
+	        break
+#               printf "%s \t %s\n" $HID_FILE "$DEVICE"
+            fi
+        fi
+    done
+    if [ $found_hid_dev = false ] ; then
+        echo "ERROR: Could not find HID device C-Media"
+	exit
+    fi
 }
 
 # ===== main
@@ -353,7 +379,7 @@ case $key in
    -D|--device)
       device="$2"
       shift # past argument
-      if [ "$device" = "usb"] ; then
+      if [ "$device" = "usb" ] ; then
           NWDR=false
       elif  [ "$device" = "udrc" ] ; then
           NWDR=true
@@ -382,6 +408,8 @@ done
 if [ $NWDR = "true" ] ; then
     nwdr_id_check
     nwdr_gpio_set
+else
+    usb_hid_dev
 fi
 
 # Validate tone frequency
@@ -433,8 +461,9 @@ else
 fi
 
 aplay -vv -D plughw:CARD="$SND_DEVICE",DEV=0 $wavefile
-#aplay -vv -D hw:CARD="$SND_DEVICE",DEV=0 $wavefile
 #aplay -vv -D "plughw:1,0" $wavefile
+#aplay -vv -D hw:CARD="$SND_DEVICE",DEV=0 $wavefile
+
 dbgecho "Return code from aplay: $?"
 
 if [ $NWDR = "true" ] ; then
