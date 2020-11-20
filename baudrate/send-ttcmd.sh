@@ -20,6 +20,7 @@ scriptname="`basename $0`"
 # Force generation of wav file even if it already exists.
 FORCE_GEN=
 CALLSIGN="N0ONE"
+CALLSIGN_ARG=false
 AX25_CFGDIR="/usr/local/etc/ax25"
 AXPORTS_FILE="$AX25_CFGDIR/axports"
 PORT_CFG_FILE="/etc/ax25/port.conf"
@@ -48,6 +49,13 @@ declare -A dmtffreq=( \
 [4 1]=770 [4 2]=1209 [5 1]=770 [5 2]=1336 [6 1]=770 [6 2]=1477 [B 1]=770 [B 2]=1633 \
 [7 1]=852 [7 2]=1209 [8 1]=852 [8 2]=1336 [9 1]=852 [9 2]=1477 [C 1]=852 [C 2]=1633 \
 [* 1]=941 [* 2]=1209 [0 1]=941 [0 2]=1336 [# 1]=941 [# 2]=1477 [D 1]=941 [D 2]=1633 )
+
+## Radio frequency definitions in Kilohertz
+BAND_2M_LO_LIM=144000
+BAND_2M_HI_LIM=148000
+# 420 to 430 MHz is prohibited north of Line A
+BAND_440_LO_LIM=430000
+BAND_440_HI_LIM=450000
 
 # trap ctrl-c and call ctrl_c()
 trap ctrl_c INT
@@ -272,8 +280,8 @@ function gen_wave_file() {
     # sox ttcmd_0.wav silence.wav ttcmd_1.wav ttcmd_final.wav
 
     # Start with silence
-    ttcmd_output_file="ttcmd_${CALLSIGN}_${baudrate}00.wav"
-    if [ ! -e $ttcmd_output_file ] ; then
+#    ttcmd_output_file="ttcmd_${CALLSIGN}_${baudrate}00.wav"
+    if [ ! -e $ttcmd_output_file ] || [ ! -z $FORCE_GEN ] ; then
         dbgecho "ttcmd wav file: $ttcmd_output_file does NOT exist, creating ..."
 
         cp silence.wav $ttcmd_output_file
@@ -340,6 +348,40 @@ function send_ttones_individ() {
             play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2  2> /dev/null
         done
     fi
+}
+
+tt_callsign_multipress() {
+    call_ttones=$((grep -A 1 "multi-press method.*" <<< $(text2tt $CALLSIGN)) | tail -n1)
+    dbgecho "tt1: $call_ttones"
+    tt_str1=$(echo $call_ttones | cut -f2 -d'"')
+    # parse the checksum
+    tt_str2=$(echo $call_ttones | cut -f2 -d'=')
+    # squish all the spaces
+    checksum=$(echo $tt_str2 |tr -s '[[:space:]]')
+    ttcallsign="A$tt_str1$checksum"
+}
+
+tt_callsign_twokey() {
+    call_ttones=$((grep -A 1 "two-key method.*" <<< $(text2tt $CALLSIGN)) | tail -n1)
+    dbgecho "tt1: $call_ttones"
+    tt_str1=$(echo $call_ttones | cut -f2 -d'"')
+    # parse the checksum
+    tt_str2=$(echo $call_ttones | cut -f2 -d'=')
+    # squish all the spaces
+    checksum=$(echo $tt_str2 |tr -s '[[:space:]]')
+    ttcallsign="A$tt_str1$checksum"
+}
+
+tt_callsign_10digit() {
+
+    call_ttones=$((grep -A 1 "10 digit callsign.*" <<< $(text2tt $CALLSIGN)) | tail -n1)
+    dbgecho "tt1: $call_ttones"
+    tt_str1=$(echo $call_ttones | cut -f2 -d'"')
+
+    # Remove surrounding double quotes
+    ttcallsign=${tt_str1%\"}
+    ttcallsign=${ttcallsign#\"}
+#    ttcallsign="A${ttcallsign}${checksum}"
 }
 
 # ===== function draws_setup
@@ -420,6 +462,8 @@ function usage() {
    echo "Usage: $scriptname [-c <connector>][-b <baudrate>][-h]" >&2
    echo "   -b <baudrate>           either 1200 or 9600 baud, default 1200"
    echo "   -c <connector_location> DRAWS left (mDin6) or right (hd15/mDin6), default: left"
+   echo "   -C <call sign>          Specify a call sign"
+   echo "   -f <frequency>          Frequency in kilohertz, exactly 6 digits."
    echo "   -t <tone_gen>           Tone generation method, either individ, file, default: file"
    echo "   -d                      set debug flag"
    echo "   -h                      no arg, display this message"
@@ -442,6 +486,8 @@ else
 fi
 
 LOCAL_BIN_PATH="/home/$USER/bin"
+frequency=
+ttfrequency=
 
 dbgecho "Parse command line args"
 # Command line args are passed with a dash & single letter
@@ -459,11 +505,36 @@ case $key in
        fi
        dbgecho "Command Line: Setting baudrate to $baudrate"
    ;;
+   -C|--callsign)
+      CALLSIGN_ARG=true
+      CALLSIGN=$2
+      shift # past argument
+      validate_callsign $CALLSIGN
+    if [ $? -eq 0 ] ; then
+        dbgecho "Using CALL SIGN: $CALLSIGN"
+        retcode=1
+    else
+        echo "Bad callsign found: $CALLSIGN"
+        exit 1
+    fi
+   ;;
    -c|--connector)
       connector="$2"
       shift # past argument
    ;;
-   -f|--force)
+   -f|--freq)
+      frequency="$2"
+      shift # past argument
+
+       if ( (( frequency >= 144000 )) && (( frequency < 148000 )) ) ||
+       ( (( frequency >= 430000 )) && (( frequency < 450000 )) ); then
+           echo "Using frequency: $frequency"
+       else
+           error_exit "Invalid frequency selected ($frequency), must between $BAND_2M_LO_LIM & $BAND_2M_HI_LIM OR between $BAND_440_LO_LIM & $BAND_440_HI_LIM"       else
+       fi
+       dbgecho "Command Line: Setting frequency to $frequency"
+   ;;
+   -F|--force)
        FORCE_GEN=1
    ;;
    -d|--debug)
@@ -494,23 +565,27 @@ esac
 shift # past argument or value
 done
 
-## Get a valid callsign
 
-get_axports_callsign
-retcode="$?"
-dbgecho "retcode: $retcode from get_axports_callsign"
+if [ $CALLSIGN_ARG = false ] ; then
+    ## Get a valid callsign from axports file
+    get_axports_callsign
+    retcode="$?"
 
-if [ $retcode -ne 0 ] ; then
+    dbgecho "retcode: $retcode from get_axports_callsign"
 
-    ## Get a callsign from command line
-    echo "prompt for a callsign:"
-    while get_callsign ; do
-        retcode=$?
-        echo "Input error ($retcode), try again"
-    done
+    if [ $retcode -ne 0 ] ; then
+
+        ## Get a callsign from command line
+        echo "prompt for a callsign:"
+        while get_callsign ; do
+            retcode=$?
+            echo "Input error ($retcode), try again"
+        done
+    fi
 fi
 
 # For reference, below is an example string with valid TTOBJ format
+# - B<CN88> * A<N7NIX>
 # CMDSTR="BA236288*A6B76B4C9B7#"
 # CMDSTR="BA${$ttbaudrate}*A${ttcallsign}${checksum}#
 
@@ -518,14 +593,17 @@ fi
 # Debug only
 #text2tt $CALLSIGN
 
-call_ttones=$((grep -A 1 "two-key method.*" <<< $(text2tt $CALLSIGN)) | tail -n1)
-dbgecho "tt1: $call_ttones"
-tt_str1=$(echo $call_ttones | cut -f2 -d'"')
-# parse the checksum
-tt_str2=$(echo $call_ttones | cut -f2 -d'=')
-# squish all the spaces
-checksum=$(echo $tt_str2 |tr -s '[[:space:]]')
-ttcallsign="A$tt_str1$checksum"
+# Have to pad to 6 characters??
+
+if [ ${#CALLSIGN} -lt 6 ] ; then
+    CALLSIGN="${CALLSIGN}x"
+fi
+
+tt_callsign_twokey
+#tt_callsign_10digit
+#tt_callsign_multipress
+
+dbgecho "For Touch Tone object name: $ttcallsign"
 
 ## Convert requested baudrate into TouchTone string
 # baudrate should only be 12 or 96 for 1200 baud & 9600 baud
@@ -542,8 +620,27 @@ ttbaudrate=${tt_str1%\"}
 ttbaudrate=${ttbaudrate#\"}
 ttbaudrate="BA${ttbaudrate}"
 
-echo "Touch Tone string check: ${ttbaudrate}*${ttcallsign}#"
-echo "                 CMDSTR: BA236288*A6B76B4C9B7#"
+if [ ! -z $frequency ] ; then
+    # Set baudrate & frequency
+    ttfrequency="C${frequency}"
+    CMDSTR="${ttbaudrate} * ${ttfrequency} * ${ttcallsign} #"
+
+    echo "Touch Tone string check: $CMDSTR"
+    echo "                 CMDSTR: BA236288*C144350*A6B76B4C9B7#"
+    ttcmd_output_file="ttcmd_${CALLSIGN}_${baudrate}00_${frequency}.wav"
+else
+    # Only set baudrate
+    CMDSTR="${ttbaudrate} * ${ttcallsign} #"
+    echo "Touch Tone string check: $CMDSTR"
+#    echo "                 CMDSTR: BA236288*A6B76B4C9B7#"
+     echo "                 CMDSTR: BA236288 * A6764902233 #"
+    ttcmd_output_file="ttcmd_${CALLSIGN}_${baudrate}00.wav"
+fi
+
+if [ ! -z $DEBUG ] ; then
+    echo "Early exit on debug"
+    exit
+fi
 
 dbgecho "Verify required programs"
 use_sox
@@ -562,10 +659,8 @@ fi
 draws_setup
 draws_gpio_on
 
-CMDSTR="${ttbaudrate}*${ttcallsign}#"
-
 echo "Sending command string: $CMDSTR"
-echo "DEBUG: cmdstr: $CMDSTR, baud: ${ttbaudrate}. call sign: $CALLSIGN"
+echo "DEBUG: cmdstr: $CMDSTR, baud: ${ttbaudrate}, freq: ${ttfrequency}, call sign: $CALLSIGN"
 
 
 if [ "$tone_gen_method" = "individ" ] ; then
