@@ -11,6 +11,10 @@ set_baudrate_flag=false
 
 scriptname="`basename $0`"
 
+# Default audio card name
+CARD="udrc"
+
+
 
 PORT_CFG_FILE="/etc/ax25/port.conf"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
@@ -127,6 +131,57 @@ function get_port_speed() {
     return $retcode
 }
 
+# ===== function display_ctrl
+
+function display_ctrl() {
+    alsa_ctrl="$1"
+    CTRL_STR="$(amixer -c $CARD get \""$alsa_ctrl"\")"
+#    dbgecho "$alsa_ctrl: $CTRL_STR"
+    CTRL_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 1 "Item0:" | cut -d ':' -f2)
+    # Remove preceeding white space
+    CTRL_VAL="$(sed -e 's/^[[:space:]]*//' <<<"$CTRL_VAL")"
+    # Remove surrounding quotes
+    CTRL_VAL=${CTRL_VAL%\'}
+    CTRL_VAL=${CTRL_VAL#\'}
+}
+
+# ===== function check_alsa_settings
+
+function check_alsa_settings() {
+    echo " === ALSA 1200/9600 route settings"
+    control="IN1_L to Left Mixer Positive Resistor"
+    display_ctrl "$control"
+    CTRL_IN1_L="$CTRL_VAL"
+
+    control="IN1_R to Right Mixer Positive Resistor"
+    display_ctrl "$control"
+    CTRL_IN1_R="$CTRL_VAL"
+
+    control="IN2_L to Left Mixer Positive Resistor"
+    display_ctrl "$control"
+    CTRL_IN2_L="$CTRL_VAL"
+
+    control="IN2_R to Right Mixer Positive Resistor"
+    display_ctrl "$control"
+    CTRL_IN2_R="$CTRL_VAL"
+
+    control="IN1"
+    strlen=${#CTRL_IN1_L}
+    if ((strlen < 4)) ; then
+        printf "%s\t\tL:[%s]\t\tR:[%s]\n" "$control" "$CTRL_IN1_L" "$CTRL_IN1_R"
+    else
+        printf "%s\t\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_IN1_L" "$CTRL_IN1_R"
+    fi
+
+    control="IN2"
+    strlen=${#CTRL_IN2_L}
+    if ((strlen < 4)) ; then
+        printf "%s\t\tL:[%s]\t\tR:[%s]\n" "$control" "$CTRL_IN2_L" "$CTRL_IN2_R"
+    else
+        printf "%s\t\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_IN2_L" "$CTRL_IN2_R"
+    fi
+}
+
 # ===== function speed_status
 
 # Display parameters used for kissattach & AX.25 device
@@ -170,6 +225,8 @@ function speed_status() {
     done
     # Use a single line for device status
     echo "Device: ax0 ${devicestat[ax0]}, Device: ax1 ${devicestat[ax1]}"
+
+    check_alsa_settings
 }
 
 # ===== function dw_speed_cnt
@@ -266,15 +323,17 @@ function baudrate_config() {
     # set variables ax25_udr0_baud, ax25_udr1_baud=0
 
     get_baudrates
+
     dbgecho " === set baudrate to: $baudrate"
     if [ "$baudrate" = "$ax25_udr0_baud" ] && [ $(pidof direwolf) ] ; then
         echo " === baud rate already set to $baudrate & direwolf is running" | $TEE_CMD
-        exit 0
+        return 0
     fi
 
     # default receive to discriminator
     # port number, speed (1200/9600) receive_out (audio/disc)
     set_baudrate 0 $baudrate "disc"
+    return 1
 }
 
 # ===== function switch_config
@@ -332,17 +391,22 @@ function reset_stack() {
     QUIET="-q"
 
     echo "reset_stack arg: $1"  | $TEE_CMD
+    startsec=$SECONDS
+
     # If running from direwolf then wait for the morse code response
     if [ "$1" -eq 1 ] ; then
+        # Called from direwolf
         wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
-        start_sec=$SECONDS
         while [[ $wait4morse -ne 0 ]] ; do
             wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
         done
         echo "Would do a direwolf reset now, after $((SECONDS-startsec)) seconds" | $TEE_CMD
 #       at now + 1 min -f /home/pi/bin/ax25-restart
         # This used for time second resolution using 'at' command
-        at -t $(date --date="now +5 seconds" +"%Y%m%d%H%M.%S") -f /home/pi/bin/ax25-restart  > /dev/null 2>&1
+        at -t $(date --date="now +5 seconds" +"%Y%m%d%H%M.%S") -f $LOCAL_BIN_PATH/ax25-restart  > /dev/null 2>&1
+    else
+        # Called from console
+        $LOCAL_BIN_PATH//ax25-restart  > /dev/null 2>&1
     fi
 
     echo "$(date): ${FUNCNAME[0]} exit, wait( $((SECONDS-startsec)) )" | $TEE_CMD
@@ -424,6 +488,10 @@ fi
 
 if [ $set_baudrate_flag = true ] ; then
     baudrate_config
+    if [ $? -eq 0 ] ; then
+        echo "Baud rate already set to: $baudrate ... exiting"
+        exit 0
+    fi
 else
     baudrate_toggle
 fi
@@ -440,7 +508,6 @@ else
     sudo $LOCAL_BIN_PATH/setalsa-tmv71a.sh
 fi
 fi
-
 quietecho
 quietecho "=== reset direwolf & ax25 parms"
 
