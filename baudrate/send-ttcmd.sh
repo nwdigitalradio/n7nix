@@ -593,17 +593,20 @@ fi
 # Debug only
 #text2tt $CALLSIGN
 
-# Have to pad to 6 characters??
+## Regardless of CALLSIGN string size last character gets dropped
+## The last character of the callsign is being interpreted as the symbol
+# overlay character.
+#
+# Add an extra trailing character ?
 
-if [ ${#CALLSIGN} -lt 6 ] ; then
-    CALLSIGN="${CALLSIGN}x"
-fi
+CALLSIGN="${CALLSIGN}"
+echo "DEBUG: encoding call sign: $CALLSIGN"
 
 tt_callsign_twokey
 #tt_callsign_10digit
 #tt_callsign_multipress
 
-dbgecho "For Touch Tone object name: $ttcallsign"
+echo "DEBUG: Touch Tone object name: $ttcallsign"
 
 ## Convert requested baudrate into TouchTone string
 # baudrate should only be 12 or 96 for 1200 baud & 9600 baud
@@ -656,24 +659,28 @@ if [ $? -eq 0 ] ; then
    DW_STOP=true
 fi
 
+echo "DEBUG: Sending command string: $CMDSTR"
+echo "DEBUG: cmdstr: $CMDSTR, baud: ${ttbaudrate}, freq: ${ttfrequency}, call sign: $CALLSIGN"
+
 draws_setup
 draws_gpio_on
 
-echo "Sending command string: $CMDSTR"
-echo "DEBUG: cmdstr: $CMDSTR, baud: ${ttbaudrate}, freq: ${ttfrequency}, call sign: $CALLSIGN"
-
+## PTT is ON
 
 if [ "$tone_gen_method" = "individ" ] ; then
     send_ttones_individ
 elif [ "$tone_gen_method" = "file" ] ; then
     send_ttones_file
 else
+    draws_gpio_off
     error_exit "Do not recognize tone generating method $tone_gen_method"
 fi
 
 draws_gpio_off
 
-# Check if local speed config needs to change
+## PTT is OFF
+
+# Check if local baudrate config needs to change
 check_speed_config ${baudrate}00
 if [ $? -eq 1 ] ; then
     echo "Requested baudrate: ${baudrate}00 change" | sudo tee -a $DW_TT_LOG_FILE
@@ -683,7 +690,8 @@ else
 fi
 
 if [ "$DW_STOP" = "true" ] ; then
-    sudo $LOCAL_BIN_PATH/ax25-start -q
+   echo " == Starting Direwolf"
+   sudo $LOCAL_BIN_PATH/ax25-start -q
 fi
 
 exit 0
