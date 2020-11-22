@@ -362,7 +362,9 @@ tt_callsign_multipress() {
 }
 
 tt_callsign_twokey() {
-    call_ttones=$((grep -A 1 "two-key method.*" <<< $(text2tt $CALLSIGN)) | tail -n1)
+    # Need to follow call sign with a symbol overlay and checksum
+    overlay='B'
+    call_ttones=$((grep -A 1 "two-key method.*" <<< $(text2tt $CALLSIGN$overlay)) | tail -n1)
     dbgecho "tt1: $call_ttones"
     tt_str1=$(echo $call_ttones | cut -f2 -d'"')
     # parse the checksum
@@ -635,14 +637,8 @@ else
     # Only set baudrate
     CMDSTR="${ttbaudrate} * ${ttcallsign} #"
     echo "Touch Tone string check: $CMDSTR"
-#    echo "                 CMDSTR: BA236288*A6B76B4C9B7#"
-     echo "                 CMDSTR: BA236288 * A6764902233 #"
+    echo "                 CMDSTR: BA236288  *A6B76B4C9B2B0#"
     ttcmd_output_file="ttcmd_${CALLSIGN}_${baudrate}00.wav"
-fi
-
-if [ ! -z $DEBUG ] ; then
-    echo "Early exit on debug"
-    exit
 fi
 
 dbgecho "Verify required programs"
@@ -660,7 +656,7 @@ if [ $? -eq 0 ] ; then
 fi
 
 echo "DEBUG: Sending command string: $CMDSTR"
-echo "DEBUG: cmdstr: $CMDSTR, baud: ${ttbaudrate}, freq: ${ttfrequency}, call sign: $CALLSIGN"
+echo "DEBUG: cmdstr: $CMDSTR, baud: ${ttbaudrate}, freq: ${ttfrequency}, call sign: $CALLSIGN, overlay: $overlay"
 
 draws_setup
 draws_gpio_on
