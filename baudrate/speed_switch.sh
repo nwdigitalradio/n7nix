@@ -1,8 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 # version: 1.1
 #
 # Switch for 1200 baud and 9600 baud packet speed
 # When called
+# Script syntax changed from bash to Bourne shell to run from 'at' command
 #
 DEBUG=
 QUIET=
@@ -33,23 +34,23 @@ TEE_CMD="sudo dd status=none of=$DW_TT_LOG_FILE oflag=append conv=notrunc"
 # ===== function dbgecho
 
 # if DEBUG is defined then echo
-function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*" | $TEE_CMD; fi }
+dbgecho() { if [ ! -z "$DEBUG" ] ; then echo "$*" | $TEE_CMD; fi }
 
 # if QUIET is defined then DO NOT echo
-function quietecho { if [ -z "$QUIET" ] ; then echo "$*"; fi }
+quietecho() { if [ -z "$QUIET" ] ; then echo "$*"; fi }
 
 # ===== function get_user
 # When running as root need to find a valid local bin directory
 # Set USER based on finding a REQUIRED_PROGRAM
 
-function get_user() {
+get_user() {
     # Check if there is only a single user on this system
-    if (( `ls /home | wc -l` == 1 )) ; then
+    if [ $(ls /home | wc -l) -eq 1 ] ; then
         USER=$(ls /home)
     else
         USER=
         # Get here when there is more than one user on this system,
-        # find the local bin that has the requested program
+        # Find the local bin that has the requested program
 
         REQUIRED_PROGRAM="ax25-restart"
 
@@ -67,7 +68,7 @@ function get_user() {
 # ==== function check_user
 # Verify user name passed on command line is legit
 
-function check_user() {
+check_user() {
    userok=false
    dbgecho "$scriptname: Verify user name: $USER"
    for username in $USERLIST ; do
@@ -91,7 +92,7 @@ function check_user() {
 #  - port speed, kissattach parms & ax.25 parms
 #  - enabling split channel
 
-function get_port_speed() {
+get_port_speed() {
     retcode=0
     if [ -e $PORT_CFG_FILE ] ; then
         dbgecho " ax25 port file exists"
@@ -133,13 +134,17 @@ function get_port_speed() {
 
 # ===== function display_ctrl
 
-function display_ctrl() {
+display_ctrl() {
+
     alsa_ctrl="$1"
     CTRL_STR="$(amixer -c $CARD get \""$alsa_ctrl"\")"
 #    dbgecho "$alsa_ctrl: $CTRL_STR"
     CTRL_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 1 "Item0:" | cut -d ':' -f2)
     # Remove preceeding white space
-    CTRL_VAL="$(sed -e 's/^[[:space:]]*//' <<<"$CTRL_VAL")"
+#   BASH CTRL_VAL="$(sed -e 's/^[[:space:]]*//' <<<"$CTRL_VAL")"
+    # Bourne
+    CTRL_VAL="$(echo "$CTRL_VAL" | sed -e 's/^[[:space:]]*//')"
+
     # Remove surrounding quotes
     CTRL_VAL=${CTRL_VAL%\'}
     CTRL_VAL=${CTRL_VAL#\'}
@@ -147,7 +152,7 @@ function display_ctrl() {
 
 # ===== function check_alsa_settings
 
-function check_alsa_settings() {
+check_alsa_settings() {
     echo " === ALSA 1200/9600 route settings"
     control="IN1_L to Left Mixer Positive Resistor"
     display_ctrl "$control"
@@ -167,7 +172,8 @@ function check_alsa_settings() {
 
     control="IN1"
     strlen=${#CTRL_IN1_L}
-    if ((strlen < 4)) ; then
+#    expr strlen ${CTRL_IN1_L}
+    if [ $strlen -lt 4 ] ; then
         printf "%s\t\tL:[%s]\t\tR:[%s]\n" "$control" "$CTRL_IN1_L" "$CTRL_IN1_R"
     else
         printf "%s\t\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_IN1_L" "$CTRL_IN1_R"
@@ -175,7 +181,7 @@ function check_alsa_settings() {
 
     control="IN2"
     strlen=${#CTRL_IN2_L}
-    if ((strlen < 4)) ; then
+    if [ $strlen -lt 4 ] ; then
         printf "%s\t\tL:[%s]\t\tR:[%s]\n" "$control" "$CTRL_IN2_L" "$CTRL_IN2_R"
     else
         printf "%s\t\tL:[%s]\tR:[%s]\n" "$control" "$CTRL_IN2_L" "$CTRL_IN2_R"
@@ -186,18 +192,21 @@ function check_alsa_settings() {
 
 # Display parameters used for kissattach & AX.25 device
 
-function speed_status() {
+speed_status() {
 
     SLOTTIME=
     TXDELAY=
     T1_TIMEOUT=
     T2_TIMEOUT=
-    declare -A devicestat=([ax0]="exists" [ax1]="exists")
+#    declare -A devicestat=([ax0]="exists" [ax1]="exists")
+    devicestat0="exists"
+    devicestat1="exists"
 
     # Check if direwolf is already running.
     pid=$(pidof direwolf)
     if [ $? -eq 0 ] ; then
-        dbgecho "$(date): ${FUNCNAME[0]}: Direwolf is running with pid of $pid" | $TEE_CMD
+        #dbgecho "$(date): ${FUNCNAME[0]}: Direwolf is running with pid of $pid" | $TEE_CMD
+        dbgecho "$(date): speed_status: Direwolf is running with pid of $pid" | $TEE_CMD
     else
         echo "Direwolf is NOT running" | $TEE_CMD
     fi
@@ -219,21 +228,22 @@ function speed_status() {
             T1_TIMEOUT=$(cat $PARMDIR/t1_timeout)
             T2_TIMEOUT=$(cat $PARMDIR/t2_timeout)
         else
-            devicestat[$devname]="does NOT exist"
+#            devicestat[$devname]="does NOT exist"
+             devicestat$devnum="does NOT exist"
         fi
         echo "port: $devnum, speed: $PORTSPEED, slottime: $SLOTTIME, txdelay: $TXDELAY, t1 timeout: $T1_TIMEOUT, t2 timeout: $T2_TIMEOUT"
     done
     # Use a single line for device status
-    echo "Device: ax0 ${devicestat[ax0]}, Device: ax1 ${devicestat[ax1]}"
-
+#    echo "Device: ax0 ${devicestat[ax0]}, Device: ax1 ${devicestat[ax1]}"
+    echo "Device: ax0 ${devicestat0}, Device: ax1 ${devicestat1}"
     check_alsa_settings
 }
 
 # ===== function dw_speed_cnt
 
-function dw_speed_cnt() {
+dw_speed_cnt() {
     speed_cnt=$(grep "^MODEM" $DIREWOLF_CFGFILE | wc -l)
-    if (( speed_cnt > 0 )) && (( speed_cnt <= 2 )) ; then
+    if [ $speed_cnt -gt 0 ] && [ $speed_cnt -le 2 ] ; then
         dbgecho "There are $speed_cnt instances of MODEM speed."
     else
         echo "Error: Wrong count of MODEM speed instances: $speed_cnt" | $TEE_CMD
@@ -244,7 +254,7 @@ function dw_speed_cnt() {
 
 # Set baud rate on MODEM line for the first modem channel
 
-function direwolf_set_baud() {
+direwolf_set_baud() {
 
     modem_speed="$1"
 
@@ -270,7 +280,7 @@ function direwolf_set_baud() {
 #   baudrate (1200 or 9600),
 #   receive output (either audio or disc)
 
-function set_baudrate() {
+set_baudrate() {
     portnum="$1"
     baudrate="$2"
     receive_out="$3"
@@ -284,7 +294,7 @@ function set_baudrate() {
     direwolf_set_baud $baudrate
 }
 # function get_baudrates
-function get_baudrates() {
+get_baudrates() {
     # Initialize baud rates for each device
     ax25_udr0_baud=0
     ax25_udr1_baud=0
@@ -302,7 +312,7 @@ function get_baudrates() {
 # ===== function baudrate_toggle
 # toggle baud rate between 1200 & 9600
 
-function baudrate_toggle() {
+baudrate_toggle() {
 
     switch_config
 
@@ -319,7 +329,7 @@ function baudrate_toggle() {
 }
 
 # ===== function baudrate_config
-function baudrate_config() {
+baudrate_config() {
     # set variables ax25_udr0_baud, ax25_udr1_baud=0
 
     get_baudrates
@@ -341,7 +351,7 @@ function baudrate_config() {
 # Switch a single port based upon config file setting.
 # NOTE: only switches port 0
 
-function switch_config() {
+switch_config() {
 
     get_baudrates
 
@@ -368,8 +378,17 @@ function switch_config() {
     set_baudrate 0 $newspeed_port0 $newreceive_out0
 
 }
+
 # ===== function parent_check
-function parent_check() {
+# This script could be run from
+#  - console
+#  - direwolf
+#  - atd
+# If running from console or atd return 0, ax25 restart immediately
+# If running from direwolf return 1
+#    and wait some time for morse code 'R'
+
+parent_check() {
     retcode=0
     # direwolf will not allocate a tty to spawned script
     if [ -t 0 ] ; then
@@ -381,40 +400,48 @@ function parent_check() {
         P_COMMAND=$(ps h -o %c $PPPID)
 
         echo "running from: $P_COMMAND" | $TEE_CMD
-        retcode=1
+        echo "$P_COMMAND" | grep -iq "atd"
+        # return code will be:
+        # 0 if running from atd
+        # 1 if running from direwolf
+        retcode=$?
     fi
     return $retcode
 }
 
 # ===== function reset_stack
-function reset_stack() {
+reset_stack() {
     QUIET="-q"
 
     echo "reset_stack arg: $1"  | $TEE_CMD
-    startsec=$SECONDS
+    # bash: startsec=$SECONDS
+    startsec=$(($(date +%s%N)/1000000))
 
     # If running from direwolf then wait for the morse code response
     if [ "$1" -eq 1 ] ; then
         # Called from direwolf
         wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
-        while [[ $wait4morse -ne 0 ]] ; do
+        while [ $wait4morse -ne 0 ] ; do
             wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
         done
-        echo "Would do a direwolf reset now, after $((SECONDS-startsec)) seconds" | $TEE_CMD
+
+        currentsec=$(($(date +%s%N)/1000000))
+        echo "Would do a direwolf reset now, after `expr $currentsec - $startsec` mSec" | $TEE_CMD
 #       at now + 1 min -f /home/pi/bin/ax25-restart
-        # This used for time second resolution using 'at' command
+        # Use time second resolution when run using 'at' command
         at -t $(date --date="now +5 seconds" +"%Y%m%d%H%M.%S") -f $LOCAL_BIN_PATH/ax25-restart  > /dev/null 2>&1
     else
         # Called from console
         $LOCAL_BIN_PATH//ax25-restart  > /dev/null 2>&1
     fi
 
-    echo "$(date): ${FUNCNAME[0]} exit, wait( $((SECONDS-startsec)) )" | $TEE_CMD
+    currentsec=$(($(date +%s%N)/1000000))
+    echo "$(date): reset_stack exit, wait(`expr $currentsec - $startsec` mSec)" | $TEE_CMD
 }
 
 # ===== function usage
 
-function usage() {
+usage() {
    echo "Usage: $scriptname [-b <speed>][-s][-d][-h][USER]" >&2
    echo " Default to toggling baud rate when no command line arguments found."
    echo "   -b | --baudrate <baudrate>  Set baud rate speed, 1200 or 9600"
@@ -426,7 +453,23 @@ function usage() {
 
 # ===== main
 
-while [[ $# -gt 0 ]] ; do
+# If running from 'at' command no command line arguments are allowed,
+# but will want to reset baud rate config to 1200 baud
+if [ $# -eq 0 ] ; then
+    # Get parent pid of parent
+    PPPID=$(ps h -o ppid= $PPID)
+    # get name of the command
+    P_COMMAND=$(ps h -o %c $PPPID)
+
+    echo "$(date) speed_switch: running from: $P_COMMAND" | $TEE_CMD
+    echo "$P_COMMAND" | grep -iq "atd"
+    if [ "$?" -eq 0 ] ; then
+        baudrate="1200"
+        set_baudrate_flag=true
+    fi
+fi
+
+while [ $# -gt 0 ] ; do
     APP_ARG="$1"
 
     case $APP_ARG in
@@ -462,7 +505,7 @@ while [[ $# -gt 0 ]] ; do
 done
 
 # Be sure NOT running as root
-if [[ $EUID != 0 ]] ; then
+if [  $(id -u) != 0 ] ; then
     # NOT running as root
     USER=$(whoami)
 else
@@ -487,9 +530,11 @@ if [ ! -f $PORT_CFG_FILE ] ; then
 fi
 
 if [ $set_baudrate_flag = true ] ; then
+    # Verify baudrate value & if running in a console rather than
+    # 'at' or direwolf
     baudrate_config
-    if [ $? -eq 0 ] ; then
-        echo "Baud rate already set to: $baudrate ... exiting"
+    if [ $? -eq 0 ] && [ -t 0 ] ; then
+        echo "Local baud rate already set to: $baudrate"
         exit 0
     fi
 else
@@ -514,6 +559,8 @@ quietecho "=== reset direwolf & ax25 parms"
 parent_check
 parent_retcode=$?
 # Execute reset_stack in a sub shell as a forked process
+# arg = 0: running from console or atd
+# arg = 1: running from direwolf
 (reset_stack $parent_retcode ) &
 
 echo "$(date): $scriptname exit" | $TEE_CMD
