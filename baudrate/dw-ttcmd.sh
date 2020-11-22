@@ -323,8 +323,18 @@ fi
 # Check if current speed config needs to change
 check_speed_config "${ttbrate}00"
 if [ $? -eq 1 ] ; then
+    # baud rate change required
     echo "$(date): ttcmd requested baudrate: ${baudrate}00 change" | $TEE_CMD
     $LOCAL_BIN_PATH/speed_switch.sh -b ${baudrate}00 $USER
+    if [ $baudrate -eq 96 ] ; then
+        # Time limit in minutes for leaving config set to 9600 baud
+        baud96_timelimit=5
+        # If baudrate change request is for 9600 baud then set a timer
+        # to revert back to 1200 baud.
+        echo "$(date): ttcmd setting timer to change baudrate to 1200 in $baud96_timelimit minutes" | $TEE_CMD
+#        at -t $(date --date="now +$baud96_timelimit minutes" +"%Y%m%d%H%M.%S") -f $LOCAL_BIN_PATH/speed_switch.sh > /dev/null 2>&1
+        at -t $(date --date="now +$baud96_timelimit minutes" +"%Y%m%d%H%M.%S") -f $LOCAL_BIN_PATH/speed_switch.sh | $TEE_CMD
+    fi
 else
     echo "$(date): ttcmd requested baudrate: ${dw_speed0}, NO change" | $TEE_CMD
 fi
