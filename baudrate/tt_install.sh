@@ -17,6 +17,19 @@ DIREWOLF_CFGFILE="/etc/direwolf.conf"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+function copy_local_bin() {
+
+    src_dir="$1"
+    # Check if local bin directory exists.
+    if [ ! -d "$userbindir" ] ; then
+        mkdir $userbindir
+    fi
+
+    cp -u $src_dir/speed_switch.sh $userbindir
+    cp -u $src_dir/dw-ttcmd.sh $userbindir
+    cp -u $src_dir/send-ttcmd.sh $userbindir
+}
+
 # ===== main
 
 # Check if running as root
@@ -30,6 +43,18 @@ else
 fi
 
 userbindir="/home/$USER/bin"
+
+# If there are any args on the command line just copy files in current
+# directory to local bin dir
+
+if [[ $# -gt 0 ]] ; then
+    # Specify source directory as current directory
+    # Used during debug
+    copy_local_bin "."
+    exit 0
+fi
+
+# List of required programs
 PROGLIST="gpio sox"
 NEEDPKG_FLAG=false
 
@@ -89,15 +114,7 @@ fi
 
 
 ## Copy baud rate change scripts to local bin
-
-# Check if local bin directory exists.
-if [ ! -d "$userbindir" ] ; then
-   mkdir $userbindir
-fi
-
-cp -u /home/$USER/n7nix/baudrate/speed_switch.sh $userbindir
-cp -u /home/$USER/n7nix/baudrate/dw-ttcmd.sh $userbindir
-cp -u /home/$USER/n7nix/baudrate/send-ttcmd.sh $userbindir
+copy_local_bin "/home/$USER/n7nix/baudrate"
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: Touch Tone speed change install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo
