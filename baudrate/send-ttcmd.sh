@@ -26,6 +26,9 @@ AXPORTS_FILE="$AX25_CFGDIR/axports"
 PORT_CFG_FILE="/etc/ax25/port.conf"
 DW_TT_LOG_FILE="/var/log/direwolf/dw-log.txt"
 
+# For display to console
+TEE_CMD="sudo tee -a $DW_TT_LOG_FILE"
+
 # NWDR Draws ONLY
 # default connector location, use left connector on a draws hat
 udrc_prod_id=4
@@ -207,27 +210,27 @@ function check_speed_config() {
     # Check baud rate against port.conf file
     if [ "$port_speed0" = "${req_brate}" ] ; then
         # last entry to log file
-        dbgecho "port.conf: No config necessary: baudrate: ${req_brate}" | sudo tee -a $DW_TT_LOG_FILE
+        dbgecho "port.conf: No config necessary: baudrate: ${req_brate}" | $TEE_CMD
     else
         # log file entry
-        dbgecho "port.conf: Requested baudrate: ${req_brate}, current baudrate: $port_speed0" | sudo tee -a $DW_TT_LOG_FILE
+        dbgecho "port.conf: Requested baudrate: ${req_brate}, current baudrate: $port_speed0" | $TEE_CMD
         change_brate=1
     fi
 
     # Check baud rate against direwolf config file
     if [ "$dw_speed0" = "${req_brate}" ] ; then
         # log file entry
-        dbgecho "direwolf.conf: No config necessary: baudrate: ${req_brate}" | sudo tee -a $DW_TT_LOG_FILE
+        dbgecho "direwolf.conf: No config necessary: baudrate: ${req_brate}" | $TEE_CMD
         # Verify with port file
         if [ $change_brate -eq 1 ] ; then
-            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed0) & direwolf.conf ($dw_speed0)" | tee -a $DW_TT_LOG_FILE
+            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed0) & direwolf.conf ($dw_speed0)" | $TEE_CMD
         fi
     else
         # log file entry
-        dbgecho "direwolf.conf: Requested baudrate: ${req_brate}, current baudrate: $dw_speed0" | tee -a $DW_TT_LOG_FILE
+        dbgecho "direwolf.conf: Requested baudrate: ${req_brate}, current baudrate: $dw_speed0" | $TEE_CMD
         # Verify with port file
         if [ $change_brate -eq 0 ] ; then
-            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed0) & direwolf.conf ($dw_speed0)" | tee -a $DW_TT_LOG_FILE
+            echo "ERROR: Mismatch in baud rates between port.conf ($port_speed0) & direwolf.conf ($dw_speed0)" | $TEE_CMD
         fi
 
         change_brate=1
@@ -347,7 +350,7 @@ tt_callsign_multipress() {
 
 tt_callsign_twokey() {
     # Need to follow call sign with a symbol overlay and checksum
-    overlay='B'
+    overlay='4'
     call_ttones=$((grep -A 1 "two-key method.*" <<< $(text2tt $CALLSIGN$overlay)) | tail -n1)
     dbgecho "tt1: $call_ttones"
     tt_str1=$(echo $call_ttones | cut -f2 -d'"')
@@ -684,7 +687,7 @@ draws_gpio_off
 # Check if local baudrate config needs to change
 check_speed_config ${baudrate}00
 if [ $? -eq 1 ] ; then
-    echo "Requested baudrate: ${baudrate}00 change" | sudo tee -a $DW_TT_LOG_FILE
+    echo "Requested baudrate: ${baudrate}00 change" | $TEE_CMD
     $LOCAL_BIN_PATH/speed_switch.sh -b ${baudrate}00
 else
    echo "Requested baudrate: $dw_speed0, NO change required"
