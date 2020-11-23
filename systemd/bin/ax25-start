@@ -177,6 +177,11 @@ quietecho "STARTING AX.25/Direwolf: port 0: $ax25_udr0_baud & port1: $ax25_udr1_
 
 for service in `echo ${SERVICE_LIST}` ; do
     start_service $service
+    if [ "$service" = "direwolf.service" ] ; then
+       while [ ! -L "/tmp/kisstnc" ] ; do
+           sleep 0.4
+       done
+    fi
 done
 
 quietecho
