@@ -12,10 +12,8 @@ set_baudrate_flag=false
 
 scriptname="`basename $0`"
 
-# Default audio card name
-CARD="udrc"
-
-
+# Default audio device name
+AUDIO_DEV="udrc"
 
 PORT_CFG_FILE="/etc/ax25/port.conf"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
@@ -133,13 +131,14 @@ get_port_speed() {
 }
 
 # ===== function display_ctrl
+# NWDR Draws audio card specific
 
 display_ctrl() {
 
     alsa_ctrl="$1"
-    CTRL_STR="$(amixer -c $CARD get \""$alsa_ctrl"\")"
+    CTRL_STR="$(amixer -c $AUDIO_DEV get \""$alsa_ctrl"\")"
 #    dbgecho "$alsa_ctrl: $CTRL_STR"
-    CTRL_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 1 "Item0:" | cut -d ':' -f2)
+    CTRL_VAL=$(amixer -c $AUDIO_DEV get \""$alsa_ctrl"\" | grep -i -m 1 "Item0:" | cut -d ':' -f2)
     # Remove preceeding white space
 #   BASH CTRL_VAL="$(sed -e 's/^[[:space:]]*//' <<<"$CTRL_VAL")"
     # Bourne
@@ -151,6 +150,7 @@ display_ctrl() {
 }
 
 # ===== function check_alsa_settings
+# NWDR Draws audio card specific
 
 check_alsa_settings() {
     echo " === ALSA 1200/9600 route settings"
@@ -236,6 +236,7 @@ speed_status() {
     # Use a single line for device status
 #    echo "Device: ax0 ${devicestat[ax0]}, Device: ax1 ${devicestat[ax1]}"
     echo "Device: ax0 ${devicestat0}, Device: ax1 ${devicestat1}"
+    # Display NWDR Draws card alsa 1200/9600 baud routing (IN1, IN2)
     check_alsa_settings
 }
 
@@ -258,7 +259,7 @@ direwolf_set_baud() {
 
     modem_speed="$1"
 
-    echo "$(date): set $DIREWOLF_CFGFILE baud rate to: $modem_speed" | $TEE_CMD
+    echo "$(date): speed_switch set $DIREWOLF_CFGFILE baud rate to: $modem_speed" | $TEE_CMD
 
     # Modify first occurrence of MODEM configuration line
     sudo sed -i "0,/^MODEM/ s/^MODEM .*/MODEM $modem_speed/" $DIREWOLF_CFGFILE
@@ -285,7 +286,7 @@ set_baudrate() {
     baudrate="$2"
     receive_out="$3"
 
-    echo "$(date): set $PORT_CFG_FILE baud rate to: $baudrate" | $TEE_CMD
+    echo "$(date): speed_switch set $PORT_CFG_FILE baud rate to: $baudrate" | $TEE_CMD
     # Switch speeds in port config file
     sudo sed -i -e "/\[port$portnum\]/,/\[/ s/^speed=.*/speed=$baudrate/" $PORT_CFG_FILE
     # Set audio/disc in port config file
@@ -413,7 +414,7 @@ parent_check() {
 reset_stack() {
     QUIET="-q"
 
-    echo "reset_stack arg: $1"  | $TEE_CMD
+    dbgecho "reset_stack arg: $1"  | $TEE_CMD
     # bash: startsec=$SECONDS
     startsec=$(($(date +%s%N)/1000000))
 
@@ -421,8 +422,10 @@ reset_stack() {
     if [ "$1" -eq 1 ] ; then
         # Called from direwolf
         wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
-        while [ $wait4morse -ne 0 ] ; do
+        grepret=$?
+        while [ $grepret -ne 0 ] ; do
             wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
+            grepret=$?
         done
 
         currentsec=$(($(date +%s%N)/1000000))
@@ -461,7 +464,7 @@ if [ $# -eq 0 ] ; then
     # get name of the command
     P_COMMAND=$(ps h -o %c $PPPID)
 
-    echo "$(date) speed_switch: running from: $P_COMMAND" | $TEE_CMD
+    echo "$(date): speed_switch: running from: $P_COMMAND" | $TEE_CMD
     echo "$P_COMMAND" | grep -iq "atd"
     if [ "$?" -eq 0 ] ; then
         baudrate="1200"
@@ -563,5 +566,5 @@ parent_retcode=$?
 # arg = 1: running from direwolf
 (reset_stack $parent_retcode ) &
 
-echo "$(date): $scriptname exit" | $TEE_CMD
+echo "$(date): speed_switch ($scriptname) exit" | $TEE_CMD
 exit 0
