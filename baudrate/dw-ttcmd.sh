@@ -148,7 +148,7 @@ function check_speed_config() {
         fi
     else
         # log file entry
-        dbgecho "direwolf.conf: Requested baudrate change: baudrate: ${req_brate}" | tee -a $DW_TT_LOG_FILE
+        dbgecho "direwolf.conf: Requested baudrate change: baudrate: ${req_brate}"
         # Verify with port file
         if [ $change_brate -eq 0 ] ; then
             echo "ERROR: Mismatch in baud rates between port.conf ($port_speed) & direwolf.conf ($dw_speed0)" | $TEE_CMD
@@ -190,6 +190,31 @@ function check_console() {
     fi
 
     echo "$scriptname Start: $(date "+%Y %m %d %T %Z"): Options: $(echo $-), ps1: $set_ps1flag, tty: $set_ttyflag, dw: $set_dwflag" | $TEE_CMD
+}
+
+# ====== run_at
+# Check if there is another at job in the queue
+# and if not then schedule job to reset baud rate to 1200
+
+function run_at() {
+    # Time limit in minutes for leaving config set to 9600 baud
+    baud96_timelimit=5
+
+    # Determine if there are any jobs in run queue
+    queue_cnt=$(at -l | wc -l)
+    if [ $queue_cnt > 0 ] ; then
+        # For now assume everything in the run queue is a
+        # speed_switch.sh script and delete it.
+        for jobid in $(atq | cut -f 1); do
+            atrm $jobid;
+        done
+    fi
+
+    # There is a baudrate change request for 9600 baud
+    #  - set a timer to revert back to 1200 baud.
+
+    echo "$(date): ttcmd setting timer to switch baudrate to 1200 in $baud96_timelimit minutes" | $TEE_CMD
+    at -t $(date --date="now +$baud96_timelimit minutes" +"%Y%m%d%H%M.%S") -f $LOCAL_BIN_PATH/speed_switch.sh > /dev/null 2>&1
 }
 
 # ===== function usage
@@ -243,7 +268,6 @@ done
 
 # Verify operating baudrate
 verify_baud
-
 
 FILESIZE=$(stat -c %s $DW_LOG_FILE)
 if [ $FILESIZE -eq 0 ] ; then
@@ -326,20 +350,16 @@ if [ $? -eq 1 ] ; then
     # baud rate change required
     echo "$(date): ttcmd requested baudrate: ${baudrate}00 change" | $TEE_CMD
     $LOCAL_BIN_PATH/speed_switch.sh -b ${baudrate}00 $USER
-    if [ $baudrate -eq 96 ] ; then
-        # Time limit in minutes for leaving config set to 9600 baud
-        baud96_timelimit=5
-        # If baudrate change request is for 9600 baud then set a timer
-        # to revert back to 1200 baud.
-        echo "$(date): ttcmd setting timer to change baudrate to 1200 in $baud96_timelimit minutes" | $TEE_CMD
-#        at -t $(date --date="now +$baud96_timelimit minutes" +"%Y%m%d%H%M.%S") -f $LOCAL_BIN_PATH/speed_switch.sh > /dev/null 2>&1
-        at -t $(date --date="now +$baud96_timelimit minutes" +"%Y%m%d%H%M.%S") -f $LOCAL_BIN_PATH/speed_switch.sh | $TEE_CMD
-    fi
 else
     echo "$(date): ttcmd requested baudrate: ${dw_speed0}, NO change" | $TEE_CMD
 fi
 
-echo "DEBUG: TTCALL: $TTCALL, TTCOUNT: $TTCOUNT, TTFREQ: $TTFREQ, TTLOC: $TTLOC, TTDAO: $TTDAO" | $TEE_CMD
+# If baud rate is 9600 baud then reschedule speed_switch back to 1200
+if [ $baudrate -eq 96 ] ; then
+    run_at
+fi
+
+echo "DEBUG: TTCALL: $TTCALL, TTSSID: $TTSID, TCOUNT: $TTCOUNT, TTSYMBOL: $TTSYMBOL, TTFREQ: $TTFREQ, TTLOC: $TTLOC, TTDAO: $TTDAO" | $TEE_CMD
 
 echo "$(date): $scriptname exit" | $TEE_CMD
 exit 0
