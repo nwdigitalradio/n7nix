@@ -26,6 +26,7 @@ AXPORTS_FILE="$AX25_CFGDIR/axports"
 PORT_CFG_FILE="/etc/ax25/port.conf"
 DW_TT_LOG_FILE="/var/log/direwolf/dw-log.txt"
 
+# NWDR Draws ONLY
 # default connector location, use left connector on a draws hat
 udrc_prod_id=4
 connector="left"
@@ -145,27 +146,6 @@ function get_axports_callsign() {
     return $retcode
 }
 
-# function draws_id_check
-# Verify the required sound card exists
-
-function draws_id_check() {
-
-    retcode=0 # error ret code
-    # Verify that aplay enumerates udrc sound card
-
-    CARDNO=$(aplay -l | grep -i udrc)
-
-    if [ ! -z "$CARDNO" ] ; then
-        dbgecho "udrc card number line: $CARDNO"
-        CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
-        echo "udrc is sound card #$CARDNO"
-        retcode=2
-    else
-        echo "No udrc sound card found."
-    fi
-    return $retcode
-}
-
 function use_sox() {
     # Verify required programs are installed
     for prog_name in `echo ${PROGLIST}` ; do
@@ -272,8 +252,13 @@ function gen_wave_file() {
     done
 
     # generate 0.1 second of silence for space between each tone pair
-    #sox -n -r 44100 -c 2 silence.wav trim 0.0 0.5
-    sox -n silence.wav trim 0.0 0.1
+    silence_file="silence.wav"
+    if [ ! -e $silence_file ]  || [ ! -z $FORCE_GEN ] ; then
+#        sox -n -r 44100 -c 2 $silence_file trim 0.0 0.5
+         dbgecho "ttcmd silence wav file created"
+         sox -n -r 48000 -c 2 $silence_file trim 0.0 0.5
+    fi
+    sox -n $silence_file trim 0.0 0.04
 
     ## Concatenate all the individual Two Tone files into one wav file
     # sox short.au long.au longer.au
@@ -308,7 +293,6 @@ function send_ttones_file() {
    if [ -z $DEBUG1 ] ; then
        play -q $ttcmd_output_file
    fi
-
 }
 
 # ===== function send_ttones_individ
@@ -384,6 +368,27 @@ tt_callsign_10digit() {
     ttcallsign=${tt_str1%\"}
     ttcallsign=${ttcallsign#\"}
 #    ttcallsign="A${ttcallsign}${checksum}"
+}
+
+# ===== function draws_id_check
+# Verify the required sound card exists
+
+function draws_id_check() {
+
+    retcode=0 # error ret code
+    # Verify that aplay enumerates udrc sound card
+
+    CARDNO=$(aplay -l | grep -i udrc)
+
+    if [ ! -z "$CARDNO" ] ; then
+        dbgecho "udrc card number line: $CARDNO"
+        CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
+        echo "udrc is sound card #$CARDNO"
+        retcode=2
+    else
+        echo "No udrc sound card found."
+    fi
+    return $retcode
 }
 
 # ===== function draws_setup
