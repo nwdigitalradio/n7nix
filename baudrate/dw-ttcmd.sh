@@ -354,7 +354,7 @@ else
     echo "$(date): ttcmd requested baudrate: ${dw_speed0}, NO change" | $TEE_CMD
 fi
 
-# If baud rate is 9600 baud then reschedule speed_switch back to 1200
+# If baud rate is 9600 baud then re/schedule speed_switch back to 1200
 if [ $baudrate -eq 96 ] ; then
     run_at
 fi
