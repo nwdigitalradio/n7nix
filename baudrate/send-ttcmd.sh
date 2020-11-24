@@ -348,6 +348,8 @@ tt_callsign_multipress() {
     ttcallsign="A$tt_str1$checksum"
 }
 
+# ===== tt_callsign_twokey
+# Use this procedure
 tt_callsign_twokey() {
     # Need to follow call sign with a symbol overlay and checksum
     overlay='4'
@@ -469,12 +471,12 @@ function draws_gpio_off() {
 
 # ===== function usage
 function usage() {
-   echo "Usage: $scriptname [-c <connector>][-b <baudrate>][-h]" >&2
+   echo "Usage: $scriptname [-c <connector>][-b <baudrate>][-f <freq>][-C <callsign>[-h]" >&2
    echo "   -b <baudrate>           either 1200 or 9600 baud, default 1200"
    echo "   -c <connector_location> DRAWS left (mDin6) or right (hd15/mDin6), default: left"
    echo "   -C <call sign>          Specify a call sign"
    echo "   -f <frequency>          Frequency in kilohertz, exactly 6 digits."
-   echo "   -t <tone_gen>           Tone generation method, either individ, file, default: file"
+   echo "   -t <tone_gen>           Dev only: Tone generation method, either individ, file, default: file"
    echo "   -d                      set debug flag"
    echo "   -h                      no arg, display this message"
    echo
@@ -596,8 +598,8 @@ fi
 
 # For reference, below is an example string with valid TTOBJ format
 # - B<CN88> * A<N7NIX>
-# CMDSTR="BA236288*A6B76B4C9B7#"
-# CMDSTR="BA${$ttbaudrate}*A${ttcallsign}${checksum}#
+# CMDSTR="BA236296*A6B76B4C9B41#"
+# CMDSTR="BA${$ttgridsquare}*A${ttcallsign}${overlay}${checksum}#"
 
 ## Convert callsign into TouchTone string
 # Debug only
