@@ -2,26 +2,47 @@
 
 ### Introduction
 
-The following feature was requested by J P Watters KC9KKO.
+The following describes a feature that remotely changes a gateway from
+1200 baud to 9600 baud that was requested by J P Watters KC9KKO.
 
-If we had support for simultaneous 1200 & 9600 baud packet with a
-single radio on a channel that would be ideal. With the current way
-that Direwolf works it is not clear how that is possible.
+A set of scripts is used to configure a local station and remote
+gateway (Winlink, APRS) to use a specific baud rate (either 1200 or
+9600).
 
-Until there is successful detection of both 1200 & 9600 baud packets
-on a single channel there needs to be a methed to configure a remote
-gateway to handle a remotely requested baud rate. The method described
-below is a way to configure a remote gateway (Winlink, APRS) to handle
-a requested baud rate.
+Since direwolf can decode DTMF, use DTMF tones sent from a workstation
+as the mechanism to change packet baud rate on the remote gateway.
 
-Since direwolf can decode DTMF, use DTMF tones as the mechanism to
-change packet baud rate on the remote gateway.
+###### Local side
 
-A script (send_ttcmd.sh) is run on a local station that specifies call
-sign & requested baud rate for a remote gateway.  The request is
-encoded as a Touch Tone APRS object. On the remote station Direwolf
-decodes the DTMF request, verifies the call sign is found in a white
-list and configures itself to decode the specified baud rate.
+A script, _send-ttcmd.sh_, is run on a local station that specifies a
+call sign & requested baud rate for a remote gateway. The request is
+encoded as a Touch Tone APRS object.
+
+###### Remote side
+
+On the remote station Direwolf decodes the DTMF request and calls the
+dw-ttcmd.sh script. This script reconfigures direwolf, kissattach &
+some AX.25 parameters for the requested baud rate. Direwolf & AX.25
+are restarted to read the new configuration. The requested 9600
+baudrate configuration lasts 5 minutes then resets itself back to 1200
+baud. If more time is needed, run the send_ttcmd.sh on local
+workstation before the first timer has lapsed. The remote station will
+delete the current timer and start a new 5 minute timer.
+
+
+##### Additional features not completed
+
+* Create a white list of call signs allowed
+  * Currently anyone with DTMF capability can change the baud rate on a DTMF configured gateway.
+* Add frequency to the APRS object for frequency agile radios.
+  * ie. On a dual band radio that supports rig control, could configure the gateway to switch from 2M to 440.
+* Add a gateway identifier to select gateway to change baudrate.
+  * To keep the number of Touch Tones sent to a minimum no destination gateway identifier is sent.
+
+### Requirements
+* A 'good' digital ready radio that has discriminator receive output.
+* A sound modem configured for direwolf running on Linux
+* AX.25 port config file located in _/etc/ax25/port.conf_
 
 ### Script descriptions
 
@@ -33,14 +54,14 @@ machines to set the requested baud rate (either 1200 or 9600). It can
 also be run manually from the command line to configure direwolf for a
 specific baud rate.
 
-* On the local machine:
+###### Local machine
 
 Use the _send-ttcmd.sh_ script to send a DTMF sequence that contains your
 call sign and the requested baud rate.
 
-* On the remote machine:
+###### Remote machine
 
-When direwolf is configured properly on receipt of the APRS Touch Tone
+When direwolf is configured properly, on receipt of the APRS Touch Tone
 object it will call an external program, the _dw-ttcmd.sh_ script, to
 set the requested baud rate.
 
@@ -49,11 +70,11 @@ set the requested baud rate.
 #### Scripts
 
 ##### speed_switch.sh
+
+* Runs on both local (called from _send-ttcmd.sh_) & remote (called from _dw-ttcmd.sh_) stations
 * Set parameters for direwolf, kissattach & ax25parms for either 1200 or 9600 baud rates
   * Depends on file: /usr/local/etc/ax25/port.conf
-  * Runs on both local & remote stations
-  * Can be run manually from the command line
-    * Used by both _dw-ttcmd.sh_ and _send-ttcmd.sh_
+  * Can be run manually to set baudrate from command line
 
 ```
 Usage: speed_switch.sh [-b <speed>][-s][-d][-h]
@@ -80,40 +101,46 @@ Usage: dw-ttcmd.sh [-d][-h]
   * This script will call _speed_switch.sh_ to set the baud rate on the local machine.
 
 ```
-Usage: send-ttcmd.sh [-c <connector>][-b <baudrate>][-h]
+Usage: send-ttcmd.sh [-c <connector>][-b <baudrate>][-f <freq>][-C <callsign>[-h]
    -b <baudrate>           either 1200 or 9600 baud, default 1200
-   -c <connector_location> either left (mDin6) or right (hd15/mDin6), default: left
+   -c <connector_location> DRAWS left (mDin6) or right (hd15/mDin6), default: left
+   -C <call sign>          Specify a call sign
+   -f <frequency>          Frequency in kilohertz, exactly 6 digits.
+   -t <tone_gen>           Dev only: Tone generation method, either individ, file, default: file
    -d                      set debug flag
    -h                      no arg, display this message
 ```
 
 ### Using Direwolf DTMF to switch baud rate on a remote machine
 
-* Direwolf DTMF is meant to generate an APRS Object Report packet
-  * Find the minimum required config to generate a Report packet so that an external program is called.
+* Direwolf DTMF is meant to parse an APRS Object Report packet and optionally call an external program
+  * Wanted to find the minimum required DTMF sequence that would generate a Report Packet so that an external program is called from Direwolf
 
 ##### Smallest DTMF string to pass direwolf filter
 
-* This is the smallest ttOBJ I came up with ```BA236212 * A6B76B4C9B7```
-  * Grid square plus call sign
+* This is the smallest ttOBJ I came up with ```BA236296 * A6B76B4C9B41```
+  * BA **${ttgridsquare}** * A **${ttcallsign}${overlay}${checksum}** #
   * The trailing 2 digits of the Grid Square are used to pass the requested baud rate (12 or 96)
 
 * To determine the required Touch Tone sequence for the Grid Square
-  * Output of the command: ```text2tt CN12```
+  * Output of the command: ```text2tt CN96```
+    * Used: Push buttons for Maidenhead Grid Square Locator
 ```
 Push buttons for multi-press method:
-"2226612222"    checksum for call = 7
+"22266999996666"    checksum for call = 7
 Push buttons for two-key method:
-"2C6B12"    checksum for call = 4
+"2C6B96"    checksum for call = 6
 Push buttons for fixed length 10 digit callsign:
-"2612003589"
+"2696003589"
 Push buttons for Maidenhead Grid Square Locator:
-"236212"
+"236296"
 Push buttons for satellite gridsquare:
-"1012
+"1096"
 ```
+
 * To determine the required Touch Tone sequence for the call sign
   * Output of the command: ```text2tt N7NIX```
+    * Used: Push buttons for two-key method
 ```
 Push buttons for multi-press method:
 "66777776644499"    checksum for call = 9
@@ -124,10 +151,10 @@ Push buttons for fixed length 10 digit callsign:
 ```
 
 * Only criteria for DTMF string was to get command specified by TTCMD to run
-  * The following is 4 character Maidenhead  and call sign string used to create the DTMF tones.
+  * The following is 4 character Maidenhead  and call sign string with trailing overlay character used to create the DTMF tones.
 
 ```
-BA236212 * A6B76B4C9B7
+BA236296 * A6B76B4C9B41
 ```
 #### Changes to Direwolf config file
 
@@ -143,9 +170,9 @@ BA236212 * A6B76B4C9B7
 ###### In Channel 0 section
 ```
 DTMF
-TTOBJ 0 1 WIDE1-1
+TTOBJ 0 APP
 ```
-* Actually do NOT want to send out an APRS packet so have to play with the TTOBJ line.
+* Actually do NOT want to send out the APRS Object packet over Internet to APRS-IS server or the radio.
 
 ###### In DTMF section
 
@@ -159,21 +186,24 @@ TTCMD /home/$USER/bin/dw-ttcmd.sh
 * It is way too tedious to punch in the DTMF codes for each test run.
 * Unfortunately rigctl does not support setting DTMF codes for the Kenwood TM-V71a
 
-#### Use sox (play) from a shell script (send-ttcmd.sh)
+#### Use sox from a shell script (_send-ttcmd.sh_)
 
-* [Audio Notes using play](http://www.noah.org/wiki/audio_notes)
-* http://www.noah.org/wiki/audio_notes#DTMF:_mix_some_tones_to_dial_a_phone
-* https://cloudacm.com/?p=3147
+* Some reference links:
+  * [Audio Notes using play](http://www.noah.org/wiki/audio_notes)
+  * [DTMF: mix some tones to dial a phone](http://www.noah.org/wiki/audio_notes#DTMF:_mix_some_tones_to_dial_a_phone)
+  * [GENERATING DTMF WITH SOX](https://cloudacm.com/?p=3147)
 
-* Used sox _play_ command to synthesize frequency of each character.
+* Used _sox_ command to synthesize frequency of each character.
 ```
-play -q -n synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2 2> /dev/null
+sox -n $output_name synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonechar 2]} remix 1,2
 ```
-* Unfortunately calling play for each tone pair is much slower than playing a generated wav file.
-  * Needs more research
+* Then combined all the tonechar wav files with a little bit of silence between them.
+```
+sox $ttcmd_output_file tmp_ttcmd_$i.wav silence.wav ttcmd_tmp.wav
+```
 
-* The programs I tried which did generate DTMF wav files did not
-generate a file that worked for the codec used with DRAWS
+* I found a number of programs which could generate DTMF wav files but
+did not generate a file that worked for the codec used with DRAWS
 
 ### Installation Notes
 
@@ -183,7 +213,9 @@ cd n7nix
 git pull
 cd baudrate
 ./tt_install.sh
-
+```
+* Check the configured baudrate for each audio channel
+```
 speed_switch.sh -s
 ```
 #### end of document
