@@ -193,28 +193,33 @@ function check_console() {
 }
 
 # ====== run_at
-# Check if there is another at job in the queue
-# and if not then schedule job to reset baud rate to 1200
+# Check if there is another 'at' job in the queue
+#   if there is delete
+#   and if not then schedule job to reset baud rate to 1200
 
 function run_at() {
     # Time limit in minutes for leaving config set to 9600 baud
     baud96_timelimit=5
 
+    # Regardless of which baud rate is selected
     # Determine if there are any jobs in run queue
     queue_cnt=$(at -l | wc -l)
-    if [ $queue_cnt > 0 ] ; then
+    if [ $queue_cnt -gt 0 ] ; then
         # For now assume everything in the run queue is a
         # speed_switch.sh script and delete it.
+        echo "== $(date): ttcmd run_at[$queue_cnt] removing job: $(atq)" | $TEE_CMD
         for jobid in $(atq | cut -f 1); do
             atrm $jobid;
         done
     fi
 
-    # There is a baudrate change request for 9600 baud
-    #  - set a timer to revert back to 1200 baud.
+    if [ $baudrate -eq 96 ] ; then
+        # There is a baudrate change request for 9600 baud
+        #  - set a timer to revert back to 1200 baud.
 
-    echo "$(date): ttcmd setting timer to switch baudrate to 1200 in $baud96_timelimit minutes" | $TEE_CMD
-    at -t $(date --date="now +$baud96_timelimit minutes" +"%Y%m%d%H%M.%S") -f $LOCAL_BIN_PATH/speed_switch.sh > /dev/null 2>&1
+        echo "$(date): ttcmd setting timer to switch baudrate to 1200 in $baud96_timelimit minutes" | $TEE_CMD
+        at -t $(date --date="now +$baud96_timelimit minutes" +"%Y%m%d%H%M.%S") -f $LOCAL_BIN_PATH/speed_switch.sh > /dev/null 2>&1
+    fi
 }
 
 # ===== function usage
@@ -355,9 +360,7 @@ else
 fi
 
 # If baud rate is 9600 baud then re/schedule speed_switch back to 1200
-if [ $baudrate -eq 96 ] ; then
-    run_at
-fi
+run_at
 
 echo "DEBUG: TTCALL: $TTCALL, TTSSID: $TTSID, TCOUNT: $TTCOUNT, TTSYMBOL: $TTSYMBOL, TTFREQ: $TTFREQ, TTLOC: $TTLOC, TTDAO: $TTDAO" | $TEE_CMD
 
