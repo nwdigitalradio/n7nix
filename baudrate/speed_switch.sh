@@ -229,7 +229,9 @@ speed_status() {
             T2_TIMEOUT=$(cat $PARMDIR/t2_timeout)
         else
 #            devicestat[$devname]="does NOT exist"
-             devicestat$devnum="does NOT exist"
+             eval devicestat_tmp="\"devicestat$devnum\""
+	     safevar="$devname does NOT exist"
+             eval $devicestat_tmp=\$safevar
         fi
         echo "port: $devnum, speed: $PORTSPEED, slottime: $SLOTTIME, txdelay: $TXDELAY, t1 timeout: $T1_TIMEOUT, t2 timeout: $T2_TIMEOUT"
     done
@@ -414,25 +416,42 @@ parent_check() {
 reset_stack() {
     QUIET="-q"
 
-    dbgecho "reset_stack arg: $1"  | $TEE_CMD
+    echo "reset_stack: arg: $1"  | $TEE_CMD
     # bash: startsec=$SECONDS
     startsec=$(($(date +%s%N)/1000000))
 
     # If running from direwolf then wait for the morse code response
     if [ "$1" -eq 1 ] ; then
         # Called from direwolf
-        wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
-        grepret=$?
-        while [ $grepret -ne 0 ] ; do
+
+        # More code response does not happen until AFTER return to direwolf
+        if [ 1 -eq 0 ] ; then
+
             wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
             grepret=$?
-        done
+            diffsec=0
+            while [ $grepret -ne 0 ] && [ $diffsec -lt 5500 ] ; do
+                wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
+                grepret=$?
+                currentsec=$(($(date +%s%N)/1000000))
+	        diffsec=$(expr $currentsec - $startsec)
+            done
 
+	    if [ $grepret -ne 0 ] ; then
+	        echo "$(date): reset_stack: timeout waiting for morse $diffsec sec" | $TEE_CMD
+
+                echo "DEBUG1: $wait4morse"  | $TEE_CMD
+	        echo "DEBUG2: $(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")"  | $TEE_CMD
+	        echo "DEBUG3: $(tail -n 5 $DW_LOG_FILE)"  | $TEE_CMD
+	    fi
+        fi
         currentsec=$(($(date +%s%N)/1000000))
-        echo "Would do a direwolf reset now, after `expr $currentsec - $startsec` mSec" | $TEE_CMD
+        echo " === Sched direwolf reset now, `expr $currentsec - $startsec` mSec" | $TEE_CMD
 #       at now + 1 min -f /home/pi/bin/ax25-restart
         # Use time second resolution when run using 'at' command
         at -t $(date --date="now +5 seconds" +"%Y%m%d%H%M.%S") -f $LOCAL_BIN_PATH/ax25-restart  > /dev/null 2>&1
+        queue_cnt=$(at -l | wc -l)
+        echo "$(date): speed_switch reset_stack[$queue_cnt] $(atq)" | $TEE_CMD
     else
         # Called from console
         $LOCAL_BIN_PATH//ax25-restart  > /dev/null 2>&1
