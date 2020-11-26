@@ -204,7 +204,7 @@ sox -n $output_name synth 0.1 sin ${dmtffreq[$tonechar 1]} sin ${dmtffreq[$tonec
 sox $ttcmd_output_file tmp_ttcmd_$i.wav silence.wav ttcmd_tmp.wav
 ```
 
-* I found a number of programs which could generate DTMF wav files but
+* I found a [number of programs which could generate DTMF wav files](DEV_NOTES.md) but
 did not generate a file that worked for the codec used with DRAWS
 
 ### Installation Notes
