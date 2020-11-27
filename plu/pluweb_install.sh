@@ -115,6 +115,7 @@ echo "$SCRIPTNAME: Install nodejs & npm"
 pushd /usr/local/src/paclink-unix/webapp
 
 apt-get install -y -q nodejs npm
+npm install -g npm
 npm install -g npm websocket connect finalhandler serve-static
 
 echo
