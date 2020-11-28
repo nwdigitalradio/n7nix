@@ -454,7 +454,7 @@ reset_stack() {
         echo "$(date): speed_switch reset_stack[$queue_cnt] $(atq)" | $TEE_CMD
     else
         # Called from console
-        $LOCAL_BIN_PATH//ax25-restart  > /dev/null 2>&1
+        $LOCAL_BIN_PATH/ax25-restart  > /dev/null 2>&1
     fi
 
     currentsec=$(($(date +%s%N)/1000000))
