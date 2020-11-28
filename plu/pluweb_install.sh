@@ -110,16 +110,20 @@ check_user
 
 # Setup node.js & modules required to run the plu web page.
 echo
-echo "$SCRIPTNAME: Install nodejs & npm"
+echo " == $SCRIPTNAME: Install nodejs, npm & node modules"
 
 pushd /usr/local/src/paclink-unix/webapp
 
 apt-get install -y -q nodejs npm
 npm install -g npm
-npm install -g npm websocket connect finalhandler serve-static
+npm install -g connect finalhandler serve-static
+# Temporary
+## Warning "root" does not have permission to access the dev dir #454
+## https://github.com/nodejs/node-gyp/issues/454
+sudo npm --unsafe-perm -g install websocket
 
 echo
-echo "$SCRIPTNAME: Install jquery"
+echo " == $SCRIPTNAME: Install jquery"
 # jquery should be installed in same directory as plu.html
 npm install jquery
 cp node_modules/jquery/dist/jquery.min.js jquery.js
@@ -130,7 +134,7 @@ popd > /dev/null
 # Set up systemd to run on boot
 service="pluweb.service"
 echo
-echo "$SCRIPTNAME: Setup systemd for $service"
+echo " == $SCRIPTNAME: Setup systemd for $service"
 
 LOCAL_SYSD_DIR="/home/$USER/n7nix/systemd/sysd"
 cp $LOCAL_SYSD_DIR/$service $SYSD_DIR
@@ -151,7 +155,7 @@ sed -i -e "/Group=/ s/Group=.*/Group=$USER/" $SYSD_DIR/$service
 
 # restart pluweb for new configuration to take affect
 echo
-echo "$SCRIPTNAME: Start $service"
+echo " == $SCRIPTNAME: Start $service"
 
 start_service $service
 systemctl --no-pager status $service

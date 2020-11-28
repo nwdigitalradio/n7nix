@@ -173,6 +173,9 @@ node_file_name="node-v$NODEJS_VER-linux-armv7l.tar.xz"
 echo
 echo "== get node modules"
 sudo npm -g install ctype iniparser connect serve-static finalhandler uid-number
+# Temporary
+## Warning "root" does not have permission to access the dev dir #454
+## https://github.com/nodejs/node-gyp/issues/454
 sudo npm --unsafe-perm -g install websocket
 
 #
