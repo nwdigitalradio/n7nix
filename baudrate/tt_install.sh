@@ -55,7 +55,7 @@ if [[ $# -gt 0 ]] ; then
 fi
 
 # List of required programs
-PROGLIST="gpio sox"
+PROGLIST="gpio sox at"
 NEEDPKG_FLAG=false
 
 ## Verify required programs are installed
@@ -112,9 +112,11 @@ else
     echo "TTCMD already configured in $DIREWOLF_CFGFILE"
 fi
 
-
 ## Copy baud rate change scripts to local bin
 copy_local_bin "/home/$USER/n7nix/baudrate"
+
+# after making changes to direwolf config need to restart direwolf
+$userbindir/ax25-restart  > /dev/null 2>&1
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: Touch Tone speed change install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
 echo
