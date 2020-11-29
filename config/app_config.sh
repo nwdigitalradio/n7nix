@@ -8,6 +8,11 @@
 # DEBUG=1
 
 scriptname="`basename $0`"
+
+# Get latest version of WiringPi
+CURRENT_WP_VER="2.60"
+SRCDIR=/usr/local/src
+
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 
 CALLSIGN="N0ONE"
@@ -112,10 +117,6 @@ function CopyDesktopFiles() {
     echo "copying desktop files FINISHED"
 }
 
-# Get latest version of WiringPi
-CURRENT_VER="2.52"
-TMPDIR=/home/$USER/tmp
-
 # ===== function get_wp_ver
 # Get current version of WiringPi
 function get_wp_ver() {
@@ -134,16 +135,24 @@ function get_wp_ver() {
 function chk_wp_ver() {
     get_wp_ver
     echo "WiringPi version: $wp_ver"
-    if [ "$wp_ver" != "$CURRENT_VER" ] ; then
+    if [ "$wp_ver" != "$CURRENT_WP_VER" ] ; then
         echo "Installing latest version of WiringPi"
         # Setup tmp directory
-        if [ ! -d "$TMPDIR" ] ; then
-            mkdir "$TMPDIR"
+        if [ ! -d "$SRCDIR" ] ; then
+            mkdir "$SRCDIR"
         fi
 
-        pushd $TMPDIR
-        wget https://project-downloads.drogon.net/wiringpi-latest.deb
-        sudo dpkg -i wiringpi-latest.deb
+        # Need wiringPi version 2.60 for Raspberry Pi 400 which is not yet
+        # in Debian repos.
+        # The following does not work.
+        #   wget -P /usr/local/src https://project-downloads.drogon.net/wiringpi-latest.deb
+        #   sudo dpkg -i /usr/local/src/wiringpi-latest.deb
+
+        pushd $SRCDIR
+        git clone https://github.com/WiringPi/WiringPi
+        cd WiringPi
+        ./build
+        gpio -v
         popd > /dev/null
 
         get_wp_ver

@@ -17,6 +17,10 @@ DW_STOP=false
 
 scriptname="`basename $0`"
 
+# Get latest version of WiringPi
+CURRENT_WP_VER="2.60"
+SRCDIR=/usr/local/src
+
 # Force generation of wav file even if it already exists.
 FORCE_GEN=
 CALLSIGN="N0ONE"
@@ -149,6 +153,50 @@ function get_axports_callsign() {
     return $retcode
 }
 
+# ===== function get_wp_ver
+# Get current version of WiringPi
+function get_wp_ver() {
+    wp_ver=$(gpio -v | grep -i "version" | cut -d':' -f2)
+
+    # echo "DEBUG: $wp_ver"
+    # Strip leading white space
+    # This also works
+    # wp_ver=$(echo $wp_ver | tr -s '[[:space:]]')"
+
+    wp_ver="${wp_ver#"${wp_ver%%[![:space:]]*}"}"
+}
+
+# ===== function chk_wp_ver
+# Check that the latest version of WiringPi is installed
+function chk_wp_ver() {
+    get_wp_ver
+    echo "WiringPi version: $wp_ver"
+    if [ "$wp_ver" != "$CURRENT_WP_VER" ] ; then
+        echo "Installing latest version of WiringPi"
+        # Setup tmp directory
+        if [ ! -d "$SRCDIR" ] ; then
+            mkdir "$SRCDIR"
+        fi
+
+        # Need wiringPi version 2.60 for Raspberry Pi 400 which is not yet
+        # in Debian repos.
+        # The following does not work.
+        #   wget -P /usr/local/src https://project-downloads.drogon.net/wiringpi-latest.deb
+        #   sudo dpkg -i /usr/local/src/wiringpi-latest.deb
+
+        pushd $SRCDIR
+        git clone https://github.com/WiringPi/WiringPi
+        cd WiringPi
+        ./build
+        gpio -v
+        popd > /dev/null
+
+        get_wp_ver
+        echo "New WiringPi version: $wp_ver"
+    fi
+}
+
+# ==== function use_sox
 function use_sox() {
     # Verify required programs are installed
     for prog_name in `echo ${PROGLIST}` ; do
@@ -163,12 +211,9 @@ function use_sox() {
         echo "Installing required packages"
         dbgecho "Debian packages: for aplay install alsa-utils, for gpio, install wiringpi"
         sudo apt-get -y -q install alsa-utils sox
-        if [ ! -e "/usr/local/src/wiringpi-latest.deb" ] ; then
-            # Need wiringPi version 2.52 for Raspberry Pi 4 which is not yet in Debian repos.
-            wget -P /usr/local/src https://project-downloads.drogon.net/wiringpi-latest.deb
-        fi
-        sudo dpkg -i /usr/local/src/wiringpi-latest.deb
     fi
+    # Check for latest verion of WiringPi
+    chk_wp_ver
 }
 
 # ===== function device_name_verify
@@ -484,7 +529,7 @@ function usage() {
 
 # ===== main
 
-PROGLIST="gpio sox"
+PROGLIST="alsa-utils sox"
 NEEDPKG_FLAG=false
 
 # Check if running as root

@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 # Get latest version of WiringPi
-CURRENT_VER="2.52"
-TMPDIR=$HOME/tmp
+CURRENT_VER="2.60"
+SRCDIR=/usr/local/src
 
 # ===== function get_wp_ver
 # Get current version of WiringPi
@@ -19,19 +19,26 @@ function get_wp_ver() {
 
 # ===== main
 get_wp_ver
-echo "WiringPi version: $wp_ver"
+echo "WiringPi current version: $wp_ver"
 if [ "$wp_ver" != "$CURRENT_VER" ] ; then
     echo "Installing latest version of WiringPi"
     # Setup tmp directory
-    if [ ! -d "$TMPDIR" ] ; then
-        mkdir "$TMPDIR"
+    if [ ! -d "$SRCDIR" ] ; then
+        mkdir "$SRCDIR"
     fi
 
-    pushd $TMPDIR
-    wget https://project-downloads.drogon.net/wiringpi-latest.deb
-    sudo dpkg -i wiringpi-latest.deb
+    # The following no longer works to update wiringpi
+    # wget https://project-downloads.drogon.net/wiringpi-latest.deb
+    # sudo dpkg -i wiringpi-latest.deb
+
+    # Build WiringPi from source
+    pushd $SRCDIR
+    git clone https://github.com/WiringPi/WiringPi
+    cd WiringPi
+    ./build
+    gpio -v
     popd > /dev/null
 
     get_wp_ver
-    echo "New WiringPi version: $wp_ver"
+    echo "WiringPi NEW version: $wp_ver"
 fi
