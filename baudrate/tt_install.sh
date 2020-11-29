@@ -69,9 +69,12 @@ for prog_name in `echo ${PROGLIST}` ; do
    fi
 done
 if [ "$NEEDPKG_FLAG" = "true" ] ; then
-   echo "Installing required packages"
-   dbgecho "Debian packages: for aplay install alsa-utils, for gpio, install wiringpi"
-   sudo apt-get -y -q install alsa-utils sox
+    echo "Installing required packages"
+    dbgecho "Debian packages: for aplay install alsa-utils, for gpio, install wiringpi"
+    sudo apt-get -y -q install alsa-utils sox
+    if [[ $? > 0 ]] ; then
+        echo "$(tput setaf 1)Failed to install alsa-utils & sox, install from command line. $(tput sgr0)"
+    fi
 fi
 
 ## Edit direwolf.conf

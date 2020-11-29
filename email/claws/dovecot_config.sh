@@ -111,6 +111,9 @@ is_pkg_installed $pkg_name
 if [ $? -ne 0 ] ; then
     echo "$scriptname: Will Install $pkg_name package"
     apt-get install -y -q $pkg_name
+    if [[ $? > 0 ]] ; then
+        echo "$(tput setaf 1)Failed to install $pkg_name, install from command line. $(tput sgr0)"
+    fi
 fi
 
 pkg_name="dovecot-imapd"
@@ -118,6 +121,9 @@ is_pkg_installed $pkg_name
 if [ $? -ne 0 ] ; then
     echo "$scriptname: Will Install $pkg_name package"
     apt-get install -y -q $pkg_name
+    if [[ $? > 0 ]] ; then
+        echo "$(tput setaf 1)Failed to install $pkg_name, install from command line. $(tput sgr0)"
+    fi
 fi
 
 # ===== Edit this file in /etc/dovecot: dovecot.conf =====
