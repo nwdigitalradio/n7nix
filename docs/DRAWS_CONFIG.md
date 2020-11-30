@@ -162,16 +162,13 @@ sudo su
   * If you want to run a **packet application** or run some tests on the
     DRAWS board that requires _direwolf_ then enable AX.25/direwolf like this:
 
+  * enable packet ax25/direwolf
 ```
-cd ~/bin
-# Become root
-sudo su
-./ax25-start
+# Not required to be root
+ax25-start
 ```
 
-##### Reboot to enable packet
-
-* Now reboot and verify by running:
+* Verify by ax25/direwolf is running:
 ```
 ax25-status
 ax25-status -d
