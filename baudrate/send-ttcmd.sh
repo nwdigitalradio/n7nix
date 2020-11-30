@@ -17,10 +17,6 @@ DW_STOP=false
 
 scriptname="`basename $0`"
 
-# Get latest version of WiringPi
-CURRENT_WP_VER="2.60"
-SRCDIR=/usr/local/src
-
 # Force generation of wav file even if it already exists.
 FORCE_GEN=
 CALLSIGN="N0ONE"
@@ -29,6 +25,9 @@ AX25_CFGDIR="/usr/local/etc/ax25"
 AXPORTS_FILE="$AX25_CFGDIR/axports"
 PORT_CFG_FILE="/etc/ax25/port.conf"
 DW_TT_LOG_FILE="/var/log/direwolf/dw-log.txt"
+
+# Get latest version of WiringPi
+CURRENT_WP_VER="2.60"
 
 # For display to console
 TEE_CMD="sudo tee -a $DW_TT_LOG_FILE"
@@ -170,29 +169,11 @@ function get_wp_ver() {
 # Check that the latest version of WiringPi is installed
 function chk_wp_ver() {
     get_wp_ver
-    echo "WiringPi version: $wp_ver"
+    echo "Installed WiringPi version: $wp_ver"
     if [ "$wp_ver" != "$CURRENT_WP_VER" ] ; then
-        echo "Installing latest version of WiringPi"
-        # Setup tmp directory
-        if [ ! -d "$SRCDIR" ] ; then
-            mkdir "$SRCDIR"
-        fi
-
-        # Need wiringPi version 2.60 for Raspberry Pi 400 which is not yet
-        # in Debian repos.
-        # The following does not work.
-        #   wget -P /usr/local/src https://project-downloads.drogon.net/wiringpi-latest.deb
-        #   sudo dpkg -i /usr/local/src/wiringpi-latest.deb
-
-        pushd $SRCDIR
-        git clone https://github.com/WiringPi/WiringPi
-        cd WiringPi
-        ./build
-        gpio -v
-        popd > /dev/null
-
-        get_wp_ver
-        echo "New WiringPi version: $wp_ver"
+        echo
+        echo "$(tput setaf 1)Not using latest version of WiringPi$(tput sgr0)"
+        echo
     fi
 }
 

@@ -13,6 +13,13 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 
+# Get latest version of WiringPi
+CURRENT_WP_VER="2.60"
+SRCDIR=/usr/local/src
+
+# List of required programs
+PROGLIST="sox at"
+
 # ===== function dbgecho
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -28,6 +35,49 @@ function copy_local_bin() {
     cp -u $src_dir/speed_switch.sh $userbindir
     cp -u $src_dir/dw-ttcmd.sh $userbindir
     cp -u $src_dir/send-ttcmd.sh $userbindir
+}
+
+# ===== function get_wp_ver
+# Get current version of WiringPi
+function get_wp_ver() {
+    wp_ver=$(gpio -v | grep -i "version" | cut -d':' -f2)
+
+    # echo "DEBUG: $wp_ver"
+    # Strip leading white space
+    # This also works
+    # wp_ver=$(echo $wp_ver | tr -s '[[:space:]]')"
+
+    wp_ver="${wp_ver#"${wp_ver%%[![:space:]]*}"}"
+}
+
+# ===== function chk_wp_ver
+# Check that the latest version of WiringPi is installed
+function chk_wp_ver() {
+    get_wp_ver
+    echo "Installed WiringPi version: $wp_ver"
+    if [ "$wp_ver" != "$CURRENT_WP_VER" ] ; then
+        echo "Installing latest version of WiringPi"
+        # Setup tmp directory
+        if [ ! -d "$SRCDIR" ] ; then
+            mkdir "$SRCDIR"
+        fi
+
+        # Need wiringPi version 2.60 for Raspberry Pi 400 which is not yet
+        # in Debian repos.
+        # The following does not work.
+        #   wget -P /usr/local/src https://project-downloads.drogon.net/wiringpi-latest.deb
+        #   sudo dpkg -i /usr/local/src/wiringpi-latest.deb
+
+        pushd $SRCDIR
+        git clone https://github.com/WiringPi/WiringPi
+        cd WiringPi
+        ./build
+        gpio -v
+        popd > /dev/null
+
+        get_wp_ver
+        echo "New WiringPi version: $wp_ver"
+    fi
 }
 
 # ===== main
@@ -54,8 +104,6 @@ if [[ $# -gt 0 ]] ; then
     exit 0
 fi
 
-# List of required programs
-PROGLIST="gpio sox at"
 NEEDPKG_FLAG=false
 
 ## Verify required programs are installed
@@ -69,13 +117,17 @@ for prog_name in `echo ${PROGLIST}` ; do
    fi
 done
 if [ "$NEEDPKG_FLAG" = "true" ] ; then
-    echo "Installing required packages"
-    dbgecho "Debian packages: for aplay install alsa-utils, for gpio, install wiringpi"
-    sudo apt-get -y -q install alsa-utils sox
+    echo "Installing required packages "
+    dbgecho "Debian packages: for aplay install alsa-utils"
+    PROGLIST="alsa-utils $PROGLIST"
+    sudo apt-get -y -q install $PROGLIST
     if [[ $? > 0 ]] ; then
-        echo "$(tput setaf 1)Failed to install alsa-utils & sox, install from command line. $(tput sgr0)"
+        echo "$(tput setaf 1)Failed to install $PROGLIST, install from command line. $(tput sgr0)"
     fi
 fi
+
+# Check for latest verion of WiringPi
+chk_wp_ver
 
 ## Edit direwolf.conf
 
