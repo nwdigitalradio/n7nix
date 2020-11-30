@@ -292,6 +292,14 @@ time wl2kax25 n7nix
 ```
 * Additional debug information can be found in file: _/var/log/direwolf/dw-log.txt_
 
+* After sending command:
+```
+cd
+cd n7nix/baudrate
+./send-ttcmd.sh -b 9600
+```
+* wait for a response of Morse Code 'R' (dit-dah-dit)
+  * If you hear something other than an 'R' or nothing then retry command
 
 ### Bugs
 
