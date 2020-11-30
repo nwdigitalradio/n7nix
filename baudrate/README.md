@@ -12,13 +12,23 @@ gateway (Winlink, APRS) to use a specific baud rate (either 1200 or
 Since direwolf can decode DTMF, use DTMF tones sent from a workstation
 as the mechanism to change packet baud rate on the remote gateway.
 
+### Installation
+* [Installation Notes can be found here.](#touch-tone-baudrate-installation-notes)
+
+
 ###### Local side
 
 A script, _send-ttcmd.sh_, is run on a local station that specifies a
-call sign & requested baud rate for a remote gateway. If no call sign
-is given on the command line then the script attempts to pull it from
-the AX.25 configuration file. The baud rate request is encoded as a
-Touch Tone APRS object.
+local call sign & requested baud rate for a remote gateway. If no call
+sign is given on the command line then the script attempts to pull it
+from the AX.25 configuration file. The baud rate request is encoded as
+a Touch Tone APRS object.
+
+```
+cd
+cd n7nix/baudrate
+./send_ttcmd.sh -b 9600
+```
 
 ###### Remote side
 
@@ -66,8 +76,6 @@ call sign and the requested baud rate.
 When direwolf is configured properly, on receipt of the APRS Touch Tone
 object it will call an external program, the _dw-ttcmd.sh_ script, to
 set the requested baud rate.
-
-[Installation Notes](#installation-notes)
 
 #### Scripts
 
@@ -207,7 +215,7 @@ sox $ttcmd_output_file tmp_ttcmd_$i.wav silence.wav ttcmd_tmp.wav
 * I found a [number of programs which could generate DTMF wav files](DEV_NOTES.md) but
 did not generate a file that worked for the codec used with DRAWS
 
-### Installation Notes
+### Touch Tone Baudrate Installation Notes
 
 ```
 cd
@@ -220,6 +228,11 @@ cd baudrate
 ```
 speed_switch.sh -s
 ```
+* Must configure radio to use receive discriminator out.
+  * On Kenwood TM-V71a this means selecting DAT.SPD (518) 9600
+* Must edit /etc/ax25/port.conf file to select 'receive_out=disc' before running _setalsa-tmv71a.sh_
+  * Must run _setalsa-tmv71a.sh_ after editing port.conf
+
 #### Example /etc/ax25/port.conf file
 ```
 # Configuration for each sound card port
@@ -262,5 +275,49 @@ txdelay=150
 txtail=50
 t1_timeout=2000
 t2_timeout=100
+```
+
+##### Runtime Notes
+
+* At least initially run with 3 consoles open
+```
+# Console 1
+sudo listen -a
+
+# Console 2
+tail -f /var/log/direwolf/direwolf.log
+
+# Console 3
+time wl2kax25 n7nix
+```
+* Additional debug information can be found in file: _/var/log/direwolf/dw-log.txt_
+
+
+### Bugs
+
+* After both AX.25 stacks have been restarted the final **FQ** does not show up.
+  * No need to let it timeout just CTRL-C and try it again.
+```
+ $ time wl2kax25 kf7fit
+Connected to AX.25 stack
+Child process
+wl2kax25: ---
+
+wl2kax25: <[UnixLINK-0.10-B2FIHM$]
+wl2kax25: sid [UnixLINK-0.10-B2FIHM$] inboundsidcodes -B2FIHM$
+wl2kax25: <(am|em:h1,g:CN88nl)
+wl2kax25: <Welcome
+wl2kax25: <No Traffic
+wl2kax25: <N7NIX de KF7FIT>
+wl2kax25: >;  KF7FIT DE N7NIX (CN88nl)
+wl2kax25: >[UnixLINK-0.10-B2FIHM$]
+wl2kax25: >FF
+# Waiting for final FQ to arrive but never happens
+wl2kax25: <FQ [2]
+# Ctrl-c and try again
+^C
+real	0m3.486s
+user	0m0.014s
+sys	0m0.001s
 ```
 #### end of document
