@@ -84,7 +84,7 @@ set the requested baud rate.
 * Runs on both local (called from _send-ttcmd.sh_) & remote (called from _dw-ttcmd.sh_) stations
 * Set parameters for direwolf, kissattach & ax25parms for either 1200 or 9600 baud rates
   * Depends on file: /usr/local/etc/ax25/port.conf
-  * Can be run manually to set baud rate from command line
+  * Can be run manually to set local baud rate from command line
 
 ```
 Usage: speed_switch.sh [-b <speed>][-s][-d][-h]
