@@ -18,7 +18,8 @@ CURRENT_WP_VER="2.60"
 SRCDIR=/usr/local/src
 
 # List of required programs
-PROGLIST="sox at"
+PROGLIST="aplay sox at"
+PKGLIST="alsa-utils sox at"
 
 # ===== function dbgecho
 
@@ -117,12 +118,11 @@ for prog_name in `echo ${PROGLIST}` ; do
    fi
 done
 if [ "$NEEDPKG_FLAG" = "true" ] ; then
-    echo "Installing required packages "
-    dbgecho "Debian packages: for aplay install alsa-utils"
-    PROGLIST="alsa-utils $PROGLIST"
-    sudo apt-get -y -q install $PROGLIST
+    echo "Installing required packages"
+    dbgecho "Debian packages: $PKGLIST"
+    sudo apt-get -y -q install $PKGLIST
     if [[ $? > 0 ]] ; then
-        echo "$(tput setaf 1)Failed to install $PROGLIST, install from command line. $(tput sgr0)"
+        echo "$(tput setaf 1)Failed to install $PKGLIST, install from command line. $(tput sgr0)"
     fi
 fi
 
