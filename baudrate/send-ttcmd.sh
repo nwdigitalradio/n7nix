@@ -190,8 +190,11 @@ function use_sox() {
     done
     if [ "$NEEDPKG_FLAG" = "true" ] ; then
         echo "Installing required packages"
-        dbgecho "Debian packages: for aplay install alsa-utils, for gpio, install wiringpi"
-        sudo apt-get -y -q install alsa-utils sox
+        dbgecho "Debian packages: $PKGLIST"
+        sudo apt-get -y -q install $PKGLIST
+        if [[ $? > 0 ]] ; then
+            echo "$(tput setaf 1)Failed to install $PKGLIST, install from command line. $(tput sgr0)"
+        fi
     fi
     # Check for latest verion of WiringPi
     chk_wp_ver
@@ -510,7 +513,8 @@ function usage() {
 
 # ===== main
 
-PROGLIST="alsa-utils sox"
+PROGLIST="aplay sox"
+PKGLIST="alsa-utils sox"
 NEEDPKG_FLAG=false
 
 # Check if running as root

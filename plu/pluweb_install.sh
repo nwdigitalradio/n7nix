@@ -114,7 +114,12 @@ echo " == $SCRIPTNAME: Install nodejs, npm & node modules"
 
 pushd /usr/local/src/paclink-unix/webapp
 
-apt-get install -y -q nodejs npm
+PROGLIST="nodejs npm"
+apt-get install -y -q $PROGLIST
+if [[ $? > 0 ]] ; then
+    echo "$(tput setaf 1)Failed to install $PROGLIST, install from command line. $(tput sgr0)"
+fi
+
 npm install -g npm
 npm install -g connect finalhandler serve-static
 # Temporary
