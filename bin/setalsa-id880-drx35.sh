@@ -9,20 +9,20 @@
 # mDin6 connector on right channel, direwolf chan 1, radio Alinco DR-x35 MkIII
 #
 # For UDRC II, enable setting receive path from discriminator (DISC)
-# This script ignores /etc/ax25/port.conf file
+
 DEBUG=
 
 RADIO="ID-880 and DR-x35 MkIII"
 scriptname="`basename $0`"
 
-MODE_9600_ENABLE=false
-SWITCH_FILE="/etc/ax25/packet_9600baud"
-
 asoundstate_file="/var/lib/alsa/asound.state"
+AX25_CFGDIR="/usr/local/etc/ax25"
+PORT_CFG_FILE="$AX25_CFGDIR/port.conf"
+
 ALSA_LOG_DIR="$HOME/tmp"
 ALSA_LOG_FILE="$ALSA_LOG_DIR/alsa_mixer.log"
 
-# Default settings for 1200 baud settings on both channels
+# Default to 1200 baud settings for both channels
 PCM_LEFT="0.0"
 PCM_RIGHT="2.0"
 LO_DRIVER_LEFT="3.0"
@@ -71,46 +71,52 @@ function get_prod_id() {
     fi
 }
 
-# ===== function enable 9600 baud settings
-# For 9600 baud packet only
-# Turn AFOUT off & DISCOUT on
-# ie. Receive audio off & discriminator input on
-
-function enable_9600() {
-
-    echo "debug: THIS NEEDS WORK!"
-    return 1
-
-    PCM_LEFT="0.0"
-    PCM_RIGHT="0.0"
-    LO_DRIVER_LEFT="3.0"
-    LO_DRIVER_RIGHT="3.0"
-    ADC_LEVEL_LEFT="-4.0"
-    ADC_LEVEL_RIGHT="-4.0"
-
-    IN1_L="10 kOhm"
-    IN1_R="10 kOhm"
-    IN2_L='Off'
-    IN2_R='Off'
-
-    PTM_PL="P3"
-    PTM_PR="P3"
-
-    RECVSIG_LEFT="disc"
-    RECVSIG_RIGHT="disc"
-}
-
 
 # ===== main
-
-# enable 9600 baud based on existence of file
-if [ -e "$SWITCH_FILE" ] ; then
-    MODE_9600_ENABLE=true
-fi
 
 # SET DEBUG flag if there any command line args
 if (( $# != 0 )) ; then
     DEBUG=1
+fi
+
+# Check if no port config file found
+if [ ! -f $PORT_CFG_FILE ] ; then
+    echo "$script_name: No port config file: $PORT_CFG_FILE found, using defaults."
+
+    if [[ $EUID == 0 ]] ; then
+        echo "Must NOT be root"
+        exit 1
+    fi
+    # This will not work when run as root
+    sudo cp $HOME/n7nix/ax25/port.conf $PORT_CFG_FILE
+else
+    # Set left channel parameters
+    portcfg="port0"
+    PORTSPEED_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    RECVSIG_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
+    if [ "$RECVSIG_LEFT" == "disc" ] ; then
+        # SAME SETTINGS as TMV71a. THIS NEEDS WORK!!!
+        # Set variables for discriminator signal
+        PCM_LEFT="0.0"
+        LO_DRIVER_LEFT="3.0"
+        ADC_LEVEL_LEFT="-4.0"
+        IN1_L='10 kOhm'
+        IN2_L="Off"
+    fi
+
+    # Set right channel parameters
+    portcfg="port1"
+    PORTSPEED_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+    RECVSIG_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
+    if [ "$RECVSIG_RIGHT" == "disc" ] ; then
+        # SAME SETTINGS as TMV71a. THIS NEEDS WORK!!!
+        # Set variables for discriminatior signal
+        PCM_RIGHT="0.0"
+        LO_DRIVER_RIGHT="3.0"
+        ADC_LEVEL_RIGHT="-4.0"
+        IN1_R='10 kOhm'
+        IN2_R="Off"
+    fi
 fi
 
 if [ ! -d $ALSA_LOG_DIR ] ; then
@@ -141,12 +147,6 @@ fi
 # IN1 Discriminator output (FM function only, not all radios, 9600 baud packet)
 # IN2 Compensated receive audio (all radios, 1200 baud and slower packet)
 
-if [ "$MODE_9600_ENABLE" = "true" ] ; then
-
-    echo "debug: 9600 baud enable ie. DISCOUT"
-    enable_9600
-fi
-
 if [ ! -z "$DEBUG" ] ; then
     # Test new method
     echo "== DEBUG: $scriptname: Port Speed: $PORTSPEED_LEFT, $PORTSPEED_RIGHT  =="
@@ -159,7 +159,6 @@ if [ ! -z "$DEBUG" ] ; then
     echo "IN2: $IN2_L, $IN2_R"
     echo
 fi
-
 
 echo >> $ALSA_LOG_FILE
 date >> $ALSA_LOG_FILE
