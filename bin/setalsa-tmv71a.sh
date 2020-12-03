@@ -72,6 +72,11 @@ function get_prod_id() {
 
 # ===== main
 
+# SET DEBUG flag if there any command line args
+if (( $# != 0 )) ; then
+    DEBUG=1
+fi
+
 # Check if no port config file found
 if [ ! -f $PORT_CFG_FILE ] ; then
     echo "$script_name: No port config file: $PORT_CFG_FILE found, using defaults."
