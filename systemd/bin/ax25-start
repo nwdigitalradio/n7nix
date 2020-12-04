@@ -130,10 +130,6 @@ if (( $# != 0 )) ; then
    QUIET=1
 fi
 
-# Get list of users with home directories
-USERLIST="$(ls /home)"
-USERLIST="$(echo $USERLIST | tr '\n' ' ')"
-
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
     quietecho "set sudo"
@@ -149,6 +145,11 @@ else
     else
         SYSTEMCTL="systemctl --quiet"
     fi
+
+    # Get list of users with home directories
+    USERLIST="$(ls /home)"
+    USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
     get_user
     check_user
 fi

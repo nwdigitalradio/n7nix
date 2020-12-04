@@ -36,6 +36,7 @@ function stop_service() {
         echo "Problem STOPPING $service"
     fi
 }
+
 # ===== function get_user
 # When running as root need to find a valid local bin directory
 # Set USER based on finding a REQUIRED_PROGRAM
