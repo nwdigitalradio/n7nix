@@ -423,28 +423,7 @@ reset_stack() {
     # If running from direwolf then wait for the morse code response
     if [ "$1" -eq 1 ] ; then
         # Called from direwolf
-
-        # More code response does not happen until AFTER return to direwolf
-        if [ 1 -eq 0 ] ; then
-
-            wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
-            grepret=$?
-            diffsec=0
-            while [ $grepret -ne 0 ] && [ $diffsec -lt 5500 ] ; do
-                wait4morse=$(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")
-                grepret=$?
-                currentsec=$(($(date +%s%N)/1000000))
-	        diffsec=$(expr $currentsec - $startsec)
-            done
-
-	    if [ $grepret -ne 0 ] ; then
-	        echo "$(date): reset_stack: timeout waiting for morse $diffsec sec" | $TEE_CMD
-
-                echo "DEBUG1: $wait4morse"  | $TEE_CMD
-	        echo "DEBUG2: $(tail -n 5 $DW_LOG_FILE| grep -i "\[0.morse\]")"  | $TEE_CMD
-	        echo "DEBUG3: $(tail -n 5 $DW_LOG_FILE)"  | $TEE_CMD
-	    fi
-        fi
+        # Morse Code response does not happen until AFTER return to direwolf
         currentsec=$(($(date +%s%N)/1000000))
         echo " === Sched direwolf reset now, `expr $currentsec - $startsec` mSec" | $TEE_CMD
 #       at now + 1 min -f /home/pi/bin/ax25-restart
