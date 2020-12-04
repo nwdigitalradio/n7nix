@@ -5,6 +5,7 @@
 
 USER=
 QUIET=
+DEVWAIT=12000
 
 # if DEBUG is defined then echo
 dbgecho() { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -59,6 +60,53 @@ check_user() {
    dbgecho "using USER: $USER"
 }
 
+# ===== function wait_not
+# wait until device does not exist
+
+wait_not() {
+    devnum=0
+    devname="ax$devnum"
+    PARMDIR="/proc/sys/net/ax25/$devname"
+    elapsed_time=0
+#   begin_time=$SECONDS
+    begin_time=$(($(date +%s%N)/1000000))
+    while [ $elapsed_time -lt $DEVWAIT ] ; do
+        if [ ! -d "$PARMDIR" ] ; then
+            break;
+	fi
+#	elapsed_time=$((SECONDS-begin_time))
+        currentsec=$(($(date +%s%N)/1000000))
+        elapsed_time=$((currentsec - begin_time))
+    done
+    # DEBUG only
+    if [ -z "$DEBUG" ] ; then
+        # elapsed_time=$((SECONDS-begin_time))
+        currentsec=$(($(date +%s%N)/1000000))
+        elapsed_time=$((currentsec - begin_time))
+        echo "ax25-restart: Wait time: $elapsed_time"
+    fi
+}
+
+# ===== function stop_service
+
+stop_service() {
+    service="$1"
+    $SYSTEMCTL stop "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem STOPPING $service"
+    fi
+}
+
+# ===== function start_service
+start_service() {
+    $SYSTEMCTL --no-pager start "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem starting $service"
+        systemctl status $service
+        exit
+    fi
+}
+
 # ===== function usage
 
 usage() {
@@ -100,8 +148,20 @@ done
 # Check if running as root
 if [ $(id -u) != 0 ] ; then
     # NOT running as root
+    quietecho "set sudo"
+    if [ -z $QUIET ] ; then
+        SYSTEMCTL="sudo systemctl"
+    else
+        SYSTEMCTL="sudo systemctl --quiet"
+    fi
     USER=$(whoami)
 else
+    if [ -z $QUIET ] ; then
+        SYSTEMCTL="systemctl"
+    else
+        SYSTEMCTL="systemctl --quiet"
+    fi
+
     # Get list of users with home directories
     USERLIST="$(ls /home)"
     USERLIST="$(echo $USERLIST | tr '\n' ' ')"
@@ -110,7 +170,28 @@ else
     check_user
 fi
 
-LOCAL_BIN_PATH="/home/$USER/bin"
-sudo $LOCAL_BIN_PATH/ax25-stop $QUIET
+# Order may be important
+START_SERVICE_LIST="direwolf.service ax25dev.path ax25dev.service ax25-mheardd.service ax25d.service"
+STOP_SERVICE_LIST="ax25dev.service ax25dev.path direwolf.service ax25-mheardd.service ax25d.service"
+
+#LOCAL_BIN_PATH="/home/$USER/bin"
+# sudo $LOCAL_BIN_PATH/ax25-stop $QUIET
+
+for service in `echo ${STOP_SERVICE_LIST}` ; do
+#    echo "DEBUG: Stopping service: $service"
+    stop_service $service
+done
+
+# Wait until device goes away
+wait_not
 # sleep 1
-sudo $LOCAL_BIN_PATH/ax25-start $QUIET
+# sudo $LOCAL_BIN_PATH/ax25-start $QUIET
+
+for service in `echo ${START_SERVICE_LIST}` ; do
+    start_service $service
+    if [ "$service" = "direwolf.service" ] ; then
+       while [ ! -L "/tmp/kisstnc" ] ; do
+           sleep 0.4
+       done
+    fi
+done
