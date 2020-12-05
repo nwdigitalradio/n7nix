@@ -1,3 +1,14 @@
+Sat Dec  5 08:42:13 PST 2020  Basil Gunn <basil@pacabunga.com>
+
+  * Image NWDR18 release
+    * Updated WiringPi to ver: 2.60, required for RPi 400.
+    * Kernel now  5.4.79 matching Raspberry Pi OS.
+    * Add support for baudrate change from 1200 to 9600 baud using Touch Tones.
+    * Change script name ax25-reset.sh to ax25-restart.
+    * Add support for controlling gpio of USB sound devices.
+    * Fix problem installing websocket with npm in paclink-unix & tracker web app.
+    * 223 commits since last release
+
 Fri Aug 21 11:30:41 PDT 2020  Basil Gunn <basil@pacabunga.com>
 
   * Image NWDR17 release
@@ -7,6 +18,7 @@ Fri Aug 21 11:30:41 PDT 2020  Basil Gunn <basil@pacabunga.com>
     * Add a sensors update script that checks kernel version & DRAWS assembly rev.
     * Advance ardop control script
     * app_config.sh core sets hostname as last action
+    * 105 commits since last release
 
 Tue May 19 09:24:52 PDT 2020  Basil Gunn <basil@pacabunga.com>
 
@@ -27,6 +39,7 @@ Tue May 19 09:24:52 PDT 2020  Basil Gunn <basil@pacabunga.com>
       * Make split channel work on HF for right mDin6 connector.
         * Fix split_status.sh
       * Make some alsa settings scripts UDRC II aware
+    * 137 commits since last release
 
 Thu Jan 23 08:48:40 PST 2020  Basil Gunn <basil@pacabunga.com>
 
@@ -46,6 +59,7 @@ Thu Jan 23 08:48:40 PST 2020  Basil Gunn <basil@pacabunga.com>
     * Both HF & packet:
       * Desktop icons for starting & stopping AX.25/direwolf, appear after initial config
       * Added split channel maintenance scripts for running HF & packet (direwolf) at same time
+    * 178 commits since last release
 
 Mon Oct  7 09:00:21 PDT 2019  Basil Gunn <basil@pacabunga.com>
 
