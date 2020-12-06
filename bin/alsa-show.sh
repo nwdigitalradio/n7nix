@@ -2,7 +2,7 @@
 #
 # Display alsa controls that are interesting
 # Uncomment this statement for debug echos
-# DEBUG=1
+#DEBUG=1
 bverbose=false
 
 scriptname="`basename $0`"
@@ -39,6 +39,19 @@ function display_ctrl() {
     # Remove surrounding quotes
     CTRL_VAL=${CTRL_VAL%\'}
     CTRL_VAL=${CTRL_VAL#\'}
+}
+
+# ===== function display_dac
+
+function display_dac() {
+    alsa_ctrl="$1"
+    CTRL_STR="$(amixer -c $CARD get \""$alsa_ctrl"\")"
+
+    CTRL_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 1 "Mono: Playback" | cut -d ':' -f2)
+
+    # Remove preceeding white space
+    CTRL_VAL="$(sed -e 's/^[[:space:]]*//' <<<"$CTRL_VAL")"
+    dbgecho "display_dac: $alsa_ctrl: $CTRL_VAL"
 }
 
 # ===== function display_all
@@ -157,6 +170,27 @@ if (( alsactrl_count >= 44 )) ; then
     printf "%s\t[%s]\n" "$control" "$CTRL_VAL"
 fi
 
+# If output mixers are off then display that
+
+control="LOL Output Mixer L_DAC"
+display_dac "$control"
+CTRL_LOL_OUTPUT_MIXER_L="$CTRL_VAL"
+
+control="LOR Output Mixer R_DAC"
+display_dac "$control"
+CTRL_LOR_OUTPUT_MIXER_R="$CTRL_VAL"
+
+# Find out if either of the mixer outputs have been turned off
+
+CTRL_LOL_OUTPUT_M=$(echo "$CTRL_LOL_OUTPUT_MIXER_L" | cut -d'[' -f2 | cut -d ']' -f1)
+CTRL_LOR_OUTPUT_M=$(echo "$CTRL_LOR_OUTPUT_MIXER_R" | cut -d'[' -f2 | cut -d ']' -f1)
+
+if [ "$CTRL_LOL_OUTPUT_M" = "off" ] || [ "$CTRL_LOR_OUTPUT_M" = "off" ] ; then
+    control="Output Mixer"
+    dbgecho " == before printf: $control: L:[$CTRL_LOL_OUTPUT_M], R:[$CTRL_LOR_OUTPUT_M]"
+#    printf "%s    L:%s R:%s\n" "$control" "$CTRL_LOL_OUTPUT_MIXER_L" "$CTRL_LOR_OUTPUT_MIXER_R"
+    printf "%s    L:[%s]\t\tR:[%s]\n" "$control" "$CTRL_LOL_OUTPUT_M" "$CTRL_LOR_OUTPUT_M"
+fi
 
 echo
 echo " ===== ALSA Controls for Radio Receive ====="
