@@ -209,7 +209,7 @@ sset 'AGC Target Level' 0
 sset 'AGC Left' off
 sset 'AGC Right' off
 
-# Turn off High Power output
+# Turn off Head Phone output
 sset 'HP DAC' off
 sset 'HP Driver Gain' 0
 sset 'HPL Output Mixer L_DAC' off
