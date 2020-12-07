@@ -58,9 +58,12 @@ function display_dac() {
 # Display all ALSA control values
 function display_all() {
 
-    echo " ==== Display all $(amixer -c udrc scontrols | wc -l) controls ===="
-
-    control_list="$(amixer -c udrc scontrols)"
+    control_list="$(amixer -c $CARD scontrols)"
+    if [ $? -ne 0 ] ; then
+        echo "ERROR: Invalid sound card name: $CARD"
+	exit
+    fi
+    echo " ==== Display all $(amixer -c $CARD scontrols | wc -l) controls ===="
 
 #    for alsa_ctrl in $control_list  ; do
 #        echo "Control = $alsa_ctrl"
@@ -109,6 +112,10 @@ while [[ $# -gt 0 ]] ; do
             echo "Turning on debug"
             DEBUG=1
         ;;
+	-D)
+	    echo "All sound card device names"
+	    aplay -l | grep "^card " | cut -f1 -d','
+	;;
         -v)
             echo "Turning on verbose"
             bverbose=true
@@ -123,6 +130,11 @@ while [[ $# -gt 0 ]] ; do
             CARD="$2"
             shift # past value
             echo "Setting card name to $CARD"
+            control_list="$(amixer -c $CARD scontrols)"
+            if [ $? -ne 0 ] ; then
+                echo "ERROR: Invalid sound card name: $CARD"
+	        exit
+            fi
         ;;
         -h)
             usage
@@ -171,6 +183,7 @@ if (( alsactrl_count >= 44 )) ; then
 fi
 
 # If output mixers are off then display that
+# Means DAC is receive ONLY
 
 control="LOL Output Mixer L_DAC"
 display_dac "$control"
