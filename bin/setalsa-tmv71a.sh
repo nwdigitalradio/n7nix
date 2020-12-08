@@ -158,7 +158,7 @@ fi
 
 echo >> $ALSA_LOG_FILE
 date >> $ALSA_LOG_FILE
-echo "Radio: $RADIO set from $scriptname" | tee -a $ALSA_LOG_FILE
+echo "$(date): Radio: $RADIO set from $scriptname" | tee -a $ALSA_LOG_FILE
 
 amixer -c udrc -s << EOF >> $ALSA_LOG_FILE
 sset 'PCM' "${PCM_LEFT}dB,${PCM_RIGHT}dB"
