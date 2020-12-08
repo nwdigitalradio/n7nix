@@ -82,73 +82,9 @@ while read control; do
 done <<< $control_list
 }
 
-# ===== Display program help info
+# ===== Display draws ALSA settings
 
-function usage () {
-	(
-	echo "Usage: $scriptname [-c card_name][-d][-h]"
-        echo "    -a dump all alsa control values"
-        echo "    -c card_name, default=udrc"
-        echo "    -v turn on verbose display"
-        echo "    -d turn on debug display"
-        echo "    -h display this message."
-        echo
-	) 1>&2
-	exit 1
-}
-
-# ===== main
-
-# amixer -c $CARD get 'ADC Level'
-# amixer -c $CARD get 'LO Driver Gain'
-CONTROL_LIST="'ADC Level' 'LO Drive Gain' 'PCM'"
-
-# parse any command line options
-while [[ $# -gt 0 ]] ; do
-
-    key="$1"
-    case $key in
-        -d)
-            echo "Turning on debug"
-            DEBUG=1
-        ;;
-	-D)
-	    echo "All sound card device names"
-	    aplay -l | grep "^card " | cut -f1 -d','
-	;;
-        -v)
-            echo "Turning on verbose"
-            bverbose=true
-        ;;
-        -a)
-            echo
-            display_all
-            exit 0
-        ;;
-        -c)
-
-            CARD="$2"
-            shift # past value
-            echo "Setting card name to $CARD"
-            control_list="$(amixer -c $CARD scontrols)"
-            if [ $? -ne 0 ] ; then
-                echo "ERROR: Invalid sound card name: $CARD"
-	        exit
-            fi
-        ;;
-        -h)
-            usage
-            exit 0
-        ;;
-        *)
-            echo "Undefined argument: $key"
-            usage
-            exit 1
-        ;;
-    esac
-    shift # past argument or value
-done
-
+function draws_display_alsa() {
 echo " ===== ALSA Controls for Radio Transmit ====="
 
 control="LO Driver Gain"
@@ -328,3 +264,186 @@ if [ ! -z "$DEBUG" ] ; then
     alsa_ctrl='DAC Right Playback PowerTune'
     amixer -c $CARD get \""$alsa_ctrl"\"
 fi
+}
+
+# ===== function dinah_ audio_display_ctrl
+
+function dinah_audio_display_ctrl() {
+   alsa_ctrl="$1"
+   PCM_STR_L="$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i "Front Left:" | cut -d '[' -f3)"
+#   dbgecho "$alsa_ctrl: $PCM_STR_L"
+
+   PCM_STR_R="$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i "Front Right:" | cut -d '[' -f3)"
+#   dbgecho "$alsa_ctrl: $PCM_STR_R"
+
+    # Remove trailing white space
+    CTRL_VAL_L="$(echo -e ${PCM_STR_L} | sed -e 's/[[:space:]]*$//')"
+    CTRL_VAL_R="$(echo -e ${PCM_STR_R} | sed -e 's/[[:space:]]*$//')"
+
+    # Remove trailing right square bracket
+    CTRL_VAL_L=${CTRL_VAL_L%?}
+    CTRL_VAL_R=${CTRL_VAL_R%]}
+}
+
+# ===== function dinah_display_ctrl_mic
+
+function dinah_display_ctrl_mic() {
+    alsa_ctrl="$1"
+    # DEBUG only
+    # CTRL_STR="$(amixer -c $CARD get \""$alsa_ctrl"\")"
+    # dbgecho "$alsa_ctrl: $CTRL_STR"
+
+    CTRL_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 1 "Mono:" | cut -d ':' -f2 | cut -d '[' -f3)
+
+    # Remove trailing white space
+    CTRL_VAL="$(echo -e ${CTRL_VAL} | sed -e 's/[[:space:]]*$//')"
+    # Remove trailing right square bracket
+    CTRL_VAL=${CTRL_VAL%\]}
+}
+
+# ===== function dinah_display_ctrl_agc
+
+function dinah_display_ctrl_agc() {
+    alsa_ctrl="$1"
+    # DEBUG only
+    # CTRL_STR="$(amixer -c $CARD get \""$alsa_ctrl"\")"
+    # dbgecho "$alsa_ctrl: $CTRL_STR"
+
+    CTRL_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 1 "Mono:" | cut -d '[' -f2)
+    # Remove preceeding white space
+    CTRL_VAL="$(sed -e 's/^[[:space:]]*//' <<<"$CTRL_VAL")"
+    # Remove trailing right square bracket
+    CTRL_VAL=${CTRL_VAL%\]}
+}
+
+# ===== function usb_display_alsa
+function usb_display_alsa() {
+
+    control="Speaker"
+    dinah_audio_display_ctrl "$control"
+    printf "%s\t\t\tL:[%s]\tR:[%s]\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
+
+    control="Mic"
+    dinah_display_ctrl_mic "$control"
+    printf "%s\t\t\t[%s]\n" "$control" $CTRL_VAL
+
+    control="Auto Gain Control"
+    dinah_display_ctrl_agc "$control"
+    printf "%s\t[%s]\n" "$control" $CTRL_VAL
+}
+
+# ===== function get_sndcard_list
+# Get a list of sound cards that are not part of bcm2835
+# Sets variable $extcard_names
+
+function get_sndcard_list() {
+    # Get list of all sound cards
+    sndcard_names="$(aplay -l | grep "^card " | cut -f1 -d',')"
+
+    # Get count of all sound cards
+    sndcard_cnt=$(echo "$sndcard_names" | wc -l)
+
+    echo " ==== List All sound card device names ($sndcard_cnt)"
+    echo "$sndcard_names"
+    # echo "Sound devices not internal to RPi"
+    #grep -v "bcm2835" <<< "$sndcard_names"
+
+    extcard_names=$(echo "$sndcard_names" | grep -v "bcm2835")
+    dbgecho "$extcard_names"
+    echo
+}
+
+# ===== Display program help info
+
+function usage () {
+	(
+	echo "Usage: $scriptname [-c card_name][-d][-h]"
+        echo "    -a dump all alsa control values"
+        echo "    -c card_name, default=udrc"
+        echo "    -v turn on verbose display"
+        echo "    -d turn on debug display"
+        echo "    -h display this message."
+        echo
+	) 1>&2
+	exit 1
+}
+
+# ===== main
+
+# amixer -c $CARD get 'ADC Level'
+# amixer -c $CARD get 'LO Driver Gain'
+CONTROL_LIST="'ADC Level' 'LO Drive Gain' 'PCM'"
+
+# parse any command line options
+while [[ $# -gt 0 ]] ; do
+
+    key="$1"
+    case $key in
+        -d)
+            echo "Turning on debug"
+            DEBUG=1
+        ;;
+	-D)
+	    get_sndcard_list
+            echo
+            echo "List of external sound card names"
+
+            while IFS= read -r line ; do
+	       echo "$(echo $line | cut -d':' -f2 | cut -d' ' -f2)"
+	    done <<< "$extcard_names"
+	    exit 0
+	;;
+        -v)
+            echo "Turning on verbose"
+            bverbose=true
+        ;;
+        -a)
+            echo
+            display_all
+            exit 0
+        ;;
+        -c)
+
+            CARD="$2"
+            shift # past value
+            echo "Setting card name to $CARD"
+            control_list="$(amixer -c $CARD scontrols)"
+            if [ $? -ne 0 ] ; then
+                echo "ERROR: Invalid sound card name: $CARD"
+	        exit
+            fi
+        ;;
+        -h)
+            usage
+            exit 0
+        ;;
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+    shift # past argument or value
+done
+
+get_sndcard_list
+while IFS= read -r line ; do
+    snd_device="$(echo $line | cut -d':' -f2 | cut -d' ' -f2)"
+    case $snd_device in
+        udrc)
+            echo " ======= DRAWS"
+            CARD="$snd_device"
+            draws_display_alsa
+            echo
+	;;
+	Device)
+            echo " ======= DINAH"
+            CARD="$snd_device"
+            usb_display_alsa
+	;;
+	*)
+	    echo "Undefined sound card $snd_device"
+	;;
+    esac
+done <<< "$extcard_names"
+exit 0

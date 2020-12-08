@@ -21,9 +21,9 @@ AGC="off"
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
-# ===== function audio_display_ctrl
+# ===== function dinah_ audio_display_ctrl
 
-function audio_display_ctrl() {
+function dinah_audio_display_ctrl() {
    alsa_ctrl="$1"
    PCM_STR_L="$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i "Front Left:" | cut -d '[' -f3)"
 #   dbgecho "$alsa_ctrl: $PCM_STR_L"
@@ -34,71 +34,56 @@ function audio_display_ctrl() {
     # Remove trailing white space
     CTRL_VAL_L="$(echo -e ${PCM_STR_L} | sed -e 's/[[:space:]]*$//')"
     CTRL_VAL_R="$(echo -e ${PCM_STR_R} | sed -e 's/[[:space:]]*$//')"
-#echo "DEBUG L: -${CTRL_VAL_L}-"
-#echo "DEBUG R: -${CTRL_VAL_R}-"
-   CTRL_VAL_L=${CTRL_VAL_L%?}
-   CTRL_VAL_R=${CTRL_VAL_R%\]}
 
-#   CTRL_VAL_L=$PCM_STR_L
-#   CTRL_VAL_R=$PCM_STR_R
-
-#   PCM_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 1 "db")
-#   CTRL_VAL_L=${PCM_VAL##* }
-#   dbgecho "$alsa_ctrl: Left $PCM_VAL"
-#   PCM_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 2 "db" | tail -n 1 | cut -d ' ' -f5-)
-#   CTRL_VAL_R=${PCM_VAL##* }
-#   dbgecho "$alsa_ctrl: Right $PCM_VAL"
+    # Remove trailing right square bracket
+    CTRL_VAL_L=${CTRL_VAL_L%?}
+    CTRL_VAL_R=${CTRL_VAL_R%]}
 }
 
-# ===== function display_ctrl_mic
+# ===== function dinah_display_ctrl_mic
 
-function display_ctrl_mic() {
+function dinah_display_ctrl_mic() {
     alsa_ctrl="$1"
-    CTRL_STR="$(amixer -c $CARD get \""$alsa_ctrl"\")"
-#    dbgecho "$alsa_ctrl: $CTRL_STR"
+    # DEBUG only
+    # CTRL_STR="$(amixer -c $CARD get \""$alsa_ctrl"\")"
+    # dbgecho "$alsa_ctrl: $CTRL_STR"
 
     CTRL_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 1 "Mono:" | cut -d ':' -f2 | cut -d '[' -f3)
-    # Remove preceeding white space
-#    CTRL_VAL="$(sed -e 's/^[[:space:]]*//' <<<"$CTRL_VAL")"
-    # Remove right square bracket
-#    CTRL_VAL=${CTRL_VAL%\'}
-#    dbgecho "$alsa_ctrl 1: $CTRL_VAL"
 
+    # Remove trailing white space
     CTRL_VAL="$(echo -e ${CTRL_VAL} | sed -e 's/[[:space:]]*$//')"
-#    CTRL_VAL=${CTRL_VAL#\]}
+    # Remove trailing right square bracket
     CTRL_VAL=${CTRL_VAL%\]}
-#    dbgecho "$alsa_ctrl 2: $CTRL_VAL"
-
 }
 
-# ===== function display_ctrl_agc
+# ===== function dinah_display_ctrl_agc
 
-function display_ctrl_agc() {
+function dinah_display_ctrl_agc() {
     alsa_ctrl="$1"
-    CTRL_STR="$(amixer -c $CARD get \""$alsa_ctrl"\")"
-    dbgecho "$alsa_ctrl: $CTRL_STR"
+    # DEBUG only
+    # CTRL_STR="$(amixer -c $CARD get \""$alsa_ctrl"\")"
+    # dbgecho "$alsa_ctrl: $CTRL_STR"
 
     CTRL_VAL=$(amixer -c $CARD get \""$alsa_ctrl"\" | grep -i -m 1 "Mono:" | cut -d '[' -f2)
     # Remove preceeding white space
     CTRL_VAL="$(sed -e 's/^[[:space:]]*//' <<<"$CTRL_VAL")"
-    # Remove right square bracket
+    # Remove trailing right square bracket
     CTRL_VAL=${CTRL_VAL%\]}
-#    CTRL_VAL=${CTRL_VAL#\]}
 }
 
-# ===== function display_alsa
-function display_alsa() {
+# ===== function usb_display_alsa
+function usb_display_alsa() {
 
 control="Speaker"
-audio_display_ctrl "$control"
+dinah_audio_display_ctrl "$control"
 printf "%s\t\t\tL:%s\tR:%s\n" "$control" $CTRL_VAL_L $CTRL_VAL_R
 
 control="Mic"
-display_ctrl_mic "$control"
+dinah_display_ctrl_mic "$control"
 printf "%s\t\t\t%s\n" "$control" $CTRL_VAL
 
 control="Auto Gain Control"
-display_ctrl_agc "$control"
+dinah_display_ctrl_agc "$control"
 printf "%s\t%s\n" "$control" $CTRL_VAL
 
 
@@ -115,5 +100,8 @@ sset 'Mic' "${MIC}dB" unmute
 sset 'Auto Gain Control' ${AGC}
 EOF
 retcode="$?"
-echo "Ret code: $retcode"
-display_alsa
+if [ "$retcode" -ne 0 ] ; then
+    echo "ERROR setting ALSA settings with amixer, check log file: $ALSA_LOG_FILE"
+fi
+
+usb_display_alsa
