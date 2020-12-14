@@ -1,16 +1,21 @@
 # How to use measure_deviate.sh
 
 * This script creates an audio tone that can be used to help set FM deviation for your radio.
+* Script can be used with NWDR DRAWS devices or USB sound dongles
+* Will create sound file of a tone between 10Hz & 20KHz, control PTT & play file through sound device.
 * Please read [this excellent write up from John Ackermann N8UR](https://www.febo.com/packet/layer-one/transmit.html)
 
-#### Usage: measure_deviate.sh [-f _tone_frequency_ ][-c _connector_location_ ][-l _tone_duration_ ][-d][-h]
+#### Usage: measure_deviate.sh [-f _tone_frequency_ ][-D _device_type_][-c _connector_location_ ][-l _tone_duration_ ][-d][-h]
 ```
  -f, --frequency
         tone frequency in Hz (10 - 20000), default: 2200
  -c, --connector
+        For true stereo sound devices only (DRAWS/UDRC II), sets proper GPIO pin number
         connector location either left (mDin6) or right (hd15/mDin6), default: right
  -l, --length
         length of tone in seconds, default 30
+ -D, --Device
+        Sound device type, use either udrc or usb, defaults to udrc
  -d, --debug
         no arg, set debug flag for more verbose console output
  -h, --help
@@ -24,12 +29,16 @@ cd ~/bin
 sudo su
 ./ax25-stop
 ```
-* This script uses [gpio](http://wiringpi.com/), [sox](http://sox.sourceforge.net/) & [aplay](http://linuxcommand.org/man_pages/aplay1.html)
-* To install sox, aplay & gpio
+* This script uses programs [gpio](http://wiringpi.com/), [sox](http://sox.sourceforge.net/) & [aplay](http://linuxcommand.org/man_pages/aplay1.html)
+* To install sox & aplay
   * As root run the following:
 ```bash
-apt-get install alsa-utils sox wiringpi
+apt-get install alsa-utils sox
 ```
+* Script will verify that latest version of WiringPi (gpio program) is installed and build from source if necessary.
+  * Uses this repository (https://github.com/WiringPi/WiringPi) for version comparison.
+  * Current version that supports Raspberry Pi 400 is 2.60
+
 ### Use ###
 
 * Use measure_deviate.sh to generate a reference tone
@@ -69,7 +78,7 @@ you decide to change the duration of the tone, delete that tone file first.
 ### Debug notes ###
 
 * If you want more excessive console output be sure to set the **-d**
-flag on the command line.
+debug flag on the command line.
 
 * If PTT is working but you are not getting any audio:
   *  run __alsamixer__ and verify that **LOL Outp** and **LOR Outp** are
