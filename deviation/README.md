@@ -11,7 +11,7 @@
         tone frequency in Hz (10 - 20000), default: 2200
  -c, --connector
         For true stereo sound devices only (DRAWS/UDRC II), sets proper GPIO pin number
-        connector location either left (mDin6) or right (hd15/mDin6), default: right
+        connector location either left (mDin6) or right (hd15/mDin6), default: left
  -l, --length
         length of tone in seconds, default 30
  -D, --Device
@@ -20,6 +20,16 @@
         no arg, set debug flag for more verbose console output
  -h, --help
         no arg, display this message
+```
+
+#### Example
+* Using a NWDR DRAWS hat, send 2200 Hz sine wave out left mini din-6 connector for 30 seconds
+```
+ ./measure_deviate.sh -f 2200 -c left -l 30
+```
+* Using a Ham Radio Projects DINAH USB dongle, send 2200 Hz sine wave out mini din-6 connector for 30 seconds (default).
+```
+ ./measure_deviate.sh -D usb -f 2200
 ```
 
 ### Program Requirements ###

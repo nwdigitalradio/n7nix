@@ -1,9 +1,11 @@
 #!/bin/bash
 #
 # Usage:
-#   measure_deviate.sh [-f _tone_frequency_][-c _connector_location_][-l _tone_duration_][-h]
+#   measure_deviate.sh [-f tone_frequency]-D[Device][-c connector_location][-l tone_duration][-h]
+#   Device defaults to NWDR DRAWS audio codec
+#   Use '-D usb' for USB sound dongles
 #
-# Examples:
+# DWDR Examples:
 # On a UDRC II, send 2200 Hz sine wave out mini din-6 connector
 #   for 30 seconds
 # ./measure_deviate.sh -f 2200 -c left -l 30
@@ -46,7 +48,7 @@ trap ctrl_c INT
 function usage() {
    echo "Usage: $scriptname [-f <tone_frequency][-c <connector>][-l <tone_duration>][-D <device_name>][-h]" >&2
    echo "   -f tone frequency in Hz (10 - 20000), default: 2200"
-   echo "   -c connector location, either left (mDin6) or right (hd15/mDin6), default: right"
+   echo "   -c connector location, either left (mDin6) or right (hd15/mDin6), default: left"
    echo "   -l length of tone in seconds, default 30"
    echo "   -D Device name, either udrc or usb, default udrc"
    echo "   -d set debug flag"
