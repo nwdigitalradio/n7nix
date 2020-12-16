@@ -12,6 +12,16 @@ gateway (Winlink, APRS) to use a specific baud rate (either 1200 or
 Since direwolf can decode DTMF, use DTMF tones sent from a workstation
 as the mechanism to change packet baud rate on the remote gateway.
 
+### Briefly for a Kenwood TM-V71a
+- Set radio to 9600 DATSPD
+- Edit /etc/ax25/port.conf
+  - Under [port0] section change receive_out from audio to disc
+```
+receive_out=disc
+```
+- run setalsa-tmv71a.sh
+- Install [Touch Tone baudrate](https://github.com/nwdigitalradio/n7nix/tree/master/baudrate#touch-tone-baudrate-installation-notes)
+
 ### Installation
 * [Installation Notes can be found here.](#touch-tone-baudrate-installation-notes)
 
