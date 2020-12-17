@@ -82,20 +82,21 @@ if [ ! -d "$PROG" ] ; then
         exit 1
     fi
 else
-     cd "$SRC_DIR/$PROG"
-     # Test if this diretory is really a git repo
-     git rev-parse --is-inside-work-tree
-     if [ "$?" -ne 0 ] ; then
-         echo " Directory: $SRC_DIR/$PROG is not a git repo"
-         echo "Change SRC_DIR variable at beginning of this script"
-         exit 1
-   fi
-
-   git pull
-   if [ "$?" -ne 0 ] ; then
-      echo "Problem updating repository $PROG"
-      exit 1
-   fi
+    cd "$SRC_DIR/$PROG"
+    # Test if this diretory is really a git repo
+    git rev-parse --is-inside-work-tree
+    if [ "$?" -ne 0 ] ; then
+        echo " Directory: $SRC_DIR/$PROG is not a git repo"
+        echo "Change SRC_DIR variable at beginning of this script"
+        exit 1
+    fi
+    # FIX THIS: package-lock.json gets in the way of an update
+    rm package-lock.json
+    git pull
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem updating repository $PROG"
+        exit 1
+    fi
 fi
 
 if [ "$needs_pkg" = "true" ] ; then
