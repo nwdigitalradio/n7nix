@@ -91,7 +91,17 @@ else
         exit 1
     fi
     # FIX THIS: package-lock.json gets in the way of an update
-    rm package-lock.json
+    echo "About to update draws-manager repo, removing package-lock"
+    filename="package-lock.json"
+    rm webapp/$filename
+    if [ "$?" -ne 0 ] ; then
+        echo
+        echo "Removal of file: webapp/$filename failed"
+	echo
+    else
+        echo "Successfully removed webapp/$filename"
+    fi
+
     git pull
     if [ "$?" -ne 0 ] ; then
         echo "Problem updating repository $PROG"
@@ -130,6 +140,7 @@ cd "$SRC_DIR/$PROG/webapp"
 /usr/bin/npm install
 
 echo "=== Start $PROG daemon"
+systemctl daemon-reload
 
 service="$PROG"
 systemctl is-enabled "$service" > /dev/null 2>&1
@@ -162,6 +173,8 @@ else
          echo "Starting service: $service"
     fi
 fi
+echo
+echo "=== Display $PROG status"
 systemctl --no-pager status $PROG
 
 cd $INITIAL_DIR
