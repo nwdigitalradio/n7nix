@@ -39,15 +39,15 @@ cd ~/bin
 sudo su
 ./ax25-stop
 ```
-* This script uses programs [gpio](http://wiringpi.com/), [sox](http://sox.sourceforge.net/) & [aplay](http://linuxcommand.org/man_pages/aplay1.html)
-* To install sox & aplay
+* This script uses programs [gpio](http://wiringpi.com/), [sox](http://sox.sourceforge.net/sox.html) & [aplay](https://linux.die.net/man/1/aplay)
+* To install _sox_ & _aplay_
   * As root run the following:
 ```bash
 apt-get install alsa-utils sox
 ```
-* Script will verify that latest version of WiringPi (gpio program) is installed and build from source if necessary.
+* Script will verify that latest version of WiringPi (_gpio_ program) is installed and build from source if necessary.
   * Uses this repository (https://github.com/WiringPi/WiringPi) for version comparison.
-  * Current version that supports Raspberry Pi 400 is 2.60
+  * Current _gpio_ version that supports Raspberry Pi 400 is 2.60
 
 ### Use ###
 
@@ -87,11 +87,13 @@ you decide to change the duration of the tone, delete that tone file first.
 
 ### Debug notes ###
 
+##### General Debug notes
 * If you want more excessive console output be sure to set the **-d**
 debug flag on the command line.
 
+##### NWDR DRAWS Debug notes
 * If PTT is working but you are not getting any audio:
-  *  run __alsamixer__ and verify that **LOL Outp** and **LOR Outp** are
+  *  run _alsamixer_ and verify that **LOL Outp** and **LOR Outp** are
 enabled.
     * **LOL Outp** and **LOR Outp** are enabled if you see 00 in a box directly above them.
     * Toggle enable by hitting the letter __m__
