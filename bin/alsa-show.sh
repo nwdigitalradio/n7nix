@@ -426,6 +426,7 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument or value
 done
 
+# Variable $extcard_names is set
 get_sndcard_list
 while IFS= read -r line ; do
     snd_device="$(echo $line | cut -d':' -f2 | cut -d' ' -f2)"
