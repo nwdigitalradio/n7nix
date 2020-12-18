@@ -354,7 +354,7 @@ fi
 # wsjtx
 if [ -z "$DEBUG1" ] ; then
     wsjtx_app="wsjtx"
-    ver_url="http://physics.princeton.edu/pulsar/K1JT/$wsjtx_app.html"
+    ver_url="https://physics.princeton.edu/pulsar/K1JT/$wsjtx_app.html"
     # Trying to parse this:
     # Availability (GA) release:&nbsp; <i>WSJT-X</i><i> 2.2</i>.1<br>
 
@@ -364,7 +364,7 @@ if [ -z "$DEBUG1" ] ; then
     # This removes all html tags:  sed -e 's/<[^>]*>//g' worked for 2.1.2 but not 2.2.2
 #    wsjtx_ver=$(curl -s $ver_url | grep -A 1 -i "Availability (GA).*" | head -n 1 | sed -e 's/<[^>]*>//g' | sed -n 's/.*WSJT-X//p')
      # Works for 2.2.2
-     wsjtx_ver=$(curl -s http://physics.princeton.edu/pulsar/K1JT/wsjtx.html | grep -A 1 -i "Availability (GA).*" | tail -n 1 |  sed -e 's/<[^>]*>//g')
+     wsjtx_ver=$(curl -s https://physics.princeton.edu/pulsar/K1JT/wsjtx.html | grep -A 1 -i "Availability (GA).*" | tail -n 1 |  sed -e 's/<[^>]*>//g')
 
     # Remove preceding white space & any non printable characters
     wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | tr -dc '[:alnum:].' )
