@@ -29,6 +29,7 @@ DEBUG=
 DEVICE_TYPE="usb"
 CHAN_NUM="1"
 CALLSIGN="N0ONE"
+SED="sudo sed"
 
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 PULSEAUDIO_CFGFILE="/etc/asound.conf"
@@ -129,10 +130,10 @@ function seq_backup() {
 
 function comment_second_chan() {
     # Add comment character
-    sed -i -e '/^CHANNEL 1/,/^$/ s/^\(^PTT GPIO.*\)/#\1/g' "$DIREWOLF_CFGFILE"
-    sed -i -e '/^CHANNEL 1/,/^$/ s/^\(^MODEM.*\)/#\1/g'    "$DIREWOLF_CFGFILE"
-    sed -i -e '/^CHANNEL 1/,/^$/ s/^\(^MYCALL.*\)/#\1/g'   "$DIREWOLF_CFGFILE"
-    sed -i -e '/CHANNEL 1/,/^$/ s/^\(^CHANNEL.*\)/#\1/g'   "$DIREWOLF_CFGFILE"
+    $SED -i -e '/^CHANNEL 1/,/^$/ s/^\(^PTT GPIO.*\)/#\1/g' "$DIREWOLF_CFGFILE"
+    $SED -i -e '/^CHANNEL 1/,/^$/ s/^\(^MODEM.*\)/#\1/g'    "$DIREWOLF_CFGFILE"
+    $SED -i -e '/^CHANNEL 1/,/^$/ s/^\(^MYCALL.*\)/#\1/g'   "$DIREWOLF_CFGFILE"
+    $SED -i -e '/CHANNEL 1/,/^$/ s/^\(^CHANNEL.*\)/#\1/g'   "$DIREWOLF_CFGFILE"
 }
 # ===== function remove_dw_virt
 # Remove 2 virtual channels
@@ -142,9 +143,9 @@ function remove_dw_virt() {
     # sed -e '/pattern/,+5d' file.txt
 
     # Delete the 7 lines following ADEVICE0
-    sudo sed -i -e "0,/^ADEVICE0/,+7d" $DIREWOLF_CFGFILE
+    $SED -i -e "0,/^ADEVICE0/,+7d" $DIREWOLF_CFGFILE
     # Delete the 7 lines following ADEVICE1
-    sudo sed -i -e "0,/^ADEVICE1/,+7d" $DIREWOLF_CFGFILE
+    $SED -i -e "0,/^ADEVICE1/,+7d" $DIREWOLF_CFGFILE
 }
 
 # ===== function config_dw_virt
@@ -154,34 +155,45 @@ function remove_dw_virt() {
 function config_dw_virt() {
 
     ## comment out second channel
+    dbgecho "${FUNCNAME[0]} Comment out second channel"
     comment_second_chan
 
+    ## comment out any stray ACHANNELS or ARATE
+    ## FIX may want to just delete these lines
+    $SED -ie "s/^[^#]*ACHANNELS/#&/"  $DIREWOLF_CFGFILE
+    $SED -ie "s/^[^#]*ARATE/#&/"  $DIREWOLF_CFGFILE
     ## Replace ADEVICE with ADEVICE0 & ADEVICE1
     ## Setup ADEVICE0 as 1200 baud channel
 
-    sudo sed -i -e "0,/^ADEVICE .*/a\
-ADEVICE0 draws-capture-right draws-playback-right\
-ACHANNELS 1\
-ARATE 48000\
-CHANNEL 0\
-MYCALL ${CALLSIGN}-1\
-MODEM 1200\
-PTT GPIO 12" $DIREWOLF_CFGFILE
-#    sudo sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 12/" $DIREWOLF_CFGFILE
-#    sudo sed -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
+    dbgecho "${FUNCNAME[0]} sed 1"
+
+#    $SED -i -e "0,/^ADEVICE .*/i\
+    $SED -ie "/^ADEVICE .*/s/^ADEVICE .*/ADEVICE0 draws-capture-right draws-playback-right\n\
+ACHANNELS 1\n\
+ARATE 48000\n\
+CHANNEL 0\n\
+MYCALL ${CALLSIGN}-1\n\
+MODEM 1200\n\
+PTT GPIO 12\n/" $DIREWOLF_CFGFILE
 
 
+#    $SED -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 12/" $DIREWOLF_CFGFILE
+#    $SED -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
+
+
+if [ 1 -eq 1 ] ; then
     ## Setup ADEVICE1 as 9600 baud channel
+    dbgecho "${FUNCNAME[0]} Comment out sed 2"
 
-    sudo sed -i -e "0,/^PTT GPIO 12.*/a\
-
-ADEVICE1 draws-capture-right-sub draws-playback-right-sub \
-ACHANNELS 1\
-ARATE 48000\
-CHANNEL 0\
-MYCALL ${CALLSIGN}-2\
-MODEM 9600\
-PTT GPIO 23" $DIREWOLF_CFGFILE
+#    $SED -ie "0,/^PTT GPIO 12.*/a\
+    $SED -ie "/ADEVICE1.*/s/.*ADEVICE1 .*/ADEVICE1 draws-capture-right-sub draws-playback-right-sub \n\
+ACHANNELS 1\n\
+ARATE 48000\n\
+CHANNEL 0\n\
+MYCALL ${CALLSIGN}-2\n\
+MODEM 9600\n\
+PTT GPIO 23\n/" $DIREWOLF_CFGFILE
+fi
 
 }
 
@@ -244,9 +256,12 @@ EOT
 #  - use only one direwolf channel for CM108 sound card
 
 function config_usb_1chan() {
-    sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=Device,DEV=0/"  $DIREWOLF_CFGFILE
-    sudo sed -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
-    sudo sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT CM108/" $DIREWOLF_CFGFILE
+
+    dbgecho "${FUNCNAME[0]} enter"
+
+    $SED -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=Device,DEV=0/"  $DIREWOLF_CFGFILE
+    $SED -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
+    $SED -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT CM108/" $DIREWOLF_CFGFILE
 }
 
 # ===== function config_drw_2chan
@@ -255,24 +270,40 @@ function config_usb_1chan() {
 function config_drw_2chan() {
 
     dbgecho "${FUNCNAME[0]} enter"
-#   sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE draws-capture-$CONNECTOR draws-playback-$CONNECTOR/"  $DIREWOLF_CFGFILE
-    sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/"  $DIREWOLF_CFGFILE
-    sudo sed -i -e '/^ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
+
+#   $SED -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE draws-capture-$CONNECTOR draws-playback-$CONNECTOR/"  $DIREWOLF_CFGFILE
+    $SED -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/"  $DIREWOLF_CFGFILE
+    $SED -i -e '/^ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
 
     # Assume direwolf config was previously set up for 2 channels
-    sudo sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 12/" $DIREWOLF_CFGFILE
+    $SED -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 12/" $DIREWOLF_CFGFILE
     dbgecho "${FUNCNAME[0]} exit"
 }
 
 parse_direwolf_config() {
-    numchan=$(grep "^ACHANNELS" /etc/direwolf.conf | cut -d' ' -f2)
-    if [ $numchan -eq 1 ] ; then
-        echo "Setup for USB soundcard or split channels"
+
+    # Determine if there is an "$scriptname" entry
+    grep -qi $scriptname $DIREWOLF_CFGFILE
+    if [ $? -ne 0 ] ; then
+        echo "Not edited by $scriptname"
     else
-        echo "Setup for DRAWS dual channel hat"
+        cfg_str=$(grep -i $scriptname $DIREWOLF_CFGFILE)
+	cfg_str=$(sed -e "s/^#//" <<< $cfg_str)
+        echo "Current: $cfg_str"
     fi
-    audiodev=$(grep "^ADEVICE" /etc/direwolf.conf | cut -d ' ' -f2)
-    echo "Audio device: $audiodev"
+    numchan=$(grep "^ACHANNELS" /etc/direwolf.conf | head -n 1 | cut -d' ' -f2)
+    if [ ! -z $numchan ] ; then
+        if [ $numchan -eq 1 ] ; then
+            echo "Setup for USB soundcard or split channels"
+        else
+            echo "Setup for DRAWS dual channel hat"
+        fi
+    else
+        echo "ACHANNELS is NOT set"
+    fi
+    audiodev=$(grep "^ADEVICE" $DIREWOLF_CFGFILE | cut -d ' ' -f2)
+    device_cnt=$(grep -c "^ADEVICE" $DIREWOLF_CFGFILE)
+    echo "Audio device [$device_cnt]: $audiodev"
     echo " == PTT"
     grep -i "^PTT " $DIREWOLF_CFGFILE
 }
@@ -352,26 +383,28 @@ esac
 shift # past argument or value
 done
 
+# Put string in direwolf file that indicates it's been edited by this
+# script.
 keystring="# Configured with ${scriptname}"
 search_str="# Command parameters are"
 
-# determine if there is already an "$scriptname" entry
-grep -i $scriptname $DIREWOLF_CFGFILE
+# Determine if there is already an "$scriptname" entry
+grep -qi $scriptname $DIREWOLF_CFGFILE
 retcode=$?
 
 if [ $retcode -ne 0 ] ; then
-    echo "DEBUG: First sed"
+   # echo "DEBUG: First sed"
 # Insert string after first blank line after $search_str
-sudo sed -i "/${search_str}/,/^$/s/^$/#\n\
+$SED -i "/${search_str}/,/^$/s/^$/#\n\
 ${keystring}, Channel: $CHAN_NUM, Device: ${DEVICE_TYPE}\
 \n/" $DIREWOLF_CFGFILE
 else
+    # Replace $keystring line with new $keystring line
     echo "DEBUG: Second sed"
-    sudo sed -i -e "0,/${keystring}.*/ s/# Configured with .*/${keystring}, Channel: $CHAN_NUM, Device: ${DEVICE_TYPE}/" $DIREWOLF_CFGFILE
+    $SED -i -e "0,/${keystring}.*/ s/# Configured with .*/${keystring}, Channel: $CHAN_NUM, Device: ${DEVICE_TYPE}/" $DIREWOLF_CFGFILE
 fi
-echo "DEBUG: Early exit"
-diff direwolf.conf /etc
-exit 0
+
+# diff direwolf.conf /etc
 
 dbgecho "Get a callsign: $CALLSIGN"
 # Try to parse callsign from /etc/ax25/axports file
