@@ -35,7 +35,15 @@ DIREWOLF_CFGFILE="/etc/direwolf.conf"
 PULSEAUDIO_CFGFILE="/etc/asound.conf"
 AXPORTS_FILE="/etc/ax25/axports"
 
+
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function is_pkg_installed
+
+function is_pkg_installed() {
+
+return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
+}
 
 # ===== function validate_callsign
 # Validate callsign
@@ -68,7 +76,6 @@ function get_callsign() {
     fi
     validate_callsign $callsign
     if [ $? -eq 0 ] ; then
-        dbgecho "Using CALL SIGN: $CALLSIGN"
         retcode=1
     else
         echo "Bad callsign found: $callsign"
@@ -128,13 +135,15 @@ function seq_backup() {
 # function comment_second_chan
 # comment out entire second channel configuration in direwolf config file
 
-function comment_second_chan() {
+function comment_chan() {
+    CHN_NUM=$1
     # Add comment character
-    $SED -i -e '/^CHANNEL 1/,/^$/ s/^\(^PTT GPIO.*\)/#\1/g' "$DIREWOLF_CFGFILE"
-    $SED -i -e '/^CHANNEL 1/,/^$/ s/^\(^MODEM.*\)/#\1/g'    "$DIREWOLF_CFGFILE"
-    $SED -i -e '/^CHANNEL 1/,/^$/ s/^\(^MYCALL.*\)/#\1/g'   "$DIREWOLF_CFGFILE"
-    $SED -i -e '/CHANNEL 1/,/^$/ s/^\(^CHANNEL.*\)/#\1/g'   "$DIREWOLF_CFGFILE"
+    $SED -i -e "/^CHANNEL $CHN_NUM/,/^$/ s/^\(^PTT GPIO.*\)/#\1/g" "$DIREWOLF_CFGFILE"
+    $SED -i -e "/^CHANNEL $CHN_NUM/,/^$/ s/^\(^MODEM.*\)/#\1/g"    "$DIREWOLF_CFGFILE"
+    $SED -i -e "/^CHANNEL $CHN_NUM/,/^$/ s/^\(^MYCALL.*\)/#\1/g"   "$DIREWOLF_CFGFILE"
+    $SED -i -e "/CHANNEL $CHN_NUM/,/^$/ s/^\(^CHANNEL.*\)/#\1/g"   "$DIREWOLF_CFGFILE"
 }
+
 # ===== function remove_dw_virt
 # Remove 2 virtual channels
 
@@ -155,8 +164,9 @@ function remove_dw_virt() {
 function config_dw_virt() {
 
     ## comment out second channel
-    dbgecho "${FUNCNAME[0]} Comment out second channel"
-    comment_second_chan
+    dbgecho "${FUNCNAME[0]} Comment out channel0,1"
+    comment_chan 0
+    comment_chan 1
 
     ## comment out any stray ACHANNELS or ARATE
     ## FIX may want to just delete these lines
@@ -165,10 +175,29 @@ function config_dw_virt() {
     ## Replace ADEVICE with ADEVICE0 & ADEVICE1
     ## Setup ADEVICE0 as 1200 baud channel
 
-    dbgecho "${FUNCNAME[0]} sed 1"
+#ADEVICE0 draws-capture-right draws-playback-right\n\
 
-#    $SED -i -e "0,/^ADEVICE .*/i\
-    $SED -ie "/^ADEVICE .*/s/^ADEVICE .*/ADEVICE0 draws-capture-right draws-playback-right\n\
+#CHANNEL 0\n\
+#MYCALL ${CALLSIGN}-1\n\
+#MODEM 1200\n\
+#PTT GPIO 12\n/\
+
+    dbgecho "${FUNCNAME[0]} sed 1"
+    dbgecho " "
+    grep -iq "^ADEVICE " $DIREWOLF_CFGFILE
+    if [ $? -ne 0 ] ; then
+        $SED -i "0,/# ADEVICE .*/{s//#\n\
+ADEVICE0 draws-capture-right draws-playback-right\n\
+ACHANNELS 1\n\
+ARATE 48000\n\
+CHANNEL 0\n\
+MYCALL ${CALLSIGN}-1\n\
+MODEM 1200\n\
+PTT GPIO 12\n\
+\n/}" $DIREWOLF_CFGFILE
+
+    else
+        $SED -ie "/^ADEVICE .*/s/^ADEVICE .*/ADEVICE0 draws-capture-right draws-playback-right\n\
 ACHANNELS 1\n\
 ARATE 48000\n\
 CHANNEL 0\n\
@@ -176,6 +205,7 @@ MYCALL ${CALLSIGN}-1\n\
 MODEM 1200\n\
 PTT GPIO 12\n/" $DIREWOLF_CFGFILE
 
+    fi
 
 #    $SED -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 12/" $DIREWOLF_CFGFILE
 #    $SED -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
@@ -195,6 +225,35 @@ MODEM 9600\n\
 PTT GPIO 23\n/" $DIREWOLF_CFGFILE
 fi
 
+}
+# ===== function is_pulseaudio
+# Determine if pulse audio is running
+
+function is_pulseaudio() {
+    pid=$(pidof pulseaudio)
+    retcode="$?"
+    return $retcode
+}
+
+# ===== function pulseaudio_status
+function pulseaudio_status() {
+
+    packagename="pulseaudio"
+    is_pkg_installed $packagename
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: No package found: Installing $packagename"
+        sudo apt-get install -y -q $packagename
+    else
+        # Found package, will continue
+        echo "$scriptname: Detected $packagename package."
+    fi
+
+    is_pulseaudio
+    if [ "$?" -eq 0 ] ; then
+        echo "== Pulse Audio is running with pid: $pid"
+    else
+        echo "Pulse Audio is NOT running"
+    fi
 }
 
 # ===== function config_pa
@@ -283,11 +342,12 @@ function config_drw_2chan() {
 parse_direwolf_config() {
 
     # Determine if there is an "$scriptname" entry
-    grep -qi $scriptname $DIREWOLF_CFGFILE
+
+    cfg_str=$(grep -i $scriptname $DIREWOLF_CFGFILE)
+
     if [ $? -ne 0 ] ; then
         echo "Not edited by $scriptname"
     else
-        cfg_str=$(grep -i $scriptname $DIREWOLF_CFGFILE)
 	cfg_str=$(sed -e "s/^#//" <<< $cfg_str)
         echo "Current: $cfg_str"
     fi
@@ -383,28 +443,53 @@ esac
 shift # past argument or value
 done
 
-# Put string in direwolf file that indicates it's been edited by this
-# script.
+# Add the following string to initial comment section
 keystring="# Configured with ${scriptname}"
+
+# Last line in an UNedited initial comment section
 search_str="# Command parameters are"
 
-# Determine if there is already an "$scriptname" entry
-grep -qi $scriptname $DIREWOLF_CFGFILE
+#
+# Determine how direwolf is currently configured.
+# - look for the $keystring
+#
+cur_keystr=$(grep -i "$keystring" $DIREWOLF_CFGFILE)
 retcode=$?
-
 if [ $retcode -ne 0 ] ; then
-   # echo "DEBUG: First sed"
-# Insert string after first blank line after $search_str
-$SED -i "/${search_str}/,/^$/s/^$/#\n\
+    echo "Direwolf config file has not been configured with this script."
+else
+    echo "DEBUG: $cur_keystr"
+    cur_chan_num=$(echo $cur_keystr | cut -d':' -f2 | cut -d ',' -f1)
+    # Remove preceding white space & any non printable characters
+    cur_chan_num=$(echo ${cur_chan_num##+([[:space:]])})
+
+    cur_device_type=$(echo $cur_keystr | cut -d':' -f3)
+    cur_device_type=$(echo ${cur_device_type##+([[:space:]])})
+
+
+    echo "Direwolf current configured: Channel: -${cur_chan_num}-, Device -${cur_device_type}-"
+fi
+
+
+# Update string in direwolf file that indicates it's been edited by this
+# script.
+# Determine if there is already an "$scriptname" entry
+# retcode variable set from previous grep
+if [ $retcode -ne 0 ] ; then
+    # echo "DEBUG: First sed"
+    # Insert string after first blank line after $search_str
+    $SED -i "/${search_str}/,/^$/s/^$/#\n\
 ${keystring}, Channel: $CHAN_NUM, Device: ${DEVICE_TYPE}\
 \n/" $DIREWOLF_CFGFILE
 else
     # Replace $keystring line with new $keystring line
-    echo "DEBUG: Second sed"
     $SED -i -e "0,/${keystring}.*/ s/# Configured with .*/${keystring}, Channel: $CHAN_NUM, Device: ${DEVICE_TYPE}/" $DIREWOLF_CFGFILE
+    retcode=$?
+    echo "DEBUG: Second sed: chan: $CHAN_NUM, dev: $DEVICE_TYPE, ret: $retcode"
 fi
 
-# diff direwolf.conf /etc
+echo "DEBUG1: Check difference of direwolf config to a reference file"
+diff direwolf.conf /etc
 
 dbgecho "Get a callsign: $CALLSIGN"
 # Try to parse callsign from /etc/ax25/axports file
@@ -429,6 +514,8 @@ fi
 dbgecho "CALLSIGN set to: $CALLSIGN"
 
 if [ $CHAN_NUM = "v" ] ; then
+    pulseaudio_status
+    config_pa
     config_dw_virt
 else
     case $DEVICE_TYPE in
@@ -442,8 +529,9 @@ else
         *)
             echo "Invalid device type: $DEVICE_TYPE"
        ;;
-
     esac
-
 fi
+
+echo "DEBUG2: Check difference of direwolf config to a reference file"
+diff direwolf.conf /etc
 exit 0
