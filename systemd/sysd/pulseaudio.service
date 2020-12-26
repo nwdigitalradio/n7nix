@@ -1,0 +1,9 @@
+[Unit]
+Description=PulseAudio Daemon
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/pulseaudio --daemonize=no --system --realtime --disallow-exit --no-cpu-limit --log-target=journal
+
+[Install]
+WantedBy=multi-user.target
