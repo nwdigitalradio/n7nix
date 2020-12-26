@@ -30,21 +30,173 @@ DEVICE_TYPE="usb"
 CHAN_NUM="1"
 CALLSIGN="N0ONE"
 SED="sudo sed"
+SYSTEMCTL="systemctl"
+b_painstall=false
 
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
-PULSEAUDIO_CFGFILE="/etc/asound.conf"
 AXPORTS_FILE="/etc/ax25/axports"
+
+PULSEAUDIO_CFGFILE="/etc/asound.conf"
+PULSE_CFG_DIR="/etc/pulse"
+
 
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function is_pkg_installed
-
+c
 function is_pkg_installed() {
 
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
 }
 
+# ===== function check_split_chan_install
+
+function check_split_chan_install() {
+    # Check for split-channel repository directory
+    if [ ! -e "$REPO_DIR" ] ; then
+        mkdir -p "$REPO_DIR"
+    fi
+
+    pushd
+    # Check for split-channels source directory
+    echo "Check if directory: $SPLIT_DIR exists"
+    if [ ! -e "$SPLIT_DIR" ] ; then
+        cd "$REPO_DIR"
+        git clone "https://github.com/nwdigitalradio/split-channels"
+        if [ "$?" -ne 0 ] ; then
+            echo "$(tput setaf 1)Problem cloning repository $repo_name$(tput sgr0)"
+            exit 1
+        fi
+    else
+        echo "Updating split-channels repo"
+        cd "$SPLIT_DIR"
+        git pull
+    fi
+
+    # Copy asound & pulse configuration files
+
+    # Start from the split-channels repository directory
+    cd "$SPLIT_DIR/etc"
+
+    # NEEDS WORK ...
+    # If asound.conf or pulse config directory exists do NOT overwrite
+    # unless explicity (command line arg) told to
+
+    if [ -f $PULSEAUDIO_CFGFILE ]
+        echo "File: $PULSEAUDIO_CFGFILE already exists"
+    else
+        echo "Need file: $PULSEAUDIO_CFGFILE"
+    fi
+    config_pa
+
+    if [ -d $PULSE_CFG_DIR ] ; then
+        echo
+        echo "$(tput setaf 6)asound config file & pulse config directory already exist, NO config files copied$(tput sgr0)"
+	echo
+#       do_diff
+    else
+        echo "Needpulse config"
+        sudo rsync -av pulse/ /etc/pulse
+    fi
+
+    popd
+
+    # Copy pulseaudio systemd file
+
+        echo "Copy pulse audio systemd start service"
+        sudo cp -u ../systemd/sysd/pulseaudio.service /etc/systemd/system
+
+}
+
+# ===== function get_user
+
+function get_user() {
+   # Check if there is only a single user on this system
+   if (( `ls /home | wc -l` == 1 )) ; then
+      USER=$(ls /home)
+   else
+      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+      read -e USER
+   fi
+}
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
+
+# ===== function get_user_name
+function get_user_name() {
+
+    # Get list of users with home directories
+    USERLIST="$(ls /home)"
+    USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+    # Check if user name was supplied on command line
+    if [ -z "$USER" ] ; then
+        # prompt for call sign & user name
+        # Check if there is only a single user on this system
+        get_user
+    fi
+    # Verify user name
+    check_user
+}
+
+# ===== function start_service
+function start_service() {
+    service="$1"
+    echo "Starting: $service"
+
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        echo "ENABLING $service"
+        $SYSTEMCTL enable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem ENABLING $service"
+        fi
+    fi
+    $SYSTEMCTL --no-pager start "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem starting $service"
+    fi
+}
+
+# ===== function stop_service
+function stop_service() {
+    service="$1"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+        echo "DISABLING $service"
+        $SYSTEMCTL disable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem DISABLING $service"
+        fi
+    else
+        echo "Service: $service already disabled."
+    fi
+    $SYSTEMCTL stop "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem STOPPING $service"
+    fi
+}
+
+#
 # ===== function validate_callsign
 # Validate callsign
 
@@ -82,6 +234,8 @@ function get_callsign() {
     fi
     return $retcode
 }
+
+# ===== get_axports_callsign
 
 function get_axports_callsign() {
 
@@ -129,7 +283,7 @@ function seq_backup() {
     done
 
     fname="$rootfname-$today$suffix.conf"
-    mv ${rootfname}.conf $fname
+    sudo mv ${rootfname}.conf $fname
 }
 
 # function comment_second_chan
@@ -163,8 +317,11 @@ function remove_dw_virt() {
 
 function config_dw_virt() {
 
+    ## Get rid of previous dw_virt configuration
+    remove_dw_virt
+
     ## comment out second channel
-    dbgecho "${FUNCNAME[0]} Comment out channel0,1"
+    dbgecho "${FUNCNAME[0]} Comment out channel 0,1"
     comment_chan 0
     comment_chan 1
 
@@ -241,11 +398,21 @@ function pulseaudio_status() {
     packagename="pulseaudio"
     is_pkg_installed $packagename
     if [ $? -ne 0 ] ; then
-        echo "$scriptname: No package found: Installing $packagename"
-        sudo apt-get install -y -q $packagename
+        if [ $b_painstall = true ] ; then
+	    echo
+            echo "$echo $(tput setaf 6)$scriptname: No package found: Installing $packagename$(tput sgr0)"
+	    echo
+            sudo apt-get install -y -q $packagename
+
+	else
+            echo "$scriptname: No $packagename package found"
+	fi
     else
         # Found package, will continue
         echo "$scriptname: Detected $packagename package."
+	check_split_chan_install
+        service="pulseaudio"
+	start_service $service
     fi
 
     is_pulseaudio
@@ -255,6 +422,25 @@ function pulseaudio_status() {
         echo "Pulse Audio is NOT running"
     fi
 }
+
+# ===== function pulseaudio_on
+
+function split_chan_on() {
+
+    service="pulseaudio"
+    if systemctl is-active --quiet "$service" ; then
+        echo "Service: $service is already running"
+    else
+        start_service $service
+    fi
+
+    config_dw_1chan
+    port_split_chan_on
+    # restart direwolf/ax.25
+    ax25-stop
+    ax25-start
+}
+
 
 # ===== function config_pa
 # Configure pulse audio
@@ -351,10 +537,10 @@ parse_direwolf_config() {
 	cfg_str=$(sed -e "s/^#//" <<< $cfg_str)
         echo "Current: $cfg_str"
     fi
-    numchan=$(grep "^ACHANNELS" /etc/direwolf.conf | head -n 1 | cut -d' ' -f2)
+    numchan=$(grep "^ACHANNELS" $DIREWOLF_CFGFILE | head -n 1 | cut -d' ' -f2)
     if [ ! -z $numchan ] ; then
         if [ $numchan -eq 1 ] ; then
-            echo "Setup for USB soundcard or split channels"
+            echo "Setup for single channel"
         else
             echo "Setup for DRAWS dual channel hat"
         fi
@@ -383,6 +569,19 @@ function usage() {
 
 # ===== main
 
+# Check if running as root
+if [[ $EUID != 0 ]] ; then
+    SYSTEMCTL="sudo systemctl"
+    USER=$(whoami)
+    dbgecho "set sudo as user $USER"
+else
+    # Running as root
+    get_user_name
+fi
+
+REPO_DIR="/home/$USER/dev/github"
+SPLIT_DIR="$REPO_DIR/split-channels"
+
 while [[ $# -gt 0 ]] ; do
 key="$1"
 
@@ -390,10 +589,10 @@ case $key in
 
    -s|--status)
        parse_direwolf_config
+       pulseaudio_status
        exit 1
    ;;
    -C|--callsign)
-      CALLSIGN_ARG=true
       CALLSIGN=$2
       shift # past argument
       validate_callsign $CALLSIGN
@@ -514,6 +713,7 @@ fi
 dbgecho "CALLSIGN set to: $CALLSIGN"
 
 if [ $CHAN_NUM = "v" ] ; then
+    b_painstall=true
     pulseaudio_status
     config_pa
     config_dw_virt
