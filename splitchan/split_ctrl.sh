@@ -374,7 +374,6 @@ function split_chan_install() {
 
     # Start from the split-channels repository directory
     cd "$SPLIT_DIR/etc"
-    ASOUND_CFG_FILE="/etc/asound.conf"
     PULSE_CFG_DIR="/etc/pulse"
 
     # NEEDS WORK ...
@@ -390,7 +389,9 @@ function split_chan_install() {
         echo "Copy pulse audio systemd start service"
         sudo cp -u systemd/system/pulseaudio.service /etc/systemd/system
     else
-        echo "asound config file & pulse config directory already exist, NO config files copied"
+        echo
+        echo "$(tput setaf 6)asound config file & pulse config directory already exist, NO config files copied$(tput sgr0)"
+	echo
         do_diff
     fi
 }
