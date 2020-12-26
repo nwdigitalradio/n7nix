@@ -44,7 +44,7 @@ PULSE_CFG_DIR="/etc/pulse"
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function is_pkg_installed
-c
+
 function is_pkg_installed() {
 
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
@@ -83,7 +83,7 @@ function check_split_chan_install() {
     # If asound.conf or pulse config directory exists do NOT overwrite
     # unless explicity (command line arg) told to
 
-    if [ -f $PULSEAUDIO_CFGFILE ]
+    if [ -f $PULSEAUDIO_CFGFILE ] ; then
         echo "File: $PULSEAUDIO_CFGFILE already exists"
     else
         echo "Need file: $PULSEAUDIO_CFGFILE"
@@ -306,9 +306,9 @@ function remove_dw_virt() {
     # sed -e '/pattern/,+5d' file.txt
 
     # Delete the 7 lines following ADEVICE0
-    $SED -i -e "0,/^ADEVICE0/,+7d" $DIREWOLF_CFGFILE
+    $SED -i -e "/^ADEVICE0/,+7d" $DIREWOLF_CFGFILE
     # Delete the 7 lines following ADEVICE1
-    $SED -i -e "0,/^ADEVICE1/,+7d" $DIREWOLF_CFGFILE
+    $SED -i -e "/^ADEVICE1/,+7d" $DIREWOLF_CFGFILE
 }
 
 # ===== function config_dw_virt
@@ -318,6 +318,7 @@ function remove_dw_virt() {
 function config_dw_virt() {
 
     ## Get rid of previous dw_virt configuration
+    dbgecho "${FUNCNAME[0]} Remove previous dw_virt config"
     remove_dw_virt
 
     ## comment out second channel
@@ -678,11 +679,12 @@ if [ $retcode -ne 0 ] ; then
     # echo "DEBUG: First sed"
     # Insert string after first blank line after $search_str
     $SED -i "/${search_str}/,/^$/s/^$/#\n\
-${keystring}, Channel: $CHAN_NUM, Device: ${DEVICE_TYPE}\
+${keystring}, Channel: $CHAN_NUM, Device: ${DEVICE_TYPE} on $(date)\
 \n/" $DIREWOLF_CFGFILE
 else
     # Replace $keystring line with new $keystring line
-    $SED -i -e "0,/${keystring}.*/ s/# Configured with .*/${keystring}, Channel: $CHAN_NUM, Device: ${DEVICE_TYPE}/" $DIREWOLF_CFGFILE
+    $SED -i -e "0,/${keystring}.*/ s/# Configured with .*/\
+${keystring}, Channel: $CHAN_NUM, Device: ${DEVICE_TYPE} on $(date)/" $DIREWOLF_CFGFILE
     retcode=$?
     echo "DEBUG: Second sed: chan: $CHAN_NUM, dev: $DEVICE_TYPE, ret: $retcode"
 fi
@@ -733,5 +735,5 @@ else
 fi
 
 echo "DEBUG2: Check difference of direwolf config to a reference file"
-diff direwolf.conf /etc
+diff -wBb /etc/direwolf.conf /home/pi/tmp/dire/direwolf.conf
 exit 0
