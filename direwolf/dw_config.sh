@@ -39,7 +39,7 @@ AXPORTS_FILE="/etc/ax25/axports"
 PULSEAUDIO_CFGFILE="/etc/asound.conf"
 PULSE_CFG_DIR="/etc/pulse"
 
-
+PTT_GPIO_CHAN0=12
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -50,7 +50,63 @@ function is_pkg_installed() {
 return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/dev/null 2>&1)
 }
 
+# ===== function config_pa
+# Configure pulse audio
+# if pulseaudio config file exists do not destroy it.
+
+function config_pa() {
+
+    if [ -f "$PULSEAUDIO_CFGFILE" ] ; then
+        # get the path & filename without extension
+        no_ext=${PULSEAUDIO_CFGFILE%.*}
+	# This function determines an unused filename so that the
+	# config file never gets over written.
+        seq_backup "$no_ext"
+        echo "Original pulseaudio config file saved as $fname"
+    fi
+    # This will bloto anything that is in the pulseaudio config file
+    sudo tee $PULSEAUDIO_CFGFILE > /dev/null << EOT
+pcm.draws-capture-left {
+  type pulse
+  device "draws-capture-left"
+}
+pcm.draws-playback-left {
+  type pulse
+  device "draws-playback-left"
+}
+pcm.draws-capture-right {
+  type pulse
+  device "draws-capture-right"
+}
+pcm.draws-playback-right {
+  type pulse
+  device "draws-playback-right"
+}
+
+
+pcm.draws-capture-left-sub {
+  type pulse
+  device "draws-capture-left"
+}
+pcm.draws-playback-left-sub {
+  type pulse
+  device "draws-playback-left"
+}
+pcm.draws-capture-right-sub {
+  type pulse
+  device "draws-capture-right"
+}
+pcm.draws-playback-right-sub {
+  type pulse
+  device "draws-playback-right"
+}
+EOT
+
+}
+
 # ===== function check_split_chan_install
+# Check for split-channel repository
+# Copy files from split-channel repository for pulseaudio
 
 function check_split_chan_install() {
     # Check for split-channel repository directory
@@ -58,7 +114,6 @@ function check_split_chan_install() {
         mkdir -p "$REPO_DIR"
     fi
 
-    pushd
     # Check for split-channels source directory
     echo "Check if directory: $SPLIT_DIR exists"
     if [ ! -e "$SPLIT_DIR" ] ; then
@@ -74,10 +129,11 @@ function check_split_chan_install() {
         git pull
     fi
 
-    # Copy asound & pulse configuration files
+    # Copy asound & pulseaudio configuration files
 
     # Start from the split-channels repository directory
-    cd "$SPLIT_DIR/etc"
+    ## Save current directory
+    pushd "$SPLIT_DIR/etc"
 
     # NEEDS WORK ...
     # If asound.conf or pulse config directory exists do NOT overwrite
@@ -97,16 +153,15 @@ function check_split_chan_install() {
 #       do_diff
     else
         echo "Needpulse config"
-        sudo rsync -av pulse/ /etc/pulse
+        sudo rsync -av pulse/ $PULSE_CFG_DIR
     fi
 
+    ## Restore directory on entry
     popd
 
-    # Copy pulseaudio systemd file
-
-        echo "Copy pulse audio systemd start service"
-        sudo cp -u ../systemd/sysd/pulseaudio.service /etc/systemd/system
-
+    # Copy pulseaudio systemd file from n7nix repo
+    echo "Copy pulse audio systemd start service"
+    sudo cp -u $HOME/n7nix/systemd/sysd/pulseaudio.service /etc/systemd/system
 }
 
 # ===== function get_user
@@ -287,7 +342,7 @@ function seq_backup() {
 }
 
 # function comment_second_chan
-# comment out entire second channel configuration in direwolf config file
+# comment out entire x channel configuration in direwolf config file
 
 function comment_chan() {
     CHN_NUM=$1
@@ -305,10 +360,16 @@ function remove_dw_virt() {
     # To delete 5 lines after a pattern (including the line with the pattern):
     # sed -e '/pattern/,+5d' file.txt
 
-    # Delete the 7 lines following ADEVICE0
-    $SED -i -e "/^ADEVICE0/,+7d" $DIREWOLF_CFGFILE
-    # Delete the 7 lines following ADEVICE1
-    $SED -i -e "/^ADEVICE1/,+7d" $DIREWOLF_CFGFILE
+    # Delete the 7 lines following ADEVICE0, excluding ADEVICE0 line
+#    $SED -i -e "/^ADEVICE0/,+7d" $DIREWOLF_CFGFILE
+    $SED -i -e "/^ADEVICE0/{n;N;N;N;N;N;N;ld}" $DIREWOLF_CFGFILE
+    # Comment out remaining ADEVICE0 line
+    $SED -i -e "s/^\(^ADEVICE0 .*\)/#\1/g"  $DIREWOLF_CFGFILE
+    # Delete the 7 lines following ADEVICE1, excluding ADEVICE1 line
+#    $SED -i -e "/^ADEVICE1/,+7d" $DIREWOLF_CFGFILE
+    $SED -i -e "/^ADEVICE1/{n;N;N;N;N;N;N;d}" $DIREWOLF_CFGFILE
+    # Comment out remaining ADEVICE0 line
+    $SED -i -e "s/^\(^ADEVICE1 .*\)/#\1/g"  $DIREWOLF_CFGFILE
 }
 
 # ===== function config_dw_virt
@@ -318,11 +379,11 @@ function remove_dw_virt() {
 function config_dw_virt() {
 
     ## Get rid of previous dw_virt configuration
-    dbgecho "${FUNCNAME[0]} Remove previous dw_virt config"
+    dbgecho "${FUNCNAME[0]}: Remove previous dw_virt config"
     remove_dw_virt
 
     ## comment out second channel
-    dbgecho "${FUNCNAME[0]} Comment out channel 0,1"
+    dbgecho "${FUNCNAME[0]}: Comment out channel 0,1"
     comment_chan 0
     comment_chan 1
 
@@ -333,7 +394,7 @@ function config_dw_virt() {
     ## Replace ADEVICE with ADEVICE0 & ADEVICE1
     ## Setup ADEVICE0 as 1200 baud channel
 
-#ADEVICE0 draws-capture-right draws-playback-right\n\
+#ADEVICE0 draws-capture-left draws-playback-left\n\
 
 #CHANNEL 0\n\
 #MYCALL ${CALLSIGN}-1\n\
@@ -345,23 +406,23 @@ function config_dw_virt() {
     grep -iq "^ADEVICE " $DIREWOLF_CFGFILE
     if [ $? -ne 0 ] ; then
         $SED -i "0,/# ADEVICE .*/{s//#\n\
-ADEVICE0 draws-capture-right draws-playback-right\n\
+ADEVICE0 draws-capture-left draws-playback-left\n\
 ACHANNELS 1\n\
 ARATE 48000\n\
 CHANNEL 0\n\
 MYCALL ${CALLSIGN}-1\n\
 MODEM 1200\n\
-PTT GPIO 12\n\
+PTT GPIO $PTT_GPIO_CHAN0\n\
 \n/}" $DIREWOLF_CFGFILE
 
     else
-        $SED -ie "/^ADEVICE .*/s/^ADEVICE .*/ADEVICE0 draws-capture-right draws-playback-right\n\
+        $SED -ie "/^ADEVICE .*/s/^ADEVICE .*/ADEVICE0 draws-capture-left draws-playback-left\n\
 ACHANNELS 1\n\
 ARATE 48000\n\
 CHANNEL 0\n\
 MYCALL ${CALLSIGN}-1\n\
 MODEM 1200\n\
-PTT GPIO 12\n/" $DIREWOLF_CFGFILE
+PTT GPIO $PTT_GPIO_CHAN0\n/" $DIREWOLF_CFGFILE
 
     fi
 
@@ -374,13 +435,13 @@ if [ 1 -eq 1 ] ; then
     dbgecho "${FUNCNAME[0]} Comment out sed 2"
 
 #    $SED -ie "0,/^PTT GPIO 12.*/a\
-    $SED -ie "/ADEVICE1.*/s/.*ADEVICE1 .*/ADEVICE1 draws-capture-right-sub draws-playback-right-sub \n\
+    $SED -ie "/ADEVICE1.*/s/.*ADEVICE1 .*/ADEVICE1 draws-capture-left-sub draws-playback-left-sub \n\
 ACHANNELS 1\n\
 ARATE 48000\n\
 CHANNEL 0\n\
 MYCALL ${CALLSIGN}-2\n\
 MODEM 9600\n\
-PTT GPIO 23\n/" $DIREWOLF_CFGFILE
+PTT GPIO $PTT_GPIO_CHAN0\n/" $DIREWOLF_CFGFILE
 fi
 
 }
@@ -411,17 +472,30 @@ function pulseaudio_status() {
     else
         # Found package, will continue
         echo "$scriptname: Detected $packagename package."
+
+	# check_split_chan_install will call config_pa
 	check_split_chan_install
+
         service="pulseaudio"
-	start_service $service
+
+        if systemctl is-active --quiet "$service" ; then
+            echo "${FUNCNAME[0]}: Service: $service is already running"
+        else
+            echo "${FUNCNAME[0]}: starting service: $service"
+            start_service $service
+        fi
     fi
 
     is_pulseaudio
-    if [ "$?" -eq 0 ] ; then
-        echo "== Pulse Audio is running with pid: $pid"
+    retcode=$?
+    if [ "$retcode" -eq 0 ] ; then
+        echo " == ${FUNCNAME[0]}:Pulse Audio is running with pid: $pid"
+	echo " pulseaudio sinks: "
+        pactl list sinks | grep -A3 "Sink #"
     else
-        echo "Pulse Audio is NOT running"
+        echo "${FUNCNAME[0]}: Pulse Audio is NOT running"
     fi
+    return $retcode
 }
 
 # ===== function pulseaudio_on
@@ -429,9 +503,11 @@ function pulseaudio_status() {
 function split_chan_on() {
 
     service="pulseaudio"
+
     if systemctl is-active --quiet "$service" ; then
-        echo "Service: $service is already running"
+        echo "${FUNCNAME[0]} Service: $service is already running"
     else
+        echo "${FUNCNAME[0]} starting service: $service"
         start_service $service
     fi
 
@@ -440,61 +516,6 @@ function split_chan_on() {
     # restart direwolf/ax.25
     ax25-stop
     ax25-start
-}
-
-
-# ===== function config_pa
-# Configure pulse audio
-# if pulseaudio config file exists do not destroy it.
-
-function config_pa() {
-
-    if [ -f "$PULSEAUDIO_CFGFILE" ] ; then
-        # get the path & filename without extension
-        no_ext=${PULSEAUDIO_CFGFILE%.*}
-	# This function determines an unused filename so that the
-	# config file never gets over written.
-        seq_backup "$no_ext"
-        echo "Original pulseaudio config file saved as $fname"
-    fi
-    # This will bloto anything that is in the pulseaudio config file
-    sudo tee $PULSEAUDIO_CFGFILE > /dev/null << EOT
-pcm.draws-capture-left {
-  type pulse
-  device "draws-capture-left"
-}
-pcm.draws-playback-left {
-  type pulse
-  device "draws-playback-left"
-}
-pcm.draws-capture-right {
-  type pulse
-  device "draws-capture-right"
-}
-pcm.draws-playback-right {
-  type pulse
-  device "draws-playback-right"
-}
-
-
-pcm.draws-capture-left-sub {
-  type pulse
-  device "draws-capture-left"
-}
-pcm.draws-playback-left-sub {
-  type pulse
-  device "draws-playback-left"
-}
-pcm.draws-capture-right-sub {
-  type pulse
-  device "draws-capture-right"
-}
-pcm.draws-playback-right-sub {
-  type pulse
-  device "draws-playback-right"
-}
-EOT
-
 }
 
 # ===== function config_usb_1chan
@@ -522,7 +543,7 @@ function config_drw_2chan() {
     $SED -i -e '/^ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
 
     # Assume direwolf config was previously set up for 2 channels
-    $SED -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 12/" $DIREWOLF_CFGFILE
+    $SED -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO $PTT_GPIO_CHAN0/" $DIREWOLF_CFGFILE
     dbgecho "${FUNCNAME[0]} exit"
 }
 
@@ -717,7 +738,6 @@ dbgecho "CALLSIGN set to: $CALLSIGN"
 if [ $CHAN_NUM = "v" ] ; then
     b_painstall=true
     pulseaudio_status
-    config_pa
     config_dw_virt
 else
     case $DEVICE_TYPE in
@@ -735,5 +755,9 @@ else
 fi
 
 echo "DEBUG2: Check difference of direwolf config to a reference file"
-diff -wBb /etc/direwolf.conf /home/pi/tmp/dire/direwolf.conf
+diff -wBb /etc/direwolf.conf $HOME/tmp/dire/direwolf.conf
+
+# Add to groups
+#sudo usermod -a -G pulse pi
+#sudo usermod -a -G pulse root
 exit 0
