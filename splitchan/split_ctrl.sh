@@ -558,7 +558,7 @@ function split_chan_status() {
 usage () {
 	(
 	echo "Usage: $scriptname [-c <connector>][-s][-d][-h][left|right|off]"
-        echo "                  No args will show status of Direwolf, pulseaudio & asound"
+        echo "                  No args will install & configure pulseaudio, split channel"
         echo "  left            ENable split channel, direwolf uses left connector"
         echo "  right           ENable split channel, direwolf uses right connector NOT IMPLEMENTED"
         echo "  off             DISable split channel"
