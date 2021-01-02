@@ -1,6 +1,6 @@
 # Direwolf installation files
 
-###### config.sh
+###### dw_config.sh
 * direwolf is normally installed as part of the [core installation.](https://github.com/nwdigitalradio/n7nix/blob/master/docs/CORE_INSTALL.md)
 * This install script is called from the config/core_install.sh script.
 
@@ -8,13 +8,13 @@
 * callpass.c is a file taken from Xastir to compute the pass code required to login to a Tier 2 APRS server.
 * This file is built & called from the install script in this directory.
 
-###### update.sh
+###### dw_update.sh
 * update.sh is a script that will replace the version of direwolf installed as a Debian package during core install.
 * This script requires that you previously installed direwolf using the scripts found in this repository.
-* _update.sh_ is meant to be run from the command line:
+* _dw_update.sh_ is meant to be run from the command line:
 ``` bash
 sudo su
-./update.sh
+./dw_update.sh
 ```
 
 * After the script is run direwolf will be stopped.
@@ -134,10 +134,17 @@ git pull origin master
 ls direwolf
 ```
 
-* You can now run the _update.sh_ script as root:
+* You can now run the _dw_update.sh_ script as root:
+  * Note: This will install the latest __released__ branch __NOT__ the current DEV branch.
 
 ```bash
 cd  direwolf
 sudo su
-./update.sh
+./dw_update.sh
 ```
+
+### Pulseaudio
+* The pulseaudio systemd service file was moved to this directory so that it is NOT automatically installed.
+  * Sometime in 2020 file pulseaudio.service was installed as part of the LXDE Window Manager.
+  * Note that this service file is owned by the calling user and not a system wide service
+  * pulseaudio.service can be found in _/usr/lib/systemd/user/_ directory.
