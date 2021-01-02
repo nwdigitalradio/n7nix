@@ -136,8 +136,8 @@ function start_service() {
     fi
 }
 
-# ===== function stop_service
-function stop_service() {
+# ===== function stop_sys_service
+function stop_sys_service() {
     service="$1"
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -eq 0 ] ; then
@@ -152,6 +152,25 @@ function stop_service() {
     $SYSTEMCTL stop "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem STOPPING $service"
+    fi
+}
+
+# ===== function stop_user_service
+function stop_user_service() {
+    service="$1"
+    systemctl --user is-enabled "$service" > /dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+        echo "DISABLING (user)$service"
+        $SYSTEMCTL --user disable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem DISABLING (user) $service"
+        fi
+    else
+        echo "Service (user): $service already disabled."
+    fi
+    $SYSTEMCTL --user stop "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem STOPPING (user) $service"
     fi
 }
 
@@ -302,7 +321,9 @@ function split_chan_on() {
 
     service="pulseaudio"
     if systemctl is-active --quiet "$service" ; then
-        echo "Service: $service is already running"
+        echo "Service (sys): $service is already running"
+    elif systemctl --user is-active --quiet "$service" ; then
+        echo "Service (user): $service is already running"
     else
         start_service $service
     fi
@@ -319,7 +340,9 @@ function split_chan_on() {
 function split_chan_off() {
     service="pulseaudio"
     if systemctl is-active --quiet "$service" ; then
-        stop_service $service
+        stop_sys_service $service
+    elif systemctl --user is-active --quiet "$service" ; then
+        stop_user_service $service
     else
         echo "Service: $service is already stopped"
     fi
