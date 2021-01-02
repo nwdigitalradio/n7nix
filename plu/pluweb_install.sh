@@ -117,7 +117,9 @@ pushd /usr/local/src/paclink-unix/webapp
 PROGLIST="nodejs npm"
 apt-get install -y -q $PROGLIST
 if [[ $? > 0 ]] ; then
+    echo
     echo "$(tput setaf 1)Failed to install $PROGLIST, install from command line. $(tput sgr0)"
+    echo
 fi
 
 npm install -g npm
@@ -128,10 +130,19 @@ npm install -g connect finalhandler serve-static
 sudo npm --unsafe-perm -g install websocket
 
 echo
-echo " == $SCRIPTNAME: Install jquery"
+echo " == $SCRIPTNAME: Install jquery in directory $(pwd)"
 # jquery should be installed in same directory as plu.html
 npm install jquery
-cp node_modules/jquery/dist/jquery.min.js jquery.js
+
+jquery_file="node_modules/jquery/dist/jquery.min.js"
+if [ -f "$jquery_file" ] ; then
+    cp "$jquery_file"  jquery.js
+    echo "   Successfully installed: $jquery_file"
+else
+    echo
+    echo "   $(tput setaf 1)ERROR: file: $jquery_file not found$(tput sgr0)"
+    echo
+fi
 
 popd > /dev/null
 
@@ -142,7 +153,7 @@ echo
 echo " == $SCRIPTNAME: Setup systemd for $service"
 
 LOCAL_SYSD_DIR="/home/$USER/n7nix/systemd/sysd"
-cp $LOCAL_SYSD_DIR/$service $SYSD_DIR
+cp -u $LOCAL_SYSD_DIR/$service $SYSD_DIR
 # edit pluweb.service so starts as user
 
 # Check if file exists.
