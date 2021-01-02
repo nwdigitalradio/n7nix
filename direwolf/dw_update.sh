@@ -31,7 +31,7 @@ function install_direwolf_source() {
    SRC_DIR="/usr/local/src/"
    cd "$SRC_DIR"
 
-# This gets current HOT version
+# This gets current DEV version
 #   git clone https://www.github.com/wb2osz/direwolf
 #   cd direwolf
 
@@ -45,13 +45,17 @@ function install_direwolf_source() {
    cd direwolf-$DW_VER
 
    echo "Building direwolf in directory $(pwd)"
-   echo "As of Jan 6 (May 2) build will fail with \"
-   /usr/local/src/direwolf-dev/src/dwgpsd.c:65:2: error: #error libgps API version might be incompatible."
-   echo "See direwolf github issues #241"
-   echo
-   DWGPSD_FILE="src/dwgpsd.c"
-   # Fix above with sed
-   gpsd_ver=$(grep -i "#if GPSD_API_MAJOR_VERSION < 5 || GPSD_API_MAJOR_VERSION > 8" $DWGPSD_FILE)
+
+    if [ 1 -eq 0 ] ; then
+        # NO longer required?
+        echo "Note from Jan 6 (May 2) 2020
+        echo "  IF build fails with \"
+     /usr/local/src/direwolf-dev/src/dwgpsd.c:65:2: error: #error libgps API version might be incompatible."
+        echo "  See direwolf github issues #241"
+        echo
+        DWGPSD_FILE="src/dwgpsd.c"
+        # Fix above with sed
+        gpsd_ver=$(grep -i "#if GPSD_API_MAJOR_VERSION < 5 || GPSD_API_MAJOR_VERSION > 8" $DWGPSD_FILE)
    if [ "$?" ] ; then
        echo "== Found gpsd API check string"
        # Get Major Version number check
@@ -67,6 +71,8 @@ function install_direwolf_source() {
    else
       echo "== Did not find gpsd API check string"
    fi
+    fi
+
 
    if [ ! -d "build" ] ; then
        mkdir build
