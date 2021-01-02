@@ -517,7 +517,10 @@ function check_pa_systemd() {
     if [ $pa_user = "true" ] && [ $pa_sys = "true" ] ; then
         echo
         echo "$(tput setaf 1)$scriptname: configuration error both pulseaudio systemd user & system files exist$(tput sgr0)"
+	echo "Will disable system pulseaudio service file."
 	echo
+	$SYSTEMCTL stop pulseaudio
+	$SYSTEMCTL disable pulseaudio
     fi
     if [ $pa_user = "false" ] && [ $pa_sys = "false" ] ; then
         echo "$scriptname: configuration error no pulseaudio systemd file exists"
