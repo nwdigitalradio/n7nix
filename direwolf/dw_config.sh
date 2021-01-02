@@ -32,6 +32,7 @@ CALLSIGN="N0ONE"
 SED="sudo sed"
 SYSTEMCTL="systemctl"
 b_painstall=false
+PA_SCOPE=
 
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 AXPORTS_FILE="/etc/ax25/axports"
@@ -104,6 +105,33 @@ EOT
 
 }
 
+# ===== function split_chan_status
+# Check for split-channel repository
+
+function split_chan_status() {
+
+    echo "   == split_chan_status"
+    # Check for split-channels source directory
+    if [ ! -e "$SPLIT_DIR" ] ; then
+        echo "NO split-channel repo dir found."
+    else
+        echo "split-channel directory: $SPLIT_DIR exists"
+    fi
+
+
+    if [ -f $PULSEAUDIO_CFGFILE ] ; then
+        echo "File: $PULSEAUDIO_CFGFILE exists"
+    else
+        echo "Need file: $PULSEAUDIO_CFGFILE"
+    fi
+
+    if [ -d $PULSE_CFG_DIR ] ; then
+        echo "asound config file & pulse config directory exist"
+    else
+        echo "Need pulse config"
+    fi
+}
+
 # ===== function check_split_chan_install
 # Check for split-channel repository
 # Copy files from split-channel repository for pulseaudio
@@ -159,9 +187,6 @@ function check_split_chan_install() {
     ## Restore directory on entry
     popd
 
-    # Copy pulseaudio systemd file from n7nix repo
-    echo "Copy pulse audio systemd start service"
-    sudo cp -u $HOME/n7nix/systemd/sysd/pulseaudio.service /etc/systemd/system
 }
 
 # ===== function get_user
@@ -213,20 +238,22 @@ function get_user_name() {
     check_user
 }
 
+
 # ===== function start_service
 function start_service() {
     service="$1"
     echo "Starting: $service"
+    scope=
 
-    systemctl is-enabled "$service" > /dev/null 2>&1
+    systemctl $PA_SCOPE is-enabled "$service" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
         echo "ENABLING $service"
-        $SYSTEMCTL enable "$service"
+        $SYSTEMCTL $PA_SCOPE enable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem ENABLING $service"
         fi
     fi
-    $SYSTEMCTL --no-pager start "$service"
+    $SYSTEMCTL $PA_SCOPE --no-pager start "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem starting $service"
     fi
@@ -235,17 +262,17 @@ function start_service() {
 # ===== function stop_service
 function stop_service() {
     service="$1"
-    systemctl is-enabled "$service" > /dev/null 2>&1
+    systemctl $PA_SCOPE is-enabled "$service" > /dev/null 2>&1
     if [ $? -eq 0 ] ; then
         echo "DISABLING $service"
-        $SYSTEMCTL disable "$service"
+        $SYSTEMCTL $PA_SCOPE disable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem DISABLING $service"
         fi
     else
         echo "Service: $service already disabled."
     fi
-    $SYSTEMCTL stop "$service"
+    $SYSTEMCTL $PA_SCOPE stop "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem STOPPING $service"
     fi
@@ -445,6 +472,16 @@ PTT GPIO $PTT_GPIO_CHAN0\n/" $DIREWOLF_CFGFILE
 fi
 
 }
+
+# ===== function is_direwolf
+# Determine if direwolf is running
+
+function is_direwolf() {
+    pid=$(pidof direwolf)
+    retcode="$?"
+    return $retcode
+}
+
 # ===== function is_pulseaudio
 # Determine if pulse audio is running
 
@@ -454,8 +491,46 @@ function is_pulseaudio() {
     return $retcode
 }
 
-# ===== function pulseaudio_status
-function pulseaudio_status() {
+# ===== function check_pa_systemd()
+
+function check_pa_systemd() {
+    echo
+    pa_user=false
+    pa_sys=false
+
+    if [ -f /usr/lib/systemd/user/pulseaudio.service ] ; then
+        pa_user=true
+	PA_SCOPE="--user"
+    fi
+    if [ -f /etc/systemd/user/pulseaudio.service ] ; then
+        pa_user=true
+	PA_SCOPE="--user"
+    fi
+
+    if [ -f /etc/systemd/system/pulseaudio.service ] ; then
+        pa_sys=true
+    fi
+    if [ -f /usr/lib/systemd/system/pulseaudio.service ] ; then
+        pa_sys=true
+    fi
+
+    if [ $pa_user = "true" ] && [ $pa_sys = "true" ] ; then
+        echo
+        echo "$(tput setaf 1)$scriptname: configuration error both pulseaudio systemd user & system files exist$(tput sgr0)"
+	echo
+    fi
+    if [ $pa_user = "false" ] && [ $pa_sys = "false" ] ; then
+        echo "$scriptname: configuration error no pulseaudio systemd file exists"
+	# Install pulse audio here
+        # Copy pulseaudio systemd file from n7nix repo
+        echo "Copy pulse audio systemd start service"
+        sudo cp -u $HOME/n7nix/systemd/sysd/pulseaudio.service /etc/systemd/system
+    fi
+}
+
+
+# ===== function pulseaudio_install
+function pulseaudio_install() {
 
     packagename="pulseaudio"
     is_pkg_installed $packagename
@@ -475,10 +550,11 @@ function pulseaudio_status() {
 
 	# check_split_chan_install will call config_pa
 	check_split_chan_install
+	# check if there is a systemd service file anywhere
+	check_pa_systemd
 
         service="pulseaudio"
-
-        if systemctl is-active --quiet "$service" ; then
+        if systemctl $PA_SCOPE is-active --quiet "$service" ; then
             echo "${FUNCNAME[0]}: Service: $service is already running"
         else
             echo "${FUNCNAME[0]}: starting service: $service"
@@ -486,6 +562,7 @@ function pulseaudio_status() {
         fi
     fi
 
+    # Check if pulseaudio is running
     is_pulseaudio
     retcode=$?
     if [ "$retcode" -eq 0 ] ; then
@@ -498,25 +575,87 @@ function pulseaudio_status() {
     return $retcode
 }
 
+# ===== function pulseaudio_status
+function pulseaudio_status() {
+
+    echo " == pulseaudio_status"
+
+    packagename="pulseaudio"
+    is_pkg_installed $packagename
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: No $packagename package found"
+    else
+        # Found package, will continue
+        echo "$scriptname: Detected $packagename package."
+
+	# check_split_chan_install will call config_pa
+	split_chan_status
+	# check if there is a systemd service file anywhere
+	check_pa_systemd
+
+        service="pulseaudio"
+	if [ -z $PA_SCOPE ] ; then
+	    scope="sys"
+	else
+	    scope="user"
+	fi
+        if systemctl $PA_SCOPE is-active --quiet "$service" ; then
+            echo "${FUNCNAME[0]}: systemd service: $service is already running with scope: $scope"
+        fi
+    fi
+
+    # Check if pulseaudio is running
+    is_pulseaudio
+    retcode=$?
+    if [ "$retcode" -eq 0 ] ; then
+        echo " == ${FUNCNAME[0]}: Pulse Audio is running with pid: $pid"
+	echo " pulseaudio sinks: "
+        pactl list sinks | grep -A3 "Sink #"
+    else
+        echo "${FUNCNAME[0]}: Pulse Audio is NOT running"
+    fi
+    return $retcode
+}
+
 # ===== function pulseaudio_on
 
-function split_chan_on() {
+function pulseaudio_on() {
 
     service="pulseaudio"
 
     if systemctl is-active --quiet "$service" ; then
-        echo "${FUNCNAME[0]} Service: $service is already running"
+        echo "Service (sys): $service is already running"
+    elif systemctl --user is-active --quiet "$service" ; then
+        echo "Service (user): $service is already running"
     else
-        echo "${FUNCNAME[0]} starting service: $service"
         start_service $service
     fi
 
     config_dw_1chan
     port_split_chan_on
     # restart direwolf/ax.25
-    ax25-stop
-    ax25-start
+    ax25-restart
 }
+
+# ===== function pulseaudio_off
+
+function pulseaudio_off() {
+
+    service="pulseaudio"
+
+    if systemctl $PA_SCOPE is-active --quiet "$service" ; then
+        stop_service $service
+    else
+        echo "Service: $service is already stopped"
+    fi
+
+    config_dw_2chan
+
+    # restart direwolf/ax.25
+    ax25-restart
+}
+
+
 
 # ===== function config_usb_1chan
 # Configure direwolf to:
@@ -549,7 +688,17 @@ function config_drw_2chan() {
 
 parse_direwolf_config() {
 
-    # Determine if there is an "$scriptname" entry
+    # Check if direwolf is running
+    is_direwolf
+    retcode=$?
+    if [ "$retcode" -eq 0 ] ; then
+        echo " == ${FUNCNAME[0]}: Direwolf is running with pid: $pid"
+	echo " pulseaudio sinks: "
+    else
+        echo "${FUNCNAME[0]}: Direwolf is NOT running"
+    fi
+
+    # Determine if there is an "$scriptname" entry in direwolf config
 
     cfg_str=$(grep -i $scriptname $DIREWOLF_CFGFILE)
 
@@ -737,7 +886,7 @@ dbgecho "CALLSIGN set to: $CALLSIGN"
 
 if [ $CHAN_NUM = "v" ] ; then
     b_painstall=true
-    pulseaudio_status
+    pulseaudio_install
     config_dw_virt
 else
     case $DEVICE_TYPE in
