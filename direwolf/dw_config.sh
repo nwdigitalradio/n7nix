@@ -118,7 +118,6 @@ function split_chan_status() {
         echo "split-channel directory: $SPLIT_DIR exists"
     fi
 
-
     if [ -f $PULSEAUDIO_CFGFILE ] ; then
         echo "File: $PULSEAUDIO_CFGFILE exists"
     else
@@ -126,7 +125,7 @@ function split_chan_status() {
     fi
 
     if [ -d $PULSE_CFG_DIR ] ; then
-        echo "asound config file & pulse config directory exist"
+        echo "pulse config directory exists"
     else
         echo "Need pulse config"
     fi
@@ -516,7 +515,7 @@ function check_pa_systemd() {
 
     if [ $pa_user = "true" ] && [ $pa_sys = "true" ] ; then
         echo
-        echo "$(tput setaf 1)$scriptname: configuration error both pulseaudio systemd user & system files exist$(tput sgr0)"
+        echo "$(tput setaf 1)$scriptname: configuration WARNING both pulseaudio systemd user & system files exist$(tput sgr0)"
 	echo "Will disable system pulseaudio service file."
 	echo
 	$SYSTEMCTL stop pulseaudio
@@ -575,6 +574,7 @@ function pulseaudio_install() {
     else
         echo "${FUNCNAME[0]}: Pulse Audio is NOT running"
     fi
+    $SYSTEMCTL $PA_SCOPE restart pulseaudio.service
     return $retcode
 }
 
@@ -603,7 +603,7 @@ function pulseaudio_status() {
 	    scope="user"
 	fi
         if systemctl $PA_SCOPE is-active --quiet "$service" ; then
-            echo "${FUNCNAME[0]}: systemd service: $service is already running with scope: $scope"
+            echo "${FUNCNAME[0]}: systemd service: $service is running with scope: $scope"
         fi
     fi
 
@@ -862,8 +862,8 @@ ${keystring}, Channel: $CHAN_NUM, Device: ${DEVICE_TYPE} on $(date)/" $DIREWOLF_
     echo "DEBUG: Second sed: chan: $CHAN_NUM, dev: $DEVICE_TYPE, ret: $retcode"
 fi
 
-echo "DEBUG1: Check difference of direwolf config to a reference file"
-diff direwolf.conf /etc
+# echo "DEBUG1: Check difference of direwolf config to a reference file"
+# diff direwolf.conf /etc
 
 dbgecho "Get a callsign: $CALLSIGN"
 # Try to parse callsign from /etc/ax25/axports file
@@ -891,6 +891,8 @@ if [ $CHAN_NUM = "v" ] ; then
     b_painstall=true
     pulseaudio_install
     config_dw_virt
+    # Do the following to get direwolf to read the new config
+    ax25-restart
 else
     case $DEVICE_TYPE in
         usb)
@@ -906,8 +908,8 @@ else
     esac
 fi
 
-echo "DEBUG2: Check difference of direwolf config to a reference file"
-diff -wBb /etc/direwolf.conf $HOME/tmp/dire/direwolf.conf
+# echo "DEBUG2: Check difference of direwolf config to a reference file"
+# diff -wBb /etc/direwolf.conf $HOME/tmp/dire/direwolf.conf
 
 # Add to groups
 #sudo usermod -a -G pulse pi
