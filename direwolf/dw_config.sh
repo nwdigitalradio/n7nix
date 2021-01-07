@@ -3,7 +3,7 @@
 #  dw_config.sh
 #
 # direwolf configuration script
-# Original made to config direwolf for 1200/9600 baud devices
+# Originally made to config direwolf for 1200/9600 baud devices
 #
 # Config direwolf:
 # 1. Either single or dual channel DRAWS
@@ -21,7 +21,7 @@
 # drw v:
 # usb v:
 #       draws | usb 1 chan, 2 virtual devices
-
+# ./dw_config.sh -d -c v -D drw
 
 scriptname="`basename $0`"
 USER=
@@ -33,6 +33,7 @@ SED="sudo sed"
 SYSTEMCTL="systemctl"
 b_painstall=false
 PA_SCOPE=
+FORCE_SYS="true"
 
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 AXPORTS_FILE="/etc/ax25/axports"
@@ -169,19 +170,22 @@ function check_split_chan_install() {
     if [ -f $PULSEAUDIO_CFGFILE ] ; then
         echo "File: $PULSEAUDIO_CFGFILE already exists"
     else
-        echo "Need file: $PULSEAUDIO_CFGFILE"
+        echo "Copy $PULSEAUDIO_CFGFILE"
+        sudo cp -u asound.conf /etc/asound.conf
     fi
     config_pa
 
     if [ -d $PULSE_CFG_DIR ] ; then
         echo
-        echo "$(tput setaf 6)asound config file & pulse config directory already exist, NO config files copied$(tput sgr0)"
+        echo "$(tput setaf 6)asound config file & pulse config directory already exist, config files will be over written$(tput sgr0)"
 	echo
 #       do_diff
     else
-        echo "Needpulse config"
-        sudo rsync -av pulse/ $PULSE_CFG_DIR
+        echo "Need pulse config"
     fi
+
+    sudo rsync -av pulse/ $PULSE_CFG_DIR
+
 
     ## Restore directory on entry
     popd
@@ -383,18 +387,25 @@ function comment_chan() {
 # Remove 2 virtual channels
 
 function remove_dw_virt() {
+
+    dbgecho "${FUNCNAME[0]}(): Remove previous dw_virt config"
+
     # To delete 5 lines after a pattern (including the line with the pattern):
     # sed -e '/pattern/,+5d' file.txt
 
     # Delete the 7 lines following ADEVICE0, excluding ADEVICE0 line
 #    $SED -i -e "/^ADEVICE0/,+7d" $DIREWOLF_CFGFILE
-    $SED -i -e "/^ADEVICE0/{n;N;N;N;N;N;N;ld}" $DIREWOLF_CFGFILE
+    dbgecho "${FUNCNAME[0]}(): sed remove ADEVICE0 config"
+    $SED -i -e "/^ADEVICE0/{n;N;N;N;N;N;N;d}" $DIREWOLF_CFGFILE
     # Comment out remaining ADEVICE0 line
+    dbgecho "${FUNCNAME[0]}(): sed comment out any other ADEVICE0 config"
     $SED -i -e "s/^\(^ADEVICE0 .*\)/#\1/g"  $DIREWOLF_CFGFILE
     # Delete the 7 lines following ADEVICE1, excluding ADEVICE1 line
 #    $SED -i -e "/^ADEVICE1/,+7d" $DIREWOLF_CFGFILE
+    dbgecho "${FUNCNAME[0]}(): sed remove ADEVICE1 config"
     $SED -i -e "/^ADEVICE1/{n;N;N;N;N;N;N;d}" $DIREWOLF_CFGFILE
     # Comment out remaining ADEVICE0 line
+    dbgecho "${FUNCNAME[0]}(): sed comment out any other ADEVICE1 config"
     $SED -i -e "s/^\(^ADEVICE1 .*\)/#\1/g"  $DIREWOLF_CFGFILE
 }
 
@@ -405,11 +416,10 @@ function remove_dw_virt() {
 function config_dw_virt() {
 
     ## Get rid of previous dw_virt configuration
-    dbgecho "${FUNCNAME[0]}: Remove previous dw_virt config"
     remove_dw_virt
 
     ## comment out second channel
-    dbgecho "${FUNCNAME[0]}: Comment out channel 0,1"
+    dbgecho "${FUNCNAME[0]}(): Comment out channel 0,1"
     comment_chan 0
     comment_chan 1
 
@@ -427,7 +437,7 @@ function config_dw_virt() {
 #MODEM 1200\n\
 #PTT GPIO 12\n/\
 
-    dbgecho "${FUNCNAME[0]} sed 1"
+    dbgecho "${FUNCNAME[0]}(): add ADEVICE sed 1"
     dbgecho " "
     grep -iq "^ADEVICE " $DIREWOLF_CFGFILE
     if [ $? -ne 0 ] ; then
@@ -458,7 +468,7 @@ PTT GPIO $PTT_GPIO_CHAN0\n/" $DIREWOLF_CFGFILE
 
 if [ 1 -eq 1 ] ; then
     ## Setup ADEVICE1 as 9600 baud channel
-    dbgecho "${FUNCNAME[0]} Comment out sed 2"
+    dbgecho "${FUNCNAME[0]}(): Add ADEVICE1 sed 2"
 
 #    $SED -ie "0,/^PTT GPIO 12.*/a\
     $SED -ie "/ADEVICE1.*/s/.*ADEVICE1 .*/ADEVICE1 draws-capture-left-sub draws-playback-left-sub \n\
@@ -513,23 +523,37 @@ function check_pa_systemd() {
         pa_sys=true
     fi
 
-    if [ $pa_user = "true" ] && [ $pa_sys = "true" ] ; then
-        echo
-        echo "$(tput setaf 1)$scriptname: configuration WARNING both pulseaudio systemd user & system files exist$(tput sgr0)"
-	echo "Will disable system pulseaudio service file."
-	echo
-	$SYSTEMCTL stop pulseaudio
-	$SYSTEMCTL disable pulseaudio
-    fi
-    if [ $pa_user = "false" ] && [ $pa_sys = "false" ] ; then
-        echo "$scriptname: configuration error no pulseaudio systemd file exists"
-	# Install pulse audio here
-        # Copy pulseaudio systemd file from n7nix repo
+    if [ $FORCE_SYS = "true" ] ; then
+        echo "== ${FUNCNAME[0]}(): FORCE system pulseaudio"
+	echo "Disable user pulseaudio"
+	sudo systemctl --user disable pulseaudio
+	echo "Stop user pulseaudio"
+        sudo systemctl --user stop pulseaudio
+
+        PA_SCOPE=
         echo "Copy pulse audio systemd start service"
-        sudo cp -u $HOME/n7nix/systemd/sysd/pulseaudio.service /etc/systemd/system
+        sudo cp -u $HOME/n7nix/direwolf/pulseaudio.service /etc/systemd/system
+
+        $SYSTEMCTL enable pulseaudio
+        $SYSTEMCTL start pulseaudio
+    else
+        if [ $pa_user = "true" ] && [ $pa_sys = "true" ] ; then
+            echo
+            echo "$(tput setaf 1)$scriptname: configuration WARNING both pulseaudio systemd user & system files exist$(tput sgr0)"
+	    echo "Will disable system pulseaudio service file."
+	    echo
+	    $SYSTEMCTL stop pulseaudio
+	    $SYSTEMCTL disable pulseaudio
+        fi
+        if [ $pa_user = "false" ] && [ $pa_sys = "false" ] ; then
+            echo "$scriptname: configuration error no pulseaudio systemd file exists"
+	    # Install pulse audio here
+            # Copy pulseaudio systemd file from n7nix repo
+            echo "Copy pulse audio systemd start service"
+            sudo cp -u $HOME/n7nix/systemd/sysd/pulseaudio.service /etc/systemd/system
+        fi
     fi
 }
-
 
 # ===== function pulseaudio_install
 function pulseaudio_install() {
@@ -557,9 +581,9 @@ function pulseaudio_install() {
 
         service="pulseaudio"
         if systemctl $PA_SCOPE is-active --quiet "$service" ; then
-            echo "${FUNCNAME[0]}: Service: $service is already running"
+            echo "${FUNCNAME[0]}(): Service: $service is already running"
         else
-            echo "${FUNCNAME[0]}: starting service: $service"
+            echo "${FUNCNAME[0]}(): starting service: $service"
             start_service $service
         fi
     fi
@@ -568,13 +592,16 @@ function pulseaudio_install() {
     is_pulseaudio
     retcode=$?
     if [ "$retcode" -eq 0 ] ; then
-        echo " == ${FUNCNAME[0]}:Pulse Audio is running with pid: $pid"
+        echo " == ${FUNCNAME[0]}(): Pulse Audio is running with pid: $pid"
 	echo " pulseaudio sinks: "
         pactl list sinks | grep -A3 "Sink #"
     else
-        echo "${FUNCNAME[0]}: Pulse Audio is NOT running"
+        echo "${FUNCNAME[0]}(): Pulse Audio is NOT running"
     fi
+
+    $SYSTEMCTL daemon-reload
     $SYSTEMCTL $PA_SCOPE restart pulseaudio.service
+
     return $retcode
 }
 
@@ -591,7 +618,6 @@ function pulseaudio_status() {
         # Found package, will continue
         echo "$scriptname: Detected $packagename package."
 
-	# check_split_chan_install will call config_pa
 	split_chan_status
 	# check if there is a systemd service file anywhere
 	check_pa_systemd
@@ -603,7 +629,7 @@ function pulseaudio_status() {
 	    scope="user"
 	fi
         if systemctl $PA_SCOPE is-active --quiet "$service" ; then
-            echo "${FUNCNAME[0]}: systemd service: $service is running with scope: $scope"
+            echo "${FUNCNAME[0]}(): systemd service: $service is running with scope: $scope"
         fi
     fi
 
@@ -611,11 +637,11 @@ function pulseaudio_status() {
     is_pulseaudio
     retcode=$?
     if [ "$retcode" -eq 0 ] ; then
-        echo " == ${FUNCNAME[0]}: Pulse Audio is running with pid: $pid"
+        echo " == ${FUNCNAME[0]}(): Pulse Audio is running with pid: $pid"
 	echo " pulseaudio sinks: "
         pactl list sinks | grep -A3 "Sink #"
     else
-        echo "${FUNCNAME[0]}: Pulse Audio is NOT running"
+        echo "${FUNCNAME[0]}(): Pulse Audio is NOT running"
     fi
     return $retcode
 }
@@ -637,6 +663,7 @@ function pulseaudio_on() {
     config_dw_1chan
     port_split_chan_on
     # restart direwolf/ax.25
+    echo "${FUNCNAME[0]}(): AX.25/direwolf restart"
     ax25-restart
 }
 
@@ -655,6 +682,7 @@ function pulseaudio_off() {
     config_dw_2chan
 
     # restart direwolf/ax.25
+    echo "${FUNCNAME[0]}(): AX.25/direwolf restart"
     ax25-restart
 }
 
@@ -666,7 +694,7 @@ function pulseaudio_off() {
 
 function config_usb_1chan() {
 
-    dbgecho "${FUNCNAME[0]} enter"
+    dbgecho "${FUNCNAME[0]}(): enter"
 
     $SED -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=Device,DEV=0/"  $DIREWOLF_CFGFILE
     $SED -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
@@ -678,7 +706,7 @@ function config_usb_1chan() {
 
 function config_drw_2chan() {
 
-    dbgecho "${FUNCNAME[0]} enter"
+    dbgecho "${FUNCNAME[0]}(): enter"
 
 #   $SED -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE draws-capture-$CONNECTOR draws-playback-$CONNECTOR/"  $DIREWOLF_CFGFILE
     $SED -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/"  $DIREWOLF_CFGFILE
@@ -686,7 +714,7 @@ function config_drw_2chan() {
 
     # Assume direwolf config was previously set up for 2 channels
     $SED -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO $PTT_GPIO_CHAN0/" $DIREWOLF_CFGFILE
-    dbgecho "${FUNCNAME[0]} exit"
+    dbgecho "${FUNCNAME[0]}(): exit"
 }
 
 parse_direwolf_config() {
@@ -695,10 +723,10 @@ parse_direwolf_config() {
     is_direwolf
     retcode=$?
     if [ "$retcode" -eq 0 ] ; then
-        echo " == ${FUNCNAME[0]}: Direwolf is running with pid: $pid"
+        echo " == ${FUNCNAME[0]}(): Direwolf is running with pid: $pid"
 	echo " pulseaudio sinks: "
     else
-        echo "${FUNCNAME[0]}: Direwolf is NOT running"
+        echo "${FUNCNAME[0]}(): Direwolf is NOT running"
     fi
 
     # Determine if there is an "$scriptname" entry in direwolf config
@@ -892,6 +920,7 @@ if [ $CHAN_NUM = "v" ] ; then
     pulseaudio_install
     config_dw_virt
     # Do the following to get direwolf to read the new config
+    echo "${FUNCNAME[*]}(): AX.25/direwolf restart"
     ax25-restart
 else
     case $DEVICE_TYPE in
