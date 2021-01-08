@@ -4,6 +4,7 @@
 #
 USER=$(whoami)
 REPO_DIR="/home/$USER/dev/github"
+BIN_DIR="/home/$USER/bin"
 PROG_NAME="chattervox"
 
 # ===== function error_exit
@@ -21,6 +22,13 @@ function error_exit() {
 if [ ! -e "$REPO_DIR" ] ; then
     mkdir -p "$REPO_DIR"
 fi
+# Check for local bin directory
+if [ ! -e "$BIN_DIR" ] ; then
+    mkdir -p "$BIN_DIR"
+fi
+
+# save current directory
+pushd
 
 cd $REPO_DIR
 if [ -e "$PROG_NAME" ] ; then
@@ -77,6 +85,11 @@ node build/main.js send "Install test on $(date)"
 if [ "$?" -ne 0 ] ; then
     error_exit "Error on $PROG_NAME send, init call"
 fi
+
+# restore initial directory
+popd
+
+cp -u chattervox.sh $BIN_DIR
 
 # Reference:
 #
