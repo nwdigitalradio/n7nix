@@ -28,9 +28,8 @@ if [ ! -e "$BIN_DIR" ] ; then
 fi
 
 # save current directory
-pushd
+pushd $REPO_DIR
 
-cd $REPO_DIR
 if [ -e "$PROG_NAME" ] ; then
     echo
     echo "Found an existing $REPO_DIR/$PROG_NAME, removing"
