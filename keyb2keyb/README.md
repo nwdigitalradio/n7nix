@@ -25,7 +25,7 @@ cd keyb2keyb
 
 ##### The _cv_install.sh_ install script does the following:
 
-* Detects if there is a current version of chatterbox installed and removes it
+* Detects if there is a current version of chattervox installed and removes it
 * Detects if chattervox is running & stops it
 * Clones Brannon Doresey's (KC3LZO) Chattervox [github repository](https://github.com/brannondorsey/chattervox)
 * Downloads required dependencies
@@ -34,14 +34,41 @@ cd keyb2keyb
 * Does an initial configuration of chattervox if required.
 * Updates the chattervox start script in the local BIN directory.
 
+###### Initial configuration questions from chattervox
+
+```
+Welcome! It looks like you are using chattervox for the first time.
+We'll ask you some questions to create an initial settings configuration.
+
+
+What is your call sign (default: N0CALL)? N7NIX
+What SSID would you like to associate with this station (press ENTER to skip)? 4
+Do you have a dedicated hardware TNC that you would like to use instead of Direwolf (default: no)? no
+Would you like to connect to Direwolf over serial instead of the default TCP connection (default: no)? no
+{
+  "version": 3,
+  "callsign": "N7NIX",
+  "ssid": 4,
+  "keystoreFile": "/home/gunn/.chattervox/keystore.json",
+  "kissPort": "kiss://localhost:8001",
+  "kissBaud": 9600,
+  "feedbackDebounce": 20000
+}
+Is this correct [Y/n]? y
+```
+
+
 
 ### How to Run Chattervox
 
-* Since Chattervox for the Raspberry Pi was built from source you need to use a script to wrap the actual chatterbox program.
+* Since Chattervox for the Raspberry Pi was built from source you need to use a script (_chattervox.sh_) to wrap the actual chattervox program.
 
 * First add my public key
 ```
 chattervox.sh addkey N7NIX 04c4ba4bd163be7a0468731593ad887897adcd6e5d7da2f7f7965fb2ba2add119758522731403f1a96119ceffd2c8b6b41
+
+# Verify
+chattervox.sh showkey
 ```
 
 * Open a chat room
@@ -51,6 +78,7 @@ chattervox.sh chat
 
 * Send me a message on NET-16
 * Email me your public key.
+  * You can locate your public key by running _chattervox.sh showkey_
 
 ### Other chattervox commands
 
@@ -73,3 +101,8 @@ chattervox.sh removekey KC3LZO 0489a1d94d700d6e45508d12a4eb9be93386b5b30feb2b4aa
 # print all keys in your keyring
 chattervox.sh showkey
 ```
+
+### chatterbox bugs and work arounds
+* If you get __(KEY NOT FOUND)__ message during your chat
+  * Edit keystore.json in directory ~/.chattervox and pad all call signs to 6 characters with spaces.
+  * See [issue #28](https://github.com/brannondorsey/chattervox/issues/28)
