@@ -2,10 +2,16 @@
 #
 # Install chattervox from github source repository
 #
+DEBUG=
+
 USER=$(whoami)
 REPO_DIR="/home/$USER/dev/github"
 BIN_DIR="/home/$USER/bin"
 PROG_NAME="chattervox"
+scriptname="`basename $0`"
+
+# ===== function dbgecho
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function error_exit
 # Display string argument & exit
@@ -13,6 +19,18 @@ PROG_NAME="chattervox"
 function error_exit() {
 	echo "$(tput setaf 1)$1$(tput sgr0)" 1>&2
 	exit 1
+}
+
+# ===== function is_ax25up
+function is_ax25up() {
+  ip a show ax0 up > /dev/null  2>&1
+}
+
+# ===== function is_direwolf
+# Determine if direwolf is running
+
+function is_direwolf() {
+    pid=$(pidof direwolf)
 }
 
 #
@@ -25,6 +43,21 @@ fi
 # Check for local bin directory
 if [ ! -e "$BIN_DIR" ] ; then
     mkdir -p "$BIN_DIR"
+fi
+
+# Check if AX.25 port ax0 exists & is up
+if ! is_ax25up ; then
+    echo "$scriptname: AX.25 port not found, ax.25 not running?"
+    exit 1
+else
+    dbgecho "AX.25 is running."
+fi
+
+if ! is_direwolf ; then
+    echo "$scriptname: direwolf is not running"
+    exit 1
+else
+    dbgecho "Direwolf is running"
 fi
 
 # save current directory
@@ -52,6 +85,13 @@ if [ "$?" -ne 0 ] ; then
 fi
 
 cd $PROG_NAME
+
+# Verify latest version of npm
+echo "$(tput setaf 6)Get latest version of NPM$(tput sgr0)"
+echo "Current npm version: $(npm -v)"
+
+echo "Check for update"
+sudo npm install -g npm
 
 # download dependencies
 echo "$(tput setaf 6)Download dependencies (npm install)$(tput sgr0)"
