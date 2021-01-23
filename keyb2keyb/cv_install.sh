@@ -3,6 +3,8 @@
 # Install chattervox from github source repository
 #
 DEBUG=
+# Set DEV_MODE=true to skip downloading a fresh source image
+DEV_MODE=true
 
 USER=$(whoami)
 REPO_DIR="/home/$USER/dev/github"
@@ -22,6 +24,7 @@ function error_exit() {
 }
 
 # ===== function is_ax25up
+
 function is_ax25up() {
   ip a show ax0 up > /dev/null  2>&1
 }
@@ -33,9 +36,45 @@ function is_direwolf() {
     pid=$(pidof direwolf)
 }
 
+# ===== Display program help info
+#
+
+usage () {
+	(
+	echo "Usage: $scriptname [dev|DEV][-d][-h]"
+	echo "  dev|DEV         Set DEV_MODE"
+        echo "  -d              Set DEBUG flag"
+        echo "  -h              Display this message."
+        echo
+	) 1>&2
+	exit 1
+}
+
 #
 # ===== main
 #
+
+while [[ $# -gt 0 ]] ; do
+
+    key="$1"
+    case $key in
+        -d)
+            DEBUG=1
+        ;;
+        dev|DEV)
+            DEV_MODE=true
+	    echo "Dev mode set"
+        ;;
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+    shift # past argument or value
+done
+
+
 # Check for repository directory
 if [ ! -e "$REPO_DIR" ] ; then
     mkdir -p "$REPO_DIR"
@@ -63,41 +102,47 @@ fi
 # save current directory
 pushd $REPO_DIR
 
-if [ -e "$PROG_NAME" ] ; then
-    echo
-    echo "Found an existing $REPO_DIR/$PROG_NAME, removing"
-    echo
-    sudo rm -R "$PROG_NAME"
+# Check if chattervox is running
+pidof_main=$(pgrep -f "node build/main.js")
+if [ "$?" -eq 0 ] ; then
+    echo "Stopping running $PROG_NAME"
+    kill $pidof_main
+fi
 
-    # Check if chattervox is running
-    pidof_main=$(pgrep -f "node build/main.js")
-    if [ "$?" -eq 0 ] ; then
-        echo "Stopping running $PROG_NAME"
-	kill $pidof_main
+# If DEV_MODE = true do NOT download a source image
+
+if [ "$DEV_MODE" = false ] ; then
+    if [ -e "$PROG_NAME" ] ; then
+        echo
+        echo "Found an existing $REPO_DIR/$PROG_NAME, removing"
+        echo
+        sudo rm -R "$PROG_NAME"
     fi
-fi
 
-# clone the chattervox repo
-echo "$(tput setaf 6)Clone $PROG_NAME repo$(tput sgr0)"
-git clone https://github.com/brannondorsey/chattervox
-if [ "$?" -ne 0 ] ; then
-    error_exit "Error cloning $PROG_NAME repo"
-fi
+    # clone the chattervox repo
+    echo "$(tput setaf 6)Clone $PROG_NAME repo$(tput sgr0)"
+    git clone https://github.com/brannondorsey/chattervox
+    if [ "$?" -ne 0 ] ; then
+        error_exit "Error cloning $PROG_NAME repo"
+    fi
 
-cd $PROG_NAME
+    cd $PROG_NAME
 
-# Verify latest version of npm
-echo "$(tput setaf 6)Get latest version of NPM$(tput sgr0)"
-echo "Current npm version: $(npm -v)"
+    # Verify latest version of npm
+    echo "$(tput setaf 6)Get latest version of NPM$(tput sgr0)"
+    echo "Current npm version: $(npm -v)"
 
-echo "Check for update"
-sudo npm install -g npm
+    echo "Check for update"
+    sudo npm install -g npm
 
-# download dependencies
-echo "$(tput setaf 6)Download dependencies (npm install)$(tput sgr0)"
-npm install
-if [ "$?" -ne 0 ] ; then
-    error_exit "Error doing npm install"
+    # download dependencies
+    echo "$(tput setaf 6)Download dependencies (npm install)$(tput sgr0)"
+    npm install
+    if [ "$?" -ne 0 ] ; then
+        error_exit "Error doing npm install"
+    fi
+else
+    cd $PROG_NAME
 fi
 
 # transpile the src/*.ts typescript files to build/*.js
