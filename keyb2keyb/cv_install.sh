@@ -4,7 +4,7 @@
 #
 DEBUG=
 # Set DEV_MODE=true to skip downloading a fresh source image
-DEV_MODE=true
+DEV_MODE=false
 
 USER=$(whoami)
 REPO_DIR="/home/$USER/dev/github"
