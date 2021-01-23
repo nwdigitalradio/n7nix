@@ -1,3 +1,15 @@
+Sat Jan 23 12:00:38 PST 2021  Basil Gunn <basil@pacabunga.com>
+
+  * Image NWDR19 release
+    * Updated draws-manager
+    * Updated gpsd to version 3.22
+    * Kernel now  5.4.83 (#1379) matching Raspberry Pi OS latest version
+    * Added chattervox keyboard-to-keyboard install script.
+    * Changes for PulseAudio running as a user process
+    * Fix draws-manager upate
+    * Fix wsjtx update
+    * 42 commits since last release
+
 Sat Dec  5 08:42:13 PST 2020  Basil Gunn <basil@pacabunga.com>
 
   * Image NWDR18 release
