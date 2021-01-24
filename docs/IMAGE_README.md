@@ -3,12 +3,12 @@
 * You should notice the first time the DRAWS image is booted it auto boots a second time.
   * This is to expand the compressed file system.
 
-* The initial Raspberry Pi OS file system image is found [here](https://www.raspberrypi.org/software/operating-systems/#raspberry-pi-os-32-bit)
+* The initial __Raspberry Pi OS__ file system image is found [here](https://www.raspberrypi.org/software/operating-systems/#raspberry-pi-os-32-bit)
   * Raspberry Pi OS with desktop
-* The DRAWS RPi image which uses the Raspbian with desktop image is currently residing here:
+* The DRAWS RPi image which uses the __Raspberry Pi OS__ with desktop image is currently residing here:
   * http://nwdig.net/downloads/
 
-* The programs in the following table are added to the Raspbian image.
+* The programs in the following table are added to the __Raspberry Pi OS__ image.
 
 ### Table of Installed Programs
 
@@ -16,6 +16,7 @@
 * DW = requires Direwolf
 * AX25 = requires AX.25 stack
 
+###              Packet
 
 |    Program   |  Version |  PKG  |  DW   |  AX25 |
 | :---------:  | :------: | :---: | :---: | :---: |
@@ -32,10 +33,25 @@
 | FBB BBS      |   7.03  |       |  yes  |  yes  |
 | Xastir       |   2.1.7   |       |  yes  |       |
 | YAAC *       | 1.0-beta163  |      | yes  |
+| iptables     |  1.8.2  |  yes |     |   |
+| sensors      |  3.5.0  |  yes  |     |   |
+| chattervox   |  2.13.1 |       |  yes  |  yes  |
+
+
+###           D-Star
+
+|    Program   |  Version |  PKG  |  DW   |  AX25 |
+| :---------:  | :------: | :---: | :---: | :---: |
 | dstarrepeater  | 1.20180703-4 | yes |   |   |
 | dstarrepeaterd | 1.20180703-4 | yes |   |   |
 | ircddbgateway  | 1.20180703-1 | yes |   |   |
 | ircccbgatewayd | 1.20180703-1 | yes |   |   |
+
+
+###              HF
+
+|    Program   |  Version |  PKG  |  DW   |  AX25 |
+| :---------:  | :------: | :---: | :---: | :---: |
 | ARDOP        |  2      |      |     |   |
 | ARIM         |  2.6    |      |     |   |
 | js8call      |  2.2.0  |  yes  |     |   |
@@ -47,6 +63,3 @@
 | flmsg        |  4.0.17 |      |     |   |
 | flamp        |  2.2.05 |      |     |   |
 | fllog        |  1.2.6  |      |     |   |
-| iptables     |  1.8.2  |  yes |     |   |
-| sensors      |  3.5.0  |  yes  |     |   |
-| chattervox   |  2.13.1 |       |  yes  |  yes  |
