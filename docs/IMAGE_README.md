@@ -3,7 +3,7 @@
 * You should notice the first time the DRAWS image is booted it auto boots a second time.
   * This is to expand the compressed file system.
 
-* The initial file system image is found at https://www.raspberrypi.org/downloads/raspbian/
+* The initial Raspberry Pi OS file system image is found [here](https://www.raspberrypi.org/software/operating-systems/#raspberry-pi-os-32-bit)
   * Raspbian Buster with desktop
 * The DRAWS RPi image which uses the Raspbian with desktop image is currently residing here:
   * http://nwdig.net/downloads/
