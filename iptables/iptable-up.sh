@@ -18,6 +18,8 @@ for device in "ax0" "ax1" ; do
         iptables -A OUTPUT -o "$device" -d 224.0.0.22 -p igmp -j DROP
         iptables -A OUTPUT -o "$device" -d 224.0.0.251 -p udp -m udp --dport 5353 -j DROP
         iptables -A OUTPUT -o "$device" -d 239.255.255.250 -p udp -m udp  -j DROP
+	iptables -A OUTPUT -o "$device" -p udp -m udp --dport 8610 -j DROP
+	iptables -A OUTPUT -o "$device" -p udp -m udp --dport 8612 -j DROP
     else
         echo "Device: $device NOT UP, iptable rules not applied"
     fi
