@@ -39,6 +39,7 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/
 
 function cfg_lighttpd() {
 
+    dbgecho "start function: ${FUNCNAME[0]}"
     pkg_name="apache2"
     is_pkg_installed $pkg_name
     if [ $? -eq 0 ] ; then
@@ -52,6 +53,7 @@ function cfg_lighttpd() {
         apt-get install -y -q $pkg_name
     fi
 
+    echo "${FUNCNAME[0]}: setup lighttpd log file"
     if [ ! -d "/var/log/lighttpd" ] ; then
         mkdir -p "/var/log/lighttpd"
         touch "/var/log/lighttpd/error.log"
@@ -59,17 +61,31 @@ function cfg_lighttpd() {
 
     chown -R www-data:www-data "/var/log/lighttpd"
 
+    echo "${FUNCNAME[0]}: enable lighttpd modules"
     lighttpd-enable-mod fastcgi
     lighttpd-enable-mod fastcgi-php
+
     ls -l /etc/lighttpd/conf-enabled
 
-    # If you're using lighttpd, add the following to your configuration file:
-    cat << 'EOT' >> $lighttpdcfg_file
+    # Change first occurrence of string containing document root directory
+    # server.document-root should be: /var/www
+    sed -i -e '/server\.document-root / s/server\.document-root .*/server\.document-root = \"\/var\/www\/"/' /etc/lighttpd/lighttpd.conf
+
+    grep -i "deny access to /data directory" $lighttpdcfg_file > /dev/null
+    retcode=$?
+    echo "DEBUG: grep deny access to: $retcode"
+    if [ "$retcode" -ne 0 ] ; then
+        # If you're using lighttpd, add the following to lighttpd configuration file:
+        sudo tee -a $lighttpdcfg_file > /dev/null << 'EOT'
 # deny access to /data directory
 $HTTP["url"] =~ "^/data/" {
      url.access-deny = ("")
 }
 EOT
+    else
+        echo "lighttpd.conf, already has a deny access to /data directory entry."
+    fi
+
     # back this file up until verified
     lighttpd_conf_avail_dir="/etc/lighttpd/conf-available"
     cp $lighttpd_conf_avail_dir/15-fastcgi-php.conf $lighttpd_conf_avail_dir/15-fastcgi-php.bak1.conf
@@ -96,10 +112,8 @@ EOT
         echo "   ERROR: php config file: $php_filename does not exist"
     fi
 
-    # Change document root directory
-    sed -i -e '/server\.document-root / s/server\.document-root .*/server\.document-root = \"\/var\/www\/rainloop\"/' /etc/lighttpd/lighttpd.conf
-
     # Check for any configuration syntax errors
+    echo "${FUNCNAME[0]}: Verify changes made to lighttpd config file"
     lighttpd -t -f /etc/lighttpd/lighttpd.conf
 
     # Restart lighttpd
