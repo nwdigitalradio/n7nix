@@ -12,6 +12,7 @@ DEBUG=1
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+PORT_CFG_FILE="/etc/ax25/port.conf"
 CFG_FINISHED_MSG="core config script FINISHED"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
@@ -433,17 +434,26 @@ else
     echo -e "\n\t$(tput setaf 4)before: $(tput setaf 7)\n"
     grep -i "ax25_ipaddr\[.\]" "$ax25upd_filename"
 
-    # Replace everything after string IPADDR_AX0
+    # In ax25-upd file: Replace everything after string IPADDR_AX0
     sed -i -e "/ax25_ipaddr\[0\]/ s/^ax25_ipaddr\[0\]=.*/ax25_ipaddr\[0\]=\"$ipaddr_ax0\"/"  $ax25upd_filename
     if [ "$?" -ne 0 ] ; then
         echo -e "\n\t$(tput setaf 1)Failed to change ax0 ip address $(tput setaf 7)\n"
     fi
 
-    # Replace everything after string IPADDR_AX1
+    # In port.conf
+    portnum=0
+    sudo sed -i -e "/\[port$portnum\]/,/\[/ s/^ip_address=.*/ip_address=\"$ipaddr_ax0\"/" $PORT_CFG_FILE
+
+
+    # In ax25-upd file: Replace everything after string IPADDR_AX1
     sed -i -e "/ax25_ipaddr\[1\]/ s/^ax25_ipaddr\[1\]=.*/ax25_ipaddr\[1\]=\"$ipaddr_ax1\"/"  $ax25upd_filename
     if [ "$?" -ne 0 ] ; then
         echo -e "\n\t$(tput setaf 1)Failed to change ax1 ip address $(tput setaf 7)\n"
     fi
+
+    # In port.conf
+    portnum=1
+    sudo sed -i -e "/\[port$portnum\]/,/\[/ s/^ip_address=.*/ip_address=\"$ipaddr_ax1\"/" $PORT_CFG_FILE
 fi
 
 echo -e "\n\t$(tput setaf 4)after: $(tput setaf 7)\n"
