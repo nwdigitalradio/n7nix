@@ -140,10 +140,15 @@ USERLIST="$(echo $USERLIST | tr '\n' ' ')"
 get_user
 check_user
 
-echo " Updating local bin directory for user: $USER"
+echo
+echo "$(tput setaf 6) == Updating n7nix repo$(tput sgr0)"
+
 cd
 cd n7nix
 git pull
+
+echo
+echo "$(tput setaf 6) == Updating local bin directory for user: $USER$(tput sgr0)"
 
 CopyDesktopFiles
 userbindir="/home/$USER/bin"
