@@ -55,7 +55,7 @@ Pass : 12345
 * Default domain: localhost
 
 #### Admin Panel complete, Login in to new account
-* Change Browser url to ```localhost```
+* Change Browser url to ```localhost/rainloop```
 
 * Login using Email: pi@localhost, password: user pi password
 
