@@ -53,6 +53,7 @@ function check_udrc() {
 # ===== function is_temp_graph_installed
 
 function is_temp_graph_installed() {
+    # init to graph programs are installed
     graph_installed=0
 
     # Does user have a crontab?
@@ -116,6 +117,9 @@ cd n7nix/config
 
 # ------ update system
 
+# time how long this takes
+begin_sec=$SECONDS
+
 echo
 echo "$(tput setaf 6) == RPi File System UPDATE$(tput sgr0)"
 sudo apt-get -q update
@@ -134,6 +138,9 @@ sudo apt-get -q -y dist-upgrade
 if [ $? -ne 0 ] ; then
     echo "$scriptname: Failure updating n7nix repository"
 fi
+
+# Display how long this took
+echo "$(tput setaf 2) == System update finished in $((SECONDS-begin_sec)) seconds$(tput sgr0)"
 
 # reboot
 # shutdown -r now
@@ -310,3 +317,10 @@ cputemp=$(rpicpu_gettemp.sh)
 CPULOAD=$(cat /proc/loadavg | cut -f2 -d ' ')
 echo
 echo "$(tput setaf 2)Temperatures: cpu: $cputemp, ambient: $ambtemp, cpu activity: $CPULOAD$(tput sgr0)"
+
+# Add heart beat trigger to boot config
+grep -i --quiet "act_led_trigger" /boot/config.txt
+if [ $? -ne 0 ] ; then
+    echo "dtparam=act_led_trigger=heartbeat" | sudo tee -a /boot/config.txt > /dev/null
+fi
+pi_leds.sh heartbeat
