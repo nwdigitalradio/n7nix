@@ -194,7 +194,7 @@ function get_ipaddr() {
 
     portnumber=$1
     if [ -z $portnumber ] ; then
-        echo "Need to supply a device number in ${FUNCNAME[0]"
+        echo "Need to supply a device number in ${FUNCNAME[0]}"
         return 1
     fi
 
