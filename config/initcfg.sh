@@ -8,11 +8,27 @@
 # 1. Updates repos (n7nix & debian system) and runs app_config core
 # 2. Installs Winlink programs & temperature graphs
 #
+# Use this script to bring up some packet capability
+#   - used to easily test NWDR image functionality
+# - Besides core app config will also install/configure:
+#   paclink-unix
+#     mutt
+#     claws-mail
+#     rainloop
+#   nodejs
+#   lighttpd
+#   postfix
+#   dovecott
+#   rpi-temp-graph
+#
+#
 # Uncomment this statement for debug echos
 # DEBUG=1
 
 scriptname="`basename $0`"
 PORT_CFG_FILE="/etc/ax25/port.conf"
+radio="tmv71a"
+user=$(whoami)
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -34,6 +50,33 @@ function check_udrc() {
     return $retcode
 }
 
+# ===== function is_temp_graph_installed
+
+function is_temp_graph_installed() {
+    graph_installed=0
+
+    # Does user have a crontab?
+    crontab -u $user -l > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        dbgecho "user: $user does NOT have a crontab"
+	graph_installed=1
+    else
+        dbgecho "user: $user already has a crontab, checking for both cron jobs"
+        crontab -l | grep --quiet -i "db_rpitempupdate.sh"
+        if [ $? -ne 0 ] ; then
+            graph_installed=1
+        fi
+        dbgecho "Crontab entery for temperature is $graph_installed"
+
+        crontab -l | grep --quiet -i "db_rpicpuload_update.sh"
+        if [ $? -ne 0 ] ; then
+            graph_installed=1
+        fi
+        dbgecho "Crontab entery for CPU load is $graph_installed"
+    fi
+    return $graph_installed
+}
+
 #
 # ===== Main
 #
@@ -44,37 +87,49 @@ if [[ $EUID == 0 ]] ; then
     exit 0
 fi
 
-# ------ upgrade
 # Verify UDRC device is enumerated
+echo "$(tput setaf 6) == Verify UDRC/DRAWS sound card device$(tput sgr0)"
 check_udrc
 if [ $? -eq 1 ] ; then
     exit
 fi
 
-cd
-cd n7nix
-git pull
-if [ $? -ne 0 ] ; then
-    echo "$scriptname: Failure updating n7nix repository"
+
+if [ 1 -eq 0 ] ; then
+    # NOTE: n7nix repo gets updated with bin_refresh.sh
+    # ------ update n7nix repo
+    echo
+    echo "$(tput setaf 6) == N7NIX repo UPDATE$(tput sgr0)"
+    cd
+    cd n7nix
+    git pull
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Failure updating n7nix repository"
+    fi
 fi
 
-cd config
+# ------ update local bin directory
+
+cd
+cd n7nix/config
 ./bin_refresh.sh
 
+# ------ update system
+
 echo
-echo "$(tput setaf 6) == RPi OS update$(tput sgr0)"
+echo "$(tput setaf 6) == RPi File System UPDATE$(tput sgr0)"
 sudo apt-get -q update
 if [ $? -ne 0 ] ; then
     echo "$scriptname: Failure updating n7nix repository"
 fi
 echo
-echo "$(tput setaf 6) == RPi OS upgrade$(tput sgr0)"
+echo "$(tput setaf 6) == RPi File System UPGRADE$(tput sgr0)"
 sudo apt-get -q -y upgrade
 if [ $? -ne 0 ] ; then
     echo "$scriptname: Failure updating n7nix repository"
 fi
 echo
-echo "$(tput setaf 6) == RPi OS dist-upgrade$(tput sgr0)"
+echo "$(tput setaf 6) == RPi File System DIST-UPGRADE$(tput sgr0)"
 sudo apt-get -q -y dist-upgrade
 if [ $? -ne 0 ] ; then
     echo "$scriptname: Failure updating n7nix repository"
@@ -92,10 +147,13 @@ CFG_FINISHED_MSG="core config script FINISHED"
 runcnt=$(grep -c "$CFG_FINISHED_MSG" "$UDR_INSTALL_LOGFILE")
 dbgecho "core_config.sh has been run $runcnt time(s)"
 
+echo
+echo "$(tput setaf 6) === Verify app_config core has been run$(tput sgr0)"
+
 ## ONLY do a config core once
 if [ $runcnt -eq 0 ] ; then
     echo
-    echo "$(tput setaf 6) === app_config CORE$(tput sgr0)"
+    echo "$(tput setaf 6) === Running app_config core$(tput sgr0)"
     cd
     cd n7nix/config
     sudo ./app_config.sh core
@@ -107,82 +165,136 @@ if [ $runcnt -eq 0 ] ; then
     sudo shutdown -r now
 
 else
-    echo "Image core has already been configured ($runcnt time(s))"
+    echo "$(tput setaf 2) app_config core has already been configured $runcnt time(s)$(tput sgr0)"
 fi
 
-echo
-echo "DEBUG: early exit"
-exit
 
-## ------ winlink config
-
-echo
-echo "$(tput setaf 6) === Config Winlink Programs$(tput sgr0)"
-# Set radio to use discriminator
 portnum=0
+# Set radio connected to DRAWS $portnum to use discriminator
 
 ## ------ Set alsa parameters
 echo
 echo "$(tput setaf 6) == Set port number: $portnum for radio to use discriminator receive$(tput sgr0)"
 sudo sed -i -e "/\[port$portnum\]/,/\[/ s/^receive_out=.*/receive_out=disc/" $PORT_CFG_FILE
-setalsa-tmv71.sh
 
-## ------ start AX.25 & direwolf
 echo
-echo "$(tput setaf 6) == Start AX25/direwolf stacks$(tput sgr0)"
-ax25-start
+echo "$(tput setaf 6) == Set ALSA parameters for radio: $radio$(tput sgr0)"
+setalsa-${radio}.sh
+
+## ------ Determine if AX.25 is already running
+
+AX25_RUNNING=true
+AX25_SERVICE_LIST="direwolf.service ax25dev.service ax25dev.path ax25-mheardd.service ax25d.service"
+
+for service in `echo ${AX25_SERVICE_LIST}` ; do
+    systemctl is-active --quiet $service
+    if [ $? -ne 0 ] ; then
+        AX25_RUNNING=false
+	dbgecho "Service: $service NOT running"
+    fi
+done
+
+if [ $AX25_RUNNING = "false" ] ; then
+    # Do this in case some of the services are running
+    ax25-stop
+
+    ## ------ start AX.25 & direwolf
+    echo
+    echo "$(tput setaf 6) == Start AX25/direwolf stacks$(tput sgr0)"
+    ax25-start
+fi
 
 echo
 echo "$(tput setaf 6) == AX25/direwolf systemd service status$(tput sgr0)"
 ax25-status
 
-## ------ install paclink-unix
-echo
-echo "$(tput setaf 6) == Setup paclink-unix, postfix & dovecot$(tput sgr0)"
-ax25-status
-
-cd
-cd n7nix/config
-sudo ./app_config.sh plu
+## ------ winlink config
 
 echo
-echo "$(tput setaf 6) == Set up direwolf to 9600 baud packet$(tput sgr0)"
+echo "$(tput setaf 6) === Config Winlink Programs$(tput sgr0)"
+
+# ------ Dectect if winlink config has already been done
+echo "$(tput setaf 6) == Check for required Winlink files ...$(tput sgr0)"
+CONTINUE_FLAG=false
+
+REQUIRED_PRGMS="wl2kax25 postfix dovecot mutt lighttpd"
+for prog_name in `echo ${REQUIRED_PRGMS}` ; do
+   type -P $prog_name &>/dev/null
+   if [ $? -ne 0 ] ; then
+      echo "$scriptname: $(tput setaf 1) Required Winlink program: $prog_name will be installed$(tput sgr0)"
+      CONTINUE_FLAG=true
+   fi
+done
+
+if ! $CONTINUE_FLAG ; then
+    echo "$(tput setaf 2) The following programs have already been installed: $REQUIRED_PRGMS$(tput sgr0)"
+else
+    ## ------ install paclink-unix
+    # Requires call sign, Winlink password, grid square, real name
+    echo
+    echo "$(tput setaf 6) == Setup paclink-unix, postfix & dovecot$(tput sgr0)"
+    cd
+    cd n7nix/config
+    sudo ./app_config.sh plu
+fi
 
 ## ------ Verify 9600 baud packet works
-speed_switch.sh -b 9600
-alsa-show.sh
-time wl2kax25 n7nix
+if [ 1 -eq 0 ] ; then
+    echo
+    echo "$(tput setaf 6) == Set up direwolf to 9600 baud packet$(tput sgr0)"
+    speed_switch.sh -b 9600
+    alsa-show.sh
+    time wl2kax25 n7nix
+fi
 
 ## ------ Winlink packet station config finished
 
 ## ----- Install temperature RRD graph
-echo
-echo "$(tput setaf 6) == Install RPi activity & temperature graph$(tput sgr0)"
+echo "$(tput setaf 6) === Check for previous RPi activity & temperature graph install$(tput sgr0)"
 
-cd
-cd dev/github/
-git clone https://github.com/n7nix/rpi-temp-graph
-cd rpi-temp-graph/
-./tempgraph_install.sh
+is_temp_graph_installed
+if [ $? -ne 0 ] ; then
+    echo
+    echo "$(tput setaf 2) -- Install RPi activity & temperature graph$(tput sgr0)"
 
-# Set proper GPIO for a DRAWS hat for ambient temperature
-cd
-cd bin
+    cd
+    cd dev/github/
+    git clone https://github.com/n7nix/rpi-temp-graph
+    cd rpi-temp-graph/
+    ./tempgraph_install.sh
 
-# Replace everything after string WIRINGPI_GPIO in file rpiamb_gettemp.sh
-GPIO_NUM=21
+    # Set proper GPIO for a DRAWS hat for ambient temperature
+    cd
+    cd bin
 
-sed -i -e "/WIRINGPI_GPIO=/ s/^WIRINGPI_GPIO=.*/WIRINGPI_GPIO=\"$GPIO_NUM\"/"  rpiamb_gettemp.sh
-if [ "$?" -ne 0 ] ; then
-    echo -e "\n\t$(tput setaf 1)Failed to change WIRINGPI_GPIO$(tput setaf 7)\n"
+    # Replace everything after string WIRINGPI_GPIO in file rpiamb_gettemp.sh
+    GPIO_NUM=21
+
+    sed -i -e "/WIRINGPI_GPIO=/ s/^WIRINGPI_GPIO=.*/WIRINGPI_GPIO=\"$GPIO_NUM\"/"  rpiamb_gettemp.sh
+    if [ "$?" -ne 0 ] ; then
+        echo -e "\n\t$(tput setaf 1)Failed to change WIRINGPI_GPIO$(tput setaf 7)\n"
+    fi
+
+else
+    echo "$(tput setaf 2) RPi activity & temperature graph already installed$(tput sgr0)"
 fi
 
 ## ----- Verify temperature value is going into database
-echo
-echo "$(tput setaf 6) == Check IP address$(tput sgr0)"
+# Display IP address to use to view graph
 
-# Get IP address
-ifconfig eth0
+eth_ip=$(ip -4 -o addr show dev eth0 | awk '!/^[0-9]*: ?lo|link\/ether/ {gsub("/", " "); print $2" "$4}')
+wifi_ip=$(ip -4 -o addr show dev wlan0 | awk '!/^[0-9]*: ?lo|link\/ether/ {gsub("/", " "); print $2" "$4}')
+
+if [ -z "$eth_ip" ] ; then
+    eth_ip="none"
+fi
+
+if [ -z "$wifi_ip" ] ; then
+    wifi_ip="none"
+fi
+
+echo
+echo "$(tput setaf 6) == Check IP address: lan: $eth_ip, wan: $wifi_ip$(tput sgr0)"
 
 # in a browser verify temperature graph
 # http://10.0.42.184/cgi-bin/rpitemp.cgi
@@ -193,7 +305,8 @@ echo
 echo "$(tput setaf 6) == Check temperature graph update in cron table$(tput sgr0)"
 crontab -l
 
-$ambtemp(rpiamb_gettemp.sh)
-cputemp-$(rpicpu_gettemp.sh)
+ambtemp=$(rpiamb_gettemp.sh)
+cputemp=$(rpicpu_gettemp.sh)
 CPULOAD=$(cat /proc/loadavg | cut -f2 -d ' ')
-echo "Temperatures: cpu: $cputemp, ambient: $ambtemp, cpu activity: $CPULOAD"
+echo
+echo "$(tput setaf 2)Temperatures: cpu: $cputemp, ambient: $ambtemp, cpu activity: $CPULOAD$(tput sgr0)"
