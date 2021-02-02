@@ -18,7 +18,7 @@
 http://Your-IP-Address/rainloop/?admin
 
 # or from a local browser
-http://localhost/?admin
+http://localhost/rainloop/?admin
 User : admin
 Pass : 12345
 ```
