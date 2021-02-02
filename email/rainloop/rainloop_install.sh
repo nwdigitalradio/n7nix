@@ -71,14 +71,14 @@ function cfg_lighttpd() {
     # server.document-root should be: /var/www
     sed -i -e '/server\.document-root / s/server\.document-root .*/server\.document-root = \"\/var\/www\/"/' /etc/lighttpd/lighttpd.conf
 
-    grep -i "deny access to /data directory" $lighttpdcfg_file > /dev/null
+    grep -i "deny access to /rainloop/data directory" $lighttpdcfg_file > /dev/null
     retcode=$?
     echo "DEBUG: grep deny access to: $retcode"
     if [ "$retcode" -ne 0 ] ; then
         # If you're using lighttpd, add the following to lighttpd configuration file:
         sudo tee -a $lighttpdcfg_file > /dev/null << 'EOT'
-# deny access to /data directory
-$HTTP["url"] =~ "^/data/" {
+# deny access to /rainloop/data directory
+$HTTP["url"] =~ "^/rainloop/data/" {
      url.access-deny = ("")
 }
 EOT
