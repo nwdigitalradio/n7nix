@@ -1,3 +1,17 @@
+  * Image changes:
+    * Added rules to iptables to drop mfnp & bjnp broadcasts on AX.25 ports
+    * Updated draws-manager with John's fixes for power management
+    * For AX.25 icon get rid of annoying dialog box that prompts for
+      what to do with an executable
+    * Aggregate configuration scripts to make fresh install easier
+      * new script: config/initcfg.sh
+      * rename setalsa-alinco.sh to setalsa-drx35.sh
+    * Fix rainloop install so that lighttpd config co-exists with rpi-temp-graph
+    * Updated:
+      * YAAC 1.0-beta163(29-Dec-2020)
+      * FLdigi to 4.1.18
+      * wsjtx to 2.3.0
+
 Sat Jan 23 12:00:38 PST 2021  Basil Gunn <basil@pacabunga.com>
 
   * Image NWDR19 release
