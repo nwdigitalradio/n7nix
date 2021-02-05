@@ -5,10 +5,9 @@
 # Configuration for an ICOM ID-880H on left channel on a DRAWS HAT
 #
 # mDin6 connector on left channel,  direwolf chan 0, radio ICOM ID-880
-# mDin6 connector on right channel, direwolf chan 1, radio Alinco DR-x35 MkIII
+# mDin6 connector on right channel, direwolf chan 1, ???
 #
 # For UDRC II, enable setting receive path from discriminator (DISC)
-
 DEBUG=
 
 RADIO="ID-880h"
@@ -88,36 +87,37 @@ if [ ! -f $PORT_CFG_FILE ] ; then
     fi
     # This will not work when run as root
     sudo cp $HOME/n7nix/ax25/port.conf $PORT_CFG_FILE
-else
-    # Set left channel parameters
-    portcfg="port0"
-    PORTSPEED_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
-    RECVSIG_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
-    if [ "$RECVSIG_LEFT" == "disc" ] ; then
-        # SAME SETTINGS as TMV71a. THIS NEEDS WORK!!!
-        # Set variables for discriminator signal
-        PCM_LEFT="0.0"
-        LO_DRIVER_LEFT="3.0"
-        ADC_LEVEL_LEFT="-4.0"
-        IN1_L='10 kOhm'
-        IN2_L="Off"
-    fi
-
-    # Set right channel parameters
-    portcfg="port1"
-    PORTSPEED_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
-    RECVSIG_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
-    if [ "$RECVSIG_RIGHT" == "disc" ] ; then
-        # SAME SETTINGS as TMV71a. THIS NEEDS WORK!!!
-        # Set variables for discriminatior signal
-        PCM_RIGHT="0.0"
-        LO_DRIVER_RIGHT="3.0"
-        ADC_LEVEL_RIGHT="-4.0"
-        IN1_R='10 kOhm'
-        IN2_R="Off"
-    fi
 fi
 
+# Set left channel parameters
+portcfg="port0"
+PORTSPEED_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+RECVSIG_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
+if [ "$RECVSIG_LEFT" == "disc" ] ; then
+    # SAME SETTINGS as TMV71a. THIS NEEDS WORK!!!
+    # Set variables for discriminator signal
+    PCM_LEFT="0.0"
+    LO_DRIVER_LEFT="3.0"
+    ADC_LEVEL_LEFT="-4.0"
+    IN1_L='10 kOhm'
+    IN2_L="Off"
+fi
+
+# Set right channel parameters
+portcfg="port1"
+PORTSPEED_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+RECVSIG_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
+if [ "$RECVSIG_RIGHT" == "disc" ] ; then
+    # SAME SETTINGS as TMV71a. THIS NEEDS WORK!!!
+    # Set variables for discriminatior signal
+    PCM_RIGHT="0.0"
+    LO_DRIVER_RIGHT="3.0"
+     ADC_LEVEL_RIGHT="-4.0"
+    IN1_R='10 kOhm'
+    IN2_R="Off"
+fi
+
+# Check for existence of ALSA log file
 if [ ! -d $ALSA_LOG_DIR ] ; then
    mkdir -p $ALSA_LOG_DIR
 fi
@@ -159,9 +159,8 @@ if [ ! -z "$DEBUG" ] ; then
     echo
 fi
 
-echo >> $ALSA_LOG_FILE
-date >> $ALSA_LOG_FILE
-echo "Radio: $RADIO set from $scriptname" | tee -a $ALSA_LOG_FILE
+echo -e "\n--------\n" >> $ALSA_LOG_FILE
+echo "$(date): Radio: $RADIO set from $scriptname" | tee -a $ALSA_LOG_FILE
 
 amixer -c udrc -s << EOF >> $ALSA_LOG_FILE
 sset 'PCM' "${PCM_LEFT}dB,${PCM_RIGHT}dB"
@@ -212,7 +211,7 @@ sset 'AGC Target Level' 0
 sset 'AGC Left' off
 sset 'AGC Right' off
 
-# Turn off High Power output
+# Turn off Head Phone output
 sset 'HP DAC' off
 sset 'HP Driver Gain' 0
 sset 'HPL Output Mixer L_DAC' off
@@ -228,6 +227,7 @@ sset 'LO DAC' on
 sset 'LOL Output Mixer L_DAC' on
 
 # Turn on TONEIN
+# This should be ignored for the original UDRC
 sset 'LOR Output Mixer R_DAC' on
 EOF
 
