@@ -87,34 +87,35 @@ if [ ! -f $PORT_CFG_FILE ] ; then
     fi
     # This will not work when run as root
     sudo cp $HOME/n7nix/ax25/port.conf $PORT_CFG_FILE
-else
-    # Set left channel parameters
-    portcfg="port0"
-    PORTSPEED_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
-    RECVSIG_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
-    if [ "$RECVSIG_LEFT" == "disc" ] ; then
-        # Set variables for discriminator signal
-        PCM_LEFT="0.0"
-        LO_DRIVER_LEFT="3.0"
-        ADC_LEVEL_LEFT="-4.0"
-        IN1_L='10 kOhm'
-        IN2_L="Off"
-    fi
-
-    # Set right channel parameters
-    portcfg="port1"
-    PORTSPEED_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
-    RECVSIG_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
-    if [ "$RECVSIG_RIGHT" == "disc" ] ; then
-        # Set variables for discriminatior signal
-        PCM_RIGHT="0.0"
-        LO_DRIVER_RIGHT="3.0"
-        ADC_LEVEL_RIGHT="-4.0"
-        IN1_R='10 kOhm'
-        IN2_R="Off"
-    fi
 fi
 
+# Set left channel parameters
+portcfg="port0"
+PORTSPEED_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+RECVSIG_LEFT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
+if [ "$RECVSIG_LEFT" == "disc" ] ; then
+    # Set variables for discriminator signal
+    PCM_LEFT="0.0"
+    LO_DRIVER_LEFT="3.0"
+    ADC_LEVEL_LEFT="-4.0"
+    IN1_L='10 kOhm'
+    IN2_L="Off"
+fi
+
+# Set right channel parameters
+portcfg="port1"
+PORTSPEED_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^speed" | cut -f2 -d'=')
+RECVSIG_RIGHT=$(sed -n "/\[$portcfg\]/,/\[/p" $PORT_CFG_FILE | grep -i "^receive_out" | cut -f2 -d'=')
+if [ "$RECVSIG_RIGHT" == "disc" ] ; then
+    # Set variables for discriminatior signal
+    PCM_RIGHT="0.0"
+    LO_DRIVER_RIGHT="3.0"
+    ADC_LEVEL_RIGHT="-4.0"
+    IN1_R='10 kOhm'
+    IN2_R="Off"
+fi
+
+# Check for existence of ALSA log file
 if [ ! -d $ALSA_LOG_DIR ] ; then
    mkdir -p $ALSA_LOG_DIR
 fi
@@ -156,8 +157,7 @@ if [ ! -z "$DEBUG" ] ; then
     echo
 fi
 
-echo >> $ALSA_LOG_FILE
-date >> $ALSA_LOG_FILE
+echo -e "\n--------\n" >> $ALSA_LOG_FILE
 echo "$(date): Radio: $RADIO set from $scriptname" | tee -a $ALSA_LOG_FILE
 
 amixer -c udrc -s << EOF >> $ALSA_LOG_FILE
