@@ -3,7 +3,7 @@
 
 ### Notes:
 ##### DRAWS RPi hat
-* Third panel, gps stats, does not work until the following configs are not defined in config file (aprs_tracker.ini):
+* Third panel, __gps stats__, will not work until the following configs are defined in the tracker config file (aprs_tracker.ini):
   * This is true for any gpsd supported GPS device.
   * [gps] port
   * [gps] rate
