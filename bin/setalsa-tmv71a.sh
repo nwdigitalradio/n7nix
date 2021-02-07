@@ -225,6 +225,7 @@ sset 'LO DAC' on
 sset 'LOL Output Mixer L_DAC' on
 
 # Turn on TONEIN
+# This should be ignored for the original UDRC
 sset 'LOR Output Mixer R_DAC' on
 EOF
 
