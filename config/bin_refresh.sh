@@ -93,6 +93,9 @@ cp -u /home/$USER/n7nix/baudrate/speed_switch.sh $userbindir
 cp -u /home/$USER/n7nix/baudrate/dw-ttcmd.sh $userbindir
 cp -u /home/$USER/n7nix/baudrate/send-ttcmd.sh $userbindir
 
+# Copy watchdog file
+cp -u /home/$USER/n7nix/watchdog/wd-status.sh $userbindir
+
 cp -u /home/$USER/n7nix/config/bin_refresh.sh $userbindir
 cp -u /home/$USER/n7nix/config/sensor_update.sh $userbindir
 
