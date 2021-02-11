@@ -26,7 +26,7 @@ function make_benign_msaptfile() {
 EOF
 }
 
-# function make an empty Microsoft VS Code key file
+# ===== function make an empty Microsoft VS Code key file
 
 function make_empty_mskeyfile() {
 
@@ -41,7 +41,8 @@ function make_empty_mskeyfile() {
     sudo chattr +i "$FILE_MICROSOFT_KEY"
 
 }
-# function block Microsoft VS Code
+
+# ===== function block Microsoft VS Code
 
 function block_ms() {
 
@@ -77,7 +78,7 @@ function block_ms() {
     fi
 }
 
-# function detect if Microsoft has a gpg key & an apt repository entry
+# ===== function detect if Microsoft has a gpg key & an apt repository entry
 
 function is_microsoft() {
 
@@ -111,7 +112,7 @@ function is_microsoft() {
    return $retcode
 }
 
-# function block Microsoft files status
+# ===== function block Microsoft files status
 
 function block_ms_status() {
 
@@ -124,7 +125,7 @@ else
     echo "  File: $FILE_HOSTS OK, has been edited"
 fi
 
-# Status of Microsoft Key file
+## Status of Microsoft Key file
 if [[ -f "$FILE_MICROSOFT_KEY" ]] ; then
     echo -n "  File: $FILE_MICROSOFT_KEY exists "
     if [[ -s "$FILE_MICROSOFT_KEY" ]] ; then
@@ -136,7 +137,7 @@ else
     echo "  File: $FILE_MICROSOFT_KEY does NOT exist"
 fi
 
-# Status of Microsoft repo install file
+## Status of Microsoft repo install file
    grep -iq "^deb" $FILE_MICROSOFT_APT
    if [ $? = 0 ] ; then
        echo "  File: $FILE_MICROSOFT_APT IS active"
