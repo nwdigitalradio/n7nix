@@ -39,4 +39,4 @@ piver.sh
 
 echo
 echo "== /boot/config"
-tail /boot/config.txt
+grep -v "^$\|^#" /boot/config.txt
