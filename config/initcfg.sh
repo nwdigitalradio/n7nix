@@ -117,31 +117,35 @@ cd n7nix/config
 
 # ------ update system
 
-# time how long this takes
-begin_sec=$SECONDS
+# Code block removal
+# The following section updates kernel & packages
+if [ 1 -eq 0 ] ; then
+    # time how long this takes
+    begin_sec=$SECONDS
 
-echo
-echo "$(tput setaf 6) == RPi File System UPDATE$(tput sgr0)"
-sudo apt-get -q update
-if [ $? -ne 0 ] ; then
-    echo "$scriptname: Failure updating n7nix repository"
-fi
-echo
-echo "$(tput setaf 6) == RPi File System UPGRADE$(tput sgr0)"
-sudo apt-get -q -y upgrade
-if [ $? -ne 0 ] ; then
-    echo "$scriptname: Failure updating n7nix repository"
-fi
-echo
-echo "$(tput setaf 6) == RPi File System DIST-UPGRADE$(tput sgr0)"
-sudo apt-get -q -y dist-upgrade
-if [ $? -ne 0 ] ; then
-    echo "$scriptname: Failure updating n7nix repository"
-fi
+    echo
+    echo "$(tput setaf 6) == RPi File System UPDATE$(tput sgr0)"
+    sudo apt-get -q update
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Failure updating n7nix repository"
+    fi
+    echo
+    echo "$(tput setaf 6) == RPi File System UPGRADE$(tput sgr0)"
+    sudo apt-get -q -y upgrade
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Failure updating n7nix repository"
+    fi
+    echo
+    echo "$(tput setaf 6) == RPi File System DIST-UPGRADE$(tput sgr0)"
+    sudo apt-get -q -y dist-upgrade
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Failure updating n7nix repository"
+    fi
 
-# Display how long this took
-echo "$(tput setaf 2) == System update finished in $((SECONDS-begin_sec)) seconds$(tput sgr0)"
-
+    # Display how long this took
+    echo "$(tput setaf 2) == System update finished in $((SECONDS-begin_sec)) seconds$(tput sgr0)"
+    # temporary code block removal
+    fi
 # reboot
 # shutdown -r now
 
