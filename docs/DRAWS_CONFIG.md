@@ -284,12 +284,14 @@ touch /boot/ssh
 ```
 uname -a
 ```
-* You should see: ```4.19.118-v7l+```
-* If you see : ```5.4.51-v7l+``` then your DRAWS hat will have problems
-  * The driver for the TI ads1015 chip is missing in this kernel.
-  * To revert your kernel back to 4.19.118 run the following (courtesy of Thomas KF7RSF):
+* You should see: ```5.4.79-v7l```
+* If you see : ```5.10.11-v7l``` then your DRAWS system will have problems
+  * The problem occurs in clk_hw_create_clk
+    * refcount_t: addition on 0; use-after-free
+    * tlv320aic32x4 1-0018: Failed to get clk 'bdiv': -2
+  * To revert your kernel back to 5.4.79-v7l+ run the following:
 ```
-sudo rpi-upgrade e1050e94821a70b2e4c72b318d6c6c968552e9a2
+sudo rpi-update 0642816ed05d31fb37fc8fbbba9e1774b475113f
 ```
 
 * Do **NOT** use the following commands:
@@ -318,3 +320,21 @@ apt-mark hold libraspberrypi-bin libraspberrypi-dev libraspberrypi-doc libraspbe
 apt-mark hold raspberrypi-bootloader raspberrypi-kernel raspberrypi-kernel-headers
 ```
 * Once you confirm that there is a hold on the Raspberry Pi kernel it is safe to upgrade other programs.
+
+#### Historical Info
+##### Spring 2020
+* Revert kernel 5.4.51 # back to 4.19.118-v7l+
+* You should see: ```4.19.118-v7l+```
+* If you see : ```5.4.51-v7l+``` then your DRAWS hat will have problems
+  * The driver for the TI ads1015 chip is missing in this kernel.
+  * To revert your kernel back to 4.19.118 run the following (courtesy of Thomas KF7RSF):
+```
+sudo rpi-upgrade e1050e94821a70b2e4c72b318d6c6c968552e9a2
+```
+##### Spring 2021
+* Revert kernel 5.10.11-v7l+ #1399 SMP Thu Jan 28 12:09:48 GMT 2021
+  * to kernel 5.4.79-v7l+ #1373 SMP Mon Nov 23 13:27:40
+
+```
+sudo rpi-update 0642816ed05d31fb37fc8fbbba9e1774b475113f
+```
