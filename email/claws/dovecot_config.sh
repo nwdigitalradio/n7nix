@@ -112,7 +112,9 @@ if [ $? -ne 0 ] ; then
     echo "$scriptname: Will Install $pkg_name package"
     apt-get install -y -q $pkg_name
     if [[ $? > 0 ]] ; then
+        echo
         echo "$(tput setaf 1)Failed to install $pkg_name, install from command line. $(tput sgr0)"
+	echo
     fi
 fi
 
