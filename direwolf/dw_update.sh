@@ -8,7 +8,8 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 pkgname="direwolf"
 
 #DW_VER="1.5"
-DW_VER="1.6"
+#DW_VER="1.6"
+DW_VER="dev"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -40,6 +41,7 @@ function install_direwolf_source() {
        rm $DW_VER.zip
    fi
    # This gets version $DW_VER
+   echo "Downloading direwolf version $DW_VER"
    wget https://github.com/wb2osz/direwolf/archive/$DW_VER.zip
    unzip -o $DW_VER.zip
    cd direwolf-$DW_VER
