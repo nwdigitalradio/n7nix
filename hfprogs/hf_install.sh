@@ -131,6 +131,7 @@ echo "install hamlib ver: $hamlib_ver"
 sudo apt-get remove libhamlib2
 
 download_filename="hamlib-${hamlib_ver}.tar.gz"
+
 HAMLIB_SRC_DIR=$SRC_DIR/hamlib-$hamlib_ver
 
 # hamlib takes a long time to build,
@@ -138,11 +139,15 @@ HAMLIB_SRC_DIR=$SRC_DIR/hamlib-$hamlib_ver
 
 if [ ! -d "$HAMLIB_SRC_DIR/tests" ] ; then
     cd "$SRC_DIR"
-
+    echo "DEBUG: changed to directgory: $SRC_DIR"
+    pwd
+    rm "$SRC_DIR/hamlib-*.tar.*"
+    echo
+    echo "Downloading hamlib ver: $hamlib_ver, $download_filename to $(pwd)"
+    echo
     sudo wget https://sourceforge.net/projects/hamlib/files/hamlib/$hamlib_ver/$download_filename
     if [ $? -ne 0 ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
-        exit 1
     else
         sudo tar -zxvf $download_filename
         if [ $? -ne 0 ] ; then
