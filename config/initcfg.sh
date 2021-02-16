@@ -78,6 +78,23 @@ function is_temp_graph_installed() {
     return $graph_installed
 }
 
+# ===== function package_update_only
+# Only update the package list, do not install anything
+function package_update_only() {
+    # time how long this takes
+    begin_sec=$SECONDS
+
+    echo
+    echo "$(tput setaf 6) == RPi File System UPDATE$(tput sgr0)"
+    sudo apt-get -q update
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Failure UPDATING file system packages"
+    fi
+
+    # Display how long this took
+    echo "$(tput setaf 2) == System update finished in $((SECONDS-begin_sec)) seconds$(tput sgr0)"
+}
+
 #
 # ===== Main
 #
@@ -95,21 +112,9 @@ if [ $? -eq 1 ] ; then
     exit
 fi
 
-
-if [ 1 -eq 0 ] ; then
-    # NOTE: n7nix repo gets updated with bin_refresh.sh
-    # ------ update n7nix repo
-    echo
-    echo "$(tput setaf 6) == N7NIX repo UPDATE$(tput sgr0)"
-    cd
-    cd n7nix
-    git pull
-    if [ $? -ne 0 ] ; then
-        echo "$scriptname: Failure updating n7nix repository"
-    fi
-fi
-
 # ------ update local bin directory
+# NOTE: n7nix repo gets updated with bin_refresh.sh
+# ------ update n7nix repo
 
 cd
 cd n7nix/config
@@ -117,37 +122,30 @@ cd n7nix/config
 
 # ------ update system
 
-# Code block removal
 # The following section updates kernel & packages
-if [ 1 -eq 0 ] ; then
-    # time how long this takes
-    begin_sec=$SECONDS
 
-    echo
-    echo "$(tput setaf 6) == RPi File System UPDATE$(tput sgr0)"
-    sudo apt-get -q update
-    if [ $? -ne 0 ] ; then
-        echo "$scriptname: Failure updating n7nix repository"
-    fi
+package_update_only
+
+### Code block removal
+### Do NOT want to install kernel 5.10.11-v7l+ *1399
+if [ 1 -eq 0 ] ; then
     echo
     echo "$(tput setaf 6) == RPi File System UPGRADE$(tput sgr0)"
     sudo apt-get -q -y upgrade
     if [ $? -ne 0 ] ; then
-        echo "$scriptname: Failure updating n7nix repository"
+        echo "$scriptname: Failure UPGRADING file system packages"
     fi
     echo
     echo "$(tput setaf 6) == RPi File System DIST-UPGRADE$(tput sgr0)"
     sudo apt-get -q -y dist-upgrade
     if [ $? -ne 0 ] ; then
-        echo "$scriptname: Failure updating n7nix repository"
+        echo "$scriptname: Failure DIST-UPGRADING file system packages"
     fi
 
     # Display how long this took
-    echo "$(tput setaf 2) == System update finished in $((SECONDS-begin_sec)) seconds$(tput sgr0)"
-    # temporary code block removal
-    fi
-# reboot
-# shutdown -r now
+    echo "$(tput setaf 2) == System upgrade finished in $((SECONDS-begin_sec)) seconds$(tput sgr0)"
+
+fi    ### end temporary code block removal
 
 ## ------ first config
 # Verify if first config has already been done
