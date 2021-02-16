@@ -50,6 +50,23 @@ function check_udrc() {
     return $retcode
 }
 
+# ===== function package_update_only
+# Only update the package list, do not install anything
+function package_update_only() {
+    # time how long this takes
+    begin_sec=$SECONDS
+
+    echo
+    echo "$(tput setaf 6) == RPi File System UPDATE$(tput sgr0)"
+    sudo apt-get -q update
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Failure UPDATING file system packages"
+    fi
+
+    # Display how long this took
+    echo "$(tput setaf 2) == System update finished in $((SECONDS-begin_sec)) seconds$(tput sgr0)"
+}
+
 # ===== function is_temp_graph_installed
 
 function is_temp_graph_installed() {
@@ -78,21 +95,94 @@ function is_temp_graph_installed() {
     return $graph_installed
 }
 
-# ===== function package_update_only
-# Only update the package list, do not install anything
-function package_update_only() {
-    # time how long this takes
-    begin_sec=$SECONDS
+# ===== function install temperature graph
 
-    echo
-    echo "$(tput setaf 6) == RPi File System UPDATE$(tput sgr0)"
-    sudo apt-get -q update
+function install_temperature_graph() {
+    echo "$(tput setaf 6) === Check for previous RPi activity & temperature graph install$(tput sgr0)"
+
+    is_temp_graph_installed
     if [ $? -ne 0 ] ; then
-        echo "$scriptname: Failure UPDATING file system packages"
+        echo
+        echo "$(tput setaf 2) -- Install RPi activity & temperature graph$(tput sgr0)"
+
+        cd
+        cd dev/github/
+	if [ -d rpi-temp-graph ] ; then
+            echo -e "\n\t$(tput setaf 6)rpi-temp-graph already exists ... removing$(tput setaf 7)\n"
+	    sudo rm -r rpi-temp-graph
+	fi
+        git clone https://github.com/n7nix/rpi-temp-graph
+	if [ $? -ne 0 ] ; then
+            echo -e "\n\t$(tput setaf 1)Failed to get rpi-temp-graph repository$(tput setaf 7)\n"
+	    exit 1
+	fi
+	# Verify source directory was created
+	if [ -d rpi-temp-graph ] ; then
+            cd rpi-temp-graph/
+            ./tempgraph_install.sh
+
+            # Set proper GPIO for a DRAWS hat for ambient temperature
+            cd
+            cd bin
+
+            # Replace everything after string WIRINGPI_GPIO in file rpiamb_gettemp.sh
+            GPIO_NUM=21
+
+            sed -i -e "/WIRINGPI_GPIO=/ s/^WIRINGPI_GPIO=.*/WIRINGPI_GPIO=\"$GPIO_NUM\"/"  rpiamb_gettemp.sh
+            if [ "$?" -ne 0 ] ; then
+                echo -e "\n\t$(tput setaf 1)Failed to change WIRINGPI_GPIO$(tput setaf 7)\n"
+            fi
+	else
+            echo -e "\n\t$(tput setaf 1)Repo directory (rpi-temp-graph) does not exist! ... exiting$(tput setaf 7)\n"
+	fi
+
+    else
+        echo "$(tput setaf 2) RPi activity & temperature graph already installed$(tput sgr0)"
     fi
 
-    # Display how long this took
-    echo "$(tput setaf 2) == System update finished in $((SECONDS-begin_sec)) seconds$(tput sgr0)"
+    ## ----- Verify temperature value is going into database
+    # Display IP address to use to view graph
+
+    eth_ip=$(ip -4 -o addr show dev eth0 | awk '!/^[0-9]*: ?lo|link\/ether/ {gsub("/", " "); print $2" "$4}')
+    wifi_ip=$(ip -4 -o addr show dev wlan0 | awk '!/^[0-9]*: ?lo|link\/ether/ {gsub("/", " "); print $2" "$4}')
+
+    if [ -z "$eth_ip" ] ; then
+        eth_ip="none"
+    fi
+
+    if [ -z "$wifi_ip" ] ; then
+        wifi_ip="none"
+    fi
+
+    echo
+    echo "$(tput setaf 6) == Check IP address: lan: $eth_ip, wan: $wifi_ip$(tput sgr0)"
+
+    # in a browser verify temperature graph
+    # http://10.0.42.184/cgi-bin/rpitemp.cgi
+
+    ## ----- Verify cpu & ambient temperature working
+
+    echo
+    echo "$(tput setaf 6) == Check temperature graph update in cron table$(tput sgr0)"
+    crontab -l
+
+    ambtemp=$(rpiamb_gettemp.sh)
+    cputemp=$(rpicpu_gettemp.sh)
+    CPULOAD=$(cat /proc/loadavg | cut -f2 -d ' ')
+    echo
+    echo "$(tput setaf 2)Temperatures: cpu: $cputemp, ambient: $ambtemp, cpu activity: $CPULOAD$(tput sgr0)"
+}
+
+# ===== Display program help info
+
+usage () {
+	(
+	echo "Usage: $scriptname [-t][-h]"
+        echo "    -t   Only install RPi temperature graph"
+        echo "    -h   Display this message"
+        echo
+	) 1>&2
+	exit 1
 }
 
 #
@@ -119,6 +209,31 @@ fi
 cd
 cd n7nix/config
 ./bin_refresh.sh
+
+# Check for any command line arguments
+if (( $# != 0 )) ; then
+    key="$1"
+    case $key in
+        -t)
+	    echo
+            echo "$(tput setaf 6) == Install temperature graph ONLY$(tput sgr0)"
+            ## ----- Install temperature RRD graph
+            install_temperature_graph
+	    exit 0
+	;;
+        -h)
+            usage
+            exit 1
+        ;;
+
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+fi
+
 
 # ------ update system
 
@@ -259,66 +374,7 @@ fi
 ## ------ Winlink packet station config finished
 
 ## ----- Install temperature RRD graph
-echo "$(tput setaf 6) === Check for previous RPi activity & temperature graph install$(tput sgr0)"
-
-is_temp_graph_installed
-if [ $? -ne 0 ] ; then
-    echo
-    echo "$(tput setaf 2) -- Install RPi activity & temperature graph$(tput sgr0)"
-
-    cd
-    cd dev/github/
-    git clone https://github.com/n7nix/rpi-temp-graph
-    cd rpi-temp-graph/
-    ./tempgraph_install.sh
-
-    # Set proper GPIO for a DRAWS hat for ambient temperature
-    cd
-    cd bin
-
-    # Replace everything after string WIRINGPI_GPIO in file rpiamb_gettemp.sh
-    GPIO_NUM=21
-
-    sed -i -e "/WIRINGPI_GPIO=/ s/^WIRINGPI_GPIO=.*/WIRINGPI_GPIO=\"$GPIO_NUM\"/"  rpiamb_gettemp.sh
-    if [ "$?" -ne 0 ] ; then
-        echo -e "\n\t$(tput setaf 1)Failed to change WIRINGPI_GPIO$(tput setaf 7)\n"
-    fi
-
-else
-    echo "$(tput setaf 2) RPi activity & temperature graph already installed$(tput sgr0)"
-fi
-
-## ----- Verify temperature value is going into database
-# Display IP address to use to view graph
-
-eth_ip=$(ip -4 -o addr show dev eth0 | awk '!/^[0-9]*: ?lo|link\/ether/ {gsub("/", " "); print $2" "$4}')
-wifi_ip=$(ip -4 -o addr show dev wlan0 | awk '!/^[0-9]*: ?lo|link\/ether/ {gsub("/", " "); print $2" "$4}')
-
-if [ -z "$eth_ip" ] ; then
-    eth_ip="none"
-fi
-
-if [ -z "$wifi_ip" ] ; then
-    wifi_ip="none"
-fi
-
-echo
-echo "$(tput setaf 6) == Check IP address: lan: $eth_ip, wan: $wifi_ip$(tput sgr0)"
-
-# in a browser verify temperature graph
-# http://10.0.42.184/cgi-bin/rpitemp.cgi
-
-## ----- Verify cpu & ambient temperature working
-
-echo
-echo "$(tput setaf 6) == Check temperature graph update in cron table$(tput sgr0)"
-crontab -l
-
-ambtemp=$(rpiamb_gettemp.sh)
-cputemp=$(rpicpu_gettemp.sh)
-CPULOAD=$(cat /proc/loadavg | cut -f2 -d ' ')
-echo
-echo "$(tput setaf 2)Temperatures: cpu: $cputemp, ambient: $ambtemp, cpu activity: $CPULOAD$(tput sgr0)"
+install_temperature_graph
 
 # Add heart beat trigger to boot config
 grep -i --quiet "act_led_trigger" /boot/config.txt
