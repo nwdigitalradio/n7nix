@@ -278,7 +278,7 @@ touch /boot/ssh
 * Boot the new micro SD card.
 
 ### Placing A Hold On Kernel Upgrade
-* **For reference only, the current Linux kernel is safe to use with DRAWS**
+* **As of Feb/2021 you must revert to kernel 5.4.79 and place a hold on kernel upgrades**
 
   * To verify your current kernel version
 ```
