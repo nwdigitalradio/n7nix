@@ -6,8 +6,12 @@
 # Reference:
 #  https://www.cyberciti.biz/linux-news/heads-up-microsoft-repo-secretly-installed-on-all-raspberry-pis-linux-os/
 #
+# Covers these cases:
+#  No Microsoft repo has YET been added to apt-sources configuration
+#  Microsoft repo HAS been added to apt-sources
+
 scriptname="`basename $0`"
-VERSION="1.1"
+VERSION="1.2"
 
 FILE_MICROSOFT_KEY="/etc/apt/trusted.gpg.d/microsoft.gpg"
 FILE_MICROSOFT_APT="/etc/apt/sources.list.d/vscode.list"
@@ -27,6 +31,7 @@ EOF
 }
 
 # ===== function make an empty Microsoft VS Code key file
+# Also locks the key file from being changed.
 
 function make_empty_mskeyfile() {
 
@@ -39,7 +44,6 @@ function make_empty_mskeyfile() {
     echo "  Making new empty Microsoft key file"
     sudo touch "$FILE_MICROSOFT_KEY"
     sudo chattr +i "$FILE_MICROSOFT_KEY"
-
 }
 
 # ===== function block Microsoft VS Code
@@ -79,6 +83,13 @@ function block_ms() {
 }
 
 # ===== function detect if Microsoft has a gpg key & an apt repository entry
+
+# Returns 0 if MS APT file and MS KEY file are acitve
+#
+# Sets variable APT_FILE_EXISTS to true if
+#   there is a MS entry in an apt source file
+# Sets variable KEY_FILE_EXISTS to true if
+#   there is a MS gpg key file
 
 function is_microsoft() {
 
@@ -163,8 +174,8 @@ if is_microsoft ; then
     dbgecho "  Will call block_ms"
     block_ms
 else
-    if [[ $KEY_FILE_EXISTS = true ]] && [[ $KEY_FILE_EXISTS = true ]] ; then
-        echo "  No files edited Microsoft repository already blocked."
+    if [[ $KEY_FILE_EXISTS = true ]] && [[ $APT_FILE_EXISTS = true ]] ; then
+        echo "  No files edited Microsoft, repository already blocked."
     else
         # Case where msvscode has not been added to repository yet.
         ## hosts file
