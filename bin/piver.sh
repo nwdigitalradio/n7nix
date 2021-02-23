@@ -90,6 +90,10 @@ c03112)
    VERSION_STRING=" Pi 4 Model B, Rev 1.2, 4GB mem, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
+c03114)
+   VERSION_STRING=" Pi 4 Model B, Rev 1.4, 4GB mem, Mfg by Sony UK"
+   HAS_WIFI=true
+;;
 d03114)
    VERSION_STRING=" Pi 4 Model B, Rev 1.4, 8GB mem, Mfg by Sony UK"
    HAS_WIFI=true
