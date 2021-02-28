@@ -111,7 +111,6 @@ if (( $# > 0 )) && [ -n "$1" ] ; then
   fi
 fi
 
-
 # check for a second command line argument - grid square
 
 if (( $# >= 2 )) ; then
@@ -127,7 +126,6 @@ fi
 if (( $# >= 3 )) ; then
     silent=true
 fi
-
 
 # Convert grid square to upper case
 grid_square=$(echo "$grid_square" | tr '[a-z]' '[A-Z]')
@@ -175,7 +173,7 @@ if $do_it_flag ; then
 #   curl -s http://server.winlink.org:8085"/json/reply/GatewayProximity?GridSquare=$grid_square&MaxDistance=$max_distance" > $RMS_PROXIMITY_FILE_RAW
     # V5 Winlink Web Services
 #
-# svc_url="https://api.winlink.org/gateway/proximity?GridSquare=$grid_square&MaxDistance=$max_distance&Key=$WL_KEY&format=json"
+# svc_url="https://api.winlink.org/gateway/proximity?GridSquare=$grid_square&ServiceCodes=PUBLIC,EMCOMM&MaxDistance=$max_distance&Key=$WL_KEY&format=json"
 
 # Add service codes: PUBLIC & EMCOMM
     svc_url="https://api.winlink.org/gateway/proximity?GridSquare=$grid_square&ServiceCodes=$service&MaxDistance=$max_distance&Key=$WL_KEY&format=json"
@@ -217,10 +215,16 @@ fi
 
 dbgecho "Have good request json"
 
+# Just for testing purposes
+# if freq_alpha file does not exist in expected location then
+#  check in dev directory
+if [ ! -s "$FILE_ALPHA_FREQ" ] ; then
+    FILE_ALPHA_FREQ="$HOME/dev/github/n7nix/rmsgw/freq_alpha.txt"
+fi
+
 # Parse the JSON file
 # cat $RMS_PROXIMITY_FILE_RAW | jq '.GatewayList[] | {Callsign, Frequency, Distance}' > $RMS_PROXIMITY_FILE_PARSE
  count=0
-
 
 if $silent ; then
 
@@ -240,7 +244,7 @@ else
     dbgecho "Non silent display"
     # Print the table header
     if [ -s "$FILE_ALPHA_FREQ" ] ; then
-        echo "  Callsign       Frequency  Alpha   Distance    Baud    Service"
+        echo "  Callsign       Frequency  Alpha    Distance   Baud    Service"
     else
         echo "  Callsign       Frequency  Distance    Baud    Service"
     fi
@@ -262,7 +266,7 @@ else
 	    if [ "$?" -ne 0 ] ; then
 	        alpha="  n/a"
 	    fi
-            printf ' %-10s\t%10s %6s\t%s\t%4s\t%s\n' "$callsign" "$frequency" $alpha "$distance" "$baud" "$service"
+            printf ' %-10s\t%10s  %6s\t%s\t%4s\t%s\n' "$callsign" "$frequency" $alpha "$distance" "$baud" "$service"
 
 	else
             printf ' %-10s\t%10s\t%s\t%4s\t%s\n' "$callsign" "$frequency" "$distance" "$baud" "$service"
