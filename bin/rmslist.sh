@@ -13,6 +13,7 @@
 
 myname="`basename $0`"
 
+FILE_ALPHA_FREQ="$HOME/n7nix/rmsgw/freq_alpha.txt"
 #TMPDIR="/tmp"
 TMPDIR="$HOME/tmp"
 RMS_PROXIMITY_FILE_RAW="$TMPDIR/rmsgwprox.json"
@@ -218,6 +219,8 @@ dbgecho "Have good request json"
 
 # Parse the JSON file
 # cat $RMS_PROXIMITY_FILE_RAW | jq '.GatewayList[] | {Callsign, Frequency, Distance}' > $RMS_PROXIMITY_FILE_PARSE
+ count=0
+
 
 if $silent ; then
 
@@ -234,10 +237,13 @@ if $silent ; then
         printf ' %-10s\t%10s\t%s\t%4s\n' "$callsign" "$frequency" "$distance" "$baud"
     done 2>&1 > $RMS_PROXIMITY_FILE_OUT
 else
-
+    dbgecho "Non silent display"
     # Print the table header
-    echo "  Callsign       Frequency  Distance    Baud    Service"
-
+    if [ -s "$FILE_ALPHA_FREQ" ] ; then
+        echo "  Callsign       Frequency  Alpha   Distance    Baud    Service"
+    else
+        echo "  Callsign       Frequency  Distance    Baud    Service"
+    fi
     # iterate through the JSON parsed file
     for k in $(jq '.GatewayList | keys | .[]' $RMS_PROXIMITY_FILE_RAW); do
         value=$(jq -r ".GatewayList[$k]" $RMS_PROXIMITY_FILE_RAW);
@@ -249,8 +255,25 @@ else
         distance=$(jq -r '.Distance' <<< $value);
         service=$(jq -r '.ServiceCode' <<< $value);
 
-        printf ' %-10s\t%10s\t%s\t%4s\t%s\n' "$callsign" "$frequency" "$distance" "$baud" "$service"
-    done 2>&1 | tee $RMS_PROXIMITY_FILE_OUT
+	if [ -s "$FILE_ALPHA_FREQ" ] ; then
+	    # if there is a frequency to alpha file around print that field
+	    alpha=$(grep -i $frequency $FILE_ALPHA_FREQ | cut -d' ' -f2)
+	    grep --quiet "NET-" <<< $alpha
+	    if [ "$?" -ne 0 ] ; then
+	        alpha="  n/a"
+	    fi
+            printf ' %-10s\t%10s %6s\t%s\t%4s\t%s\n' "$callsign" "$frequency" $alpha "$distance" "$baud" "$service"
+
+	else
+            printf ' %-10s\t%10s\t%s\t%4s\t%s\n' "$callsign" "$frequency" "$distance" "$baud" "$service"
+	fi
+
+	# Count total number of RMS Gateways found
+	(( ++count ))
+    # This fixes variable scope with count
+    done > >(tee "$RMS_PROXIMITY_FILE_OUT") 2>&1
+
+    echo "Found $count RMS Gateways"  | tee -a "$RMS_PROXIMITY_FILE_OUT"
 fi
 
 exit 0
