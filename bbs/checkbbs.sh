@@ -8,22 +8,23 @@
 DEBUG=1
 FORCE=0
 SENDTO="gunn@beeble.localnet"
-BBS_CALL="nixbbs"
+#BBS_CALL="nixbbs"
+BBS_CALL="jnbbs"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function usage
 
 function usage() {
-   echo "Usage: $scriptname [-r <msg_num>][-a][-d][-f][-l][-sb][-sp][-h]" >&2
+   echo "Usage: $scriptname [-r <msg_num>][-a][-d][-D][-f][-l][-sb][-sp][-h]" >&2
    echo "   -r <msg_num> Read message number"
-   echo "   -a Read all messages"
-   echo "   -d set debug flag"
-   echo "   -D dump bbs files"
-   echo "   -f Force refreshing local BBS files"
-   echo "   -l Display message indexes"
-   echo "   -s Send to BBS"
-   echo "   -h no arg, display this message"
+   echo "   -a       Read all messages"
+   echo "   -d       set debug flag"
+   echo "   -D       dump bbs files"
+   echo "   -f       Force refreshing local BBS files"
+   echo "   -l       Display message indexes"
+   echo "   -s[b][p] Send to BBS"
+   echo "   -h       no arg, display this message"
    echo
 }
 
@@ -228,8 +229,13 @@ function cmp_msg_index() {
 # ===== function display_msg_index()
 
 function display_msg_index() {
-    dir_file=$(ls -t $dir_rootfile* | head -1)
-    cat "$dir_file"
+
+    if [ -s "${dir_file}*" ] ; then
+        dir_file=$(ls -t $dir_rootfile* | head -1)
+        cat "$dir_file"
+    else
+        echo "Directory file root: ${dir_file}* does not exist"
+    fi
 }
 
 # ===== function send_to_bbs()
@@ -293,17 +299,24 @@ if [ -z "$filename_root" ] ; then
     echo "Clean_up called with no filename root"
     return;
 fi
-filename_count=$(ls -1 $filename_root* | wc -l)
 
-echo "Clean_up filename: $filename_root, count: $filename_count"
+if [ -s "${filename_root}*" ] ; then
 
-while (( filename_count > 2 )) ; do
-
-    filename=$(ls -t ${filename_root}* | tail -n1)
-    echo "Removing file: $filename"
-    rm $filename
     filename_count=$(ls -1 $filename_root* | wc -l)
-done
+
+    echo "Clean_up filename: $filename_root, count: $filename_count"
+
+    while (( filename_count > 2 )) ; do
+
+        filename=$(ls -t ${filename_root}* | tail -n1)
+        echo "Removing file: $filename"
+        rm $filename
+        filename_count=$(ls -1 $filename_root* | wc -l)
+    done
+else
+    echo "File root: ${filename_root}* does not exist"
+fi
+
 
 }
 
@@ -317,12 +330,27 @@ msg_rootfile="${BBS_CALL}2m_msg"
 ALL_MSGS="false"
 FORCE=0
 
-session_file=$(ls -t $session_rootfile* | head -1)
-msg_file=$(ls -t $msg_rootfile* | head -1)
-echo "Existing files: Session file: $session_file, Msg file: $msg_file"
+if [ -s ${session_rootfile}* ] && [ -s ${msg_rootfile}* ] ; then
+    session_file=$(ls -t $session_rootfile* | head -1)
+    msg_file=$(ls -t $msg_rootfile* | head -1)
+    echo "Existing files: Session file: $session_file, Msg file: $msg_file"
+else
+    echo "Files: session root: ${session_rootfile}* and/or message root: ${msg_rootfile}* do not exist"
 
-session_epoch=$(stat -c %Y $session_file)
-msg_epoch=$(stat -c %Y $msg_file)
+fi
+
+if [ -s "$session_file" ] ; then
+    session_epoch=$(stat -c %Y $session_file)
+else
+    echo "Session file: $session_file does not exist"
+    session_epoch=0
+fi
+if [ -s "$msg_file" ] ; then
+    msg_epoch=$(stat -c %Y $msg_file)
+else
+    echo "Message File: $msg_file does not exist"
+    msg_epoch=0
+fi
 
 current_epoch=$(date "+%s")
 elapsed_epoch=$((current_epoch - session_epoch))
