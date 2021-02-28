@@ -133,7 +133,7 @@ else
 
         # Count number of unique call signs
         ((callsign_cnt++))
-
+    # This fixes variable scope with callsign_count
     done > >(tee $ARDOP_STATUS_FILE_OUT) 2>&1
 
     sleep .5 # to let tee catch up
