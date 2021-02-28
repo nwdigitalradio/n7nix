@@ -45,14 +45,14 @@ function notify_new_msg() {
 function dump_bbs_files() {
 
     # Get current name of sesssion file
-    session_file=$(ls -t $session_rootfile* | head -1)
+    session_file=$(ls -t ${session_rootfile}* | head -1)
     echo
     echo "==== session file: $session_file"
     echo
     cat "$session_file"
 
     # Get current name of index file
-    dir_file=$(ls -t $dir_rootfile* | head -1)
+    dir_file=$(ls -t ${dir_rootfile}* | head -1)
     msg_cnt="$(cat $dir_file | wc -l)"
     echo
     echo "==== index file($msg_cnt): $dir_file"
@@ -61,7 +61,7 @@ function dump_bbs_files() {
 
     # Get current name of message file
     echo
-    msg_x_file=$(ls -t $msg_rootfile* | head -1)
+    msg_x_file=$(ls -t ${msg_rootfile}* | head -1)
     echo "==== message file: $msg_x_file"
     echo
     cat "$msg_x_file"
@@ -71,10 +71,10 @@ function dump_bbs_files() {
 
 readmsg_num() {
     readnum="$1"
-    dir_file=$(ls -t $dir_rootfile* | head -1)
+    dir_file=$(ls -t ${dir_rootfile}* | head -1)
     msg_cnt="$(cat $dir_file | wc -l)"
 
-    msg_x_file=$(ls -t $msg_rootfile* | head -1)
+    msg_x_file=$(ls -t ${msg_rootfile}* | head -1)
     msg_numbers=
     dbgecho "Reading msg # $readnum, total msgs: $msg_cnt, from file: $msg_x_file"
     for ((mn=1; mn <= $msg_cnt; mn++)) ; do
@@ -98,9 +98,9 @@ readmsg_num() {
 # ===== function readmsg_all()
 
 readmsg_all() {
-    dir_file=$(ls -t $dir_rootfile* | head -1)
+    dir_file=$(ls -t ${dir_rootfile}* | head -1)
     msgcnt="$(cat $dir_file | wc -l)"
-    msg_x_file=$(ls -t $msg_rootfile* | head -1)
+    msg_x_file=$(ls -t ${msg_rootfile}* | head -1)
 
     echo "message count: $msgcnt"
     # Create a list of message numbers from message index file
@@ -128,7 +128,7 @@ function create_msg_index() {
     # create BBS Directory listing
     echo "=== Create directory file:  $dir_file"
     # Get current name of session file
-    session_file=$(ls -t $session_rootfile* | head -1)
+    session_file=$(ls -t ${session_rootfile}* | head -1)
     sed -e '1,/MSG#  ST SIZE   /d; /ENTER COMMAND:/,$d' $session_file > $dir_file
 
     msg_cnt="$(cat $dir_file | wc -l)"
@@ -161,13 +161,13 @@ function get_bbs_msgs() {
 
 
 # Existing msg index file?
-ls  -t $dir_rootfile*  > /dev/null 2>&1
+ls  -t ${dir_rootfile}*  > /dev/null 2>&1
 if [ "$?" -ne 0 ] ; then
     # Create new index file
     get_msg_index
 fi
 
-dir_file=$(ls -t $dir_rootfile* | head -1)
+dir_file=$(ls -t ${dir_rootfile}* | head -1)
 
 # Create new msg file
 msg_file=${msg_rootfile}_$date_now.txt
@@ -205,12 +205,12 @@ printf "b\n"
 # ===== function cmp_msg_index()
 
 function cmp_msg_index() {
-    indexfile_cnt=$(ls -1 $dir_rootfile* | wc -l)
+    indexfile_cnt=$(ls -1 ${dir_rootfile}* | wc -l)
 
     # Verify that there are 2 previous index files for comparison
     if (( indexfile_cnt >= 2 )) ; then
-        last_dirfile=$(ls -t $dir_rootfile* | head -1)
-        set -- $(ls -t $dir_rootfile*)
+        last_dirfile=$(ls -t ${dir_rootfile}* | head -1)
+        set -- $(ls -t ${dir_rootfile}*)
         prev_dirfile=$2
         echo "cmp_msg_index: last file: $last_dirfile, prev file: $prev_dirfile"
         diff $last_dirfile $prev_dir_file   > /dev/null 2>&1
@@ -219,7 +219,7 @@ function cmp_msg_index() {
         else
             echo "cmp_msg_index: message index has changed"
             get_bbs_msgs
-            notify_new_msg $(ls -t $msg_rootfile* | head -1)
+            notify_new_msg $(ls -t ${msg_rootfile}* | head -1)
         fi
     else
         echo "cmp_msg_index: No previous index file to compare"
@@ -230,8 +230,9 @@ function cmp_msg_index() {
 
 function display_msg_index() {
 
-    if [ -s "${dir_file}*" ] ; then
-        dir_file=$(ls -t $dir_rootfile* | head -1)
+    dir_file_cnt=$(ls -1 ${dir_file}* | wc -l)
+    if [ $dir_file_cnt -gt 0 ] ; then
+        dir_file=$(ls -t ${dir_rootfile}* | head -1)
         cat "$dir_file"
     else
         echo "Directory file root: ${dir_file}* does not exist"
@@ -294,30 +295,27 @@ echo "Number of messages in outbox: $filecnt"
 # arg filename root
 function clean_up() {
 
-filename_root="$1"
-if [ -z "$filename_root" ] ; then
-    echo "Clean_up called with no filename root"
-    return;
-fi
+    filename_root="$1"
+    if [ -z "$filename_root" ] ; then
+        echo "Clean_up called with no filename root"
+        return;
+    fi
 
-if [ -s "${filename_root}*" ] ; then
+    filename_count=$(ls -1 ${filename_root}* | wc -l)
+    if [ $filename_count -gt 0 ] ; then
 
-    filename_count=$(ls -1 $filename_root* | wc -l)
+        echo "Clean_up filename: $filename_root, count: $filename_count"
 
-    echo "Clean_up filename: $filename_root, count: $filename_count"
+        while (( filename_count > 2 )) ; do
 
-    while (( filename_count > 2 )) ; do
-
-        filename=$(ls -t ${filename_root}* | tail -n1)
-        echo "Removing file: $filename"
-        rm $filename
-        filename_count=$(ls -1 $filename_root* | wc -l)
-    done
-else
-    echo "File root: ${filename_root}* does not exist"
-fi
-
-
+            filename=$(ls -t ${filename_root}* | tail -n1)
+            echo "Removing file: $filename"
+            rm $filename
+            filename_count=$(ls -1 ${filename_root}* | wc -l)
+        done
+    else
+        echo "File root: ${filename_root}* does not exist"
+    fi
 }
 
 # ===== main
@@ -330,9 +328,12 @@ msg_rootfile="${BBS_CALL}2m_msg"
 ALL_MSGS="false"
 FORCE=0
 
-if [ -s ${session_rootfile}* ] && [ -s ${msg_rootfile}* ] ; then
-    session_file=$(ls -t $session_rootfile* | head -1)
-    msg_file=$(ls -t $msg_rootfile* | head -1)
+session_file_cnt=$(ls -1 ${session_rootfile}* | wc -l)
+msg_file_cnt=$(ls -1 ${msg_rootfile}* | wc -l)
+
+if [ $session_file_cnt -gt 0 ] && [ $msg_file_cnt -gt 0 ] ; then
+    session_file=$(ls -t ${session_rootfile}* | head -1)
+    msg_file=$(ls -t ${msg_rootfile}* | head -1)
     echo "Existing files: Session file: $session_file, Msg file: $msg_file"
 else
     echo "Files: session root: ${session_rootfile}* and/or message root: ${msg_rootfile}* do not exist"
@@ -416,10 +417,10 @@ msg_cnt=0
 last_dirfile=
 
 # Existing msg index file?
-ls  -t $dir_rootfile*  > /dev/null 2>&1
+ls  -t ${dir_rootfile}*  > /dev/null 2>&1
 if [ "$?" -eq 0 ] ; then
     # Get name of most recent index file
-    last_dirfile=$(ls -t $dir_rootfile* | head -1)
+    last_dirfile=$(ls -t ${dir_rootfile}* | head -1)
     echo "Found an existing index file: $last_dirfile"
     msg_cnt="$(cat $last_dirfile | wc -l)"
 else
