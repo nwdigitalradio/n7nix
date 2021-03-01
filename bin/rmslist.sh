@@ -10,6 +10,9 @@
 # If you need to download it get it from here:
 # http://stedolan.github.io/jq/download/
 #
+# Run n7nix/bin/getalpha.sh in directory n7nix/rmsgw
+# getalpha.sh > freq_alpha.txt
+# This is a static file that is checked-in to github
 
 myname="`basename $0`"
 
