@@ -7,6 +7,7 @@ DEBUG=
 USER=
 SYSTEMCTL="systemctl"
 SERVICE_LIST="draws-manager"
+scriptname="`basename $0`"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -25,6 +26,7 @@ function status_service() {
     if [ $? -ne 0 ] ; then
         IS_RUNNING="NOT RUNNING"
     fi
+    systemctl --no-pager status $service
 }
 
 # ===== function start_service
@@ -77,8 +79,25 @@ function mgr_stop() {
 function mgr_status() {
     for service in `echo ${SERVICE_LIST}` ; do
         status_service $service
-        echo "Status for $service: $IS_RUNNING and $IS_ENABLED"
+	echo
+        echo " Status for $service: $IS_RUNNING and $IS_ENABLED"
     done
+}
+
+# ===== function usage
+# Display program help info
+
+function usage () {
+	(
+	echo "Usage: $scriptname [start][stop][status][-h]"
+        echo "                  No args will show status of draws-manager"
+        echo "  start           start required manager processes"
+        echo "  stop            stop all manager processes"
+        echo "  status          display status of manager processes"
+        echo "    -h display this message."
+	echo " exiting ..."
+	) 1>&2
+	exit 1
 }
 
 # ===== main
@@ -93,22 +112,30 @@ fi
 while [[ $# -gt 0 ]] ; do
 APP_ARG="$1"
 
-case $APP_ARG in
-    stop)
-        mgr_stop
-        exit 0
-    ;;
-    start)
-        start_service draws-manager
-	exit 0
-    ;;
-    status)
-        mgr_status
-	exit 0
-    ;;
-esac
-
-shift # past argument
+    case $APP_ARG in
+        stop)
+            mgr_stop
+            exit 0
+        ;;
+        start)
+            start_service draws-manager
+	    exit 0
+        ;;
+        status)
+            mgr_status
+	    exit 0
+        ;;
+        -h|--help|-?)
+            usage
+            exit 0
+        ;;
+        *)
+            echo "Undefined argument: $key"
+            usage
+            exit 1
+        ;;
+    esac
+    shift # past argument
 done
 
 mgr_status
