@@ -34,6 +34,11 @@ echo "== DRAWS driver check:"
 check_udrc
 
 echo
+echo "== Boot 'fail' check:"
+#dmesg | grep -i "sc16is7xx"
+dmesg | grep -i "fail"
+
+echo
 echo "== Pi Version"
 piver.sh
 
