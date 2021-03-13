@@ -26,6 +26,10 @@ echo "== Kernel version:"
 uname -a
 
 echo
+echo "== Firmware version:"
+vcgencmd version
+
+echo
 echo "== Codec driver check:"
 dmesg | grep -i "tlv320a"
 
@@ -37,6 +41,13 @@ echo
 echo "== Boot 'fail' check:"
 #dmesg | grep -i "sc16is7xx"
 dmesg | grep -i "fail"
+
+echo
+echo "== GPS check:"
+systemctl status gpsd | grep -i "error"
+if [ $? -ne 0 ] ; then
+    echo "OK"
+fi
 
 echo
 echo "== Pi Version"
