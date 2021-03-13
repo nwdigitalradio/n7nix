@@ -90,11 +90,11 @@ function mgr_status() {
 function usage () {
 	(
 	echo "Usage: $scriptname [start][stop][status][-h]"
-        echo "                  No args will show status of draws-manager"
-        echo "  start           start required manager processes"
-        echo "  stop            stop all manager processes"
-        echo "  status          display status of manager processes"
-        echo "    -h display this message."
+        echo "                No args will show status of draws-manager"
+        echo "   start        start required manager processes"
+        echo "   stop         stop all manager processes"
+        echo "   status       display status of manager processes"
+        echo "   -h           display this message."
 	echo " exiting ..."
 	) 1>&2
 	exit 1
