@@ -44,9 +44,15 @@ dmesg | grep -i "fail"
 
 echo
 echo "== GPS check:"
+if [ -e /dev/ttySC0 ] && [ -e /dev/ttySC1 ] ; then
+    echo "Serial devices OK"
+else
+    echo "One or more serial devices not found"
+    ls /dev/ttySC*
+fi
 systemctl status gpsd | grep -i "error"
 if [ $? -ne 0 ] ; then
-    echo "OK"
+    echo "gpsd OK"
 fi
 
 echo
