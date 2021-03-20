@@ -77,7 +77,6 @@ SYSTEMCTL="systemctl"
 
 CONNECTOR="left"
 
-
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function is_pkg_installed
@@ -139,19 +138,33 @@ function get_user_name() {
 # ===== function start_service
 function start_service() {
     service="$1"
-    echo "Starting: $service"
+
+    SYSD_TYPE=
+    SYSD_NAME="system"
+
+    SYSD_SYS_ETC_DIR="/etc/systemd/system"
+    SYSD_USER_ETC_DIR="/etc/systemd/user"
+    SYSD_SYS_LIB_DIR="/usr/lib/systemd/system"
+    SYSD_USER_LIB_DIR="/usr/lib/systemd/user"
+
+    if [ -s $SYSD_USER_ETC_DIR/$service || -s $SYSD_USER_LIB_DIR/$service ] ; then
+        SYSD_TYPE="--user"
+	SYSD_NAME="user"
+    fi
 
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
-        echo "ENABLING $service"
-        $SYSTEMCTL enable "$service"
+        echo "ENABLING service: $service"
+        $SYSTEMCTL $SYSD_TYPE enable "$service"
         if [ "$?" -ne 0 ] ; then
-            echo "Problem ENABLING $service"
+            echo " Problem ENABLING ($SYSD_NAME) $service"
         fi
     fi
-    $SYSTEMCTL --no-pager start "$service"
+
+    echo "STARTING service: $service"
+    $SYSTEMCTL $SYSD_TYPE --no-pager start "$service"
     if [ "$?" -ne 0 ] ; then
-        echo "Problem starting $service"
+        echo " Problem starting ($SYSD_NAME) $service"
     fi
 }
 
@@ -160,17 +173,17 @@ function stop_sys_service() {
     service="$1"
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -eq 0 ] ; then
-        echo "DISABLING $service"
+        echo "DISABLING (system) $service"
         $SYSTEMCTL disable "$service"
         if [ "$?" -ne 0 ] ; then
-            echo "Problem DISABLING $service"
+            echo " Problem DISABLING (system) $service"
         fi
     else
-        echo "Service: $service already disabled."
+        echo " Service: $service already disabled."
     fi
     $SYSTEMCTL stop "$service"
     if [ "$?" -ne 0 ] ; then
-        echo "Problem STOPPING $service"
+        echo " Problem STOPPING $service"
     fi
 }
 
@@ -179,7 +192,7 @@ function stop_user_service() {
     service="$1"
     systemctl --user is-enabled "$service" > /dev/null 2>&1
     if [ $? -eq 0 ] ; then
-        echo "DISABLING (user)$service"
+        echo "DISABLING (user) $service"
         $SYSTEMCTL --user disable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem DISABLING (user) $service"
@@ -242,19 +255,25 @@ function do_diff() {
 # comment out second channel in direwolf config file
 
 function config_dw_1chan() {
-
+    echo
     echo "Edit direwolf config file to use 1 chan"
 
     # - only CHANNEL 0 is used
     # Change ACHANNELS from 2 to 1
     dbgecho "ACHANNELS set to 1"
-    sudo sed -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
+    sudo sed -i -e '/^ACHANNELS 2/ s/2/1/' "$DIREWOLF_CFGFILE"
+    if [ $? -ne 0 ] ; then
+        echo "${FUNCNAME[0]}: failed to edit $DIREWOLF_CFGFILE"
+    fi
 
     # Define ARATE 48000 if not already set
     dbgecho "Add ARATE"
     grep "^ARATE 48000" $DIREWOLF_CFGFILE
     if [ $? -ne 0 ] ; then
         sudo sed -i -e '/^ACHANNELS 1.*/a ARATE 48000' $DIREWOLF_CFGFILE
+        if [ $? -ne 0 ] ; then
+            echo "${FUNCNAME[0]}: failed to edit $DIREWOLF_CFGFILE"
+        fi
         echo "ARATE parameter added to $DIREWOLF_CFGFILE"
     else
         echo "ARATE parameter already set in direwolf config file."
@@ -264,7 +283,10 @@ function config_dw_1chan() {
     #   was: ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0
     #   now: ADEVICE draws-capture-left draws-playback-left
 
-    sudo sed -i -e "/^ADEVICE plughw:CARD=/ s/^ADEVICE plughw:CARD=.*/ADEVICE draws-capture-$CONNECTOR draws-playback-$CONNECTOR/" $DIREWOLF_CFGFILE
+    sudo sed -i -e "/^ADEVICE plughw:CARD=/ s/^ADEVICE plughw:CARD=.*/ADEVICE draws-capture-$CONNECTOR draws-playback-$CONNECTOR/" "$DIREWOLF_CFGFILE"
+    if [ $? -ne 0 ] ; then
+        echo "${FUNCNAME[0]}: failed to edit ADEVICE $DIREWOLF_CFGFILE"
+    fi
 
     echo "Verify ADEVICE parameter"
     grep -i "^ADEVICE" $DIREWOLF_CFGFILE
@@ -272,10 +294,22 @@ function config_dw_1chan() {
     # comment out second channel configuration in direwolf config file
     # sed -i -e "/\[pi4\]/,/\[/ s/^dtoverlay=.*/#&/" $BOOT_CFG_FILE
     # Add comment character
-    sed -i -e '/^CHANNEL 1/,/^$/ s/^\(^PTT GPIO.*\)/#\1/g'  "$DIREWOLF_CFGFILE"
-    sed -i -e '/^CHANNEL 1/,/^$/ s/^\(^MODEM.*\)/#\1/g'  "$DIREWOLF_CFGFILE"
-    sed -i -e '/^CHANNEL 1/,/^$/ s/^\(^MYCALL.*\)/#\1/g'  "$DIREWOLF_CFGFILE"
-    sed -i -e '/CHANNEL 1/,/^$/ s/^\(^CHANNEL.*\)/#\1/g'  "$DIREWOLF_CFGFILE"
+    sudo  sed -i -e '/^CHANNEL 1/,/^$/ s/^\(^PTT GPIO.*\)/#\1/g' "$DIREWOLF_CFGFILE"
+    if [ $? -ne 0 ] ; then
+        echo "${FUNCNAME[0]}: failed to edit PTT in $DIREWOLF_CFGFILE"
+    fi
+    sudo sed -i -e '/^CHANNEL 1/,/^$/ s/^\(^MODEM.*\)/#\1/g'    "$DIREWOLF_CFGFILE"
+    if [ $? -ne 0 ] ; then
+        echo "${FUNCNAME[0]}: failed to edit MODEM in $DIREWOLF_CFGFILE"
+    fi
+    sudo sed -i -e '/^CHANNEL 1/,/^$/ s/^\(^MYCALL.*\)/#\1/g'   "$DIREWOLF_CFGFILE"
+    if [ $? -ne 0 ] ; then
+        echo "${FUNCNAME[0]}: failed to edit MYCALL in $DIREWOLF_CFGFILE"
+    fi
+    sudo sed -i -e '/CHANNEL 1/,/^$/ s/^\(^CHANNEL.*\)/#\1/g'   "$DIREWOLF_CFGFILE"
+    if [ $? -ne 0 ] ; then
+        echo "${FUNCNAME[0]}: failed to edit CHANNEL in $DIREWOLF_CFGFILE"
+    fi
 }
 
 # ===== function config_dw_2chan
@@ -289,7 +323,10 @@ function config_dw_2chan() {
     #  - both CHANNELS are used for packet
     # Change ACHANNELS from 1 to 2
     dbgecho "ACHANNELS set to 2"
-    sudo sed -i -e '/^ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
+    sudo sed -i -e '/^ACHANNELS 1/ s/1/2/' "$DIREWOLF_CFGFILE"
+    if [ $? -ne 0 ] ; then
+        echo "${FUNCNAME[0]}: failed to edit CHANNELS in $DIREWOLF_CFGFILE"
+    fi
 
     # Leave ARATE 48000 unchanged
     dbgecho "Check for ARATE parameter"
@@ -303,7 +340,10 @@ function config_dw_2chan() {
     # Change ADEVICE:
     #  to: ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0
 
-    sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/"  $DIREWOLF_CFGFILE
+    sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/" "$DIREWOLF_CFGFILE"
+    if [ $? -ne 0 ] ; then
+        echo "${FUNCNAME[0]}: failed to edit ADEVICE in $DIREWOLF_CFGFILE"
+    fi
 
     echo "Verify ADEVICE parameter"
     grep -i "^ADEVICE" $DIREWOLF_CFGFILE
@@ -318,9 +358,12 @@ function config_dw_2chan() {
 
 function port_split_chan_on() {
 
-    echo "Enable split channels, Direwolf has left channel, HF has right channel"
+    echo "Enable split channels port file, Direwolf has left channel, HF has right channel"
 
-    sudo sed -i -e "/\[port1\]/,/\[/ s/^speed=.*/speed=off/" $PORT_CFG_FILE
+    sudo sed -i -e "/\[port1\]/,/\[/ s/^speed=.*/speed=off/" "$PORT_CFG_FILE"
+    if [ $? -ne 0 ] ; then
+        echo "${FUNCNAME[0]}: failed to edit speed in $PORT_CFG_FILE"
+    fi
 
     bsplitchannel=true
 }
@@ -331,7 +374,10 @@ function port_split_chan_off() {
 
     echo "DISable split channels, Direwolf controls left & right channels"
 
-    sudo sed -i -e "/\[port1\]/,/\[/ s/^speed=.*/speed=1200/" $PORT_CFG_FILE
+    sudo sed -i -e "/\[port1\]/,/\[/ s/^speed=.*/speed=1200/" "$PORT_CFG_FILE"
+    if [ $? -ne 0 ] ; then
+        echo "${FUNCNAME[0]}: failed to edit speed in $PORT_CFG_FILE"
+    fi
 }
 
 # ===== function split_chan_on
@@ -347,11 +393,15 @@ function split_chan_on() {
         start_service $service
     fi
 
+    echo
+    echo "=== Configure direwolf for 1 channel only"
     config_dw_1chan
+
     port_split_chan_on
     # restart direwolf/ax.25
-    ax25-stop
-    ax25-start
+    echo
+    echo " == Restart direwolf"
+    ax25-restart -d
 }
 
 # ===== function split_chan_off
@@ -369,8 +419,9 @@ function split_chan_off() {
     config_dw_2chan
     port_split_chan_off
     # restart direwolf/ax.25
-    ax25-stop
-    ax25-start
+    echo
+    echo " == Restart direwolf"
+    ax25-restart -d
 }
 
 # ==== function split_chan_install
@@ -688,10 +739,21 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument or value
 done
 
+echo
+echo "=== Start split channel install"
 split_chan_install
+
 # Setup split channel
+echo
+echo "=== Start pulse audio service"
 start_service pulseaudio
+
+echo
+echo "=== Configure direwolf for 1 channel only"
 config_dw_1chan
+
+echo
+echo "=== Turn on split channel services"
 split_chan_on
 
 # may need to do the following:
