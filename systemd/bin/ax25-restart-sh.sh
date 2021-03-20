@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # This script stops then starts direwolf & all AX.25 systemd services
 # Script syntax changed from bash to Bourne shell to run from 'at' command
@@ -10,7 +10,7 @@ DEVWAIT=12000
 # if DEBUG is defined then echo
 dbgecho() { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
-# if QUIET is defined then DO NOT echo
+# if QUIET is defined the DO NOT echo
 quietecho() { if [ -z "$QUIET" ] ; then echo "$*"; fi }
 
 # ===== function get_user
@@ -99,7 +99,6 @@ stop_service() {
 
 # ===== function start_service
 start_service() {
-    quietecho "Starting service: $service"
     $SYSTEMCTL --no-pager start "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem starting $service"
@@ -191,16 +190,8 @@ wait_not
 for service in `echo ${START_SERVICE_LIST}` ; do
     start_service $service
     if [ "$service" = "direwolf.service" ] ; then
-       start_sec=$SECONDS
-       while [ ! -L "/tmp/kisstnc" ] && [ $((SECONDS-start_sec)) -lt 4 ] ; do
+       while [ ! -L "/tmp/kisstnc" ] ; do
            sleep 0.4
        done
-       if [ ! -L "/tmp/kisstnc" ] && [ $((SECONDS-start_sec)) -ge 4 ] ; then
-           echo
-           echo "$(tput setaf 1)$(tput bold)Timeout ($((SECONDS-start_sec)) sec) waiting for $service to start $(tput sgr0)"
-	   echo
-	   exit 1
-       fi
     fi
 done
-exit 0
