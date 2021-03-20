@@ -1,8 +1,28 @@
 #!/bin/bash
 #
-# Script to install split-channels functionality allowing VHF/UHF
+# script: split_ctrl.sh
+#
+# Script to install split-channel functionality allowing VHF/UHF
 # packet on one audio channel & an HF program like fldigi on the other.
-# Refer to this repo: https://github.com/nwdigitalradio/split-channels
+#
+# This script defaults to packet/direwolf on left channel and HF on
+# right channel.
+#
+# Refer to the following repo:
+#  https://github.com/nwdigitalradio/split-channels
+#
+# Functionality (See usage function)
+#
+#  Display split channel status
+#   ./split_ctrl.sh
+#   ./split_ctrl.sh -s
+#
+#  Install split channel:
+#   ./split_ctrl.sh -c left
+#   ./split_ctrl.sh left
+#
+#  Stop using split channel
+#   ./split_ctrl.sh off
 #
 # Direwolf and any other programs should use the following ALSA audio
 # devices for the right DRAWS mini din connector only:
@@ -28,7 +48,7 @@
 # For the headphone jack on the Pi:
 # amixer -D hw:CARD=ALSA cset numid=3 1
 #
-# This script adds these files:
+# This script ADDS these files:
 #  /etc/asound.conf
 #  /etc/pulse/client.conf
 #  /etc/pulse/daemon.conf
@@ -36,8 +56,7 @@
 #  /etc/pulse/sytem.pa
 #  /etc/systemd/system/pulseaudio.service
 #
-#
-# This script will modify the direwolf config file:
+# This script MODIFYS the direwolf config file:
 # /etc/direwolf.conf
 #
 # Uncomment this statement for debug echos
@@ -581,7 +600,7 @@ function split_chan_status() {
 usage () {
 	(
 	echo "Usage: $scriptname [-c <connector>][-s][-d][-h][left|right|off]"
-        echo "                  No args will install & configure pulseaudio, split channel"
+        echo "                  No args will display status of split channel"
         echo "  left            ENable split channel, direwolf uses left connector"
         echo "  right           ENable split channel, direwolf uses right connector NOT IMPLEMENTED"
         echo "  off             DISable split channel"
