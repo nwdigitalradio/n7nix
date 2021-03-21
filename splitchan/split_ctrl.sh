@@ -193,8 +193,6 @@ function start_service() {
 
     get_service_type $service
 
-    echo "DEBUG ${FUNCNAME[0]}: service: $service: type: $SYSD_TYPE"
-
     systemctl $SYSD_TYPE is-enabled "$service" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
         echo "ENABLING service: ($SYSD_NAME) $service"
@@ -458,8 +456,6 @@ function split_chan_on() {
         start_service $service
     fi
 
-    echo
-    echo "=== Configure direwolf for 1 channel only"
     config_dw_1chan
 
     port_split_chan_on
