@@ -64,7 +64,7 @@ function start_service() {
         fi
     fi
 
-sys    $SYSTEMCTL --no-pager start "$service"
+    $SYSTEMCTL --no-pager start "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem starting $service"
         systemctl status $service
