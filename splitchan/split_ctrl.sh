@@ -54,13 +54,16 @@
 #  /etc/pulse/daemon.conf
 #  /etc/pulse/default.pa
 #  /etc/pulse/sytem.pa
+# In development:
 #  /etc/systemd/system/pulseaudio.service
+#
 #
 # This script MODIFYS the direwolf config file:
 # /etc/direwolf.conf
 #
 # Uncomment this statement for debug echos
 #DEBUG=1
+FORCE_COPY="ON"
 
 scriptname="`basename $0`"
 
@@ -69,6 +72,13 @@ DIREWOLF_CFGFILE="/etc/direwolf.conf"
 
 USER=
 SYSTEMCTL="systemctl"
+
+# File locations for pulseaudio systemd service file
+SYSD_SYS_ETC_DIR="/etc/systemd/system"
+SYSD_SYS_LIB_DIR="/usr/lib/systemd/system"
+
+SYSD_USER_ETC_DIR="/etc/systemd/user"
+SYSD_USER_LIB_DIR="/usr/lib/systemd/user"
 
 # Set connector to be either left or right
 # This selects which mini Din 6 connector DIREWOLF will use on the DRAWS card.
@@ -135,74 +145,118 @@ function get_user_name() {
     check_user
 }
 
-# ===== function start_service
-function start_service() {
-    service="$1"
+# ===== function get_service type
+# Determine if this is a 'user' or 'system' service file\
+# Also set SYSD_NAME to system or usr
+#
+function get_service_type() {
 
-    SYSD_TYPE=
-    SYSD_NAME="system"
+    service_name="$1"
+    extension="${service_name##*.}"
+    echo "DEBUG: ${FUNCNAME[0]}: name: $service_name, extension: $extension"
 
-    SYSD_SYS_ETC_DIR="/etc/systemd/system"
-    SYSD_USER_ETC_DIR="/etc/systemd/user"
-    SYSD_SYS_LIB_DIR="/usr/lib/systemd/system"
-    SYSD_USER_LIB_DIR="/usr/lib/systemd/user"
-
-    if [ -s $SYSD_USER_ETC_DIR/$service || -s $SYSD_USER_LIB_DIR/$service ] ; then
-        SYSD_TYPE="--user"
-	SYSD_NAME="user"
+    if [ "$service_name" = "$extension" ] ; then
+        echo
+        echo "NO file name extension found adding .service"
+	service_name=$service_name.service
+	service=$service_name.service
+    else
+        echo
+        echo "Found file name extension: $extension"
     fi
 
-    systemctl is-enabled "$service" > /dev/null 2>&1
+    SYSD_TYPE="--system"
+    SYSD_NAME="system"
+
+    # Force systemd 'system'
+    if [ 1 -eq 0 ] ; then
+        if [ -s $SYSD_USER_ETC_DIR/$service_name ] || [ -s $SYSD_USER_LIB_DIR/$service_name ] ; then
+            SYSD_TYPE="--user"
+	    SYSD_NAME="user"
+        fi
+    fi
+
+    if [ 1 -eq 0 ] ; then
+    echo
+    echo "DEBUG: $SYSD_USER_ETC_DIR/$service_name"
+    ls -al $SYSD_USER_ETC_DIR/$service_name
+    echo "DEBUG: $SYSD_USER_LIB_DIR/$service_name"
+    ls -al $SYSD_USER_LIB_DIR/$service_name
+    echo "DEBUG: setting systemd type to $SYSD_NAME for service $service_name"
+    echo
+    fi
+}
+
+# ===== function start_service
+function start_service() {
+    service="${1}.service"
+
+    get_service_type $service
+
+    echo "DEBUG ${FUNCNAME[0]}: service: $service: type: $SYSD_TYPE"
+
+    systemctl $SYSD_TYPE is-enabled "$service" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
-        echo "ENABLING service: $service"
+        echo "ENABLING service: ($SYSD_NAME) $service"
         $SYSTEMCTL $SYSD_TYPE enable "$service"
         if [ "$?" -ne 0 ] ; then
             echo " Problem ENABLING ($SYSD_NAME) $service"
         fi
+    else
+        echo "${FUNCNAME[0]}: service: $service already enabled"
     fi
 
-    echo "STARTING service: $service"
-    $SYSTEMCTL $SYSD_TYPE --no-pager start "$service"
-    if [ "$?" -ne 0 ] ; then
-        echo " Problem starting ($SYSD_NAME) $service"
+    if systemctl $SYSD_TYPE is-active --quiet "$service" ; then
+        echo "Starting service but service: $service ($SYSD_NAME) is already running"
+    else
+
+        echo "STARTING service: ($SYSD_NAME) $service"
+        $SYSTEMCTL $SYSD_TYPE --no-pager start "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo " Problem starting ($SYSD_NAME) $service"
+        fi
     fi
 }
 
-# ===== function stop_sys_service
-function stop_sys_service() {
+# ===== function stop_service
+function stop_service() {
     service="$1"
-    systemctl is-enabled "$service" > /dev/null 2>&1
-    if [ $? -eq 0 ] ; then
-        echo "DISABLING (system) $service"
-        $SYSTEMCTL disable "$service"
-        if [ "$?" -ne 0 ] ; then
-            echo " Problem DISABLING (system) $service"
-        fi
-    else
-        echo " Service: $service already disabled."
-    fi
-    $SYSTEMCTL stop "$service"
-    if [ "$?" -ne 0 ] ; then
-        echo " Problem STOPPING $service"
-    fi
-}
 
-# ===== function stop_user_service
-function stop_user_service() {
-    service="$1"
-    systemctl --user is-enabled "$service" > /dev/null 2>&1
+    if [ -z "$2" ] ; then
+        get_service_type $service
+    else
+       SYSD_TYPE="--$2"
+       SYSD_NAME=$2
+    fi
+
+    systemctl $SYSD_TYPE is-active --quiet "$service"
     if [ $? -eq 0 ] ; then
-        echo "DISABLING (user) $service"
-        $SYSTEMCTL --user disable "$service"
+        echo "STOPPING service: ($SYSD_NAME) $service"
+	if [ "$SYSD_NAME" = "user" ] ; then
+	    systemctl $SYSD_TYPE stop "$service"
+        else
+            $SYSTEMCTL $SYSD_TYPE stop "$service"
+	fi
         if [ "$?" -ne 0 ] ; then
-            echo "Problem DISABLING (user) $service"
+            echo " Problem STOPPING ($SYSD_NAME) $service"
         fi
     else
-        echo "Service (user): $service already disabled."
+        echo "Stopping service but service: $service ($SYSD_NAME) is already stopped"
     fi
-    $SYSTEMCTL --user stop "$service"
-    if [ "$?" -ne 0 ] ; then
-        echo "Problem STOPPING (user) $service"
+
+    systemctl $SYSD_TYPE is-enabled "$service" > /dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+        echo "DISABLING ($SYSD_NAME) $service"
+	if [ "$SYSD_NAME" = "user" ] ; then
+            systemctl $SYSD_TYPE disable "$service"
+        else
+            $SYSTEMCTL $SYSD_TYPE disable "$service"
+	fi
+        if [ "$?" -ne 0 ] ; then
+            echo " Problem DISABLING ($SYSD_NAME) $service"
+        fi
+    else
+        echo " Service ($SYSD_NAME): $service already disabled."
     fi
 }
 
@@ -232,12 +286,22 @@ function do_diff() {
     # Start from the split-channels repository directory
     cd "$SPLIT_DIR/etc"
 
-    echo "  Diff asound config"
+    echo -n "  Diff asound config: ret: "
     diff asound.conf /etc/asound.conf
+    retcode="$?"
+    echo "$retcode"
+    if [ "$retcode" -eq 2 ] ; then
+        echo "Update asound.conf"
+        sudo cp asound.conf /etc/asound.conf
+    fi
+
     echo "  Diff pulse config"
     diff -bwBr --brief pulse /etc/pulse
 
-    echo "  Diff pulse audio systemd start service"
+    echo "  Diff pulse audio systemd user start service"
+    diff systemd/system/pulseaudio.service /usr/lib/systemd/user
+
+    echo "  Diff pulse audio systemd system start service"
     diff systemd/system/pulseaudio.service /etc/systemd/system
 
     # Diff direwolf configuration
@@ -251,12 +315,12 @@ function do_diff() {
 }
 
 # ===== function config_dw_1chan
-
 # comment out second channel in direwolf config file
 
 function config_dw_1chan() {
+
     echo
-    echo "Edit direwolf config file to use 1 chan"
+    echo "=== Configure direwolf for 1 channel only"
 
     # - only CHANNEL 0 is used
     # Change ACHANNELS from 2 to 1
@@ -384,11 +448,12 @@ function port_split_chan_off() {
 
 function split_chan_on() {
 
+    echo
+    echo "=== ${FUNCNAME[0]}"
+
     service="pulseaudio"
-    if systemctl is-active --quiet "$service" ; then
-        echo "Service (sys): $service is already running"
-    elif systemctl --user is-active --quiet "$service" ; then
-        echo "Service (user): $service is already running"
+    if systemctl $SYSD_TYPE is-active --quiet "$service" ; then
+        echo "Service ($SYSD_TYPE): $service is already running"
     else
         start_service $service
     fi
@@ -401,19 +466,20 @@ function split_chan_on() {
     # restart direwolf/ax.25
     echo
     echo " == Restart direwolf"
-    ax25-restart -d
+    ax25-restart
 }
 
 # ===== function split_chan_off
 
 function split_chan_off() {
     service="pulseaudio"
-    if systemctl is-active --quiet "$service" ; then
-        stop_sys_service $service
-    elif systemctl --user is-active --quiet "$service" ; then
-        stop_user_service $service
+
+    get_service_type
+
+    if systemctl $SYD_TYPE is-active --quiet "$service" ; then
+        stop_service $service
     else
-        echo "Service: $service is already stopped"
+        echo "Service ($SYD_TYPE): $service is already stopped"
     fi
 
     config_dw_2chan
@@ -421,7 +487,21 @@ function split_chan_off() {
     # restart direwolf/ax.25
     echo
     echo " == Restart direwolf"
-    ax25-restart -d
+    ax25-restart
+}
+
+# ==== function copy_config
+# Copy some of the config files from split-channels repository
+
+function copy_config() {
+
+    cd "$SPLIT_DIR"
+    echo "Copy asound config"
+    sudo cp -u etc/asound.conf /etc/asound.conf
+    echo "Copy pulse config"
+    sudo rsync -av etc/pulse/ /etc/pulse
+    echo "Copy pulse audio systemd SYSTEM start service"
+    sudo cp -u etc/systemd/system/pulseaudio.service /etc/systemd/system
 }
 
 # ==== function split_chan_install
@@ -474,18 +554,16 @@ function split_chan_install() {
     # unless explicity (command line arg) told to
 
     if [ ! -e $ASOUND_CFG_DIR ] && [ ! -d $PULSE_CFG_DIR ] ; then
-
-        echo "Copy asound config"
-        sudo cp -u asound.conf /etc/asound.conf
-        echo "Copy pulse config"
-        sudo rsync -av pulse/ /etc/pulse
-        echo "Copy pulse audio systemd start service"
-        sudo cp -u systemd/system/pulseaudio.service /etc/systemd/system
+        copy_config
     else
-        echo
-        echo "$(tput setaf 6)asound config file & pulse config directory already exist, NO config files copied$(tput sgr0)"
-	echo
-        do_diff
+        if [ "$FORCE_COPY" = "ON" ] ; then
+	    copy_config
+	else
+            echo
+            echo "$(tput setaf 6)asound config file & pulse config directory already exist, NO config files copied, $(tput sgr0)"
+	    echo
+            do_diff
+	fi
     fi
 }
 
@@ -541,19 +619,22 @@ function is_splitchan() {
 
 # ===== function display_service_status
 function display_service_status() {
-    service="$1"
-    if systemctl is-enabled --quiet "$service" ; then
-        enabled_str="enabled"
+    service="${1}.service"
+
+    get_service_type $service
+
+    if systemctl $SYSD_TYPE is-enabled --quiet "$service" ; then
+        enabled_str="IS enabled"
     else
         enabled_str="NOT enabled"
     fi
 
-    if systemctl is-active --quiet "$service" ; then
-        active_str="running"
+    if systemctl $SYSD_TYPE is-active --quiet "$service" ; then
+        active_str="IS running"
     else
         active_str="NOT running"
     fi
-    echo "Service: $service is $enabled_str and $active_str"
+    echo "Service: $service, $SYSD_NAME is $enabled_str and $active_str"
 }
 
 # ===== function verify direwolf
@@ -567,9 +648,9 @@ function verify_direwolf() {
         if [ "$?" -eq 0 ] ; then
             # Get 'left' or 'right' channel from direwolf config (last word in ADEVICE string)
             chan_lr=$(grep "^ADEVICE " $DIREWOLF_CFGFILE | grep -oE '[^-]+$')
-            echo -e "Direwolf is running with pid: $pid, Split channel is enabled\n  Direwolf controls $chan_lr channel only"
+            echo -e "Direwolf IS running with pid: $pid, Split channel IS enabled\n  Direwolf controls $chan_lr channel only"
         else
-            echo "Direwolf is running with pid: $pid and controls both channels"
+            echo "Direwolf IS running with pid: $pid and controls both channels"
         fi
     else
         echo "Direwolf is NOT running"
@@ -673,18 +754,19 @@ if [[ $EUID != 0 ]] ; then
     dbgecho "set sudo as user $USER"
 else
     # Running as root
-    get_user_name
+    echo "Can not run this script as root"
+    exit 1
 fi
 
 TMPDIR=/home/$USER/tmp
+# local repository directory
+REPO_DIR="/home/$USER/dev/github"
+SPLIT_DIR="$REPO_DIR/split-channels"
 
 # Setup tmp directory
 if [ ! -d "$TMPDIR" ] ; then
   mkdir "$TMPDIR"
 fi
-
-REPO_DIR="/home/$USER/dev/github"
-SPLIT_DIR="$REPO_DIR/split-channels"
 
 # Check for any command line arguments
 # Command line args are passed with a dash & single letter
@@ -713,6 +795,8 @@ while [[ $# -gt 0 ]] ; do
             echo "Set connector to: $CONNECTOR"
         ;;
         -s | status)
+	    echo
+	    echo " == Display Split Channel Status"
             split_chan_status
             exit 0
         ;;
@@ -739,6 +823,9 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument or value
 done
 
+stop_service pulseaudio user
+stop_service pulseaudio system
+
 echo
 echo "=== Start split channel install"
 split_chan_install
@@ -747,10 +834,6 @@ split_chan_install
 echo
 echo "=== Start pulse audio service"
 start_service pulseaudio
-
-echo
-echo "=== Configure direwolf for 1 channel only"
-config_dw_1chan
 
 echo
 echo "=== Turn on split channel services"
