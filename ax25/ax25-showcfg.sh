@@ -79,10 +79,27 @@ function display_kissparms() {
     grep "KISSPARMS -p" $AX25_KISS_CFG
 }
 
+# ===== function display_ax25parms
+
+function display_ax25parms() {
+    echo
+    echo " ===== ax.25 config"
+    for dir in $AX25_DEVICE_DIR/* ; do
+        echo "Found directory: $dir"
+        for file in $dir/* ; do
+            fname="$(basename -- "$file")"
+            echo -n "$fname: "
+            cat $file
+        done
+        echo
+    done
+}
+
 # ===== function usage
 
 function usage() {
    echo "Usage: $scriptname [-d][-k][-h]" >&2
+   echo "   -a        Display ax25 parameters only"
    echo "   -d        set debug flag"
    echo "   -k        Display kissparms only"
    echo "   -h        no arg, display this message"
@@ -105,6 +122,10 @@ APP_ARG="$1"
 
 case $APP_ARG in
 
+   -a)
+      display_ax25parms
+      exit 0
+   ;;
    -d|--debug)
       DEBUG=1
       echo "Debug mode on"
@@ -118,7 +139,9 @@ case $APP_ARG in
       exit 0
    ;;
    *)
-      break;
+      echo "Unrecognized argument: $APP_ARG"
+      usage
+      exit 1
    ;;
 
 esac
@@ -129,17 +152,7 @@ done
 
 display_kissparms
 
-echo
-echo " ===== ax.25 config"
-for dir in $AX25_DEVICE_DIR/* ; do
-    echo "Found directory: $dir"
-    for file in $dir/* ; do
-	fname="$(basename -- "$file")"
-	echo -n "$fname: "
-	cat $file
-    done
-    echo
-done
+display_ax25parms
 
 # display alsa settings
 echo
