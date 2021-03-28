@@ -27,6 +27,7 @@ function status_service() {
         IS_RUNNING="NOT RUNNING"
     fi
     systemctl --no-pager status $service
+    journalctl --no-pager -u $service.service | tail -n 30
 }
 
 # ===== function start_service
