@@ -20,25 +20,32 @@ if [ $? -ne 0 ] ; then
 fi
 dw_ver.sh
 
+
 echo
 echo "== pulseaudio version"
-pulseaudio --version
+prog_name="pulseaudio"
+type -P $prog_name &>/dev/null
+if [ $? -ne 0 ] ; then
+    echo "$prog_name NOT installed"
+else
+    pulseaudio --version
 
-echo
-echo "== pulseaudio status"
-service="pulseaudio"
-systemctl --system is-active "$service" > /dev/null 2>&1
-if [ $? -eq 0 ] ; then
-    systemctl --system --no-pager status $service
+    echo
+    echo "== pulseaudio status"
+    service="pulseaudio"
+    systemctl --system is-active "$service" > /dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+        systemctl --system --no-pager status $service
+    fi
+
+    systemctl --user is-active "$service" > /dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+        systemctl --user --no-pager status $service
+    fi
 fi
 
-systemctl --user is-active "$service" > /dev/null 2>&1
-if [ $? -eq 0 ] ; then
-    systemctl --user --no-pager status $service
-fi
-
 echo
-echo "== cpu utilization"
+echo "== cpu utilization (ps)"
 ps aux | sort -nrk 3,3 | head -n 5
 
 prog_name="mpstat"
@@ -54,5 +61,5 @@ if [ $? -ne 0 ] ; then
 fi
 
 echo
-echo "== ALL cpu utilizations"
+echo "== ALL cpu utilizations (mpstat)"
 mpstat -P ALL
