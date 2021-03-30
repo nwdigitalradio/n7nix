@@ -63,3 +63,7 @@ fi
 echo
 echo "== ALL cpu utilizations (mpstat)"
 mpstat -P ALL
+
+echo
+echo "== Direwolf config"
+grep -v "^$\|^#" /etc/direwolf.conf
