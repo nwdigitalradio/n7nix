@@ -4,6 +4,21 @@
 #
 # Script to determine why CPU utilization is so high
 
+scriptname="`basename $0`"
+DISPLAY_CFG=true
+
+# ===== main
+
+# Be sure we are NOT running as root
+if [[ $EUID = 0 ]] ; then
+   echo "$scriptname: Must NOT be root"
+   exit 1
+fi
+
+if [[ $# -gt 0 ]] ; then
+    DISPLAY_CFG=false
+fi
+
 echo "== pi version"
 piver.sh
 
@@ -64,6 +79,8 @@ echo
 echo "== ALL cpu utilizations (mpstat)"
 mpstat -P ALL
 
-echo
-echo "== Direwolf config"
-grep -v "^$\|^#" /etc/direwolf.conf
+if [ "$DISPLAY_CFG" = true ] ; then
+    echo
+    echo "== Direwolf config"
+    grep -v "^$\|^#" /etc/direwolf.conf
+fi
