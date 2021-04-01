@@ -53,14 +53,25 @@ function draws_ver() {
 
 # ===== main
 
-echo "== Kernel version:"
+echo "=== Versions ==="
+echo "== Kernel:"
 uname -a
 
 echo
-echo "== Firmware version:"
+echo "== Firmware:"
 vcgencmd version
 
 echo
+echo "== Pi hardware:"
+piver.sh
+vcgencmd measure_temp
+
+echo
+echo "== DRAWS hardware:"
+draws_ver
+
+echo
+echo "=== Checks ==="
 echo "== Codec driver check:"
 dmesg | grep -i "tlv320a"
 
@@ -87,14 +98,5 @@ if [ $? -ne 0 ] ; then
 fi
 
 echo
-echo "== Pi Version"
-piver.sh
-vcgencmd measure_temp
-
-echo
-echo "== DRAWS Version"
-draws_ver
-
-echo
-echo "== /boot/config"
+echo "== /boot/config file"
 grep -v "^$\|^#" /boot/config.txt
