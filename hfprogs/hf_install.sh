@@ -118,6 +118,11 @@ if [ $? -ne 0 ] ; then
     exit 1
 else
     sudo dpkg -i $download_filename
+    if [ $? -ne 0 ] ; then
+        echo -e "\n$(tput setaf 4)Problem installing $download_filename, attempting to fix broken install$(tput sgr0)\n"
+        # attempt to correct a system with broken dependencies
+        apt-get --fix-broken install
+    fi
 fi
 
 }
@@ -349,15 +354,15 @@ num_cores=$(nproc --all)
 if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     hfapp="ALL"
     # Build js8call first to satisfy some wsjtx dependencies
-    build_js8call "2.1.1"
-    build_wsjtx "2.1.2"
+    build_js8call "2.2.0"
+    build_wsjtx "2.3.1"
     build_hamlib "4.1"
     build_flapp "0.1.4" flxmlrpc
     # Must build fldigi before the other apps
     # apps rely on /usr/bin/fltk-config
-    build_fldigi "4.1.08"
-    build_flapp "1.3.48" flrig
-    build_flapp "4.0.14" flmsg
+    build_fldigi "4.1.18"
+    build_flapp "1.3.54" flrig
+    build_flapp "4.0.17" flmsg
     build_flapp "2.2.05" flamp
     build_fllog "1.2.6" fllog
 else
