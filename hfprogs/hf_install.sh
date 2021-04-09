@@ -70,61 +70,74 @@ function check_user() {
 }
 
 # ===== function build_js8call
+# js8call is NOT built from source
+# Get deb package file and install it
 
 function build_js8call() {
 
-js8call_rootver="$1"
-js8call_ver="$js8call_rootver"
-download_filename="js8call_${js8call_ver}_armhf.deb"
+    js8call_rootver="$1"
+    js8call_ver="$js8call_rootver"
+    download_filename="js8call_${js8call_ver}_armhf.deb"
 
-# This package does not exist in buster: libqgsttools-p1
-PKG_REQUIRE_JS8CALL="libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediaquick5 libqt5multimediawidgets5 libqt5qml5 libqt5quick5 libqt5serialport5 libgfortran3"
-echo "Install js8call ver: $js8call_ver, start"
-cd "$SRC_DIR"
-sudo apt-get -qq install -y $PKG_REQUIRE_JS8CALL
-echo "Install js8call: Check for pkg file: $SRC_DIR/$download_filename"
+    # This package does not exist in buster: libqgsttools-p1
+    PKG_REQUIRE_JS8CALL="libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediaquick5 libqt5multimediawidgets5 libqt5qml5 libqt5quick5 libqt5serialport5 libgfortran3"
+    echo "Install js8call ver: $js8call_ver, start"
+    cd "$SRC_DIR"
+    sudo apt-get -qq install -y $PKG_REQUIRE_JS8CALL
+    echo "Install js8call: Check for pkg file: $SRC_DIR/$download_filename"
 
-if [ ! -e "$SRC_DIR/$download_filename" ] ; then
-#    sudo wget https://s3.amazonaws.com/js8call/${js8call_rootver}/$download_filename
-    sudo wget -qt 3 -O $SRC_DIR/$download_filename http://files.js8call.com/${js8call_rootver}/$download_filename
+    if [ ! -e "$SRC_DIR/$download_filename" ] ; then
+        # sudo wget https://s3.amazonaws.com/js8call/${js8call_rootver}/$download_filename
+        sudo wget -qt 3 -O $SRC_DIR/$download_filename http://files.js8call.com/${js8call_rootver}/$download_filename
+        if [ $? -ne 0 ] ; then
+            echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
+            exit 1
+        else
+            echo "Successfully downloaded $download_filename"
+            sudo dpkg -i $SRC_DIR/$download_filename
+            if [ $? -ne 0 ] ; then
+                echo -e "\n$(tput setaf 4)Problem installing $download_filename, attempting to fix broken install$(tput sgr0)\n"
+                # attempt to correct a system with broken dependencies
+                sudo apt-get --fix-broken install -y
+            fi
+        fi
+    else
+        sudo dpkg -i $SRC_DIR/$download_filename
+        if [ $? -ne 0 ] ; then
+            echo -e "\n$(tput setaf 4)Problem installing $download_filename, attempting to fix broken install$(tput sgr0)\n"
+            # attempt to correct a system with broken dependencies
+            sudo apt-get --fix-broken install -y
+        fi
+    fi
+
+    echo "Install js8call ver: $js8call_ver, finished"
+}
+
+# ===== function build_wsjtx
+# wsjt-x is NOT built from source
+# Get deb package file and install it
+
+function build_wsjtx() {
+
+    wsjtx_ver="$1"
+    echo "install wsjt-x ver: $wsjtx_ver"
+    download_filename="wsjtx_${wsjtx_ver}_armhf.deb"
+    cd "$SRC_DIR"
+
+    # wsjt-x home page:
+    #  - https://physics.princeton.edu/pulsar/k1jt/wsjtx.html
+    sudo wget http://physics.princeton.edu/pulsar/K1JT/$download_filename
     if [ $? -ne 0 ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
         exit 1
     else
-        echo "Successfully downloaded $download_filename"
-        sudo dpkg -i $SRC_DIR/$download_filename
+        sudo dpkg -i $download_filename
+        if [ $? -ne 0 ] ; then
+            echo -e "\n$(tput setaf 4)Problem installing $download_filename, attempting to fix broken install$(tput sgr0)\n"
+            # attempt to correct a system with broken dependencies
+            sudo apt-get --fix-broken install -y
+        fi
     fi
-else
-    sudo dpkg -i $SRC_DIR/$download_filename
-fi
-
-echo "Install js8call ver: $js8call_ver, finished"
-}
-
-# ===== function build_wsjtx
-
-function build_wsjtx() {
-
-wsjtx_ver="$1"
-echo "install wsjt-x ver: $wsjtx_ver"
-download_filename="wsjtx_${wsjtx_ver}_armhf.deb"
-cd "$SRC_DIR"
-
-# wsjt-x home page:
-#  - https://physics.princeton.edu/pulsar/k1jt/wsjtx.html
-sudo wget http://physics.princeton.edu/pulsar/K1JT/$download_filename
-if [ $? -ne 0 ] ; then
-    echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
-    exit 1
-else
-    sudo dpkg -i $download_filename
-    if [ $? -ne 0 ] ; then
-        echo -e "\n$(tput setaf 4)Problem installing $download_filename, attempting to fix broken install$(tput sgr0)\n"
-        # attempt to correct a system with broken dependencies
-        sudo apt-get --fix-broken install
-    fi
-fi
-
 }
 
 # ===== function build_hamlib
