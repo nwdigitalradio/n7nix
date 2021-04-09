@@ -121,7 +121,7 @@ else
     if [ $? -ne 0 ] ; then
         echo -e "\n$(tput setaf 4)Problem installing $download_filename, attempting to fix broken install$(tput sgr0)\n"
         # attempt to correct a system with broken dependencies
-        apt-get --fix-broken install
+        sudo apt-get --fix-broken install
     fi
 fi
 
