@@ -52,6 +52,7 @@ function check_udrc() {
 
 # ===== function package_update_only
 # Only update the package list, do not install anything
+
 function package_update_only() {
     # time how long this takes
     begin_sec=$SECONDS
@@ -65,6 +66,31 @@ function package_update_only() {
 
     # Display how long this took
     echo "$(tput setaf 2) == System update finished in $((SECONDS-begin_sec)) seconds$(tput sgr0)"
+}
+
+# ===== function package_upgrade_only
+# Do a package upgrade AFTER package update
+### 01/2021 do NOT want to install kernel 5.10.11-v7l+ *1399
+# begin_secs var set in package_update_only()
+
+function package_upgrade_only() {
+
+    echo
+    echo "$(tput setaf 6) == RPi File System UPGRADE$(tput sgr0)"
+    sudo apt-get -q -y upgrade
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Failure UPGRADING file system packages"
+    fi
+    echo
+    echo "$(tput setaf 6) == RPi File System DIST-UPGRADE$(tput sgr0)"
+    sudo apt-get -q -y dist-upgrade
+    if [ $? -ne 0 ] ; then
+        echo "$scriptname: Failure DIST-UPGRADING file system packages"
+    fi
+
+    # Display how long this took
+    echo "$(tput setaf 2) == System upgrade finished in $((SECONDS-begin_sec)) seconds$(tput sgr0)"
+
 }
 
 # ===== function is_temp_graph_installed
@@ -240,27 +266,8 @@ fi
 # The following section updates kernel & packages
 
 package_update_only
+#package_upgrade_only
 
-### Code block removal
-### Do NOT want to install kernel 5.10.11-v7l+ *1399
-if [ 1 -eq 0 ] ; then
-    echo
-    echo "$(tput setaf 6) == RPi File System UPGRADE$(tput sgr0)"
-    sudo apt-get -q -y upgrade
-    if [ $? -ne 0 ] ; then
-        echo "$scriptname: Failure UPGRADING file system packages"
-    fi
-    echo
-    echo "$(tput setaf 6) == RPi File System DIST-UPGRADE$(tput sgr0)"
-    sudo apt-get -q -y dist-upgrade
-    if [ $? -ne 0 ] ; then
-        echo "$scriptname: Failure DIST-UPGRADING file system packages"
-    fi
-
-    # Display how long this took
-    echo "$(tput setaf 2) == System upgrade finished in $((SECONDS-begin_sec)) seconds$(tput sgr0)"
-
-fi    ### end temporary code block removal
 
 ## ------ first config
 # Verify if first config has already been done
