@@ -25,7 +25,7 @@ card 0: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi
 
 ###### Verify kernel hold is active
 * Verify there is a hold on the kernel to prevent it from being upgraded
-  * [More information on kernel holds](http://localhost:6419/#verify-a-hold-is-placed-on-kernel-upgrades)
+  * [More information on kernel holds](#verify-a-hold-is-placed-on-kernel-upgrades)
 ```
 apt-mark showhold
 ```
