@@ -52,14 +52,14 @@
 
 |    Program   |  Version |  PKG  |  DW   |  AX25 |
 | :---------:  | :------: | :---: | :---: | :---: |
-| ARDOP        |  2      |      |     |   |
-| ARIM         |  2.6    |      |     |   |
+| ARDOP        |  2      |       |      |   |
+| ARIM         |  2.6    |       |     |   |
 | js8call      |  2.2.0  |  yes  |     |   |
-| wsjt-x       |  2.2.2  |  yes  |     |   |
-| hamlib       |  3.3    |      |     |   |
-| flxmlrpc lib |  0.1.4  |      |     |   |
-| fldigi       |  4.1.17 |      |     |   |
-| flrig        |  1.3.53 |      |     |   |
-| flmsg        |  4.0.17 |      |     |   |
-| flamp        |  2.2.05 |      |     |   |
-| fllog        |  1.2.6  |      |     |   |
+| wsjt-x       |  2.3.1  |  yes  |     |   |
+| hamlib       |  3.3    |       |     |   |
+| flxmlrpc lib |  0.1.4  |       |     |   |
+| fldigi       |  4.1.18 |       |     |   |
+| flrig        |  1.3.54 |       |     |   |
+| flmsg        |  4.0.17 |       |     |   |
+| flamp        |  2.2.05 |       |     |   |
+| fllog        |  1.2.6  |       |     |   |
