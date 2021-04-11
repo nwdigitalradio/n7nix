@@ -10,19 +10,6 @@ login: pi
 passwd: digiberry
 ```
 
-###### Verify DRAWS codec is enumerated
-* After boot, verify DRAWS codec by listing all the sound playback hardware devices:
-```
-aplay -l
-```
-* You should see a line in the output that looks something like this:
-```
-card 0: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi-0 []
-```
-* If you do **NOT** see _udrc_ enumerated  **do NOT continue**
-  * Until the UDRC/DRAWS drivers are loaded the configuration scripts will not succeed.
-  * Run the ```showudrc.sh``` script and [post the console output to the UDRC groups.io forum](https://nw-digital-radio.groups.io/g/udrc/topics)
-
 ###### Verify kernel hold is active
 * Verify there is a hold on the kernel to prevent it from being upgraded
   * [More information on kernel holds](#verify-a-hold-is-placed-on-kernel-upgrades)
@@ -94,7 +81,7 @@ Device: ax0 exists, Device: ax1 exists
 * The default configuration enables the RPi on board bcm2835 sound device
 * If for some reason you want to disable the sound device then:
   * As root comment the following line in _/boot/config.txt_
-  * ie. put a hash character at the beginning of the line.
+  * ie. put a hash (#) character at the beginning of the line.
 ```
 dtparam=audio=on
 ```
