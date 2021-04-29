@@ -218,6 +218,7 @@ function installed_version_display() {
         echo "$progname: $prog_ver"
         test_fldigi_ver "$progname" "$prog_ver"
     done
+
     # Check if hamlib has been loaded
     for libname in "hamlib" "flxmlrpc" ; do
         installed_lib_ver_get "$libname"
@@ -383,6 +384,12 @@ if [ -z "$DEBUG1" ] ; then
         fi
     fi
 fi
+
+# hamlib
+hamlib_name="hamlib"
+prog_ver=$(ls -d $SRC_DIR/hamlib*/ | cut -f2 -d'-' | sed 's/\///' | tail -n 1)
+hamlib_ver=$(curl -Ls https://sourceforge.net/projects/hamlib/files/hamlib/ | grep "net.sf.files" | cut -f2 -d'"')
+echo "$hamlib_name:  current version: $hamlib_ver, installed: $prog_ver"
 
 # Update all the fl programs
 for fl_app in "flxmlrpc" "fldigi" "flrig" "flmsg" "flamp" "fllog" ; do
