@@ -159,6 +159,11 @@ apt-mark hold raspberrypi-bootloader raspberrypi-kernel raspberrypi-kernel-heade
 sudo apt-get dist-upgrade
 sudo apt full-upgrade
 ```
+### To unhold ALL held packages
+* Use the following command:
+```
+apt-mark unhold $(apt-mark showhold)
+```
 
 #### Historical Kernel Hold Info
 ##### Spring 2020 Kernel Hold
