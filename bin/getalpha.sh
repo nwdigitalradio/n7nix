@@ -14,7 +14,7 @@
 #
 # For reference sed script to be used on a frequency string with
 # decimal point
-#  - remove preceing white space
+#  - remove preceding white space
 #  - remove period (all punctuation)
 #  - convert to lower case
 # sed -e $'s/\t//g' -e "s/[[:punct:]]\+//g" -e "s/.*$/\L&/g"
