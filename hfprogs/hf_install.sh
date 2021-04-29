@@ -174,8 +174,10 @@ if [ ! -d "$HAMLIB_SRC_DIR/tests" ] ; then
             sudo chown -R $USER:$USER $HAMLIB_SRC_DIR
             cd hamlib-$hamlib_ver
             ./configure --prefix=/usr/local --enable-static
+	    echo
             echo -e "\n$(tput setaf 4)Starting hamlib build $(tput setaf 7)\n"
             make -j$num_cores
+	    echo
             echo -e "\n$(tput setaf 4)Starting hamlib install $(tput setaf 7)\n"
             sudo make install
             sudo ldconfig
