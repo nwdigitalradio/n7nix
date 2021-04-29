@@ -14,7 +14,9 @@ fi
 
 kern_ver_str=$(curl -s $release_url | grep -i "Linux kernel " | head -n 1)
 
-dbgecho "debug: kernver: $kern_ver_str"
+dbgecho "debug: kernver: $kern_ver_str, last arg: ${kern_ver_str##* }"
+
 kern_ver=$(echo "$kern_ver_str" | awk '{print $NF}')
 
-echo "kernver: $kern_ver"
+echo "Released kernel version: $kern_ver"
+echo "Running kernel version:  $(uname -r | cut -f1 -d'-')"
