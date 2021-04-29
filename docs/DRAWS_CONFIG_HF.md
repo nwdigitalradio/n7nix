@@ -31,6 +31,22 @@ playback: udrc: bcm2835-i2s-tlv320aic32x4-hifi-0
 #### WSJT-X
 ##### Configuration
 
+###### First Set up HAMlib rigctl daemon
+* PTT
+  * Below ```-m 3011``` is for an ICOM IC-706MkIIG
+  * Determine rig number by running
+```
+rigctl-wsjtx -l
+```
+  * Open a console and start the HAMlib rig control daemon
+    * -r is rig control device name
+    * -s is the baud rate set for your rig control device
+```
+rigctld-wsjtx -m 3011  -r /dev/ttyUSB0 -s 19200 -P GPIO -p 12
+```
+
+###### Configure WSJT-X
+
 * Menu settings for soundcard
   * File->Settings->Audio->soundcard
 ```
@@ -47,22 +63,14 @@ PTT Method CAT
 Mode Data/Pkt
 ```
 
-* PTT
-  * Below ```-m 3011``` is for an ICOM IC-706MkIIG
-  * Determine rig number by running
-```
-rigctl-wsjtx -l
-```
-  * Open a console and start the HAMlib rig control daemon
-    * -r is rig control device name
-    * -s is the baud rate set for your rig control device
-```
-rigctld-wsjtx -m 3011  -r /dev/ttyUSB0 -s 19200 -P GPIO -p 12
-```
-
-#### JS8CALL
+#### JS8Call
 ##### Configuration
+###### First Set up rigctl daemon
+
 * Set up HAMlib rig control same as WSJT-X (see above)
+
+###### Configure JS8Call
+
 * Soundcard device
   * File->Settings-Audio->Modulation Sound Card
 ```
