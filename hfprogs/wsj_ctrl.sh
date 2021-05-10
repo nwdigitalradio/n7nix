@@ -20,6 +20,8 @@ SYSTEMD_DIR="/etc/systemd/system"
 FORCE_UPDATE=
 DISPLAY_PARAMETERS=false
 
+rigctrl_device="/dev/ttyUSB0"
+
 # names of supported radios
 RADIOLIST="ic706 ic7000 ic7300 k2 k3 kx2 kx3"
 
@@ -141,13 +143,15 @@ function unitfile_rigctld() {
 [Unit]
 Description=$rigservice_name
 #Before=pat
+After=remote-fs.target
+After=syslog.target
 
 [Service]
 
 Restart=on-failure
 RestartSec=5s
 
-ExecStart=/usr/bin/$rigservice_name -m ${radio[rignum]} -r /dev/ttyUSB0 -s ${radio[baudrate]} -P ${radio[pttctrl]} ${radio[rigctrl]}
+ExecStart=/usr/bin/$rigservice_name -m ${radio[rignum]} -r $rigctrl_device -s ${radio[baudrate]} -P ${radio[pttctrl]} ${radio[rigctrl]}
 WorkingDirectory=/home/pi/
 StandardOutput=inherit
 StandardError=inherit
