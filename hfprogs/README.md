@@ -57,7 +57,7 @@ Usage: wsj_ctrl.sh [-a <name>][-f][-d][-h][status][stop][start]
   -h              Display this message.
 ```
 
-###### -f option is used to force a refresh the systemd service file
+###### -f option is used to force a refresh of the systemd service file
 * Using any of the 3 main commands add -f before command
   * For example:
 ```
@@ -103,4 +103,16 @@ Systemd service files found
  == rigctld-wsjtx process check
 proc rigctld-wsjtx: 0, pid: 4286, args:  -m 3011 -r /dev/ttyUSB0 -s 4800 -P GPIO -p 12
   == audio device udrc check: state: RUNNING
+```
+
+#### DEBUG
+
+* If problems are encountered post the console output of:
+
+```
+journalctl -u rigctld-wsjtx.service
+systemctl status rigctld-wsjtx.service
+
+cd ~/n7nix/hfprogs
+./wsj_ctrl.sh status
 ```
