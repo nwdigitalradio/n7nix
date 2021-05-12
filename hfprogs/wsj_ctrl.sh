@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # wsj_ctrl.sh
-
+#
 #
 # start, stop & show status for  rigctld-wsjtx process
 #
@@ -10,8 +10,7 @@
 DEBUG=
 
 BIN="/usr/bin"
-LBIN="/usr/local/bin"
-LOCAL_BIN="/home/pi/bin"
+
 scriptname="$(basename "$0")"
 
 rigservice_name="rigctld-wsjtx"
@@ -744,7 +743,7 @@ usage () {
 	echo "Usage: $scriptname [-a <name>][-f][-d][-h][status][stop][start]"
         echo "                  No args will show status of $rigservice_name"
         echo "  -a <radio name> specify radio name (ic706 ic7000 ic7300 k2 k3 kx2 kx3)"
-        echo "  -f | --force    Update all systemd unit files"
+        echo "  -f | --force    Update systemd unit file"
         echo "  -p              Print parameters for a particular radio name"
         echo "  -d              Set DEBUG flag"
 	echo
