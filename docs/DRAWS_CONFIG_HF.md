@@ -44,6 +44,8 @@ rigctl-wsjtx -l
 ```
 rigctld-wsjtx -m 3011  -r /dev/ttyUSB0 -s 19200 -P GPIO -p 12
 ```
+* Above script may fail first time it is run with ```device io``` or ```device not found``` error.
+* Script [wsj_ctrl.sh](https://github.com/nwdigitalradio/n7nix/blob/master/hfprogs/README.md) to auto start above command at boot
 
 ###### Configure WSJT-X
 
