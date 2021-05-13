@@ -325,6 +325,7 @@ function check_service() {
 }
 
 # ===== function kill_process
+
 function kill_process() {
     kill_flag=$1
     dbgecho
@@ -342,8 +343,9 @@ function kill_process() {
             echo "proc $process: $ret, pid: $pid_pat, args: $args"
         fi
 
-        # Stop systemd services
+        # Stop systemd service
         service="$process"
+
         if [ "$process" = "piardopc" ] ; then
             service="ardop"
         fi
@@ -351,7 +353,7 @@ function kill_process() {
         if $SYSTEMCTL is-active --quiet "$service" ; then
             stop_service $service
         else
-            # kill ardop process
+            # kill process
             if [ "$ret" -eq 0 ] && [ "$kill_flag" = "true" ] ; then
                 echo "$process running with pid: $pid_pat, killing"
                 kill $pid_pat
