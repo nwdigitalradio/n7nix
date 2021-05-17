@@ -391,6 +391,21 @@ prog_ver=$(ls -d $SRC_DIR/hamlib*/ | cut -f2 -d'-' | sed 's/\///' | tail -n 1)
 hamlib_ver=$(curl -Ls https://sourceforge.net/projects/hamlib/files/hamlib/ | grep "net.sf.files" | cut -f2 -d'"')
 echo "$hamlib_name:  current version: $hamlib_ver, installed: $prog_ver"
 
+if $UPDATE_FLAG ; then
+    if [[ "$hamlibver" != "$prog_ver" ]] ; then
+        echo "         versions are different and WILL be updated."
+        /bin/bash ./hf_install.sh "$USER" hamlib "$hamlib_ver"
+        if [ $? -ne 0 ] ; then
+            echo "hamlib install of version $hamlib_ver FAILED"
+        else
+            UPDATE_EXEC_FLAG=true
+        fi
+    else
+        echo "         version is current"
+    fi
+fi
+
+
 # Update all the fl programs
 for fl_app in "flxmlrpc" "fldigi" "flrig" "flmsg" "flamp" "fllog" ; do
 
