@@ -9,8 +9,7 @@
 
 
 BIN="/usr/bin"
-LBIN="/usr/local/bin"
-LOCAL_BIN="/home/pi/bin"
+
 scriptname="$(basename "$0")"
 
 SYSTEMD_DIR="/etc/systemd/system"
