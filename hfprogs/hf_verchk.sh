@@ -392,7 +392,7 @@ hamlib_ver=$(curl -Ls https://sourceforge.net/projects/hamlib/files/hamlib/ | gr
 echo "$hamlib_name:  current version: $hamlib_ver, installed: $prog_ver"
 
 if $UPDATE_FLAG ; then
-    if [[ "$hamlibver" != "$prog_ver" ]] ; then
+    if [[ "$hamlib_ver" != "$prog_ver" ]] ; then
         echo "         versions are different and WILL be updated."
         /bin/bash ./hf_install.sh "$USER" hamlib "$hamlib_ver"
         if [ $? -ne 0 ] ; then
