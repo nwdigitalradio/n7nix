@@ -43,4 +43,3 @@ There are two ways to start up ARDOP to be used with another application
 * On initial startup piARDOP_GUI will prompt for Host Name & Port number
   * set Host Name: localhost
   * set Port: 8515
-
