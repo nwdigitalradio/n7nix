@@ -24,19 +24,6 @@ ALTERNATE_DEVICE="udr1"
 # ===== function dbgecho
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
-# ===== function usage
-function usage() {
-   echo "Usage: $scriptname [-d][-e][-h]" >&2
-   echo " Displays or edits: $(basename "$AXPORTS_FILE"), $(basename "$AX25D_FILE"), $(basename "$RMSGW_CHAN_FILE"), $(basename "$PLU_CFG_FILE"), $(basename "$APRX_CFG_FILE"), $(basename "$TRACKER_CFG_FILE"), $(basename "$XASTIR_CFG_FILE")"
-   echo " No command line args, will display port names in above files."
-   echo "   -d        set debug flag"
-   echo "   -e        set edit files flag"
-   echo "   -n 0 or 1 set winlink device number, only used with -e option."
-   echo "   -p        print files with port names."
-   echo "   -h        no arg, display this message"
-   echo
-}
-
 # ===== function is_ax25up
 function is_ax25up() {
     ax25device=$1
@@ -288,6 +275,19 @@ function network_ports() {
         fi
         echo "Device $device OK, $devstatus"
     fi
+}
+
+# ===== function usage
+function usage() {
+   echo "Usage: $scriptname [-d][-e][-h]" >&2
+   echo " Displays or edits: $(basename "$AXPORTS_FILE"), $(basename "$AX25D_FILE"), $(basename "$RMSGW_CHAN_FILE"), $(basename "$PLU_CFG_FILE"), $(basename "$APRX_CFG_FILE"), $(basename "$TRACKER_CFG_FILE"), $(basename "$XASTIR_CFG_FILE")"
+   echo " No command line args, will display port names in above files."
+   echo "   -d        set debug flag"
+   echo "   -e        set edit files flag"
+   echo "   -n 0 or 1 set winlink device number, only used with -e option."
+   echo "   -p        print files with port names."
+   echo "   -h        no arg, display this message"
+   echo
 }
 
 # ===== main
