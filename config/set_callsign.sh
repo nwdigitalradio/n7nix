@@ -29,11 +29,13 @@
 # paclink-unix uses mycall=N0ONE
 # /usr/local/etc/wl2k.conf
 
-# mutt
+# == mutt ==
 # set realname="Joe Blow"
 # set from=callsign@winlink.org
 # my_hdr Reply-To: callsign@winlink.org
 
+# ---------------------
+#
 # clawsmail
 # pat
 # tbird
@@ -43,6 +45,17 @@
 # tracker
 
 # uronode
+#
+# ---------------------
+
+RMSGW_CFGDIR="/etc/rmsgw"
+RMSGW_GWCFGFILE=$RMSGW_CFGDIR/gateway.conf
+RMSGW_CHANFILE=$RMSGW_CFGDIR/channels.xml
+
+PLU_CFG_FILE="/usr/local/etc/wl2k.conf"
+
+MUTT_CFG_FILE="$HOME/.muttrc"
+
 
 # ===== display_direwolf
 
@@ -55,10 +68,22 @@ function display_direwolf() {
     # Squish all spaces
 #    grep -v "^#" $filename | tr -s '[[:space:]]' | cut -f2 -d' '
     callsigns=$(grep "^MYCALL " $filename | tr -s '[[:space:]]' | cut -f2 -d' ')
-    count=$(wc -l <<< $callsigns)
 
+
+    ig_callsign=$(grep "^IGLOGIN " $filename | tr -s '[[:space:]]' | cut -f2 -d' ')
+#    echo "ig callsign: $ig_callsign"
+    callsigns=$(printf "%s\n%s\n" $callsigns $ig_callsign)
+
+    count=$(wc -l <<< $callsigns)
     echo "Number of Call signs in file $filename: $count"
     echo "$callsigns"
+}
+
+# ===== change_direwolf
+
+function change_direwolf() {
+    filename="/etc/direwolf.conf"
+
 }
 
 # ===== display_ax25
@@ -100,6 +125,68 @@ function display_ax25d() {
     echo "$callsigns"
 }
 
+# ===== display_rmsgw
+# channels.xml: basecall, callsign
+# gateway.conf: GWCALL
+
+function display_rmsgw() {
+
+    filename="$RMSGW_GWCFGFILE"
+
+    echo
+    echo " == Call signs in $filename =="
+    grep -i "GWCALL" "$filename"
+
+    filename="$RMSGW_CHANFILE"
+
+    echo
+    echo " == Call signs in $filename =="
+
+    # Remove html tags & preceding white space
+    grep -i "<basecall" $filename  | sed -e 's/<[^>]*>//g' | sed 's/^[ \t]*//'
+    grep -i "<callsign" $filename  | sed -e 's/<[^>]*>//g' | sed 's/^[ \t]*//'
+}
+
+# ===== display_winlink
+# wl2k.conf mycall
+
+function display_winlink() {
+
+    filename="$PLU_CFG_FILE"
+
+    echo
+    echo " == Call signs in $filename =="
+    grep -i "^mycall" $filename
+}
+
+# ===== change_winlink
+
+function change_winlink() {
+   # Set mycall=
+   sed -i -e "/mycall=/ s/mycall=.*/mycall=$CALLSIGN/" $PLU_CFG_FILE
+
+}
+
+# mutt
+# set realname="Joe Blow"
+# set from=callsign@winlink.org
+# my_hdr Reply-To: callsign@winlink.org
+
+# ===== display_mutt
+# .mutrc set realname=, set from=, my_hdr
+
+function display_mutt() {
+
+    filename="$MUTT_CFG_FILE"
+
+    echo
+    echo " == Call signs in $filename =="
+    grep -i "^set realname=" $filename | cut -f2 -d'='
+    grep -i "^set from=" $filename |  cut -f2 -d'=' | sed -E 's@[[:blank:]]*(//|#).*@@;T;/./!d'
+    grep -i "^my_hdr Reply-To:" $filename | cut -f3 -d' '
+}
+
+
 
 # ===== display_callsigns
 
@@ -108,6 +195,9 @@ function display_callsigns() {
     display_ax25
     display_ax25d
     display_direwolf
+    display_rmsgw
+    display_winlink
+    display_mutt
 
 }
 
