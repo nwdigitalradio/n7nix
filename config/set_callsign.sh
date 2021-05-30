@@ -48,6 +48,8 @@
 #
 # ---------------------
 
+BACKUP_DIR="$HOME/cfg_backup"
+
 RMSGW_CFGDIR="/etc/rmsgw"
 RMSGW_GWCFGFILE=$RMSGW_CFGDIR/gateway.conf
 RMSGW_CHANFILE=$RMSGW_CFGDIR/channels.xml
@@ -55,6 +57,27 @@ RMSGW_CHANFILE=$RMSGW_CFGDIR/channels.xml
 PLU_CFG_FILE="/usr/local/etc/wl2k.conf"
 
 MUTT_CFG_FILE="$HOME/.muttrc"
+
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function get_callsign
+
+function verify_callsign() {
+
+   sizecallstr=${#CALLSIGN}
+
+   if (( sizecallstr > 6 )) || ((sizecallstr < 3 )) ; then
+      echo "Invalid call sign: $CALLSIGN, length = $sizecallstr"
+      exit 1
+   fi
+
+    # Convert callsign to upper case
+    CALLSIGN=$(echo "$CALLSIGN" | tr '[a-z]' '[A-Z]')
+
+
+    dbgecho "Using CALL SIGN: $CALLSIGN"
+}
 
 
 # ===== display_direwolf
@@ -79,11 +102,71 @@ function display_direwolf() {
     echo "$callsigns"
 }
 
+
+# ===== build_callpass
+# Igates need a code so they can log into the tier 2 servers.
+# It is based on your callsign, and there is a utility called
+# callpass in Xastir that will compute it.
+
+function build_callpass() {
+
+    CALLPASS_DIR="$HOME/n7nix/direowlf"
+    pushd $CALLPASS_DIR
+
+    type -P ./callpass &>/dev/null
+    if [ $? -ne 0 ] ; then
+        echo "Building callpass"
+        gcc -o callpass callpass.c
+
+        # Check that callpass build was successful
+        type -P ./callpass &>/dev/null
+        if [ $? -ne 0 ] ; then
+            echo
+            echo "FAILED to build callpass"
+            echo
+        fi
+    fi
+
+    logincode=$(./callpass $CALLSIGN)
+    popd
+
+}
+
 # ===== change_direwolf
 
 function change_direwolf() {
+
     filename="/etc/direwolf.conf"
 
+    # Change first occurrence of MYCALL
+    sed -ie '0,/^MYCALL /s//MYCALL $CALLSIGN-1/' $filename
+
+    # Change second occurrence of MYCALL
+    sed -ie 's/^MYCALL /MYCALL $CALLSIGN-2/2' $filename
+
+    # Change IGLOGIN callsign
+#    sed -ie "0,/^IGLOGIN /s/^IGLOGIN /IGLOGIN $CALLSIGN $logincode/" $filename
+
+    # Returns logincode variable set
+    build_callpass
+
+    # Get last argument in string
+    logincode="${logincode##* }"
+    echo "Login code for $CALLSIGN for APRS tier 2 servers: $logincode"
+
+    # Changed per Doug Kingston's suggestion
+    sed -i -e "/^[#]*IGLOGIN / s/^[#]*IGLOGIN .*/IGLOGIN $CALLSIGN $logincode\n/" $filename
+    dbgecho "IGSERVER"
+    sed -i -e "/#IGSERVER / s/^#//" $filename
+
+}
+
+# ===== backup_direwolf
+
+function backup_direwolf() {
+
+    filename="/etc/direwolf.conf"
+    cp $filename $BACKUP_DIR
 }
 
 # ===== display_ax25
@@ -102,6 +185,39 @@ function display_ax25() {
     echo "Number of Call signs in file $filename: $count"
     echo "$callsigns"
 }
+
+# ===== set_ax25
+
+function set_ax25() {
+    filename="/usr/local/etc/ax25/axports"
+
+    # create temporary file
+    tmpfile=$(mktemp /tmp/set_callsign.XXXXXX)
+
+    echo
+    echo " == Change call signs in $filename =="
+    # remove last 2 lines
+    head -n -2 $filename > $tmpfile
+    PRIMARY_DEVICE="udr0"
+    SSID_PRIME=1
+    ALTERNATE_DEVICE="udr1"
+    SSID_ALT=2
+
+    {
+echo "${PRIMARY_DEVICE}        $CALLSIGN-$SSID_PRIME            9600    255     2       Left port"
+echo "${ALTERNATE_DEVICE}        $CALLSIGN-$SSID_ALT             9600    255     2       Right port"
+} >> $tmpfile
+
+    cp $tmpfile $filename
+}
+
+# ===== backup_ax25
+
+function backup_ax25() {
+    filename="/usr/local/etc/ax25/axports"
+    cp $filename $BACKUP_DIR
+}
+
 
 # ===== display_ax25d
 
@@ -125,6 +241,18 @@ function display_ax25d() {
     echo "$callsigns"
 }
 
+# ===== set_ax25d
+
+function set_ax25d() {
+
+    filename="/usr/local/etc/ax25/ax25d.conf"
+    echo
+    echo " == Call signs in $filename =="
+
+
+#    sed -ie 's/\[img:.[^]]\]/\[img\]/g' file.txt
+}
+
 # ===== display_rmsgw
 # channels.xml: basecall, callsign
 # gateway.conf: GWCALL
@@ -146,6 +274,7 @@ function display_rmsgw() {
     grep -i "<basecall" $filename  | sed -e 's/<[^>]*>//g' | sed 's/^[ \t]*//'
     grep -i "<callsign" $filename  | sed -e 's/<[^>]*>//g' | sed 's/^[ \t]*//'
 }
+
 
 # ===== display_winlink
 # wl2k.conf mycall
@@ -186,6 +315,17 @@ function display_mutt() {
     grep -i "^my_hdr Reply-To:" $filename | cut -f3 -d' '
 }
 
+# ===== set_callsigns
+
+function set_callsigns() {
+
+    set_ax25
+    set_ax25d
+    set_direwolf
+    set_rmsgw
+    set_winlink
+    set_mutt
+}
 
 
 # ===== display_callsigns
@@ -198,14 +338,72 @@ function display_callsigns() {
     display_rmsgw
     display_winlink
     display_mutt
-
 }
+
+# ===== backup_config
+
+function backup_config() {
+
+    if [ ! -d $BACKUP_DIR ] ; then
+        mkdir -p $BACKUP_DIR
+    fi
+
+    backup_ax25
+
+    filename="/usr/local/etc/ax25/ax25d.conf"
+    cp $filename $BACKUP_DIR
+
+    backup_direwolf
+
+    filename="$RMSGW_GWCFGFILE"
+    cp $filename $BACKUP_DIR
+    filename="$RMSGW_CHANFILE"
+    cp $filename $BACKUP_DIR
+
+    filename="$PLU_CFG_FILE"
+    cp $filename $BACKUP_DIR
+
+    filename="$MUTT_CFG_FILE"
+    cp $filename $BACKUP_DIR
+
+    ls -salt $BACKUP_DIR
+}
+
+# ===== comare_config
+
+function compare_config() {
+
+    filename="/usr/local/etc/ax25/axports"
+    diff $filename $BACKUP_DIR
+
+    filename="/usr/local/etc/ax25/ax25d.conf"
+    diff $filename $BACKUP_DIR
+
+    filename="/etc/direwolf.conf"
+    diff $filename $BACKUP_DIR
+
+    filename="$RMSGW_GWCFGFILE"
+    diff $filename $BACKUP_DIR
+    filename="$RMSGW_CHANFILE"
+    diff $filename $BACKUP_DIR
+
+    filename="$PLU_CFG_FILE"
+    diff $filename $BACKUP_DIR
+
+    filename="$MUTT_CFG_FILE"
+    diff $filename $BACKUP_DIR
+}
+
+# ===== function usage
 
 usage () {
 	(
 	echo "Usage: $scriptname [-p][-d][-h]"
         echo "                  No args will display call signs configured"
         echo "  -p              Print call signs used"
+	echo "  -s <callsign>   Set new callsign"
+	echo "  -B              Backup config files"
+	echo "  -D              Diff config files"
         echo "  -d              Set DEBUG flag"
         echo "  -h              Display this message."
         echo
@@ -217,16 +415,44 @@ usage () {
 
 # ===== main
 
+# Default call sign
+CALLSIGN="N0ONE"
 
 while [[ $# -gt 0 ]] ; do
 APP_ARG="$1"
 
 case $APP_ARG in
 
+    -B)
+        # Backup config files
+        backup_config
+	exit 0
+    ;;
+
+    -D)
+        # Compare config files with diff
+        compare_config
+	exit 0
+    ;;
+
+    -s)
+        # set new call signs
+        set_callsigns
+	exit 0
+    ;;
+
     -p)
         # display call signs
         display_callsigns
 	exit 0
+    ;;
+    -s)
+        CALLSIGN="$2"
+	if [ -z $CALLSIGN ] ; then
+            CALLSIGN="N0ONE"
+	fi
+	verify_callsign
+	set_callsigns
     ;;
     -h|--help|-?)
         usage
