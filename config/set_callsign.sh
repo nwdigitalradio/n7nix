@@ -47,6 +47,13 @@
 # uronode
 #
 # ---------------------
+DEBUG=
+
+# Default call sign
+CALLSIGN="N0ONE"
+REALNAME="Joe Blow"
+
+# Default real name
 
 BACKUP_DIR="$HOME/cfg_backup"
 
@@ -110,7 +117,7 @@ function display_direwolf() {
 
 function build_callpass() {
 
-    CALLPASS_DIR="$HOME/n7nix/direowlf"
+    CALLPASS_DIR="$HOME/n7nix/direwolf"
     pushd $CALLPASS_DIR
 
     type -P ./callpass &>/dev/null
@@ -122,7 +129,7 @@ function build_callpass() {
         type -P ./callpass &>/dev/null
         if [ $? -ne 0 ] ; then
             echo
-            echo "FAILED to build callpass"
+            echo "$(tput setaf 1)FAILED to build callpass$(tput sgr0)"
             echo
         fi
     fi
@@ -132,17 +139,17 @@ function build_callpass() {
 
 }
 
-# ===== change_direwolf
+# ===== set_direwolf
 
-function change_direwolf() {
+function set_direwolf() {
 
     filename="/etc/direwolf.conf"
 
     # Change first occurrence of MYCALL
-    sed -ie '0,/^MYCALL /s//MYCALL $CALLSIGN-1/' $filename
+    sudo sed -ie '0,/^MYCALL /s/^MCALL .*/MYCALL $CALLSIGN-1/' $filename
 
     # Change second occurrence of MYCALL
-    sed -ie 's/^MYCALL /MYCALL $CALLSIGN-2/2' $filename
+    sudo sed -ie 's/^MYCALL .*/MYCALL $CALLSIGN-2/2' $filename
 
     # Change IGLOGIN callsign
 #    sed -ie "0,/^IGLOGIN /s/^IGLOGIN /IGLOGIN $CALLSIGN $logincode/" $filename
@@ -155,19 +162,11 @@ function change_direwolf() {
     echo "Login code for $CALLSIGN for APRS tier 2 servers: $logincode"
 
     # Changed per Doug Kingston's suggestion
-    sed -i -e "/^[#]*IGLOGIN / s/^[#]*IGLOGIN .*/IGLOGIN $CALLSIGN $logincode\n/" $filename
+    sudo sed -i -e "/^[#]*IGLOGIN / s/^[#]*IGLOGIN .*/IGLOGIN $CALLSIGN $logincode\n/" $filename
     dbgecho "IGSERVER"
-    sed -i -e "/#IGSERVER / s/^#//" $filename
-
+    sudo sed -i -e "/#IGSERVER / s/^#//" $filename
 }
 
-# ===== backup_direwolf
-
-function backup_direwolf() {
-
-    filename="/etc/direwolf.conf"
-    cp $filename $BACKUP_DIR
-}
 
 # ===== display_ax25
 
@@ -191,9 +190,6 @@ function display_ax25() {
 function set_ax25() {
     filename="/usr/local/etc/ax25/axports"
 
-    # create temporary file
-    tmpfile=$(mktemp /tmp/set_callsign.XXXXXX)
-
     echo
     echo " == Change call signs in $filename =="
     # remove last 2 lines
@@ -204,18 +200,11 @@ function set_ax25() {
     SSID_ALT=2
 
     {
-echo "${PRIMARY_DEVICE}        $CALLSIGN-$SSID_PRIME            9600    255     2       Left port"
+echo "${PRIMARY_DEVICE}        $CALLSIGN-$SSID_PRIME             9600    255     2       Left port"
 echo "${ALTERNATE_DEVICE}        $CALLSIGN-$SSID_ALT             9600    255     2       Right port"
 } >> $tmpfile
 
-    cp $tmpfile $filename
-}
-
-# ===== backup_ax25
-
-function backup_ax25() {
-    filename="/usr/local/etc/ax25/axports"
-    cp $filename $BACKUP_DIR
+    sudo cp $tmpfile $filename
 }
 
 
@@ -249,8 +238,16 @@ function set_ax25d() {
     echo
     echo " == Call signs in $filename =="
 
+    # First match ONLY
+    sudo sed -ie "0,/^\[/ s/\[.*/\[$CALLSIGN-10 VIA udr0\]/" $filename
 
-#    sed -ie 's/\[img:.[^]]\]/\[img\]/g' file.txt
+    # https://www.linuxquestions.org/questions/programming-9/replace-2nd-occurrence-of-a-string-in-a-file-sed-or-awk-800171/
+    # You seem to be thinking of the second occurrence based on each line
+    # being an occurrence, but sed sees it as the number of occurrences on
+    # a single line:
+    # Second match ONLY
+#   sudo sed ':a;N;$!ba;s/dog/big_dog/2'
+    sudo sed -ie "0,/^\[/! {0,/^\[/ s/^\[.*/\[$CALLSIGN VIA udr0\]/}" $filename
 }
 
 # ===== display_rmsgw
@@ -275,6 +272,24 @@ function display_rmsgw() {
     grep -i "<callsign" $filename  | sed -e 's/<[^>]*>//g' | sed 's/^[ \t]*//'
 }
 
+# ===== set_rmsgw
+
+function set_rmsgw() {
+
+    filename="$RMSGW_GWCFGFILE"
+
+    echo
+    echo " == Change call sign in $filename =="
+    sudo sed -ie "/GWCALL=/s/^GWCALL=.*/GWCALL=$CALLSIGN-10/g" $filename
+
+    filename="$RMSGW_CHANFILE"
+    echo
+    echo " == Change call sign in $filename =="
+
+    sudo sed -ie "/<basecall>/s/<basecall>.*/<basecall>$CALLSIGN<basecall>/g" $filename
+    sudo sed -ie "/<callsign>/s/<callsign>.*/<callsign>$CALLSIGN-10<callsign>/g" $filename
+}
+
 
 # ===== display_winlink
 # wl2k.conf mycall
@@ -288,12 +303,12 @@ function display_winlink() {
     grep -i "^mycall" $filename
 }
 
-# ===== change_winlink
+# ===== set_winlink
 
-function change_winlink() {
+function set_winlink() {
+    filename="$PLU_CFG_FILE"
    # Set mycall=
-   sed -i -e "/mycall=/ s/mycall=.*/mycall=$CALLSIGN/" $PLU_CFG_FILE
-
+   sudo sed -i -e "/mycall=/ s/mycall=.*/mycall=$CALLSIGN/" $PLU_CFG_FILE
 }
 
 # mutt
@@ -315,9 +330,27 @@ function display_mutt() {
     grep -i "^my_hdr Reply-To:" $filename | cut -f3 -d' '
 }
 
+# ===== set_mutt
+
+function set_mutt() {
+
+    filename="$MUTT_CFG_FILE"
+    # Set from=
+    sudo sed -ie "/set from=/ s/^set from=.*/set from=$CALLSIGN@winlink.org/" $MUTT_CFG_FILE
+    # Set realname
+    sudo sed -ie "/set realname=/ s/^set realname=.*/set realname=\"$REALNAME\"/" $MUTT_CFG_FILE
+
+    # my_hdr Reply-To:
+    sudo sed -ie "/my_hdr Reply-To:/ s/^my_hdr Reply-To:.*/my_hdr Reply-To: $CALLSIGN@winlink.org/" $MUTT_CFG_FILE
+}
+
+
 # ===== set_callsigns
 
 function set_callsigns() {
+
+    # create temporary file
+    tmpfile=$(mktemp /tmp/set_callsign.XXXXXX)
 
     set_ax25
     set_ax25d
@@ -325,6 +358,8 @@ function set_callsigns() {
     set_rmsgw
     set_winlink
     set_mutt
+
+    rm $tmpfile
 }
 
 
@@ -348,16 +383,18 @@ function backup_config() {
         mkdir -p $BACKUP_DIR
     fi
 
-    backup_ax25
+    filename="/usr/local/etc/ax25/axports"
+    cp $filename $BACKUP_DIR
 
     filename="/usr/local/etc/ax25/ax25d.conf"
     cp $filename $BACKUP_DIR
 
-    backup_direwolf
-
     filename="$RMSGW_GWCFGFILE"
     cp $filename $BACKUP_DIR
     filename="$RMSGW_CHANFILE"
+    cp $filename $BACKUP_DIR
+
+    filename="/etc/direwolf.conf"
     cp $filename $BACKUP_DIR
 
     filename="$PLU_CFG_FILE"
@@ -369,28 +406,70 @@ function backup_config() {
     ls -salt $BACKUP_DIR
 }
 
-# ===== comare_config
+# ===== restore_config from previous back-up
+
+function restore_config() {
+
+    if [ ! -d $BACKUP_DIR ] ; then
+       echo "Nothing to restore"
+       exit 1
+    fi
+
+    filename="/usr/local/etc/ax25/axports"
+    sudo cp $BACKUP_DIR/$(basename $filename) $filename
+
+    filename="/usr/local/etc/ax25/ax25d.conf"
+    sudo cp $BACKUP_DIR/$(basename $filename) $filename
+
+    filename="$RMSGW_GWCFGFILE"
+    sudo cp $BACKUP_DIR/$(basename $filename) $filename
+    filename="$RMSGW_CHANFILE"
+    sudo cp $BACKUP_DIR/$(basename $filename) $filename
+
+    filename="/etc/direwolf.conf"
+    sudo cp $BACKUP_DIR/$(basename $filename) $filename
+
+    filename="$PLU_CFG_FILE"
+    sudo cp $BACKUP_DIR/$(basename $filename) $filename
+
+    filename="$MUTT_CFG_FILE"
+    sudo cp $BACKUP_DIR/$(basename $filename) $filename
+
+    if [ 1 -eq 0 ] ; then
+        dbgecho "Do nothing"
+    fi
+}
+
+
+# ===== diff files that have been previously backed up
 
 function compare_config() {
 
     filename="/usr/local/etc/ax25/axports"
+    echo " == Call Signs in $filename =="
     diff $filename $BACKUP_DIR
 
     filename="/usr/local/etc/ax25/ax25d.conf"
+    echo " == Call Signs in $filename =="
     diff $filename $BACKUP_DIR
 
     filename="/etc/direwolf.conf"
+    echo " == Call Signs in $filename =="
     diff $filename $BACKUP_DIR
 
     filename="$RMSGW_GWCFGFILE"
+    echo " == Call Signs in $filename =="
     diff $filename $BACKUP_DIR
     filename="$RMSGW_CHANFILE"
+    echo " == Call Signs in $filename =="
     diff $filename $BACKUP_DIR
 
     filename="$PLU_CFG_FILE"
+    echo " == Call Signs in $filename =="
     diff $filename $BACKUP_DIR
 
     filename="$MUTT_CFG_FILE"
+    echo " == Call Signs in $filename =="
     diff $filename $BACKUP_DIR
 }
 
@@ -404,6 +483,7 @@ usage () {
 	echo "  -s <callsign>   Set new callsign"
 	echo "  -B              Backup config files"
 	echo "  -D              Diff config files"
+	echo "  -R              Resotre config files"
         echo "  -d              Set DEBUG flag"
         echo "  -h              Display this message."
         echo
@@ -415,8 +495,13 @@ usage () {
 
 # ===== main
 
-# Default call sign
-CALLSIGN="N0ONE"
+# Check if running as root
+if [[ $EUID -ne 0 ]]; then
+    dbgecho "*** Running as user: $(whoami) ***" 2>&1
+else
+    echo "DO NOT run as root"
+    exit 0
+fi
 
 while [[ $# -gt 0 ]] ; do
 APP_ARG="$1"
@@ -435,9 +520,9 @@ case $APP_ARG in
 	exit 0
     ;;
 
-    -s)
-        # set new call signs
-        set_callsigns
+    -R)
+        # restore config files from backup
+        restore_config
 	exit 0
     ;;
 
@@ -453,6 +538,7 @@ case $APP_ARG in
 	fi
 	verify_callsign
 	set_callsigns
+	exit 0
     ;;
     -h|--help|-?)
         usage
