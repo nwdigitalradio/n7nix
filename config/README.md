@@ -1,6 +1,6 @@
 ## Script notes for this directory
 
-#### set_callsign.sh
+### set_callsign.sh
 * This script edits the config files for the following programs:
   * Direwolf
   * AX.25
@@ -23,6 +23,14 @@ Usage:  [-p][-d][-h]
 ```
 
 ##### How to use:
+
+* On a Raspberry PI with the NWDR image go to the configuration directory:
+  * This will be the location of the _set_callsign.sh_ script
+
+```
+cd
+cd n7nix/config
+```
 
 ###### Display current call signs in config
 ```
@@ -55,5 +63,5 @@ ax25-restart
 ###### Restore saved configuration
 * If after running the set_callsign script the configuration has a problem then restore previous configuration
 ```
-./set_callsign.h -R
+./set_callsign.sh -R
 ```
