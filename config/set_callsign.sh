@@ -34,7 +34,7 @@
 # set from=callsign@winlink.org
 # my_hdr Reply-To: callsign@winlink.org
 
-# ---------------------
+# Unfinished ---------------------
 #
 # clawsmail
 # pat
@@ -118,7 +118,7 @@ function display_direwolf() {
 function build_callpass() {
 
     CALLPASS_DIR="$HOME/n7nix/direwolf"
-    pushd $CALLPASS_DIR
+    pushd $CALLPASS_DIR > /dev/null
 
     type -P ./callpass &>/dev/null
     if [ $? -ne 0 ] ; then
@@ -135,8 +135,7 @@ function build_callpass() {
     fi
 
     logincode=$(./callpass $CALLSIGN)
-    popd
-
+    popd > /dev/null
 }
 
 # ===== set_direwolf
@@ -146,10 +145,16 @@ function set_direwolf() {
     filename="/etc/direwolf.conf"
 
     # Change first occurrence of MYCALL
-    sudo sed -ie '0,/^MYCALL /s/^MCALL .*/MYCALL $CALLSIGN-1/' $filename
+    dbgecho "sed First occurrence of MYCALL: $CALLSIGN-1"
+    sudo sed -ie "0,/^MYCALL /s/^MYCALL .*/MYCALL $CALLSIGN-1/" $filename
 
     # Change second occurrence of MYCALL
-    sudo sed -ie 's/^MYCALL .*/MYCALL $CALLSIGN-2/2' $filename
+    dbgecho "sed Second occurrence of MYCALL: $CALLSIGN-2"
+    # sudo sed -ie 's/^MYCALL .*/MYCALL $CALLSIGN-2/2' $filename
+    sudo sed -ie "0,/^MYCALL/! {0,/^MYCALL/ s/^MYCALL .*/MYCALL $CALLSIGN-2/}" $filename
+
+    dbgecho "sed check"
+    grep "^MYCALL " $filename
 
     # Change IGLOGIN callsign
 #    sed -ie "0,/^IGLOGIN /s/^IGLOGIN /IGLOGIN $CALLSIGN $logincode/" $filename
@@ -162,8 +167,12 @@ function set_direwolf() {
     echo "Login code for $CALLSIGN for APRS tier 2 servers: $logincode"
 
     # Changed per Doug Kingston's suggestion
+    dbgecho "sed IGLOGIN"
     sudo sed -i -e "/^[#]*IGLOGIN / s/^[#]*IGLOGIN .*/IGLOGIN $CALLSIGN $logincode\n/" $filename
-    dbgecho "IGSERVER"
+    if [ ! -z "$DEBUG" ] ; then
+        grep "^IGLOGIN" $filename
+    fi
+    # Uncomment IGate server setting
     sudo sed -i -e "/#IGSERVER / s/^#//" $filename
 }
 
@@ -239,7 +248,7 @@ function set_ax25d() {
     echo " == Call signs in $filename =="
 
     # First match ONLY
-    sudo sed -ie "0,/^\[/ s/\[.*/\[$CALLSIGN-10 VIA udr0\]/" $filename
+    sudo sed -ie "0,/^\[/ s/^\[.*/\[$CALLSIGN-10 VIA udr0\]/" $filename
 
     # https://www.linuxquestions.org/questions/programming-9/replace-2nd-occurrence-of-a-string-in-a-file-sed-or-awk-800171/
     # You seem to be thinking of the second occurrence based on each line
@@ -486,6 +495,7 @@ usage () {
 	echo "  -R              Resotre config files"
         echo "  -d              Set DEBUG flag"
         echo "  -h              Display this message."
+	echo "  -t              Debug test"
         echo
 	) 1>&2
 	exit 1
@@ -535,9 +545,23 @@ case $APP_ARG in
         CALLSIGN="$2"
 	if [ -z $CALLSIGN ] ; then
             CALLSIGN="N0ONE"
+	    REALNAME="Joe Blow"
+	else
+            echo "Enter real name for Winlink mail config, ie. Joe Blow, followed by [enter]:"
+            read -e REALNAME
 	fi
+
 	verify_callsign
 	set_callsigns
+	exit 0
+    ;;
+    -t)
+        DEBUG=1
+        echo " ==== Set test ===="
+        set_direwolf
+	echo
+        echo " ==== Display check ===="
+        display_direwolf
 	exit 0
     ;;
     -h|--help|-?)
