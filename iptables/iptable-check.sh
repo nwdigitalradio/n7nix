@@ -9,7 +9,18 @@ DEBUG=
 SU=
 scriptname="`basename $0`"
 
+rules_file="/etc/iptables/rules.ipv4.ax25"
+hook_file="/lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
+
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== get_rule_count
+# sets variable rule_count
+
+function get_rule_count() {
+
+    rule_count=$(grep -c "\-A OUTPUT" $rules_file)
+}
 
 # ===== function get_user
 
@@ -95,20 +106,22 @@ else
 fi
 BIN_DIR="/home/$USER/bin"
 
-echo "== List current iptables rules"
+echo "==== List current iptables rules ===="
 # List iptables rules
 #
+# with no table specified filter table is used by default
 # -L list: List all rules in all chains
 # -v verbose output
 # -n numeric: IP addresses & port numbers are printed in numeric format
-# -x exact: display exact value of the packet & byte counters instead
-#    of rounded number
+# -x exact: display exact value of the packet & byte counters instead of rounded number
+# -t Netfilter tale (filter, nat, mangle, raw or security)
+echo
+echo " ***** FILTER table"
 $SU iptables -L -nvx
 
-
 rule_count=0
-if [ -e "/etc/iptables/rules.ipv4.ax25" ] ; then
-    rule_count=$(grep -c "\-A OUTPUT" /etc/iptables/rules.ipv4.ax25)
+if [ -e "$rules_file" ] ; then
+    get_rule_count
 fi
 echo
 echo "Number of ax25 iptables rules found: $rule_count"
@@ -116,7 +129,7 @@ echo "Number of ax25 iptables rules found: $rule_count"
 # Check for required iptables files
 #
 CREATE_IPTABLES=false
-IPTABLES_FILES="/etc/iptables/rules.ipv4.ax25 /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
+IPTABLES_FILES="$rules_file $hook_file"
 for ipt_file in `echo ${IPTABLES_FILES}` ; do
 
    if [ -f $ipt_file ] ; then
@@ -127,7 +140,7 @@ for ipt_file in `echo ${IPTABLES_FILES}` ; do
    fi
 done
 
-if [ -e "/etc/iptables/rules.ipv4.ax25" ] && [ $rule_count -lt 6 ] ; then
+if [ -e "$rules_file" ] && [ $rule_count -lt 6 ] ; then
     dbgecho "Will create iptables rules due to rule count: $rule_count"
     CREATE_IPTABLES=true
 fi
@@ -146,22 +159,22 @@ if [ "$CREATE_IPTABLES" = "true" ] ; then
     echo
     echo "== setup iptables"
     sudo /bin/bash $BIN_DIR/iptable-up.sh
-    sudo sh -c "iptables-save > /etc/iptables/rules.ipv4.ax25"
+    sudo sh -c "iptables-save > $rules_file"
 
-    grep -q "iptables-restore" /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 > /dev/null 2>&1
+    grep -q "iptables-restore" $hook_file > /dev/null 2>&1
     retcode="$?"
     if [ "$retcode" -ne 0 ] ; then
         echo "Setup restore command"
-        sudo tee /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 > /dev/null <<EOF
-iptables-restore < /etc/iptables/rules.ipv4.ax25
+        sudo tee $hook_file > /dev/null <<EOF
+iptables-restore < $rules_file
 EOF
     fi
-    rule_count=$(grep -c "\-A OUTPUT" /etc/iptables/rules.ipv4.ax25)
+    get_rule_count
     echo "Number of ax25 rules now: $rule_count"
 fi
 
 if [ ! -z "$DEBUG" ] ; then
-    IPTABLES_FILES="/etc/iptables/rules.ipv4.ax25 /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
+    IPTABLES_FILES="$rules_file $hook_file"
     for ipt_file in `echo ${IPTABLES_FILES}` ; do
         echo
         echo "== Dump file: $ipt_file"
