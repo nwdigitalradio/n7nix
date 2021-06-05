@@ -49,7 +49,7 @@ cd n7nix/config
 ./set_callsign.sh -s N0ONE
 ```
 * You will be prompted for a "real" name
-  * Use first & last name and hit retur
+  * Use first & last name and hit return
 
 ###### Compare changes with saved configuration
 ```
