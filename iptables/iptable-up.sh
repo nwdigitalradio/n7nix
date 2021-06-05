@@ -2,10 +2,10 @@
 #
 # Enable iptables rules on devices that are up
 
-# ===== function is_ax25up
-function is_ax25up() {
-    ax25device=$1
-    ip a show $ax25device up > /dev/null  2>&1
+# ===== function is_ifaceup
+function is_ifaceup() {
+    interface=$1
+    ip a show $interface up > /dev/null  2>&1
 }
 
 # ===== main
@@ -13,7 +13,7 @@ function is_ax25up() {
 # For each ax25 interface check if it is up and apply iptables rules
 for device in "ax0" "ax1" ; do
     echo "Using device: $device"
-    is_ax25up "$device"
+    is_ifaceup "$device"
     if [ "$?" -eq 0 ] ; then
         iptables -A OUTPUT -o "$device" -d 224.0.0.22 -p igmp -j DROP
         iptables -A OUTPUT -o "$device" -d 224.0.0.251 -p udp -m udp --dport 5353 -j DROP
