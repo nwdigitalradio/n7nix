@@ -59,8 +59,9 @@ function check_user() {
 # ===== function usage
 
 function usage() {
-    echo "Usage: $scriptname [-d][-h]" >&2
-    echo "   -d        set debug flag"
+    echo "Usage: $scriptname [-f][-d][-h]" >&2
+    echo "   -f        Force an iptable update"
+    echo "   -d        set Debug flag"
     echo "   -h        display this message"
     echo
 }
