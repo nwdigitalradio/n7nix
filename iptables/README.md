@@ -1,3 +1,15 @@
+### Script Description
+
+###### iptable-check.sh
+* Run this script to view installed iptable rules and to verify packets are being dropped
+```
+Usage: $scriptname [-f][-d][-h]
+   -f        Force an iptable update
+   -d        set Debug flag
+   -h        display this message
+```
+
+
 ### iptable entry descriptions
 
 * Chromium IGMPv2 multicast protocol
