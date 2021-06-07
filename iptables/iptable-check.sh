@@ -12,6 +12,8 @@ scriptname="`basename $0`"
 rules_file="/etc/iptables/rules.ipv4.ax25"
 hook_file="/lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
 
+bFORCE_UPDATE=false
+
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== get_rule_count
@@ -71,7 +73,10 @@ while [[ $# -gt 0 ]] ; do
 APP_ARG="$1"
 
 case $APP_ARG in
-
+   -f|--force)
+       echo "Force an iptables rules update"
+       bFORCE_UPDATE=true
+   ;;
    -d|--debug)
       DEBUG=1
       echo "Debug mode on"
@@ -126,21 +131,26 @@ fi
 echo
 echo "Number of ax25 iptables rules found: $rule_count"
 
-# Check for required iptables files
-#
-CREATE_IPTABLES=false
-IPTABLES_FILES="$rules_file $hook_file"
-for ipt_file in `echo ${IPTABLES_FILES}` ; do
+# Check force update iptables flag
+if [ $bFORCE_UPDATE = false ] ; then
+    # Check for required iptables files
+    #
+    CREATE_IPTABLES=false
+    IPTABLES_FILES="$rules_file $hook_file"
+    for ipt_file in `echo ${IPTABLES_FILES}` ; do
 
-   if [ -f $ipt_file ] ; then
-      echo "iptables file: $ipt_file exists"
-   else
-      echo "Creating iptables file: $ipt_file"
-      CREATE_IPTABLES=true
-   fi
-done
+       if [ -f $ipt_file ] ; then
+          echo "iptables file: $ipt_file exists"
+       else
+          echo "Creating iptables file: $ipt_file"
+          CREATE_IPTABLES=true
+       fi
+    done
+else
+          CREATE_IPTABLES=true
+fi
 
-if [ -e "$rules_file" ] && [ $rule_count -lt 6 ] ; then
+if [ -e "$rules_file" ] && [ $rule_count -lt 10 ] ; then
     dbgecho "Will create iptables rules due to rule count: $rule_count"
     CREATE_IPTABLES=true
 fi
