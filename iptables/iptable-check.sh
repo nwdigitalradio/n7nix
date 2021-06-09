@@ -23,6 +23,36 @@ function get_rule_count() {
 
     rule_count=$(grep -c "\-A OUTPUT" $rules_file)
 }
+# ===== write iptable rules
+function write_rules() {
+    if [ "$CREATE_IPTABLES" = "true" ] ; then
+
+        sudo /bin/bash $BIN_DIR/iptable-flush.sh
+
+        # Setup some iptable rules
+        # 224.0.0.22
+        #  - used for the IGMPv3 protocol.
+        # 239.255.255.250:1900
+        #  - Chromecast
+        #  - traffic is discovery multicast traffic that occurs every 2 minutes from the system
+        #  - UPnP (Universal Plug and Play)/SSDP (Simple Service Discovery Protocol) by various vendors to advertise the capabilities of (or discover) devices
+        echo
+        echo "== setup iptables"
+        sudo /bin/bash $BIN_DIR/iptable-up.sh
+        sudo sh -c "iptables-save > $rules_file"
+
+        grep -q "iptables-restore" $hook_file > /dev/null 2>&1
+        retcode="$?"
+        if [ "$retcode" -ne 0 ] ; then
+            echo "Setup restore command"
+            sudo tee $hook_file > /dev/null <<EOF
+iptables-restore < $rules_file
+EOF
+        fi
+        get_rule_count
+        echo "Number of ax25 rules now: $rule_count"
+    fi
+}
 
 # ===== function get_user
 
@@ -132,11 +162,12 @@ fi
 echo
 echo "Number of ax25 iptables rules found: $rule_count"
 
+CREATE_IPTABLES=false
+
 # Check force update iptables flag
 if [ $bFORCE_UPDATE = false ] ; then
     # Check for required iptables files
-    #
-    CREATE_IPTABLES=false
+
     IPTABLES_FILES="$rules_file $hook_file"
     for ipt_file in `echo ${IPTABLES_FILES}` ; do
 
@@ -148,7 +179,7 @@ if [ $bFORCE_UPDATE = false ] ; then
        fi
     done
 else
-          CREATE_IPTABLES=true
+    CREATE_IPTABLES=true
 fi
 
 if [ -e "$rules_file" ] && [ $rule_count -lt 10 ] ; then
@@ -156,33 +187,7 @@ if [ -e "$rules_file" ] && [ $rule_count -lt 10 ] ; then
     CREATE_IPTABLES=true
 fi
 
-if [ "$CREATE_IPTABLES" = "true" ] ; then
-
-    sudo /bin/bash $BIN_DIR/iptable-flush.sh
-
-    # Setup some iptable rules
-    # 224.0.0.22
-    #  - used for the IGMPv3 protocol.
-    # 239.255.255.250:1900
-    #  - Chromecast
-    #  - traffic is discovery multicast traffic that occurs every 2 minutes from the system
-    #  - UPnP (Universal Plug and Play)/SSDP (Simple Service Discovery Protocol) by various vendors to advertise the capabilities of (or discover) devices
-    echo
-    echo "== setup iptables"
-    sudo /bin/bash $BIN_DIR/iptable-up.sh
-    sudo sh -c "iptables-save > $rules_file"
-
-    grep -q "iptables-restore" $hook_file > /dev/null 2>&1
-    retcode="$?"
-    if [ "$retcode" -ne 0 ] ; then
-        echo "Setup restore command"
-        sudo tee $hook_file > /dev/null <<EOF
-iptables-restore < $rules_file
-EOF
-    fi
-    get_rule_count
-    echo "Number of ax25 rules now: $rule_count"
-fi
+write_rules
 
 if [ ! -z "$DEBUG" ] ; then
     IPTABLES_FILES="$rules_file $hook_file"
