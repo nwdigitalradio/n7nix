@@ -18,7 +18,7 @@
 
 echo "FOR REFERENCE ONLY, DO NOT USE"
 
-patver="0.10.0"
+patver="0.11.0"
 
 echo " == Get pat ver: $patver"
 wget https://github.com/la5nta/pat/releases/download/v${patver}/pat_${patver}_linux_armhf.deb
