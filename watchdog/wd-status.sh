@@ -31,4 +31,4 @@ UP_TIME="$(uptime -p)"
 echo "=== RSTS: $RSTS_REG, reboot count: $REBOOT_CNT, $UP_TIME"
 
 echo "=== SYS log"
-grep -i watchdog /var/log/syslog
+grep --binary-files=text -i watchdog /var/log/syslog
