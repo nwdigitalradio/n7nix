@@ -2,6 +2,7 @@
 #
 # Collect a bunch of information about ntp time condition
 
+echo -e "\n\t$(tput setaf 4)date cmd:$(tput setaf 7) $(date)"
 echo -e "\n\t$(tput setaf 4)timedatectl$(tput setaf 7)\n"
 sudo timedatectl
 echo -e "\n\t$(tput setaf 4)chronyc sources$(tput setaf 7)\n"
@@ -17,3 +18,5 @@ systemctl --no-pager status chronyd
 echo -e "\n\t$(tput setaf 4)gpsd systemctl status$(tput setaf 7)\n"
 systemctl --no-pager status gpsd
 gpsd -V
+echo -e "\n\t$(tput setaf 4)gpsd config$(tput setaf 7)\n"
+cat /etc/default/gpsd
