@@ -221,9 +221,12 @@ dbgecho "ACHANNELS"
 sed -i -e '/ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
 dbgecho "PTT"
 sed -i -e "/#PTT GPIO 25/ s/#PTT GPIO 25/PTT GPIO $chan1ptt_gpio/" $DIREWOLF_CFGFILE
+# Insert line after match
+sed '/^CHANNEL 0/a ARATE 48000'  $DIREWOLF_CFGFILE
+
 # Set up the second channel
-dbgecho "CHANNEL1"
-sed -i -e "/#CHANNEL 1/ s/#CHANNEL 1/CHANNEL 1\nPTT GPIO $chan2ptt_gpio\nMODEM 1200\nMYCALL $CALLSIGN1\n/" $DIREWOLF_CFGFILE
+dbgecho "CHANNEL 1"
+sed -i -e "/#CHANNEL 1/ s/#CHANNEL 1/CHANNEL 1\nARATE 48000\nPTT GPIO $chan2ptt_gpio\nMODEM 1200\nMYCALL $CALLSIGN1\n/" $DIREWOLF_CFGFILE
 
 echo "Config Internet Gateway LOGIN"
 
