@@ -370,16 +370,16 @@ if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     hfapp="ALL"
     # Build js8call first to satisfy some wsjtx dependencies
     build_js8call "2.2.0"
-    build_wsjtx "2.3.1"
-    build_hamlib "4.1"
+    build_wsjtx "2.4.0"
+    build_hamlib "4.2"
     build_flapp "0.1.4" flxmlrpc
     # Must build fldigi before the other apps
     # apps rely on /usr/bin/fltk-config
-    build_fldigi "4.1.18"
-    build_flapp "1.3.54" flrig
-    build_flapp "4.0.17" flmsg
-    build_flapp "2.2.05" flamp
-    build_fllog "1.2.6" fllog
+    build_fldigi "4.1.20"
+    build_flapp "1.4.2" flrig
+    build_flapp "4.0.19" flmsg
+    build_flapp "2.2.07" flamp
+    build_fllog "1.2.7" fllog
 else
 
     if [[ $# -ne 3 ]] ; then
