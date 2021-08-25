@@ -55,7 +55,7 @@ function desktop_pat_file() {
 Name=PAT
 Type=Link
 URL=http://localhost:8080
-Icon=/usr/share/icons/PiXflat/32x32/apps/mail.png
+Icon=/usr/share/icons/PiX/32x32/apps/mail.png
 EOT
         fi
     else
