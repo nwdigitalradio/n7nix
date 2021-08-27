@@ -192,6 +192,7 @@ fi
 # ===== function build_fldigi_src
 
 function build_fldigi_src() {
+    flapp="fldigi"
     sudo apt-get build-dep fldigi
     # Verify tar file exists
     if [ ! -f "$download_filename" ] ; then
@@ -208,7 +209,8 @@ function build_fldigi_src() {
     sudo chown -R $USER:$USER $FLDIGI_SRC_DIR
     cd fldigi-$fldigi_ver
 
-    ./configure --with-hamlib --with-flxmlrpc --prefix=/usr/local --enable-static
+#   ./configure  --with-hamlib --with-flxmlrpc --prefix=/usr/local --enable-static
+    ./configure  --with-hamlib  --prefix=/usr/local --enable-static
     echo -e "\n$(tput setaf 4)Starting fldigi build $(tput setaf 7)\n"
     make -j$num_cores
     echo -e "\n$(tput setaf 4)Starting fldigi install $(tput setaf 7)\n"
