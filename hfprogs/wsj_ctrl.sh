@@ -64,7 +64,7 @@ function desktop_pat_file() {
 Name=PAT
 Type=Link
 URL=http://localhost:8080
-Icon=/usr/share/icons/PiXflat/32x32/apps/mail.png
+Icon=/usr/share/icons/PiX/32x32/apps/mail.png
 EOT
         fi
     else
@@ -131,7 +131,7 @@ EOT
 
 # ===== function unitfile_rigctld
 # For IC-7300
-# ExecStart=/usr/bin/rigctld-wsjtx -m 373 -r /dev/ttyUSB0 -p /dev/ttyUSB0 -P RTS -s 19200
+# ExecStart=/usr/bin/rigctld-wsjtx -m 3073 -r /dev/ttyUSB0 -p /dev/ttyUSB0 -P RTS -s 19200
 # Use a heredoc to build the rigctld-wsjtx.service file
 
 function unitfile_rigctld() {
@@ -742,7 +742,7 @@ function display_parameters() {
 
 usage () {
 	(
-	echo "Usage: $scriptname [-a <name>][-f][-d][-h][status][stop][start]"
+	echo "Usage: $scriptname [-a <name>][-f][-p][-d][-h][status][stop][start]"
         echo "                  No args will show status of $rigservice_name"
         echo "  -a <radio name> specify radio name (ic706 ic7000 ic7300 k2 k3 kx2 kx3)"
         echo "  -f | --force    Update systemd unit file"
@@ -753,7 +753,7 @@ usage () {
 	echo
         echo "  start           start required $rigservice_name process"
         echo "  stop            stop all $rigservice_name process"
-        echo "  status          display status of all $rigservice_name process"
+        echo "  status          display status of all $rigservice_name processes"
         echo "  -h              Display this message."
         echo
 	) 1>&2
