@@ -214,19 +214,22 @@ fi
 
 dbgecho "MYCALL"
 sed -i -e "/MYCALL N0CALL/ s/N0CALL/$CALLSIGN0/" $DIREWOLF_CFGFILE
+
 dbgecho "ADEVICE"
+# ADEVICE same as ADEVICE0
 #sed -i -e '/ADEVICE  plughw/ s/# ADEVICE  plughw:1,0/ADEVICE plughw:1,0 plughw:1,0/' $DIREWOLF_CFGFILE
 sed -i -e '/ADEVICE  plughw/ s/# ADEVICE  plughw:1,0/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/' $DIREWOLF_CFGFILE
+# Insert line after match
+sed '/^ADEVICE /a ARATE 48000'  $DIREWOLF_CFGFILE
+
 dbgecho "ACHANNELS"
 sed -i -e '/ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
 dbgecho "PTT"
 sed -i -e "/#PTT GPIO 25/ s/#PTT GPIO 25/PTT GPIO $chan1ptt_gpio/" $DIREWOLF_CFGFILE
-# Insert line after match
-sed '/^CHANNEL 0/a ARATE 48000'  $DIREWOLF_CFGFILE
 
 # Set up the second channel
 dbgecho "CHANNEL 1"
-sed -i -e "/#CHANNEL 1/ s/#CHANNEL 1/CHANNEL 1\nARATE 48000\nPTT GPIO $chan2ptt_gpio\nMODEM 1200\nMYCALL $CALLSIGN1\n/" $DIREWOLF_CFGFILE
+sed -i -e "/#CHANNEL 1/ s/#CHANNEL 1/CHANNEL 1\nPTT GPIO $chan2ptt_gpio\nMODEM 1200\nMYCALL $CALLSIGN1\n/" $DIREWOLF_CFGFILE
 
 echo "Config Internet Gateway LOGIN"
 
