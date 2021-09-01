@@ -30,7 +30,7 @@ Usage:  [-f][-d][-h][status][stop][start]
   start           start required ardop processes
   stop            stop all ardop processes
   status          display status of all ardop processes
-  -a <radio name> specify radio name (ic706 ic7000 ic7300 kx2)
+  -a <radio name> specify radio name (ic706 ic7000 ic7300 k2 k3 kx2 kx3)
   -f | --force    Update all systemd unit files & .asoundrc file
   -d              Set DEBUG flag
   -h              Display this message.
@@ -49,8 +49,10 @@ Usage:  [-f][-d][-h][status][stop][start]
 ```
 cd
 cd n7nix/ardop
-./ardop_ctrl.sh start
+./ardop_ctrl.sh -a <radio name> start
 ```
+* You __must__ specify the radio you are using
+  * Defaults to ic706
 * _ardop_ctrl.sh_ script does not do much auto editing
   * If you see the following _.asoundrc_ card number file check during startup
 ```
@@ -75,7 +77,10 @@ cd
 cd n7nix/ardop
 ./ardop_ctrl.sh -a ic706 stop
 ./ardop_ctrl.sh -f -a ic7300 start
- # only have to use the -f force flag once to re-write the systemd unit files for a particular radio
+
+ # Only have to use the -f force flag once to re-write the systemd
+ #  unit files for a particular radio
+
 ./ardop_ctrl.sh -a ic7300 status
 ```
 ##### Systemd unit files exec commands for IC-7300
