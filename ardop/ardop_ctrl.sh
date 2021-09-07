@@ -20,7 +20,7 @@ DISPLAY_PARAMETERS=false
 RADIOLIST="ic706 ic7000 ic7300 k2 k3 kx2 kx3"
 
 # Rig numbers are from rigctl -l
-declare -A radio_ic706=( [rigname]="IC-706" [rignum]=3011 [audioname]=udrc [samplerate]=48000 [baudrate]=4800 [pttctrl]="GPIO" [catctrl]="" [rigctrl]="-p 12" [alsa_lodriver]="-6.0" [alsa_pcm]="-26.5" )
+declare -A radio_ic706=( [rigname]="IC-706" [rignum]=3011 [audioname]=udrc [samplerate]=48000 [baudrate]=4800 [pttctrl]="GPIO=12" [catctrl]="" [rigctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-26.5" )
 declare -A radio_ic7000=( [rigname]="IC-7000" [rignum]=3060 [audioname]=udrc [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [rigctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
 declare -A radio_ic7300=( [rigname]="IC-7300" [rignum]=3073 [audioname]=CODEC [samplerate]=48000 [baudrate]=19200 [pttctrl]="/dev/ttyUSB0" [catctrl]="-c /dev/ttyUSB0" [rigctrl]="-p /dev/ttyUSB0 -P RTS" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
 declare -A radio_k2=( [rigname]="K2" [rignum]=2021 [audioname]=udrc [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [rigctrl]="" [alsa_lodriver]="0.0" [alsa_pcm]="0.0" )
