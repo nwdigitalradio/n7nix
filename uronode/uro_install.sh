@@ -6,6 +6,7 @@
 DEBUG=1
 
 myname="`basename $0`"
+
 AX25_CFGDIR="/usr/local/etc/ax25"
 PKG_REQUIRE="telnet openbsd-inetd"
 
@@ -67,7 +68,7 @@ function get_user() {
 
 function check_user() {
    userok=false
-   dbgecho "$scriptname: Verify user name: $USER"
+   dbgecho "$myname: Verify user name: $USER"
    for username in $USERLIST ; do
       if [ "$USER" = "$username" ] ; then
          userok=true;
@@ -176,15 +177,23 @@ fi
 prog_name=uronode
 type -P $prog_name &>/dev/null
 if [ $? -ne 0 ] ; then
+  echo
+  echo "uronode NOT installed, will install now"
 # Currently manually check for latest version
    URONODE_VER="2.13"
+
 #   cd /usr/local/src/uronode-$URONODE_VER.tar.gz
 #   tar -xzxf uro
 #   wget http://downloads.sourceforge.net/project/uronodenode-$URONODE_VER.tar.gz
 
+    cd /usr/local/src
+
     wget http://ftp.debian.org/debian/pool/main/u/uronode/uronode_$URONODE_VER.orig.tar.gz
     tar -zxvf uronode_$URONODE_VER.orig.tar.gz
     cd uronode-$URONODE_VER
+
+    echo
+    echo "Answer n to prompt: Use interactive mode? [Y/n]: "
 
    ./configure
 # Use interactive mode? [Y/n]: n
@@ -200,8 +209,12 @@ if [ $? -ne 0 ] ; then
        echo
    else
        echo
-       echo "ERORS found during make"
+       echo "Check make.debug for errors"
        cat make.debug
+   fi
+else
+    echo
+    echo "uronode already installed"
 fi
 
 # edit /etc/ax25/uronode.info
