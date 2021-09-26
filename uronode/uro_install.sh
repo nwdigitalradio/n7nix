@@ -84,6 +84,12 @@ function check_user() {
 
 # ===== main
 
+# running as root?
+if [[ $EUID != 0 ]] ; then
+    echo "Must run as root"
+    exit 0
+fi
+
 # check if required packages are installed
 # Could not get systemd to load uronode properly
 # install inetd for the time being
@@ -171,17 +177,31 @@ prog_name=uronode
 type -P $prog_name &>/dev/null
 if [ $? -ne 0 ] ; then
 # Currently manually check for latest version
-   URONODE_VER="2.10"
-   cd /usr/local/src
-   wget http://downloads.sourceforge.net/project/uronode/uronode-$URONODE_VER.tar.gz
-   tar -xzxf uronode-$URONODE_VER.tar.gz
-   cd uronode-$URONODE_VER
+   URONODE_VER="2.13"
+#   cd /usr/local/src/uronode-$URONODE_VER.tar.gz
+#   tar -xzxf uro
+#   wget http://downloads.sourceforge.net/project/uronodenode-$URONODE_VER.tar.gz
+
+    wget http://ftp.debian.org/debian/pool/main/u/uronode/uronode_$URONODE_VER.orig.tar.gz
+    tar -zxvf uronode_$URONODE_VER.orig.tar.gz
+    cd uronode-$URONODE_VER
+
    ./configure
+# Use interactive mode? [Y/n]: n
    make
    make install
    make installhelp
    make installconf
-   cat make.debug
+
+   FILESIZE=$(stat -c %s make.debug)
+   if [ $FILESIZE -eq 0 ] ; then
+       echo
+       echo "NO errors detected during make"
+       echo
+   else
+       echo
+       echo "ERORS found during make"
+       cat make.debug
 fi
 
 # edit /etc/ax25/uronode.info
