@@ -114,7 +114,7 @@ if [ "$needs_pkg" = "true" ] ; then
    apt-get install -y -q $PKG_REQUIRE
    if [ "$?" -ne 0 ] ; then
       echo "$myname: package install failed. Please try this command manually:"
-      echo "apt-get -y $PKG_REQUIRE"
+      echo "apt-get install -y $PKG_REQUIRE"
       exit 1
    fi
 fi
