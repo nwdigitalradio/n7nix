@@ -224,7 +224,7 @@ fi
 # garim 1.5
 # wget https://www.whitemesa.net/garim/src/garim-1.5.tar.gz
 
-arim_ver="2.11"
+arim_ver="2.12"
 download_filename="arim-${arim_ver}.tar.gz"
 ARIM_SRC_DIR=$SRC_DIR/arim-$arim_ver
 
