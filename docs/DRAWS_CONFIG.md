@@ -10,12 +10,6 @@ login: pi
 passwd: digiberry
 ```
 
-###### Verify kernel hold is active
-* Verify there is a hold on the kernel to prevent it from being upgraded
-  * [More information on kernel holds](#verify-a-hold-is-placed-on-kernel-upgrades)
-```
-apt-mark showhold
-```
 ### Initial Configuration
 * Run initcfg.sh script
 ```
