@@ -23,6 +23,7 @@ receive_out=disc
 - Install [Touch Tone baudrate](https://github.com/nwdigitalradio/n7nix/tree/master/baudrate#touch-tone-baudrate-installation-notes)
 
 ### Installation
+* Install [Touch Tone baudrate](https://github.com/nwdigitalradio/n7nix/tree/master/baudrate#touch-tone-baudrate-installation-notes)
 * [Installation Notes can be found here.](#touch-tone-baudrate-installation-notes)
 
 
