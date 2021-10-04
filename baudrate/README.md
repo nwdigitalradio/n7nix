@@ -43,3 +43,40 @@ The remainder of this README is for the last method using __both__ ports of a DR
 ![mDin6 Y Cable before heat shrink](images/img_2681_resize.jpg)
 
 ![mDin6 Y Cable after heat shring](images/mdin6_Ycable.jpg)
+
+## Using Apps with 'Both Baud' Configuration
+
+### Winlink email using paclink-unix
+
+* Note that DRAWS:
+  * left port udr0 is configured to run at 9600 baud
+  * right port udr` is configured to run at 1200 baud
+
+###### Command to send packets at 9600 baud P2P to station KF7FIT
+```
+wl2kax25 -c kf7fit -a udr0
+```
+###### Command to send packets at 1200 baud P2P to station KF7FIT
+```
+wl2kax25 -c kf7fit -a udr1
+```
+
+### APRS gateway using APRX
+
+##### Configuration for N7NIX-4 using 9600 baud and N7NIX-5 using 1200 baud packet
+###### Configuration file /etc/aprx.conf
+```
+mycall N7NIX-4
+
+<interface>
+  callsign $mycall
+  ax25-device $mycall
+  tx-ok true
+</interface>
+
+<interface>
+  callsign N7NIX-5
+  ax25-device N7NIX-5
+  tx-ok true
+</interface>
+```
