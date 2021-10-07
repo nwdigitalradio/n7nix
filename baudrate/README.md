@@ -31,9 +31,10 @@ The remainder of this README is for the last method using __both__ ports of a DR
 
 ### Software Installation
 
-* This installation has only been tested with 2 apps:
-  * Winlink email
-  * APRS using APRX
+* This installation has only been tested with the following apps:
+  * Winlink email client
+  * Linux RMS Gateway
+  * APRS using APRX & nixtracker
 
 * run script _both_baud.sh_
 
@@ -60,6 +61,29 @@ wl2kax25 -c kf7fit -a udr0
 ```
 wl2kax25 -c kf7fit -a udr1
 ```
+
+### Winlink gateway & Winlink P2P using Linux RMS Gateway & paclink-unix
+###### Configuration file /usr/local/etc/ax25/ax25d.conf
+* DRAWS port udr0 used for 9600 baud
+* DRAWS port udr1 used for 1200 baud
+
+```
+[N7NIX-10 VIA udr0]
+NOCALL   * * * * * *  L
+default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -P %d %U
+#
+[N7NIX VIA udr0]
+NOCALL   * * * * * *  L
+default  * * * * * *  - pi /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d
+#
+[N7NIX-10 VIA udr1]
+NOCALL   * * * * * *  L
+default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -P %d %U
+#
+[N7NIX VIA udr1]
+NOCALL   * * * * * *  L
+default  * * * * * *  - pi /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d
+
 
 ### APRS gateway using APRX
 
