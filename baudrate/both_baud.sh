@@ -34,6 +34,18 @@ function get_callsign() {
     CALLSIGN=$(grep -v "^#" /etc/ax25/ax25d.conf | tr -s '[[:space:]]' | grep "^\[" | cut -f1 -d' ' | sed 's/\[//g' | cut -d'-' -f1 | head -n1)
 }
 
+# ===== function get_device_name
+function get_callsign() {
+    filename="$AX25D_CFG_FILE"
+    echo
+    echo " == Call signs in $filename =="
+
+    # Squish all spaces
+#    grep -v "^#" $filename | tr -s '[[:space:]]' | cut -f2 -d' '
+    CALLSIGN=$(grep -v "^#" /etc/ax25/ax25d.conf | tr -s '[[:space:]]' | grep "^\[" | cut -f1 -d' ' | sed 's/\[//g' | cut -d'-' -f1 | head -n1)
+}
+
+
 # ===== function set_port_conf file
 # Set baud rate & receive_out disc/audio for both ports
 
@@ -59,19 +71,25 @@ function set_port_conf() {
 }
 
 # ===== function set_ax25d_conf
-# Add the second port, ie. other side of sound device
-
-# [CALLSIGN-10 VIA udr1]
-# NOCALL   * * * * * *  L
-# default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -P %d %U
-# #
-# [CALLSIGN VIA udr1]
-# NOCALL   * * * * * *  L
-# default  * * * * * *  - pi /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d
+#
+# Add the second port, ie. other side of sound device Assume first port
+# (PRIMARY_DEVICE) has already been configured
 
 function set_ax25d_conf() {
     get_callsign
     echo "DEBUG: using CALLSIGN: $CALLSIGN"
+    SECONDARY_DEVICE="udr1"
+
+    {
+echo "#"
+echo "[$CALLSIGN-10 VIA ${SECONDARY_DEVICE}]"
+echo "NOCALL   * * * * * *  L"
+echo "default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -P %d %U"
+
+echo "[$CALLSIGN VIA ${SECONDARY_DEVICE}]"
+echo "NOCALL   * * * * * *  L"
+echo "default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d"
+    } >> $AX25D_CFG_FILE
 
     left_entry_cnt=$(grep  "$CALLSIGN" $AX25D_CFG_FILE | grep -c "udr0")
     right_entry_cnt=$(grep  "$CALLSIGN" $AX25D_CFG_FILE | grep -c "udr1")
@@ -114,6 +132,17 @@ function display_baud_cfg_files() {
     else
         echo "WARNING: Wrong number of modem entries: $modem_cnt"
     fi
+
+    echo
+    echo " === Check direwolf config for ARATE value"
+    echo "DEBUG: check arate, count: $(grep -i "^arate " $DIREWOLF_CFGFILE | wc -l)"
+    grep -i "^arate " $DIREWOLF_CFGFILE
+
+    # Do the ptt gpio's need to be different?
+    echo
+    echo " === Check direwolf config for PTT gpio"
+    grep -i "^ptt gpio" $DIREWOLF_CFGFILE
+
 }
 
 # ==== function display arguments used by this script
@@ -133,43 +162,44 @@ usage () {
 while [[ $# -gt 0 ]] ; do
 APP_ARG="$1"
 
-case $APP_ARG in
-    -s|status)
-        echo "Display config files"
-	display_baud_cfg_files
-	exit 0
-    ;;
-    -d|--debug)
-        DEBUG=1
-        echo "Debug mode on"
-   ;;
-    -h|--help|-?)
-        usage
-        exit 0
-   ;;
-   *)
-        echo "Unrecognized command line argument: $APP_ARG"
-        usage
-        exit 0
-   ;;
+    case $APP_ARG in
+        -s|status)
+            echo
+            echo "===== Check configuration for dual baud rates"
+	    display_baud_cfg_files
+	    exit 0
+        ;;
+        -d|--debug)
+            DEBUG=1
+            echo "Debug mode on"
+       ;;
+        -h|--help|-?)
+            usage
+            exit 0
+       ;;
+       *)
+            echo "Unrecognized command line argument: $APP_ARG"
+            usage
+            exit 0
+       ;;
 
-esac
+    esac
 
 shift # past argument
 done
 
 # ===== Change file: /etc/ax25/port.conf
 #
-echo "Debug: set_port_conf"
+echo " ==== set port config file"
 set_port_conf
 
 # ===== Change file: /etc/ax25/ax25d.conf
-echo "Debug: set_ax25d.conf"
+echo " ==== set ax.25 daemon config file"
 set_ax25d_conf
 
 
 # ===== /etc/direwolf.conf changes
-echo "Debug: set direwolf.conf"
+echo " ==== set direwolf config file"
 
 # Should be only 1 arate entery per audio device.
 arate_cnt=$(grep -i "^arate " $DIREWOLF_CFGFILE | wc -l)
@@ -183,11 +213,3 @@ if (( arate_cnt == 0 )) ; then
 else
     echo "DEBUG: arate already set"
 fi
-
-#debug
-echo "DEBUG: check arate, count: $(grep -i "^arate " $DIREWOLF_CFGFILE | wc -l)"
-grep -i "^arate " $DIREWOLF_CFGFILE
-
-# Do the ptt gpio's need to be different?
-echo "DEBUG: check push to talk gpio's"
-grep -i "^ptt gpio" $DIREWOLF_CFGFILE
