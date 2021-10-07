@@ -12,6 +12,7 @@
 #   - Verify there is a single ARATE entries one for each audio DEVICE
 #   - ARATE sample-rate applies to the most recent ADEVICEn command
 #   - ADEVICE = ADEVICE0
+#   - Add 9600 baud modem speed
 
 scriptname="`basename $0`"
 
@@ -22,6 +23,9 @@ AX25D_CFG_FILE="$AX25_CFGDIR/ax25d.conf"
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 
 SED="sudo sed"
+
+PRIMARY_DEVICE="udr0"
+SECONDARY_DEVICE="udr1"
 
 # ===== function get_callsign
 function get_callsign() {
@@ -66,8 +70,8 @@ function set_port_conf() {
     $SED -in '/\[port1\]/,/\[/ s/^receive_out=.*/receive_out=disc/' $PORT_CFG_FILE
 
     echo "DEBUG: File: $PORT_CFG_FILE set, verify"
-    grep -i "speed" $PORT_CFG_FILE
-    grep -i "receive_out" $PORT_CFG_FILE
+    grep -i "^speed" $PORT_CFG_FILE
+    grep -i "^receive_out" $PORT_CFG_FILE
 }
 
 # ===== function set_ax25d_conf
@@ -78,23 +82,68 @@ function set_port_conf() {
 function set_ax25d_conf() {
     get_callsign
     echo "DEBUG: using CALLSIGN: $CALLSIGN"
-    SECONDARY_DEVICE="udr1"
 
-    {
-echo "#"
-echo "[$CALLSIGN-10 VIA ${SECONDARY_DEVICE}]"
-echo "NOCALL   * * * * * *  L"
-echo "default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -P %d %U"
-
-echo "[$CALLSIGN VIA ${SECONDARY_DEVICE}]"
-echo "NOCALL   * * * * * *  L"
-echo "default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d"
-    } >> $AX25D_CFG_FILE
+sudo tee -a $AX25D_CFG_FILE > /dev/null << EOT
+#
+[$CALLSIGN-10 VIA ${SECONDARY_DEVICE}]
+NOCALL   * * * * * *  L
+default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -P %d %U
+#
+[$CALLSIGN VIA ${SECONDARY_DEVICE}]
+NOCALL   * * * * * *  L
+default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d
+EOT
 
     left_entry_cnt=$(grep  "$CALLSIGN" $AX25D_CFG_FILE | grep -c "udr0")
     right_entry_cnt=$(grep  "$CALLSIGN" $AX25D_CFG_FILE | grep -c "udr1")
     echo "DEBUG: call sign count: Left: $left_entry_cnt, Right: $right_entry_cnt"
 }
+
+# ===== function direwolf_set_baud_first
+
+# Set baud rate on MODEM line for the FIRST modem channel
+
+direwolf_set_baud_first() {
+
+    modem_speed="$1"
+
+    echo "$scriptname: set $DIREWOLF_CFGFILE first baud rate to: $modem_speed" | $TEE_CMD
+
+    # Modify first occurrence of MODEM configuration line
+    sudo sed -i "0,/^MODEM/ s/^MODEM .*/MODEM $modem_speed/" $DIREWOLF_CFGFILE
+
+    # Modify both occurrences of MODEM configuration line
+    # sudo sed -i "/^MODEM/ s/^MODEM .*/MODEM $modem_speed/" $DIREWOLF_CFGFILE
+
+    modem_cnt=$(grep "^MODEM" $DIREWOLF_CFGFILE | wc -l)
+    if (( modem_cnt != 2 )) ; then
+        echo "WARNING: Wrong number of modem entries: $modem_cnt"
+    fi
+}
+
+
+# ===== function direwolf_set_baud_second
+
+# Set baud rate on MODEM line for the SECOND modem channel
+
+direwolf_set_baud_second() {
+
+    modem_speed="$1"
+
+    echo "$scriptname: set $DIREWOLF_CFGFILE second baud rate to: $modem_speed" | $TEE_CMD
+
+    # Modify second occurrence of MODEM configuration line
+    sudo sed -i -e "0,/^MODEM /! {/^MODEM/ s/^MODEM .*/MODEM $modem_speed/}" $DIREWOLF_CFGFILE
+
+    # Modify both occurrences of MODEM configuration line
+    # sudo sed -i "/^MODEM/ s/^MODEM .*/MODEM $modem_speed/" $DIREWOLF_CFGFILE
+
+    modem_cnt=$(grep "^MODEM" $DIREWOLF_CFGFILE | wc -l)
+    if (( modem_cnt != 2 )) ; then
+        echo "WARNING: Wrong number of modem entries: $modem_cnt"
+    fi
+}
+
 
 # ===== function display_baud_cfg_files
 
@@ -134,7 +183,8 @@ function display_baud_cfg_files() {
     fi
 
     echo
-    echo " === Check direwolf config for ARATE value"
+    echo " === Check direwolf config ARATE value(s)"
+
     echo "DEBUG: check arate, count: $(grep -i "^arate " $DIREWOLF_CFGFILE | wc -l)"
     grep -i "^arate " $DIREWOLF_CFGFILE
 
@@ -195,8 +245,13 @@ set_port_conf
 
 # ===== Change file: /etc/ax25/ax25d.conf
 echo " ==== set ax.25 daemon config file"
-set_ax25d_conf
-
+sec_device_cnt=$(grep -i "udr1" $AX25D_CFG_FILE | wc -l)
+if (( sec_device_cnt < 2 )) ; then
+    echo "Editing file: $AX25D_CFG_FILE"
+    set_ax25d_conf
+else
+    echo "AX25D file: $AX25D_CFG_FILE ALREADY set"
+fi
 
 # ===== /etc/direwolf.conf changes
 echo " ==== set direwolf config file"
@@ -211,5 +266,23 @@ if (( arate_cnt == 0 )) ; then
     echo "Setting arate in $DIREWOLF_CFGFILE"
     $SED -in '/^ADEVICE /a ARATE 48000' $DIREWOLF_CFGFILE
 else
-    echo "DEBUG: arate already set"
+    arate_val=$(grep -i "^arate" /etc/direwolf.conf | cut -f2 -d' ')
+    echo "DEBUG: arate already set to: $arate_val"
+fi
+
+echo "Confirm 9600 baud is set"
+port_speed1=$(grep "^MODEM" /etc/direwolf.conf | head -n1 | cut -f2 -d' ')
+port_speed2=$(grep "^MODEM" /etc/direwolf.conf | tail -n1 | cut -f2 -d' ')
+
+if (( port_speed1 == port_speed2 )) ; then
+    echo "WARNING: direwolf not configured for 2 differnet baud rates ... will edit."
+
+    direwolf_set_baud_first 9600
+    direwolf_set_baud_second 1200
+
+    port_speed1=$(grep "^MODEM" /etc/direwolf.conf | head -n1 | cut -f2 -d' ')
+    port_speed2=$(grep "^MODEM" /etc/direwolf.conf | tail -n1 | cut -f2 -d' ')
+    echo "After edit: First port speed: $port_speed1, Second port speed: $port_speed2"
+else
+    echo "Direwolf config OK for modem speed settings."
 fi
