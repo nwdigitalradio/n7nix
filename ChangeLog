@@ -1,6 +1,6 @@
-  * Image changes:
-    * Down graded kernel to 5.4.79-v7l+ #1373
-
+Sat Oct  9 16:09:45 PDT 2021  Basil Gunn <basil@pacabunga.com>
+  * Image NWDR20 release:
+    * Using kernel 5.10.63-v7l+ #1457
     * Added rules to iptables to drop mfnp & bjnp broadcasts on AX.25 ports
     * Updated draws-manager with John's fixes for power management
     * For AX.25 icon get rid of annoying dialog box that prompts for
@@ -11,9 +11,14 @@
     * Fix rainloop install so that lighttpd config co-exists with rpi-temp-graph
     * Updated:
       * YAAC 1.0-beta163(29-Dec-2020)
-      * FLdigi to 4.1.18
-      * wsjtx to 2.3.0
+      * FLdigi to 4.1.21
+      * wsjtx to 2.4.0
       * Direwolf DEVELOPMENT version 1.7 A
+      * gpsd 3.23.2
+    * Removed piwiz autostart
+    * Fixed uronode install to download source from a maintained location
+    * Documented simultaneous 1200/9600 baud packet using both DRAWS ports.
+    * 158 commits since last release
 
 Sat Jan 23 12:00:38 PST 2021  Basil Gunn <basil@pacabunga.com>
 
