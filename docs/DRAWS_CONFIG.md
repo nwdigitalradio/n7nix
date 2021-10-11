@@ -3,12 +3,25 @@
 
 [Set up a Raspberry Pi micro SD Card](DRAWS_CONFIG_SDCARD.md)
 
-* Boot the new microSD card
+* Boot the newly provisioned microSD card
 
 ```
 login: pi
 passwd: digiberry
 ```
+
+* Immediately verify that the DRAWS hat and its driver are operating.
+  * Open a console and type:
+```
+aplay -l
+```
+* You should see a line in the output that looks something like this:
+```
+card 0: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi-0 []
+```
+
+* If you do **NOT** see _udrc_ enumerated  **do NOT continue**
+  * Until the UDRC/DRAWS drivers are loaded the configuration scripts will **NOT** succeed.
 
 ### Initial Configuration
 * Run initcfg.sh script
@@ -17,14 +30,12 @@ cd
 cd n7nix/config
 ./initcfg.sh
 ```
-* **The above _initcfg.sh_ script completes by rebooting first time it is run**
+* **The above _initcfg.sh_ script completes by rebooting the first time it is run**
 
-* Upon logging in:
+* Upon logging in after automatic reboot:
   * Verify DRAWS codec is still enumerated
-  * Verify AX25/direwolf are running:
 ```
 aplay -l
-ax25-status
 ```
 * Should see something similar to below:
 ```
@@ -46,19 +57,30 @@ card 2: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi
   Subdevices: 0/1
   Subdevice #0: subdevice #0
 ```
+
+### Set your ALSA configuration
+
+* **You must set your ALSA configuration** for your particular radio at this time
+  * Also note which connector you are using as you can vary ALSA settings based on which channel you are using
+    * On a DRAWS hat left connector is left channel
+    * On a UDRC II hat mDin6 connector is right channel
+  * You also must route the AFOUT, compensated receive signal or the DISC, discriminator  receive signal with ALSA settings.
+  * Verify your ALSA settings by running ```alsa-show.sh```
+
+*  [Link to verify your installation is working properly](https://github.com/nwdigitalradio/n7nix/blob/master/docs/VERIFY_CONFIG.md)
+
+* **NOTE:** running the _init.cfg_ script leaves AX.25 & _direwolf_ **NOT running** & **NOT enabled**
+  * The default config is to run HF applications like js8call, wsjtx
+  and FLdigi
+  * If you are **not** interested in packet and want to run an HF app then go ahead & do that now.
+
+### If you want to run Packet Turn on Direwolf & AX.25
+
+  * If you want to run a **packet application** or run some tests on the
+  DRAWS board that requires _direwolf_ then enable AX.25 and Direwolf by running the following command:
+
 ```
-$ ax25-status
-Status for direwolf.service: RUNNING and ENABLED
-Status for ax25dev.service: RUNNING and ENABLED
-Status for ax25dev.path: RUNNING and ENABLED
-Status for ax25-mheardd.service: RUNNING and ENABLED
-Status for ax25d.service: RUNNING and ENABLED
-AX.25 device: ax0 successfully configured with ip: 192.168.0.2
-AX.25 device: ax1 successfully configured with ip: 192.168.1.3
-Direwolf is running with pid of 646
-port: 0, speed: 1200, slottime: 200, txdelay: 500, t1 timeout: 3000, t2 timeout: 1000
-port: 1, speed: 1200, slottime: 200, txdelay: 500, t1 timeout: 3000, t2 timeout: 1000
-Device: ax0 exists, Device: ax1 exists
+ax25-start
 ```
 
 #### Packet Program Options
