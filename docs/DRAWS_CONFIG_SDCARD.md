@@ -3,13 +3,20 @@
 #### Download the image file
 
 * [Go to the download site](http:nwdig.net/downloads) to find the current filename of the image
-  * **Note:** _current_image.xz_ and _nwdrxx.xz_ are the same file
+  * **Note:** _current_image.xz_ and _nwdrxx.xz_ are **the same file**
     * checksum.txt contains the file size in bytes, md5sum & sha256sum
-  * You can get the image using the following or just click on the filename using your browser.
+  * You can get the image using the following command or just click on the filename using your browser.
 ```bash
 wget http://images.nwdigitalradio.com/downloads/current_image.img.xz
 ```
 * **At least a 16GB microSD card is recommended**
+
+##### How to verify the downloaded file
+* If your SD card does not boot, you can verify your downloaded _nwdrxx.xz_ file by comparing information in the checksum.txt file:
+  - File size
+  - md5
+  - sha256
+
 
 * For Windows and MAC options for writing the image to the micro SD card go to the [Raspberry Pi documentation
 page](https://www.raspberrypi.org/documentation/installation/installing-images/)
