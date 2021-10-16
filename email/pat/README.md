@@ -1,4 +1,4 @@
-## How to run PAT with ARDOP - PRELIMINARY
+## How to run PAT with ARDOP & AX.25
 
 ### List of processes running to support PAT/ARDOP
 ```
@@ -9,79 +9,61 @@ pi       18821  0.5  2.8 258144 55992 pts/8    Sl+  Apr21  15:06 ./piARDOP_GUI
 pi        6257  0.0  0.3  28100  7748 pts/0    Sl+  Apr21   0:00 rigctld -m311 -r /dev/ttyUSB0 -s 4800
 ```
 
-#### PAT config
+#### PAT config - general
+
+##### Install PAT from NW Digital Install script
+```
+cd
+cd n7nix/email/pat
+./pat_install.sh
+```
+##### Edit PAT configuration file
+
+* [PAT configuration documentation](https://github.com/la5nta/pat/wiki/The-command-line-interface#configure)
+  * [PAT config file documentation from godocs](https://pkg.go.dev/github.com/la5nta/pat/cfg#Config)
+
 * PAT config file lives here: [.wl2k/config.json](https://github.com/nwdigitalradio/n7nix/blob/master/email/pat/config.json)
   * __NOTE__ preceeding dot in directory name
-* Edit the following configuration variables in the json config file
-  * mycall
-  * secure_login_password
-  * locator
+
+##### Edit PAT configuration file for general config
+
+```
+  "mycall": "YOUR CALLSIGN",
+  "secure_login_password": "YOUR Winlink Password",
+  "locator": "YOUR 6 character Maidenhead location",
+
   * hamlib_rigs
   * ardop, "rig":
-
-
-### Consoles
-
-#### Console 1: Rig control
-
-* Get rig control running first since it is used by PAT.
-  * Technically you do __NOT__ need _rigctrld_ running if you set radio frequency manually.
-* [PAT Rig Control](https://github.com/la5nta/pat/wiki/Rig-control) wiki.
-* Edit PAT config file: config.json
-  * Add an entry to _hamlib_rigs_
-  * ie. For an IC-706MKIIG
-```
- "IC-706MKIIG": {"address": "localhost:4532", "network": "tcp"}
-```
-  * Edit "ardop": entry by adding a __rigctl rig name__
-    * Link to [Hamlib rigctl rig names](https://github.com/Hamlib/Hamlib/wiki/Supported-Radios).
-    * Must match a name from ```rigctl -l``` list
-```
-  "rig": "IC-706MKIIG",
 ```
 
-* Start rig control daemon in another console
+##### Edit PAT configuration file for packet using AX.25
 ```
-rigctld -m311 -r /dev/ttyUSB0 -s 4800
-```
-* The -m option above must match your radio
-```
-  -m, --model=ID                select radio model number. See model list
-```
-* For example to find the radio model number for the ic-706
-```
-rigctl -l | grep -i "706"
-   309  Icom                   IC-706                  0.8.1           Untested
-   310  Icom                   IC-706MkII              0.8.1           Untested
-   311  Icom                   IC-706MkIIG             0.8.2           Stable
+	HTTPAddr: "localhost:8080",
+	AX25: AX25Config{
+		Port: "wl2k",
+		Beacon: BeaconConfig{
+			Every:       3600,
+			Message:     "Winlink P2P",
+			Destination: "IDENT",
+		},
+	},
 ```
 
-#### Console 2: ARDOP
-
-* From your local bin directory start ARDOP
-  * The following is for a DRAWS hat
-
+##### Edit PAT configuration file for HF using ARDOP
 ```
-cd ~/bin
-./piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=12
+	Ardop: ArdopConfig{
+		Addr:         "localhost:8515",
+		ARQBandwidth: ardop.Bandwidth500Max,
+		CWID:         true,
+	},
 ```
-
-#### Console 3: ARDOP listener
-
+##### Edit PAT configuration file for HF using Pactor
 ```
-pat --listen="ardop" interactive
+	Pactor: PactorConfig{
+		Path:     "/dev/ttyUSB0",
+		Baudrate: 57600,
+	},
 ```
-
-#### Console 4: Waterfall
-
-* For a visual waterfall run piARDOP_GUI
-  * From a console running on the RPi desktop
-```
-cd ~/bin
-./piARDOP_GUI
-```
-* hostname: localhost
-* port: 8515
 
 ### Winlink Point to point connection
 * [Verify Pat listener is running](#console-2-ardop-listener)
@@ -91,10 +73,9 @@ pat connect ardop:///AF4PM?freq=7101
 ```
 
 ### RMS Gateway Winlink connection
-* To get a list of RMS Gateways
 
-##### Using PAT applicaton
-* List stations with call sign prefix
+##### Get list of RMS Gateways
+* List stations with call sign prefix using PAT application
   * _dist_ is distance from your grid square in kilometers.
 
 * Will list stations with call sign prefix N7
@@ -183,4 +164,69 @@ Total gateways: 16, total call signs: 4
 ```
 pat connect ardop:///K7IF?freq=3588.4
 ```
+
+### Consoles
+
+* I **only use consoles for debugging purposes** otherwise all the processes are started from systemd service files.
+
+#### Console 1: Rig control
+
+* Get rig control running first since it is used by PAT.
+  * Technically you do __NOT__ need _rigctrld_ running if you set radio frequency manually.
+* [PAT Rig Control](https://github.com/la5nta/pat/wiki/Rig-control) wiki.
+* Edit PAT config file: config.json
+  * Add an entry to _hamlib_rigs_
+  * ie. For an IC-706MKIIG
+```
+ "IC-706MKIIG": {"address": "localhost:4532", "network": "tcp"}
+```
+  * Edit "ardop": entry by adding a __rigctl rig name__
+    * Link to [Hamlib rigctl rig names](https://github.com/Hamlib/Hamlib/wiki/Supported-Radios).
+    * Must match a name from ```rigctl -l``` list
+```
+  "rig": "IC-706MKIIG",
+```
+
+* Start rig control daemon in another console
+```
+rigctld -m311 -r /dev/ttyUSB0 -s 4800
+```
+* The -m option above must match your radio
+```
+  -m, --model=ID                select radio model number. See model list
+```
+* For example to find the radio model number for the ic-706 using rigctl Hamlib 4.3.1:
+```
+rigctl -l | grep -i "706"
+  3009  Icom                   IC-706                  20210907.0      Stable      RIG_MODEL_IC706
+  3010  Icom                   IC-706MkII              20210907.0      Stable      RIG_MODEL_IC706MKII
+  3011  Icom                   IC-706MkIIG             20210907.0      Stable      RIG_MODEL_IC706MKIIG
+```
+
+#### Console 2: ARDOP
+
+* From your local bin directory start ARDOP
+  * The following is for a DRAWS hat
+
+```
+cd ~/bin
+./piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=12
+```
+
+#### Console 3: ARDOP listener
+
+```
+pat --listen="ardop" interactive
+```
+
+#### Console 4: Waterfall
+
+* For a visual waterfall run piARDOP_GUI
+  * From a console running on the RPi desktop
+```
+cd ~/bin
+./piARDOP_GUI
+```
+* hostname: localhost
+* port: 8515
 
