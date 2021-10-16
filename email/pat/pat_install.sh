@@ -16,9 +16,9 @@
 #   "rig": "ic-706MKII",
 #   "rig": "K3/KX3",
 
-echo "FOR REFERENCE ONLY, DO NOT USE"
-
-patver="0.11.0"
+#patver="0.11.0"
+# Get current version number in repo
+patver="$(curl -s https://raw.githubusercontent.com/la5nta/pat/master/VERSION.go | grep -i "Version = " | cut -f2 -d '"')"
 
 # ===== function desktop_pat_file
 # NOTE: This function is also in ardop/ardop_ctrl.sh
