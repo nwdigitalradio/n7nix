@@ -45,11 +45,17 @@ The remainder of this README is for the last method using __both__ ports of a DR
 
 ![mDin6 Y Cable after heat shring](images/mdin6_Ycable.jpg)
 
+* run the following scripts:
+```
+both_baud.sh
+ax25-restart
+```
+
 ## Using Apps with 'Both Baud' Configuration
 
 ### Winlink email using paclink-unix
 
-* Note that DRAWS:
+* Note that after running _both_baud.sh_ script DRAWS:
   * left port udr0 is configured to run at 9600 baud
   * right port udr` is configured to run at 1200 baud
 
