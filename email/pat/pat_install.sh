@@ -24,7 +24,7 @@
 # These flags get set from command line
 DEBUG=
 FORCE_INSTALL=
-
+PKG_REQUIRE="jq curl"
 
 scriptname="`basename $0`"
 
@@ -34,6 +34,41 @@ PAT_DESKTOP_FILE="$HOME/Desktop/pat.desktop"
 ## ============ functions ============
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function is_pkg_installed
+
+function is_pkg_installed() {
+   return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed")
+}
+
+
+# ===== function check_required_packages
+
+function check_required_packages() {
+    # check if required packages are installed
+    dbgecho "Check packages: $PKG_REQUIRE"
+    needs_pkg=false
+
+    for pkg_name in `echo ${PKG_REQUIRE}` ; do
+
+       is_pkg_installed $pkg_name
+       if [ $? -eq 0 ] ; then
+          echo "$myname: Will Install $pkg_name program"
+          needs_pkg=true
+          break
+       fi
+    done
+
+    if [ "$needs_pkg" = "true" ] ; then
+
+        sudo apt-get install -y -q $PKG_REQUIRE
+        if [ "$?" -ne 0 ] ; then
+            echo "Required package install failed. Please try this command manually:"
+            echo "apt-get install -y $PKG_REQUIRE"
+            exit 1
+       fi
+    fi
+}
 
 # ===== function display_status
 function display_status() {
@@ -149,7 +184,7 @@ function install_pat() {
 function usage () {
 	(
 	echo "Usage: $scriptname [-f][-d][-h]"
-        echo "    -f | --force   force update of sensor config file"
+        echo "    -f | --force   force update/install of PAT"
         echo "    -s | --status  display PAT config information"
         echo "    -d | --debug   turn on debug display"
         echo "    -h | --help    display this message."
@@ -165,6 +200,8 @@ if [[ $EUID == 0 ]] ; then
     echo "$scriptname: Do NOT need to run as root."
     exit 0
 fi
+
+check_required_packages
 
 # if there are any args then parse them
 while [[ $# -gt 0 ]] ; do
