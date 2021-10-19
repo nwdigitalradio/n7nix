@@ -57,7 +57,7 @@ ax25-restart
 
 * Note that after running _both_baud.sh_ script DRAWS:
   * left port udr0 is configured to run at 9600 baud
-  * right port udr` is configured to run at 1200 baud
+  * right port udr1 is configured to run at 1200 baud
 
 ###### Command to send packets at 9600 baud P2P to station KF7FIT
 ```
@@ -89,7 +89,7 @@ default  * * * * * *  - rmsgw /usr/local/bin/rmsgw rmsgw -P %d %U
 [N7NIX VIA udr1]
 NOCALL   * * * * * *  L
 default  * * * * * *  - pi /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d
-
+```
 
 ### APRS gateway using APRX
 
