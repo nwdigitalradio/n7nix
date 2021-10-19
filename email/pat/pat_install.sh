@@ -119,9 +119,7 @@ function install_pat() {
     # Install pat desktop icon file
     desktop_pat_file
 
-    # jq --arg call "${callsign}" '.mycall = $call' | --arg pw "${login_password}" '.secure_login_password = $pw' | --arg loc "${MaidenHead_locator}" '.locator = $loc' $PAT_CONFIG_FILE  > temp.$$.json
-    # login_password="passout"; Maidenhead_locator="CN99tz"; callsign="n7niy";  jq --arg pw "${login_password}" --arg loc "${Maidenhead_locator}" --arg call "${callsign}" '.mycall = $call | .secure_login_password = $pw | .locator = $loc'  config.json > temp.$$.json
-
+    # Write 3 config variables to PAT config file
     jq --arg pw "${login_password}" --arg loc "${MaidenHead_locator}" --arg call "${callsign}" '.mycall = $call | .secure_login_password = $pw | .locator = $loc' $PAT_CONFIG_FILE  > temp.$$.json
     echo "jq ret code: $?"
     echo "Updating PAT config file: $PAT_CONFIG_FILE"
@@ -129,15 +127,12 @@ function install_pat() {
 
     # Edit Config file: jq does not support in-place editing, so you must
     # redirect to a temporary file first and then replace your original
-    # file with it, or use sponge utility from the moreutils package,
-    # like that:
+    # file with it, or use sponge utility from the moreutils package.
+    #
     # $$ is the process id of the shell in which your script is
     #    running.
     #
-    #  jq '.key1 = $newVal' --arg newVal '3 " of rain' <<<"$jsonStr"
-    # jq '.mycall = "N7NIX"' ~/.wl2k/config.json >temp.$$.json
-    # jq '.mycall = "N7NIY" | .secure_login_password = "99HOBBSYD" | .locator = "CN99nv"' ~/.wl2k/config.json >temp.$$.json
-    # # Strings:
+    # Strings:
     #  jq --arg a "${address}" '.address = $a' test.json > "tmp" && mv "tmp" test.json
     #
     # Integers:
