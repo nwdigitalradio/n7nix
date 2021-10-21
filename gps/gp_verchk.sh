@@ -100,8 +100,11 @@ function get_source_version() {
 
     # Verify last version digit is numeric & not tar
     prog_ver_3rd_dig=$(echo $source_prog_ver | cut -d '.' -f3)
-    if [ ! $(is_integer $prog_ver_3rd_dig) ] ; then
-        source_prog_ver=$(echo $source_prog_ver | cut -d '.' -f1,2)
+
+    if [ "$prog_ver_3rd_dig" = "tar" ] ; then
+        gpsd_ver=$(echo $gpsd_ver | cut -d '.' -f1,2)
+   else
+        echo "CHECK: 3rd version digit is NOT numeric: $prog_ver_3rd_dig"
    fi
 }
 
