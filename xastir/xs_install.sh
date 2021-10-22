@@ -7,6 +7,7 @@
 USER=
 ROOT_DST="/usr/local"
 SRC_DIR="$ROOT_DST/src"
+EDIT_CFG_FILE="false"
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
@@ -82,6 +83,19 @@ EOT
     fi
 }
 
+# ===== function check share directory
+
+function check_share_dir() {
+
+    SHARE_DIR="$ROOT_DST/share/xastir"
+    echo "Check local share directory:  $SHARE_DIR"
+
+    if [ ! -d "$SHARE_DIR" ] ; then
+        echo "WARNING: changing share directory: $SHARE_DIR"
+        SHARE_DIR="/usr/share/xastir"
+    fi
+}
+
 #
 # ===== main
 #
@@ -110,6 +124,9 @@ fi
 
 # Verify user name
 check_user
+
+# ##############
+if [ 1 -eq 1 ] ; then
 
 install_method="source"
 is_pkg_installed $progname
@@ -140,7 +157,7 @@ if [ ! -d $SRC_DIR/Xastir ] ; then
     # get latest Xastir source
     # Will this over write existing source file
     sudo git clone https://github.com/Xastir/Xastir.git
-    sudo chown -R pi:pi Xastir
+    sudo chown -R $USER:$USER Xastir
 fi
 
 echo
@@ -160,12 +177,16 @@ echo "Running install"
 sudo make install
 sudo strip $ROOT_DST/bin/xastir
 
+fi
+# ##############
+
+echo "Xastir install finished, chmod & verify: $ROOT_DST/bin/xastir"
 # To use Linux AX.25, the xastir run time file must be setuid.
 # See Xastir INSTALL file and their FAQ
-cd $ROOT_DIST/bin
+cd $ROOT_DST/bin
 sudo chmod u+s xastir
 # Verify
-ls -al $ROOT_DIST/bin/xastir
+ls -al $ROOT_DST/bin/xastir
 
 # create local xastir sound repo off of local home dir
 cd
@@ -174,37 +195,52 @@ if [ ! -d /home/$USER/xastir-sounds/ ] ; then
     git clone https://github.com/Xastir/xastir-sounds
 fi
 
-# Enable desktop icon for xastir
+echo "Copy desktop icon"
+
+# Copy desktop icon for xastir
 cp /home/$USER/n7nix/xastir/xastir.desktop /home/$USER/Desktop
 
-# If the local share dir does NOT exist use defaut share directory.
-SHARE_DIR="$ROOT_DST/share/xastir"
+
+# local config file does NOT exist until AFTER xastir is run
 XASTIR_CFG_FILE="/home/$USER/.xastir/config/xastir.cnf"
 
-if [ ! -d "$SHARE_DIR" ] ; then
-    echo "WARNING: expected directory: $SHARE_DIR"
-    SHARE_DIR="/usr/share/xastir"
+if [ -e $XASTIR_CFG_FILE ] ; then
+
+    # If the local share dir does NOT exist use defaut share directory.
+    SHARE_DIR="$ROOT_DST/share/xastir"
+    echo "Check local share directory:  $SHARE_DIR"
+
+    if [ ! -d "$SHARE_DIR" ] ; then
+        echo "WARNING: expected directory: $SHARE_DIR"
+        SHARE_DIR="/usr/share/xastir"
+    else
+        # Change all configuration entries from /usr/share/xastir to /usr/local/share/xastir
+        echo "Existing /usr/share/xastir directories in xastir.cnf"
+        find /home/$USER/.xastir -type f -print | xargs grep -i "/usr/share/xastir"
+
+        sed -i -e 's|/usr/share/xastir|/usr/local/share/xastir|g' $XASTIR_CFG_FILE
+
+        echo "Changed /usr/share/xastir directories to /usr/local/share/xastir in xastir.cnf"
+        find /home/$USER/.xastir -type f -print | xargs grep -i "/usr/local/share/xastir"
+    fi
+
+    # Change sound command in config file
+    # replace string after ':' in SOUND_COMMAND:play
+    silence_file="$SHARE_DIR/sounds/silence.wav"
+
+    sed -i -e "s|^SOUND_COMMAND:.*|SOUND_COMMAND:aplay -D \"plughw:0,1\" $silence_file |" $XASTIR_CFG_FILE
+
 else
-    # Change all configuration entries from /usr/share/xastir to /usr/local/share/xastir
-    echo "Existing /usr/share/xastir directories in xastir.cnf"
-    find /home/$USER/.xastir -type f -print | xargs grep -i "/usr/share/xastir"
+    echo "Local config file: $XASTIR_CFG_FILE does NOT exist ... yet"
+fi # Edit local config file end
 
-    sed -i -e 's|/usr/share/xastir|/usr/local/share/xastir|g' $XASTIR_CFG_FILE
-
-    echo "Changed /usr/share/xastir directories to /usr/local/share/xastir in xastir.cnf"
-    find /home/$USER/.xastir -type f -print | xargs grep -i "/usr/local/share/xastir"
-fi
+# If the local share dir does NOT exist use defaut share directory.
+check_share_dir
 
 # Copy silence.wav to xastir sound dir
 sudo cp /home/$USER/n7nix/xastir/*.wav $SHARE_DIR/sounds
 # Copy xastir audio alert sound files to xastir sound dir
 sudo cp /home/$USER/xastir-sounds/sounds/*.wav $SHARE_DIR/sounds
-
-# Change sound command in config file
-# replace string after ':' in SOUND_COMMAND:play
-silence_file="$SHARE_DIR/sounds/silence.wav"
-
-sed -i -e "s|^SOUND_COMMAND:.*|SOUND_COMMAND:aplay -D \"plughw:0,1\" $silence_file |" $XASTIR_CFG_FILE
 
 # Enable RPi on-board audio
 # Rather than just deleting comment character need to put on last line
