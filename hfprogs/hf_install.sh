@@ -372,7 +372,7 @@ if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     hfapp="ALL"
     # Build js8call first to satisfy some wsjtx dependencies
     build_js8call "2.2.0"
-    build_wsjtx "2.5.0"
+    build_wsjtx "2.5.1"
     build_hamlib "4.3.1"
     build_flapp "0.1.4" flxmlrpc
     # Must build fldigi before the other apps
