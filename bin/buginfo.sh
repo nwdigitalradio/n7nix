@@ -71,6 +71,10 @@ echo "== DRAWS hardware:"
 draws_ver
 
 echo
+echo "== image version"
+head -n 1 /var/log/udr_install.log
+
+echo
 echo "=== Checks ==="
 echo "== Codec driver check:"
 dmesg | grep -i "tlv320a"
