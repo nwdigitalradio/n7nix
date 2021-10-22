@@ -115,7 +115,7 @@ function fl_ver_get() {
     ver_url="$fl_url/$fl_app/"
 
     #curl -s "$ver_url" | grep -i ".tar.gz" | tail -n1 | cut -d '>' -f3 | cut -d '<' -f1
-    fl_ver=$(curl -s "$ver_url" | grep -i ".tar.gz" | tail -1 | cut -d '>' -f3 | cut -d '<' -f1 | cut -d '-' -f2)
+    fl_ver=$(curl -Ls "$ver_url" | grep -i ".tar.gz" | tail -1 | cut -d '>' -f3 | cut -d '<' -f1 | cut -d '-' -f2)
     fl_ver=$(basename $fl_ver .tar.gz)
 }
 
@@ -319,11 +319,11 @@ else
     js8ver=$(grep "^- " /tmp/js8call_changelog.txt | cut -d' ' -f2 | head -n1)
     # Even though this is the latest version number there may not be an armhf.deb file for this version
     # Check if this package version file exists
-    curl --head --fail --silent http://files.js8call.com/${js8ver}/js8call_${js8ver}_armhf.deb >/dev/null;
+    curl -L --head --fail --silent http://files.js8call.com/${js8ver}/js8call_${js8ver}_armhf.deb >/dev/null;
     if [ $? -ne 0 ] ; then
         echo "Could not locate js8call version: $js8ver"
         js8ver=$(grep "^- " /tmp/js8call_changelog.txt | cut -d' ' -f2 | head -n2 | tail -n1)
-        curl --head --fail --silent http://files.js8call.com/$js8ver/js8call_$js8ver_armhf.deb >/dev/null
+        curl -L --head --fail --silent http://files.js8call.com/$js8ver/js8call_$js8ver_armhf.deb >/dev/null
         if [ $? -ne 0 ] ; then
             echo "js8call install of version $js8ver FAILED"
        fi
@@ -365,7 +365,7 @@ if [ -z "$DEBUG1" ] ; then
     # This removes all html tags:  sed -e 's/<[^>]*>//g' worked for 2.1.2 but not 2.2.2
 #    wsjtx_ver=$(curl -s $ver_url | grep -A 1 -i "Availability (GA).*" | head -n 1 | sed -e 's/<[^>]*>//g' | sed -n 's/.*WSJT-X//p')
      # Works for 2.2.2
-     wsjtx_ver=$(curl -s https://physics.princeton.edu/pulsar/K1JT/wsjtx.html | grep -A 1 -i "Availability (GA).*" | tail -n 1 |  sed -e 's/<[^>]*>//g')
+     wsjtx_ver=$(curl -Ls https://physics.princeton.edu/pulsar/K1JT/wsjtx.html | grep -A 1 -i "Availability (GA).*" | tail -n 1 |  sed -e 's/<[^>]*>//g')
 
     # Remove preceding white space & any non printable characters
     wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | tr -dc '[:alnum:].' )
