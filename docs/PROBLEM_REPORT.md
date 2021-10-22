@@ -17,6 +17,7 @@ cd n7nix/config
 * There are a couple of things that cause the driver to not load
   * On-board BCM2835 audio driver loaded before udrc driver
   * AudioSense-Pi sound card driver prevents udrc driver from loading
+    * The AudioSense-Pi driver problem appears to be fixed since Q3 2019
 
 ###### Verify driver running properly by running aplay -l
 ```
@@ -41,12 +42,14 @@ card 1: udrc [udrc], device 0: Universal Digital Radio Controller tlv320aic32x4-
   Subdevice #0: subdevice #0
 ```
 
-* If you do **not** see __udrc__ in the _aplay -l_ output
-  * For **BETA12** images or later run these scripts and reboot
+* If you do **not** see __udrc__ in the _aplay -l_ output run script _bug_info.sh_ and post to UDRC forum
+
 ```
-chk_conflict.sh
-chk_bootcfg.sh
+cd
+cd n7nix/bin
+bug_info.sh
 ```
+
 * **After you reboot** verify by running _aplay -l_ again.
 * For images newer than **BETA12** ie. BETA13, congratulations you have discovered a new problem
   * Please post a description of the problem.

@@ -68,7 +68,6 @@ to build!
   * updates all HF HAM programs
   * updates Xastir from source repository
   * updates GPSD from source repository
-  * checks for conflicting AudioSense-Pi driver
 
 The _prog_refresh.sh_ script starts out by executing:
 ```
@@ -76,14 +75,6 @@ sudo apt-get -qq update
 sudo apt-get -q -y upgrade
 ```
 
-* At this time (Q1 2019 Linux kernel version 4.14.xx) when you do an
-```apt-get upgrade``` the AudioSense-Pi driver prevents the DRAWS
-tlv320aic32x4 driver from running.
-  * You must run the _chk_conflict.sh_ script to enable the DRAWS audio driver
-  * The _prog_refresh.sh_ script always runs this script.
-```
-chk_conflict.sh
-```
 * If the script determines _FLdigi_ needs to be upgraded, it checks if there is enough swap space.
   * If there is insufficient swap space allocated then the script will edit _/etc/dphys-swapfile_ and continue running.
   * You will probably not see the message due to the volume of console output.
