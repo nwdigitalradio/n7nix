@@ -17,7 +17,7 @@ cd n7nix/config
 * There are a couple of things that cause the driver to not load
   * On-board BCM2835 audio driver loaded before udrc driver
   * AudioSense-Pi sound card driver prevents udrc driver from loading
-    * The AudioSense-Pi driver problem appears to be fixed since Q3 2019
+    * **NOTE:** The AudioSense-Pi driver problem appears to be fixed since Q3 2019
 
 ###### Verify driver running properly by running aplay -l
 ```
