@@ -115,8 +115,12 @@ function fl_ver_get() {
     ver_url="$fl_url/$fl_app/"
 
     #curl -s "$ver_url" | grep -i ".tar.gz" | tail -n1 | cut -d '>' -f3 | cut -d '<' -f1
-    fl_ver=$(curl -Ls "$ver_url" | grep -i ".tar.gz" | tail -1 | cut -d '>' -f3 | cut -d '<' -f1 | cut -d '-' -f2)
-    fl_ver=$(basename $fl_ver .tar.gz)
+    # fl_ver=$(curl -Ls "$ver_url" | grep -i ".tar.gz" | tail -1 | cut -d '>' -f3 | cut -d '<' -f1 | cut -d '-' -f2)
+    # fl_ver=$(basename $fl_ver .tar.gz)
+    # The following gets JUST the filename
+    fl_filename=$(curl -Ls "$ver_url" | grep -i ".tar.gz" | tail -1 | sed -e 's/<[^>]*>//g' | cut -f2 -d';' | cut -f1 -d' ')
+    # echo "DEBUG: fl_filename: $fl_filename"
+    fl_ver=$(basename $fl_filename .tar.gz | cut -f2 -d'-')
 }
 
 # ===== function installed_prog_ver_get
