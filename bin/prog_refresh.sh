@@ -63,7 +63,7 @@ while [[ $# -gt 0 ]] ; do
             /home/$USER/n7nix/bbs/bbs_verchk.sh -l
             /home/$USER/n7nix/xastir/xs_verchk.sh -l
             /home/$USER/n7nix/ax25/ax_verchk.sh -l
-            /home/$USER/n7nix/direwolf/dw_ver.sh
+            /home/$USER/n7nix/direwolf/dw_ver.sh -l
             /home/$USER/n7nix/gps/gp_verchk.sh -l
             /home/$USER/n7nix/config/wp_verchk.sh -l
             /home/$USER/n7nix/hfprogs/hf_verchk.sh -l
