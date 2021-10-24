@@ -88,11 +88,12 @@ EOT
 function check_share_dir() {
 
     SHARE_DIR="$ROOT_DST/share/xastir"
-    echo "Check local share directory:  $SHARE_DIR"
 
     if [ ! -d "$SHARE_DIR" ] ; then
         echo "WARNING: changing share directory: $SHARE_DIR"
         SHARE_DIR="/usr/share/xastir"
+    else
+        echo "CHECK of local share directory:  $SHARE_DIR, OK"
     fi
 }
 
