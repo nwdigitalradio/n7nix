@@ -105,7 +105,7 @@ function get_source_version() {
     if [ "$prog_ver_3rd_dig" = "tar" ] ; then
         gpsd_ver=$(echo $gpsd_ver | cut -d '.' -f1,2)
    else
-        echo "CHECK: 3rd version digit is NOT numeric: $prog_ver_3rd_dig"
+        dbgecho "CHECK: 3rd version digit is NOT numeric: $prog_ver_3rd_dig"
    fi
 }
 
@@ -234,7 +234,7 @@ if [ $? -ne 0 ] ; then
     dbgecho "$scriptname: No package found, $progname will be installed/updated from source"
 else
     # Found gpsd package, will uninstall
-    echo "$scriptname: Detected $progname package."
+    dbgecho "$scriptname: Detected $progname package."
 fi
 
 if $UPDATE_FLAG ; then
