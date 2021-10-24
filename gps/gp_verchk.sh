@@ -30,6 +30,7 @@ usage () {
         echo "    -u Set application update flag."
         echo "       Update source, build & install."
         echo "    -l display local version only."
+	echo "    -d set DEBUG flag"
         echo "    -h display this message."
         echo
 	) 1>&2
@@ -156,6 +157,9 @@ while [[ $# -gt 0 ]] ; do
 
     key="$1"
     case $key in
+        -d)
+            DEBUG=1
+        ;;
         -l)
             dbgecho "Display local version only."
             get_installed_version
