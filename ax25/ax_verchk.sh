@@ -133,10 +133,12 @@ function display_ax25pkgver() {
     install[app]=$(dpkg -l "ax25apps" | tail -n 1 | tr -s '[[:space:]]' | cut -f3 -d' ' | cut -f1 -d'-')
     install[tool]=$(dpkg -l "ax25tools" | tail -n 1 | tr -s '[[:space:]]' | cut -f3 -d' ' | cut -f1 -d'-')
 
-    echo "install:  lib: ${install[lib]}, app: ${install[app]}, tool: ${install[tool]}"
+    echo "$progname install:  lib: ${install[lib]}, app: ${install[app]}, tool: ${install[tool]}"
 }
 
 # ===== main
+
+progname="AX.25"
 
 # Check for any command line arguments
 # Command line args are passed with a dash & single letter
@@ -189,14 +191,14 @@ fetrepo[app]=$(echo $fetrepo_appver | cut -f2 -d ' ' | cut -f1 -d',')
 fetrepo_toolver=$(curl -s https://raw.githubusercontent.com/ve7fet/linuxax25/master/ax25tools/configure.ac | grep "AC_INIT(")
 fetrepo[tool]=$(echo $fetrepo_toolver | cut -f2 -d ' ' | cut -f1 -d',')
 
-echo "fet repo: lib: ${fetrepo[lib]}, app: ${fetrepo[app]}, tool: ${fetrepo[tool]}"
+echo "fet repository: lib: ${fetrepo[lib]}, app: ${fetrepo[app]}, tool: ${fetrepo[tool]}"
 
 
 nixrepo[lib]=$(ls -1 $HOME/n7nix/ax25/debpkg/*.deb | grep -i libax25 | cut -f2 -d'_' | cut -f1 -d'-')
 nixrepo[app]=$(ls -1 $HOME/n7nix/ax25/debpkg/*.deb | grep -i ax25apps | cut -f2 -d'_' | cut -f1 -d'-')
 nixrepo[tool]=$(ls -1 $HOME/n7nix/ax25/debpkg/*.deb | grep -i ax25tools | cut -f2 -d'_' | cut -f1 -d'-')
 
-echo "nix repo: lib: ${nixrepo[lib]}, app: ${nixrepo[app]}, tool: ${nixrepo[tool]}"
+echo "nix repository: lib: ${nixrepo[lib]}, app: ${nixrepo[app]}, tool: ${nixrepo[tool]}"
 
 # Display installed AX.25 package versions
 display_ax25pkgver
