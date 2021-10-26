@@ -7,7 +7,7 @@
     * checksum.txt contains the file size in bytes, md5sum & sha256sum
   * You can get the image using the following command or just click on the filename using your browser.
 ```bash
-wget http://images.nwdigitalradio.com/downloads/current_image.img.xz
+wget http://nwdig.net/downloads/current_image.img.xz
 ```
 * **At least a 16GB microSD card is recommended**
 
@@ -16,7 +16,6 @@ wget http://images.nwdigitalradio.com/downloads/current_image.img.xz
   - File size
   - md5
   - sha256
-
 
 * For Windows and MAC options for writing the image to the micro SD card go to the [Raspberry Pi documentation
 page](https://www.raspberrypi.org/documentation/installation/installing-images/)
