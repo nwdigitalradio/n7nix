@@ -128,14 +128,16 @@ touch /boot/ssh
 
 * Boot the new micro SD card.
 
-### Placing A Hold On Kernel Upgrade
-* **As of Feb/2021 you must revert to kernel 5.4.79 and place a hold on kernel upgrades**
+### Placing A Hold On Kernel Upgrade - *for reference ONLY*
+
+* You do **NOT** need to put a hold on kernel upgrades as of Oct/2021 with kernel 5.10.52 or newer
+  * There was a problem found in Feb/2021 with kernels newer than 5.4.83 but that problem has been fixed since kernel versiion 5.10.52.
+
 
   * To verify your current kernel version
 ```
 uname -a
 ```
-* You should see: ```5.4.79-v7l```
 * If you see : ```5.10.11-v7l``` then your DRAWS system will have problems
   * The problem occurs in clk_hw_create_clk
     * refcount_t: addition on 0; use-after-free
