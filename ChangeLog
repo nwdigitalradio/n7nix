@@ -1,4 +1,16 @@
+Tue Oct 26 12:26:05 PDT 2021  Basil Gunn <basil@pacabunga.com>
+
+  * Image NWDR20.1 release:
+    * Updated DRAWS configuration docs for using initcfg.sh script for initial configuration.
+    * Added check for latest version of PAT.
+    * delete chk_conflict.sh script from image, legacy that removed required modules
+      * remove all occurrences of chk_conflict from any docs
+    * Fix parsing current version number for FLdigi suite of programs.
+    * remove dtparam=i2c* statements from /boot/config.txt
+      * Caused codec to not be enumerated on an RPi 3B+ after boot
+
 Sat Oct  9 16:09:45 PDT 2021  Basil Gunn <basil@pacabunga.com>
+
   * Image NWDR20 release:
     * Using kernel 5.10.63-v7l+ #1457
     * Added rules to iptables to drop mfnp & bjnp broadcasts on AX.25 ports
