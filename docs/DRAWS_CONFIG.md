@@ -200,3 +200,6 @@ sudo rpi-upgrade e1050e94821a70b2e4c72b318d6c6c968552e9a2
 ```
 sudo rpi-update 0642816ed05d31fb37fc8fbbba9e1774b475113f
 ```
+
+##### Fall of 2021 Kernel Hold is **NOT** required
+* Kernels 5.10.52 and newer work fine with the DRAWS codec drivers
