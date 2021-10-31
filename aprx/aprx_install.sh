@@ -32,7 +32,7 @@ CALLSIGN="N0ONE"
 
 scriptname="`basename $0`"
 
-aprx_ver="2.9.0"
+aprx_ver="2.9.1"
 SRC_DIR="/usr/local/src/"
 APRX_SRC_DIR="$SRC_DIR/aprx-$aprx_ver"
 
