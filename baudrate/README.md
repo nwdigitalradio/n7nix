@@ -37,6 +37,8 @@ The remainder of this README is for the last method using __both__ ports of a DR
   * APRS using APRX & nixtracker
 
 * run script _both_baud.sh_
+  * Since the _both_baud.sh_ script modifies _/etc/ax25/port.conf_ file you must run your setalsa_<radio_name>.sh script
+  * ie. run _setalsa_tmv71a.sh_ for the Kenwood TM-V71a radio
 
 ### Making a Custom Mini Din 6 Y Cable ###
 
@@ -45,9 +47,10 @@ The remainder of this README is for the last method using __both__ ports of a DR
 
 ![mDin6 Y Cable after heat shring](images/mdin6_Ycable.jpg)
 
-* run the following scripts:
+* Assuming you are using a kennwood TM-V71a radio, run the following scripts:
 ```
 both_baud.sh
+setalsa_tmv71a.sh
 ax25-restart
 ```
 
