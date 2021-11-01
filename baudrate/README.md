@@ -27,7 +27,9 @@ The remainder of this README is for the last method using __both__ ports of a DR
 
 ### Radio configuration
 
-* [Brief notes for a Kenwood TM-V71a](https://github.com/nwdigitalradio/n7nix/tree/master/baudrate/README_TOUCHTONE.md#briefly-for-a-Kenwood-tm-v71a)
+* The _both_baud.sh_ script modifies the _/etc/ax25/port.conf_ file
+  * The _port.conf_ config file is used by the *setalsa_<radio_name>.sh* script to set up both channels of the DRAWS codec.
+* Set radio to 9600 DATSPD, to enable using discriminator output from the radio.
 
 ### Software Installation
 
@@ -37,8 +39,8 @@ The remainder of this README is for the last method using __both__ ports of a DR
   * APRS using APRX & nixtracker
 
 * run script _both_baud.sh_
-  * Since the _both_baud.sh_ script modifies _/etc/ax25/port.conf_ file you must run your setalsa_<radio_name>.sh script
-  * ie. run _setalsa_tmv71a.sh_ for the Kenwood TM-V71a radio
+  * Since the _both_baud.sh_ script modifies _/etc/ax25/port.conf_ file you must run your *setalsa_<radio_name>.sh* script
+  * ie. run *setalsa_tmv71a.sh* for the Kenwood TM-V71a radio
 
 ### Making a Custom Mini Din 6 Y Cable ###
 
