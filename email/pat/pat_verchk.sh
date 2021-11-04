@@ -81,6 +81,8 @@ done
 get_installed_pat_ver
 
 # get current version number in repo
-pat_ver=$(curl -s https://raw.githubusercontent.com/la5nta/pat/master/VERSION.go | grep -i "Version = " | cut -f2 -d '"')
+
+# pat_ver=$(curl -s https://raw.githubusercontent.com/la5nta/pat/master/VERSION.go | grep -i "Version = " | cut -f2 -d '"')
+pat_ver=$(curl -s https://raw.githubusercontent.com/la5nta/pat/master/internal/buildinfo/VERSION.go | grep -i "Version = " | cut -f2 -d '"')
 
 echo "PAT: current version: $pat_ver, installed: $installed_pat_ver"

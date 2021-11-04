@@ -28,7 +28,13 @@ PKG_REQUIRE="jq curl"
 
 scriptname="`basename $0`"
 
-PAT_CONFIG_FILE="${HOME}/.wl2k/config.json"
+PAT_CONFIG_FILE_1="${HOME}/.wl2k/config.json"
+# OR
+PAT_CONFIG_FILE_2="${HOME}/.config/pat/config.json"
+
+PAT_CONFIG_FILE=
+
+
 PAT_DESKTOP_FILE="$HOME/Desktop/pat.desktop"
 
 ## ============ functions ============
@@ -74,10 +80,8 @@ function check_required_packages() {
 function display_status() {
 
     # Get current version number in repo
-    pat_ver="$(curl -s https://raw.githubusercontent.com/la5nta/pat/master/VERSION.go | grep -i "Version = " | cut -f2 -d '"')"
-    current_callsign=$(grep -i "\"mycall\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | sed -e 's/\"*//' | cut -f1 -d'"')
-    login_password=$(grep -i "\"secure_login_password\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | sed -e 's/\"*//' | cut -f1 -d'"')
-    MaidenHead_locator=$(grep -i "\"locator\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | sed -e 's/\"*//' | cut -f1 -d'"')
+    # pat_ver="$(curl -s https://raw.githubusercontent.com/la5nta/pat/master/VERSION.go | grep -i "Version = " | cut -f2 -d '"')"
+    pat_ver=$(curl -s https://raw.githubusercontent.com/la5nta/pat/master/internal/buildinfo/VERSION.go | grep -i "Version = " | cut -f2 -d '"')
 
     # Determine if program has been installed
     progname="pat"
@@ -90,9 +94,22 @@ function display_status() {
     fi
 
     echo "PAT: current version: $pat_ver, installed: $prog_ver"
-    echo "Call Sign: $current_callsign"
-    echo "Winlink login callsign: $login_password"
-    echo "Maidenhead locator: $MaidenHead_locator"
+
+    # Check which PAT config file is being used
+    check_pat_config_file
+
+    if [ ! -z "$PAT_CONFIG_FILE" ] ; then
+        current_callsign=$(grep -i "\"mycall\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | sed -e 's/\"*//' | cut -f1 -d'"')
+        login_password=$(grep -i "\"secure_login_password\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | sed -e 's/\"*//' | cut -f1 -d'"')
+        MaidenHead_locator=$(grep -i "\"locator\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | sed -e 's/\"*//' | cut -f1 -d'"')
+
+        echo "Call Sign: $current_callsign"
+        echo "Winlink login callsign: $login_password"
+        echo "Maidenhead locator: $MaidenHead_locator"
+    else
+        echo
+	echo "PAT config file does not exist"
+    fi
 }
 
 # ===== function desktop_pat_file
@@ -123,9 +140,42 @@ EOT
     fi
 }
 
-# ===== function install_pat
-function install_pat() {
+# ===== function check_pat_config_file
 
+function check_pat_config_file() {
+
+    cnt_found_cfg_file=0
+
+    if [ -e "$PAT_CONFIG_FILE_1" ] ; then
+        echo "Found PAT config file in .wl2k directory"
+        (( cnt_found_cfg_file++ ))
+        PAT_CONFIG_FILE="$PAT_CONFIG_FILE_1"
+    fi
+
+    if [ -e "$PAT_CONFIG_FILE_2" ] ; then
+        echo "Found PAT config file in .config/pat directory"
+        (( cnt_found_cfg_file++ ))
+
+        # If 2 config files found default to using ./config/pat/config.json
+        PAT_CONFIG_FILE="$PAT_CONFIG_FILE_2"
+    fi
+
+    if (( cnt_found_cfg_file == 2 )) ; then
+        echo "WARNING: Found 2 PAT config files"
+    fi
+
+    if [ ! -z $PAT_CONFIG_FILE ] ; then
+	echo "Using PAT config file: $PAT_CONFIG_FILE"
+    else
+        echo "NO PAT config file found."
+    fi
+}
+
+# ===== function pat_config_file_edit
+
+function pat_config_file_edit() {
+
+    # Flush the read buffer
     read -t 1 -n 10000 discard
 
     # -p display PROMPT without a trailing new line
@@ -133,26 +183,6 @@ function install_pat() {
     read -ep "Enter call sign, followed by [enter]: " callsign
     read -ep "Enter Winlink Password, followed by [enter]: " login_password
     read -ep "Enter 6 character MaidenHead locator, followed by [enter]: " MaidenHead_locator
-
-    # Get current version number in repo
-    patver="$(curl -s https://raw.githubusercontent.com/la5nta/pat/master/VERSION.go | grep -i "Version = " | cut -f2 -d '"')"
-    echo " == Downloading pat ver: $patver"
-
-    # Allow a way to test without having to do a download each time
-    # No download is done if DEBUG flag is defined
-    if [ -z "$DEBUG" ] ; then
-        wget https://github.com/la5nta/pat/releases/download/v${patver}/pat_${patver}_linux_armhf.deb
-        if [ $?  -ne 0 ] ; then
-            echo "Failed getting pat deb file ... exiting"
-            exit 1
-        else
-            echo " == Installpat ver: $patver"
-            sudo dpkg -i pat_${patver}_linux_armhf.deb
-        fi
-    fi
-
-    # Install pat desktop icon file
-    desktop_pat_file
 
     # Write 3 config variables to PAT config file
     jq --arg pw "${login_password}" --arg loc "${MaidenHead_locator}" --arg call "${callsign}" '.mycall = $call | .secure_login_password = $pw | .locator = $loc' $PAT_CONFIG_FILE  > temp.$$.json
@@ -175,8 +205,66 @@ function install_pat() {
     #
     # address=abcde
     # jq --arg a "$address" '.address = $a' test.json > "$tmp" && mv "$tmp" test.json
+}
 
+# ===== function install_pat
+function install_pat() {
 
+    # Get current version number in repo
+    #pat_ver="$(curl -s https://raw.githubusercontent.com/la5nta/pat/master/VERSION.go | grep -i "Version = " | cut -f2 -d '"')"
+    pat_ver=$(curl -s https://raw.githubusercontent.com/la5nta/pat/master/internal/buildinfo/VERSION.go | grep -i "Version = " | cut -f2 -d '"')
+
+    if [ -z "$pat_ver" ] ; then
+        echo
+        echo "Could not find a valid PAT version from github file."
+	echo
+	exit 1
+    fi
+
+    echo " == Downloading pat ver: $pat_ver"
+
+    # Allow a way to test without having to do a download of the deb
+    # file each time. No download is done if DEBUG flag is defined
+
+    if [ -z "$DEBUG" ] ; then
+        wget https://github.com/la5nta/pat/releases/download/v${pat_ver}/pat_${pat_ver}_linux_armhf.deb
+        if [ $?  -ne 0 ] ; then
+            echo "Failed getting pat deb file ... exiting"
+            exit 1
+        else
+            echo " == Installed pat ver: $pat_ver"
+            sudo dpkg -i pat_${pat_ver}_linux_armhf.deb
+        fi
+
+	# Check which PAT config file is being used
+        check_pat_config_file
+
+	# Only if building from source
+        #  go get -tags 'libax25 libhamlib' github.com/la5nta/pat
+        #  TAGS="libax25 libhamlib" ./make.bash
+        sudo update-alternatives --config editor
+	EDITOR=$(cat ~/.selected_editor | tail -n 1 |  cut -f2 -d"=")
+	# echo "Edit PAT config file using $(editor --version | head -n 1)"
+        echo "Edit PAT config file using $EDITOR"
+	pat configure
+    else
+        echo "DEBUG flag set so no download of a fresh Debian install file."
+    fi
+
+    # Install pat desktop icon file
+    desktop_pat_file
+
+    if [ ! -z "$PAT_CONFIG_FILE" ] ; then
+        pat_config_file_edit
+    else
+        echo "PAT config file will not exist until after the first time PAT is run."
+	echo "Edit PAT config file using $EDITOR"
+        sudo update-alternatives --config editor
+	EDITOR=$(cat ~/.selected_editor | tail -n 1 |  cut -f2 -d"=")
+	# echo "Edit PAT config file using $(editor --version | head -n 1)"
+        echo "Edit PAT config file using $EDITOR"
+	pat configure
+    fi
 }
 
 # ===== Display program help info
@@ -200,8 +288,6 @@ if [[ $EUID == 0 ]] ; then
     echo "$scriptname: Do NOT need to run as root."
     exit 0
 fi
-
-check_required_packages
 
 # if there are any args then parse them
 while [[ $# -gt 0 ]] ; do
@@ -233,8 +319,12 @@ while [[ $# -gt 0 ]] ; do
 shift # past argument or value
 done
 
+check_required_packages
 
-if [ -e "$PAT_CONFIG_FILE" ] ; then
+# Check which PAT config file is being used
+check_pat_config_file
+
+if [ ! -z "$PAT_CONFIG_FILE" ] ; then
     # get callsign from PAT config file
     current_callsign=$(grep -i "\"mycall\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | sed -e 's/\"*//' | cut -f1 -d'"')
 
@@ -245,6 +335,9 @@ if [ -e "$PAT_CONFIG_FILE" ] ; then
         echo "PAT config file ALREADY exists, use -f option to force another install."
 	exit 0
     fi
+else
+    echo "PAT config file does not exist, installing PAT"
+    install_pat
 fi
 
 exit 0
