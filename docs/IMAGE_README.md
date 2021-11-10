@@ -30,8 +30,8 @@
 | mutt         |   1.10.1  |  yes  |  yes  |  yes    |
 | claws-mail   |   3.17.3  |  yes  |       |       |
 | rainloop     |   1.15.0  |  yes  |       |       |
-| FBB BBS      |   7.03  |       |  yes  |  yes  |
-| Xastir       |   2.1.7   |       |  yes  |       |
+| FBB BBS      |   7.0.10  |       |  yes  |  yes  |
+| Xastir       |   2.1.9   |       |  yes  |       |
 | YAAC *       | 1.0-beta163  |      | yes  |
 | iptables     |  1.8.2  |  yes |     |   |
 | sensors      |  3.5.0  |  yes  |     |   |
