@@ -5,7 +5,7 @@
 # start, stop & show status for ardop processes
 #
 # Creates these 3 systemd unit files
-# rigctld.service, ardop.service, pat.service
+# rigctld.service, ardop.service, pat_ardop_listen.service
 
 
 BIN="/usr/bin"
@@ -183,10 +183,10 @@ EOT
 }
 
 # ===== function unitfile_pat
-# Use a heredoc to build the pat.service file
+# Use a heredoc to build the pat_ardop_listen.service file
 
 function unitfile_pat() {
-sudo tee /etc/systemd/system/pat.service > /dev/null << EOT
+sudo tee /etc/systemd/system/pat_ardop_listen.service > /dev/null << EOT
 [Unit]
 Description=pat
 #Before=network.target
@@ -485,7 +485,8 @@ function which_radio() {
                arrayname="radio_${array}"
                declare -n radarray=$arrayname
                #debug
-               # echo "name ${radarray[rigname]}, number: ${radarray[rignum]}"
+               #echo "name ${radarray[rigname]}, number: ${radarray[rignum]}, radionum: $radionum"
+
                if [ "${radarray[rignum]}" -eq "$radionum" ] ; then
                    radio_name="${radarray[rigname]}"
                    break;
