@@ -52,7 +52,7 @@ on the [UDRC forum](https://nw-digital-radio.groups.io/g/udrc/).
 
 Whether using HF programs or packet you **MUST** set _deviation_ using
 [ALSA](https://en.wikipedia.org/wiki/Advanced_Linux_Sound_Architecture)
-settings for your specific radio.  [draws-manager](../draws-manager)
+settings for your specific radio.  [draws-manager](../manager)
 and [measure_deviate.sh script](deviation) help determine these
 settings. Usually for a particular radio the 1200 baud & 9600 baud
 ALSA settings will be different.
@@ -62,7 +62,7 @@ for the Texas Instruments tlv320aic32x4 DSP sound chip that can be
 used by UDRC/DRAWS HAT.
 
 The NW Digital Radio [UDRC
-II](http://nwdigitalradio.com/wp-content/uploads/2012/04/UDRC-IIDS.pdf)
+II](https://nw-digital-radio.groups.io/g/udrc/files/udrcr-IISCH.pdf)
 or
 [DRAWS](https://nw-digital-radio.groups.io/g/udrc/files/DRAWSBrochure-1.pdf)
 are [HATS](https://github.com/raspberrypi/hats) that contains the
