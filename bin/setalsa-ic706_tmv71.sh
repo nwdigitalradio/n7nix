@@ -4,7 +4,7 @@
 # Splt audio channels, HF & packet
 #
 # For iCom IC-706mkIIG on left connector for HF and
-#  Kenwood TM-V71a or right connector for packet.
+#  Kenwood TM-V71a on right connector for packet.
 #
 # Enable setting receive path from discriminator
 DEBUG=1
