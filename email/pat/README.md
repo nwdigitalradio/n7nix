@@ -9,14 +9,53 @@ pi       18821  0.5  2.8 258144 55992 pts/8    Sl+  Apr21  15:06 ./piARDOP_GUI
 pi        6257  0.0  0.3  28100  7748 pts/0    Sl+  Apr21   0:00 rigctld -m311 -r /dev/ttyUSB0 -s 4800
 ```
 
-#### PAT config - general
+* Run _pat_ctrl.sh status_ like this:
+```
+cd
+cd n7nix/email/pat
+./pat_ctrl.sh status
+```
 
-##### Install PAT from NW Digital Install script
+If you see the following then need to stop DRAWS Manager
+```
+Status for draws-manager: RUNNING and ENABLED
+Status for pat: NOT RUNNING and NOT ENABLED
+Port 8080 is already in use by: node
+```
+* To free up port 8080 stop DRAWS Manager like this:
+```
+mgr-ctrl.sh stop
+```
+* Now running _./pat_ctrl.sh status_ should display this:
+```
+ Status for draws-manager: NOT RUNNING and NOT ENABLED
+ Status for pat: NOT RUNNING and NOT ENABLED
+Port 8080 NOT in use
+```
+* Now run _pat_ctrl.sh_ to start required PAT processes
+```
+# From n7nix/email/pat directory
+./pat_ctrl.sh start
+```
+* Verify proper PAT process start-up
+```
+# From n7nix/email/pat directory
+./pat_ctrl.sh status
+```
+
+### PAT config - general
+
+#### Install PAT from NW Digital Install script
 ```
 cd
 cd n7nix/email/pat
 ./pat_install.sh
 ```
+* Check status of PAT installation
+```
+./pat_install.sh -s
+```
+
 ##### Edit PAT configuration file
 
 * [PAT configuration documentation](https://github.com/la5nta/pat/wiki/The-command-line-interface#configure)
@@ -71,6 +110,20 @@ cd n7nix/email/pat
 ```
 pat connect ardop:///AF4PM?freq=7101
 ```
+
+* to accept incoming connections you must tell Pat to configure the transport method as a "listener".
+* You can define default listeners in:
+  * the config file. See [Config.Listen](https://github.com/la5nta/pat/blob/v0.12.0/cfg/config.go#L43) in the config documentation.
+  * You could also start pat with `--listen ardop` to enable the ardop listener for the current session.
+* Pat automatically detects P2P stations on outgoing connects, so to connect to my node in P2P mode you would simply `pat connect ardop:///LA5NTA` :)
+
+// Enable ardop, ax25 and telnet listeners by default in config
+{
+   ...
+   "listen": ["ardop","ax25","telnet"],
+   ...
+}
+
 
 ### RMS Gateway Winlink connection
 
