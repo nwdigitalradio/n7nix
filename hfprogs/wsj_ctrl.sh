@@ -193,10 +193,10 @@ EOT
 }
 
 # ===== function unitfile_pat
-# Use a heredoc to build the pat.service file
+# Use a heredoc to build the pat_ardop_listen.service file
 
 function unitfile_pat() {
-sudo tee /etc/systemd/system/pat.service > /dev/null << EOT
+sudo tee /etc/systemd/system/pat_ardop_listen.service > /dev/null << EOT
 [Unit]
 Description=pat
 #Before=network.target
