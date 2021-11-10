@@ -13,6 +13,7 @@ DAEMON_CFG_FILE="ax25d.conf"
 # cp /etc/ax25/$DAEMON_CFG_FILE .
 
 
+
 #        sudo sed -e '/\[gps\]/,/\[/s/^\(^type =.*\)/#\1/g'  "$TRACKER_CFG_FILE"
 #        echo "uncomment gpsd line"
         # reference: sed -i '/^#.* 2001 /s/^#//' file
@@ -23,6 +24,8 @@ DAEMON_CFG_FILE="ax25d.conf"
 
 # sed -ie '/\[gps\]/,/\[/s/^#type = gpsd/type = gpsd/g' "$TRACKER_CFG_FILE"
 # tac ax25d.conf | sed '/wl2kax25/I,+3 d' | tac
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function delete wl2kax25d sections
 
@@ -89,8 +92,35 @@ EOT
 # ===== function plu_status
 
 function plu_status() {
+    echo
+    echo " === paclink-unix status"
+
     callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
-    echo "Entries in daemon file: $callsign_cnt"
+    wl2kax25d_cnt=$(grep -c -i "wl2kax25" $DAEMON_CFG_FILE)
+
+    echo "Daemon file: Total entries: $callsign_cnt, wl2kax25 entries: $wl2kax25d_cnt"
+
+}
+
+# ===== function pat_status
+
+function pat_status() {
+    echo
+    echo " === PAT status"
+    process="pat"
+    echo "DEBUG: "
+    ps aux | grep -i pat | grep -v "grep"
+    echo "end DEBUG"
+
+    pid_pat="$(pidof $process)"
+    ret=$?
+    # Display process: name, pid, arguments
+    if [ "$ret" -eq 0 ] ; then
+        args=$(ps aux | grep "$pid_pat " | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
+        echo "proc $process: $ret, pid: $pid_pat, args: $args"
+    else
+        echo "proc $process: $ret, NOT running"
+    fi
 }
 
 # ==== function display arguments used by this script
@@ -113,6 +143,7 @@ usage () {
 
 # Find callsign Greedy match
 CALLSIGN=$(grep -o -P '(?<=^\[).*(?=\])' $DAEMON_CFG_FILE | head -n 1 | cut -f1 -d'-')
+dbgecho "Using call sign: $CALLSIGN"
 
 
 while [[ $# -gt 0 ]] ; do
@@ -125,6 +156,11 @@ case $APP_ARG in
     ;;
     -l)
        Echo "Specify listener name plu or pat"
+    ;;
+    status)
+        pat_status
+        plu_status
+        exit 0
     ;;
     -d|--del)
         echo "Delete wl2kax25d section for $CALLSIGN"
