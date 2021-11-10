@@ -6,8 +6,9 @@
 # For iCom IC-706mkIIG on left connector for HF and
 #  Yaesu FT-817 on right connector also for HF
 #
-# Enable setting receive path from discriminator
-DEBUG=1
+# For UDRC II, enable setting receive path from discriminator (DISC)
+# This script ignores /etc/ax25/port.conf file
+DEBUG=
 
 RADIO="IC-706 & FT-817"
 scriptname="`basename $0`"
