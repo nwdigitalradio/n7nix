@@ -57,7 +57,7 @@ function status_service() {
 
 function status_port() {
 
-    chk_port=$(lsof -i -P -n | grep LISTEN | grep 8080)
+    chk_port=$(sudo lsof -i -P -n | grep LISTEN | grep 8080)
     if [ $? -eq 0 ] ; then
         port_cmd=$(echo "$chk_port" | cut -f1 -d ' ')
         echo "Port 8080 is already in use by: $port_cmd"
