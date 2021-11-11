@@ -4,7 +4,7 @@
 # https://sourceforge.net/projects/linfbb/files/
 #
 
-BBS_VER="7.0.10"
+BBS_VER="7.0.11"
 num_cores=$(nproc --all)
 
 SRC_DIR="/usr/local/src/"
