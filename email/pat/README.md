@@ -61,7 +61,7 @@ cd n7nix/email/pat
 * [PAT configuration documentation](https://github.com/la5nta/pat/wiki/The-command-line-interface#configure)
   * [PAT config file documentation from godocs](https://pkg.go.dev/github.com/la5nta/pat/cfg#Config)
 
-* PAT config file lives here: [.wl2k/config.json](https://github.com/nwdigitalradio/n7nix/blob/master/email/pat/config.json)
+* PAT config file lives here: [.config/pat/config.json](https://github.com/nwdigitalradio/n7nix/blob/master/email/pat/config.json)
   * __NOTE__ preceeding dot in directory name
 
 ##### Edit PAT configuration file for general config
