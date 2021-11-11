@@ -92,6 +92,58 @@ function install_direwolf_source() {
    cp /usr/local/bin/direwolf /usr/bin
 }
 
+# ===== function install_direwolf
+
+function install_direwolf() {
+
+    # Is direwolf package already installed?
+    is_pkg_installed "$pkgname"
+    if [ $? -ne 0 ] ; then
+        echo "$pkgname NOT installed from a package"
+    else
+        echo "$pkgname is already installed from a package, uninstalling."
+        echo "Uninstalling $pkgname package"
+        apt-get -y -q remove direwolf
+    fi
+
+    # Has direwolf source already been installed?
+    SRCDIR=
+    for DIR in "$(ls -d /usr/local/src/* | grep -i direwolf)" ; do
+       if [ -d "$DIR" ] ; then
+           SRCDIR=$DIR
+           # Check if this is the same version intended to install
+           if [[ "$SRCDIR" =~ "direwolf-$DW_VER" ]] ; then
+               break
+           fi
+       fi
+    done
+
+    # check if SRCDIR var is set
+    if [ -d "$SRCDIR" ] ; then
+
+       echo "Found an existing direwolf source directory: $SRCDIR"
+       if [[ "$SRCDIR" =~ "direwolf-$DW_VER" ]] ; then
+          echo "Renaming existing source directory"
+          mv "$SRCDIR" "$SRCDIR.bak"
+       else
+          echo "Failed? $SRCDIR : direwolf-$DW_VER"
+       fi
+    else
+       echo "No previous direwolf source directory found"
+    fi
+
+    # Won't work if direwolf is still running
+    pid=$(pidof direwolf)
+    if [ $? -eq 0 ] ; then
+       echo "Direwolf is running, with a pid of $pid, stopping direwolf."
+       kill -9 $pid
+    else
+       echo "Direwolf is not running, good!"
+    fi
+
+    install_direwolf_source
+}
+
 # ===== main
 
 echo
@@ -109,7 +161,6 @@ fi
 type -P direwolf &>/dev/null
 if [ $? -ne 0 ] ; then
    echo "$scriptname: No direwolf program found in path"
-   exit 1
 else
 #   dire_ver=$(direwolf -v 2>/dev/null | grep -m 1 -i version | cut -d " " -f4)
     dire_ver=$(direwolf -v 2>/dev/null | grep -m 1 -i version)
@@ -127,58 +178,10 @@ fi
 if [ -f "/etc/direwolf.conf" ] ; then
    echo "Verified existing direwolf config file"
 else
-   echo "$scriptname: Direwolf config file: /etc/direwolf.conf DOES NOT EXIST, not upgrading"
-   exit 1
+   echo "$scriptname: Direwolf config file: /etc/direwolf.conf DOES NOT EXIST"
 fi
 
-# Is direwolf package already installed?
-is_pkg_installed "$pkgname"
-if [ $? -ne 0 ] ; then
-   echo "$pkgname NOT installed from a package"
-else
-   echo "$pkgname is already installed from a package, uninstalling."
-   echo "Uninstalling $pkgname package"
-   apt-get -y -q remove direwolf
-fi
-
-# Has direwolf source already been installed?
-SRCDIR=
-for DIR in "$(ls -d /usr/local/src/* | grep -i direwolf)" ; do
-   if [ -d "$DIR" ] ; then
-      SRCDIR=$DIR
-      # Check if this is the same version intended to install
-      if [[ "$SRCDIR" =~ "direwolf-$DW_VER" ]] ; then
-
-        break
-      fi
-   fi
-done
-
-# check if SRCDIR var is set
-if [ -d "$SRCDIR" ] ; then
-
-   echo "Found an existing direwolf source directory: $SRCDIR"
-   if [[ "$SRCDIR" =~ "direwolf-$DW_VER" ]] ; then
-      echo "Renaming existing source directory"
-      mv "$SRCDIR" "$SRCDIR.bak"
-   else
-      echo "Failed? $SRCDIR : direwolf-$DW_VER"
-   fi
-else
-   echo "No previous direwolf source directory found"
-fi
-
-# Won't work if direwolf is still running
-pid=$(pidof direwolf)
-if [ $? -eq 0 ] ; then
-   echo "Direwolf is running, with a pid of $pid, stopping direwolf."
-   kill -9 $pid
-else
-   echo "Direwolf is not running, good!"
-fi
-
-install_direwolf_source
-
+install_direwolf
 dire_new_ver=$(direwolf -v 2>/dev/null | grep -m 1 -i version)
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: direwolf update script FINISHED" >> $UDR_INSTALL_LOGFILE
