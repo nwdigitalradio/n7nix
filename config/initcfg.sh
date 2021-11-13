@@ -131,8 +131,14 @@ function install_temperature_graph() {
         echo
         echo "$(tput setaf 2) -- Install RPi activity & temperature graph$(tput sgr0)"
 
-        cd
-        cd dev/github/
+	# Make a place for putting rpi-temp-graph repo
+	DEV_DIR="$HOME/dev/github"
+	if [ ! -d "$DEV_DIR" ] ; then
+	    echo "Making directory: $DEV_DIR"
+	    mkdir -p "$DEV_DIR"
+	fi
+
+        cd "$DEV_DIR"
 	if [ -d rpi-temp-graph ] ; then
             echo -e "\n\t$(tput setaf 6)rpi-temp-graph already exists ... removing$(tput setaf 7)\n"
 	    sudo rm -r rpi-temp-graph
