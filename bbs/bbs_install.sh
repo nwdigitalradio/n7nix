@@ -94,7 +94,7 @@ sudo wget https://sourceforge.net/projects/linfbb/files/fbb-$BBS_VER.tar.bz2
 
 echo "wget ret: $?"
 sudo tar xjvf fbb-$BBS_VER.tar.bz2
-echo "wget ret: $?"
+echo "tar ret: $?"
 sudo chown -R $USER:$USER fbb-$BBS_VER/
 cd fbb-$BBS_VER/
 ./configure
