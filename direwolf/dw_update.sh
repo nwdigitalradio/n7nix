@@ -48,16 +48,18 @@ function install_direwolf_source() {
 
    echo "Building direwolf in directory $(pwd)"
 
-    if [ 1 -eq 0 ] ; then
+if [ 1 -eq 1 ] ; then
         # NO longer required?
-        echo "Note from Jan 6 (May 2) 2020
-        echo "  IF build fails with \"
-     /usr/local/src/direwolf-dev/src/dwgpsd.c:65:2: error: #error libgps API version might be incompatible."
+
+        echo "Note from Jan 6 (May 2) 2020"
+        echo "  IF build fails with:"
+        echo "  /usr/local/src/direwolf-dev/src/dwgpsd.c:65:2: error: #error libgps API version might be incompatible."
         echo "  See direwolf github issues #241"
         echo
+
         DWGPSD_FILE="src/dwgpsd.c"
         # Fix above with sed
-        gpsd_ver=$(grep -i "#if GPSD_API_MAJOR_VERSION < 5 || GPSD_API_MAJOR_VERSION > 8" $DWGPSD_FILE)
+        gpsd_ver=$(grep -i "#if GPSD_API_MAJOR_VERSION < 5 || GPSD_API_MAJOR_VERSION > 11" $DWGPSD_FILE)
    if [ "$?" ] ; then
        echo "== Found gpsd API check string"
        # Get Major Version number check
@@ -67,13 +69,13 @@ function install_direwolf_source() {
        gpsd_major_ver=$(echo $gpsd_major_ver | tr -s '[[:space:]]')
        # echo "DEBUG 2: gspd_major_ver: $gpsd_major_ver"
        # grep "GPSD_API_MAJOR_VERSION" $DWGPSD_FILE
-       sed -i -e "/#if GPSD_API_MAJOR_VERSION/ s/8/9/" $DWGPSD_FILE
-       # echo "DEBUG 3: "
-       # grep "GPSD_API_MAJOR_VERSION" $DWGPSD_FILE
+       sed -i -e "/#if GPSD_API_MAJOR_VERSION/ s/11/12/" $DWGPSD_FILE
+       echo "sed check: "
+       grep "GPSD_API_MAJOR_VERSION < 5" $DWGPSD_FILE
    else
       echo "== Did not find gpsd API check string"
    fi
-    fi
+fi
 
 
    if [ ! -d "build" ] ; then
@@ -178,7 +180,9 @@ fi
 if [ -f "/etc/direwolf.conf" ] ; then
    echo "Verified existing direwolf config file"
 else
-   echo "$scriptname: Direwolf config file: /etc/direwolf.conf DOES NOT EXIST"
+    dw_initial_cfgfile="/usr/local/share/doc/direwolf/conf/direwolf.conf"
+    echo "$scriptname: Direwolf config file: /etc/direwolf.conf DOES NOT EXIST ... copy from: $dw_initial_cfgfile"
+    cp ${dw_initial_cfgfile}* /etc
 fi
 
 install_direwolf
