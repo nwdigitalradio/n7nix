@@ -245,6 +245,11 @@ sed -i -e '/ADEVICE  plughw/ s/# ADEVICE  plughw:1,0/ADEVICE plughw:CARD=udrc,DE
 # Insert line after match
 sed -i -e '/^ADEVICE /a ARATE 48000'  $DIREWOLF_CFGFILE
 
+# Get rid of any comment characters in front of ACHANNELS
+# This occurs with some new config files from:
+#  /usr/local/share/doc/direwolf/conf/direwolf.conf
+sed -i '/ACHANNELS/ s/^#//'  $DIREWOLF_CFGFILE
+
 dbgecho "ACHANNELS"
 sed -i -e '/ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
 dbgecho "PTT"
