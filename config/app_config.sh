@@ -384,7 +384,7 @@ case $APP_SELECT in
       # This configures mutt & postfix
       echo "$scriptname: Config paclink-unix with claws, dovecot & rainloop install"
       pushd ../plu
-      source ./plu_config.sh $CALLSIGN $USER
+      source ./plu_config.sh $USER $CALLSIGN
       popd > /dev/null
 
       # This sets up systemd to start web server for paclink-unix
