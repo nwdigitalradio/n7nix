@@ -77,6 +77,48 @@ else
 fi
 }
 
+# ===== get config file when installing by package
+function cfgfile_from_package() {
+
+   # Check for a Debian package install
+   if [ -e "/usr/share/doc/direwolf/examples/direwolf.conf.gz" ] ; then
+      echo "Coping /usr/share/doc/direwolf/examples/direwolf.conf*"
+      cp /usr/share/doc/direwolf/examples/direwolf.conf* /etc
+      pushd /etc
+      gunzip direwolf.conf.gz
+      popd > /dev/null
+   else
+      # Check for a source install to users home dir
+      if [ -e "/home/$USER/$filename" ] ; then
+         echo "Coping /home/$USER/$filename"
+         cp /home/$USER/$filename /etc
+      # Check for a source install by root
+      elif [ -e "/root/$filename" ] ; then
+         echo "Coping /root/$filename"
+         cp /root/$filename /etc
+      else
+         echo "$scriptname: $filename not found in /home/$USER, /root or /usr/share/doc/direwolf/examples/"
+         exit 1
+      fi
+   fi
+}
+
+# ===== get config file when installing from source
+
+function cfgfile_from_source() {
+
+    dw_initial_cfgfile="/usr/local/share/doc/direwolf/conf/direwolf.conf"
+
+   # Check for a Debian package install
+    if [ -e "$dw_initial_cfgfile" ] ; then
+        echo "Coping $dw_initial_cfgfile"
+        cp ${dw_initial_cfgfile}* /etc
+    else
+        echo "$scriptname: $filename not found in $dw_initial_cfgfile"
+        exit 1
+   fi
+}
+
 # ===== main
 
 echo
@@ -138,27 +180,8 @@ fi
 # Check if direwolf config file exists in /etc
 
 if [ ! -e "/etc/$filename" ] ; then
-   # Check for a Debian package install
-   if [ -e "/usr/share/doc/direwolf/examples/direwolf.conf.gz" ] ; then
-      echo "Coping /usr/share/doc/direwolf/examples/direwolf.conf*"
-      cp /usr/share/doc/direwolf/examples/direwolf.conf* /etc
-      pushd /etc
-      gunzip direwolf.conf.gz
-      popd > /dev/null
-   else
-      # Check for a source install to users home dir
-      if [ -e "/home/$USER/$filename" ] ; then
-         echo "Coping /home/$USER/$filename"
-         cp /home/$USER/$filename /etc
-      # Check for a source install by root
-      elif [ -e "/root/$filename" ] ; then
-         echo "Coping /root/$filename"
-         cp /root/$filename /etc
-      else
-         echo "$scriptname: $filename not found in /home/$USER, /root or /usr/share/doc/direwolf/examples/"
-         exit 1
-      fi
-   fi
+#    cfgfile_from_package
+    cfgfile_from_source
 else
    echo "Found an existing /etc/$filename config file."
 fi
@@ -220,7 +243,7 @@ dbgecho "ADEVICE"
 #sed -i -e '/ADEVICE  plughw/ s/# ADEVICE  plughw:1,0/ADEVICE plughw:1,0 plughw:1,0/' $DIREWOLF_CFGFILE
 sed -i -e '/ADEVICE  plughw/ s/# ADEVICE  plughw:1,0/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/' $DIREWOLF_CFGFILE
 # Insert line after match
-sed '/^ADEVICE /a ARATE 48000'  $DIREWOLF_CFGFILE
+sed -i -e '/^ADEVICE /a ARATE 48000'  $DIREWOLF_CFGFILE
 
 dbgecho "ACHANNELS"
 sed -i -e '/ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
