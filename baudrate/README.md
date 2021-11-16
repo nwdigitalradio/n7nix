@@ -45,9 +45,9 @@ The remainder of this README is for the last method using __both__ ports of a DR
 ### Making a Custom Mini Din 6 Y Cable ###
 
 
-![mDin6 Y Cable before heat shrink](images/img_2681_resize.jpg)
+![mDin6 Y Cable before heat shrink](https://github.com/nwdigitalradio/n7nix-binary/blob/main/mdin6_Ycable_1.jpg)
 
-![mDin6 Y Cable after heat shring](images/mdin6_Ycable.jpg)
+![mDin6 Y Cable after heat shring](https://github.com/nwdigitalradio/n7nix-binary/blob/main/mdin6_Ycable_2.jpg)
 
 * Assuming you are using a kennwood TM-V71a radio, run the following scripts:
 ```

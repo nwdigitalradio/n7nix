@@ -62,7 +62,7 @@ for the Texas Instruments tlv320aic32x4 DSP sound chip that can be
 used by UDRC/DRAWS HAT.
 
 The NW Digital Radio [UDRC
-II](https://nw-digital-radio.groups.io/g/udrc/files/udrcr-IISCH.pdf)
+II](https://github.com/nwdigitalradio/n7nix-binary/blob/main/UDRC-IIDS.pdf)
 or
 [DRAWS](https://nw-digital-radio.groups.io/g/udrc/files/DRAWSBrochure-1.pdf)
 are [HATS](https://github.com/raspberrypi/hats) that contains the
