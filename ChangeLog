@@ -1,3 +1,17 @@
+Tue Nov 16 10:45:59 PST 2021  Basil Gunn <basil@pacabunga.com>
+
+  * Image NWDR20.2 release (Raspbian Buster):
+    * Uses kernel 5.10.63-v7l+ #1459
+
+  * Image NWDR21 release (Raspbian Bullseye):
+    * Fresh install could not update wsjtx
+      * dpkg: error processing archive wsjtx_2.5.2_armhf.deb (--install):
+      * trying to overwrite '/usr/share/pixmaps/wsjtx_icon.png', which is also in package wsjtx-data 2.3.0+repack-2
+      * wsjtx-data is also found in package js8call_2.2.0_armhf.deb
+    * Updated PAT install for new config directory location
+    * Added script to control paclink-unix & PAT listeners
+    * Added new setalsa script for ICOM ic-706 & Yaesu FT-817
+
 Tue Oct 26 12:26:05 PDT 2021  Basil Gunn <basil@pacabunga.com>
 
   * Image NWDR20.1 release:
