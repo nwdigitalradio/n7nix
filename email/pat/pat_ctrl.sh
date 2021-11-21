@@ -114,10 +114,23 @@ case $APP_ARG in
     status)
         service="draws-manager"
         status_service $service
-        echo " Status for $service: $IS_RUNNING and $IS_ENABLED"
+        echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
+
         service="pat"
         status_service $service
-        echo " Status for $service: $IS_RUNNING and $IS_ENABLED"
+        echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
+
+	# check for a PID
+        pid_pat="$(pidof $service)"
+        ret=$?
+        # Display process: name, pid, arguments
+        if [ "$ret" -eq 0 ] ; then
+            args=$(ps aux | grep "$pid_pat " | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$service//p")
+            echo "proc $service: $ret, pid: $pid_pat, args: $args"
+        else
+            echo "proc $service: $ret, NOT running"
+        fi
+
 	status_port
         exit 0
     ;;
