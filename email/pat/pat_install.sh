@@ -165,8 +165,20 @@ EOT
 # Just set current_callsign variable to determine if config is new
 
 function check_pat_cfg() {
-    # get callsign from PAT config file
-    current_callsign=$(grep -i "\"mycall\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | cut -f2 -d'"')
+    retcode=0
+
+    if [ -e "$PAT_CONFIG_FILE" ] ; then
+
+        # get callsign from PAT config file
+        current_callsign=$(grep -i "\"mycall\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | cut -f2 -d'"')
+    else
+        echo
+        echo "NO PAT config file found after install"
+	echo "NEED TO RUN: pat configure"
+	echo
+	retcode=1
+    fi
+    return $retcode
 }
 
 # ===== function check_pat_config_file
@@ -204,6 +216,7 @@ function check_pat_config_file() {
 
 function pat_config_file_edit() {
 
+    echo "Basic config for file: $PAT_CONFIG_FILE"
     # Flush the read buffer
     read -t 1 -n 10000 discard
 
@@ -246,24 +259,31 @@ function config_pat() {
     if [ ! -z "$PAT_CONFIG_FILE" ] ; then
         pat_config_file_edit
     else
-        # echo "PAT config file will not exist until after the first time PAT is run."
-	echo "Edit PAT config file using $EDITOR"
-
 	# Only if building from source
         #  go get -tags 'libax25 libhamlib' github.com/la5nta/pat
         #  TAGS="libax25 libhamlib" ./make.bash
 
         sudo update-alternatives --config editor
-	EDITOR=$(cat ~/.selected_editor | tail -n 1 |  cut -f2 -d"=")
-	# echo "Edit PAT config file using $(editor --version | head -n 1)"
-        echo "Edit PAT config file using $EDITOR"
-	pat configure
+	if [ -e "$HOME/.selected_editor" ] ; then
+            EDITOR=$(cat $HOME/.selected_editor | tail -n 1 |  cut -f2 -d"=")
+	fi
+
+        if [ 1 -eq 0 ] ; then
+            # echo "Edit PAT config file using $(editor --version | head -n 1)"
+            # echo "PAT config file will not exist until after the first time PAT is run."
+
+            echo "Edit PAT config file using $EDITOR"
+	    pat configure
+        else
+	    echo "NOT Editing PAT config file using $EDITOR, does NOT work yet"
+	fi
     fi
 }
 
 # ===== function install_pat
 function install_pat() {
 
+    echo "Checking PAT configuration"
     check_pat_ver
     if [ -z "$pat_ver" ] ; then
         echo
@@ -285,24 +305,34 @@ function install_pat() {
             if [ $?  -ne 0 ] ; then
                 echo "Failed getting pat deb file ... exiting"
                 exit 1
-            else
-                echo " == Installed pat ver: $pat_ver"
-                sudo dpkg -i pat_${pat_ver}_linux_armhf.deb
             fi
         else
            echo "DEBUG flag set so no download of a fresh Debian install file."
         fi
+        echo " == Installing pat ver: $pat_ver"
+        sudo dpkg -i pat_${pat_ver}_linux_armhf.deb
+	echo "DEBUG: install check: $(which pat)"
     fi
 
+    echo "DEBUG: check for desktop file"
     # Install pat desktop icon file
     desktop_pat_file
 
+    echo "DEBUG: check for config file"
     # Check if ever been configured
     check_pat_cfg
-
-    if [ -z $current_callsign ] ; then
-        # Configure PAT
+    if [ $? -eq 1 ] ; then
+        echo
+        echo "Select editor to use for 'pat configure'"
         config_pat
+    else
+       echo "DEBUG: check for callsign in config file"
+       if [ -z $current_callsign ] ; then
+           echo  "Edit PAT config.json file"
+           config_pat
+        else
+           echo "Found call sign: $current_callsign"
+        fi
     fi
 }
 
@@ -311,6 +341,8 @@ function install_pat() {
 function usage () {
 	(
 	echo "Usage: $scriptname [-f][-d][-h]"
+	echo "    -c | --config  Initial config edit"
+	echo "    -r | --remove  Completely remove PAT package"
         echo "    -f | --force   force update/install of PAT"
         echo "    -s | --status  display PAT config information"
         echo "    -d | --debug   turn on debug display"
@@ -332,30 +364,51 @@ fi
 while [[ $# -gt 0 ]] ; do
    key="$1"
 
-   case $key in
-      -d|--debug)   # set DEBUG flag
-         DEBUG=1
-         echo "Set DEBUG flag"
-         ;;
-      -f|--force)
+    case $key in
+        -d|--debug)   # set DEBUG flag
+            DEBUG=1
+            echo "Set DEBUG flag"
+        ;;
+        -c|--config)
+            check_pat_config_file
+	    pat_config_file_edit
+	    exit 0
+	;;
+        -r|--remove)
+            sudo dpkg --purge pat
+	    echo
+	    echo "Removing PAT config file"
+            if [ -e "$PAT_CONFIG_FILE_1" ] ; then
+                dbgecho "Found PAT config file in .wl2k directory"
+		rm -R ~/.wl2k
+            fi
+            if [ -e "$PAT_CONFIG_FILE_2" ] ; then
+                dbgecho "Found PAT config file in .config/pat directory"
+		rm -R ~/.config/pat
+            fi
+	    echo "PAT config file check"
+            check_pat_config_file
+	    exit 0
+        ;;
+        -f|--force)
          FORCE_INSTALL=1
          echo "Set FORCE_INSTALL flag"
-         ;;
-      -s|--status)
-         display_status
-         exit 0
-         ;;
-      -h|--help)
-         usage
-	 exit 0
-	 ;;
-      *)
-	echo "Unknown option: $key"
-	usage
-	exit 1
-	;;
-   esac
-shift # past argument or value
+        ;;
+        -s|--status)
+            display_status
+            exit 0
+        ;;
+        -h|--help)
+            usage
+            exit 0
+        ;;
+        *)
+	    echo "Unknown option: $key"
+            usage
+	    exit 1
+        ;;
+    esac
+    shift # past argument or value
 done
 
 check_required_packages
