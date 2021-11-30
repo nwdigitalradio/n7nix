@@ -20,10 +20,13 @@
 # pat connect ardop:///K7HTZ?freq=14108.5
 #
 # requires curl & jq
+# Set this variable to prevent downloading PAT package (for development)
+SPECIAL_DEBUG=
 
 # These flags get set from command line
 DEBUG=
 FORCE_INSTALL=
+
 PKG_REQUIRE="jq curl"
 
 scriptname="`basename $0`"
@@ -88,7 +91,6 @@ function get_installed_pat_ver() {
     if [ "$?"  -ne 0 ]; then
         installed_pat_ver="NOT installed"
     else
-        dbgecho "Found $progname"
         installed_pat_ver=$(pat version | cut -f2 -d ' ' | sed 's/[^0-9\.]*//g')
     fi
 }
@@ -96,11 +98,95 @@ function get_installed_pat_ver() {
 # ===== function check_pat_ver
 
 function check_pat_ver() {
+    dbgecho "DEBUG: Entering ${FUNCNAME[0]}"
     # Get current version number in repo
     # pat_ver="$(curl -s https://raw.githubusercontent.com/la5nta/pat/master/VERSION.go | grep -i "Version = " | cut -f2 -d '"')"
     pat_ver=$(curl -s https://raw.githubusercontent.com/la5nta/pat/master/internal/buildinfo/VERSION.go | grep -i "Version = " | cut -f2 -d '"')
 
     get_installed_pat_ver
+}
+
+# ===== function check_pat_config_file
+#
+# Set PAT_CONFIG_FILE variable
+
+function check_pat_config_file() {
+
+    dbgecho "${FUNCNAME[0]}: PAT config file location check"
+
+    cnt_found_cfg_file=0
+
+    if [ -e "$PAT_CONFIG_FILE_1" ] ; then
+        dbgecho "Found PAT config file in .wl2k directory"
+        (( cnt_found_cfg_file++ ))
+        PAT_CONFIG_FILE="$PAT_CONFIG_FILE_1"
+    fi
+
+    if [ -e "$PAT_CONFIG_FILE_2" ] ; then
+        dbgecho "Found PAT config file in .config/pat directory"
+        (( cnt_found_cfg_file++ ))
+
+        # If 2 config files found default to using ./config/pat/config.json
+        PAT_CONFIG_FILE="$PAT_CONFIG_FILE_2"
+    fi
+
+    if (( cnt_found_cfg_file == 2 )) ; then
+        echo "WARNING: Found 2 PAT config files"
+    fi
+
+    if [ ! -z $PAT_CONFIG_FILE ] ; then
+	echo "Using PAT config file: $PAT_CONFIG_FILE"
+    else
+        echo "NO PAT config file found."
+    fi
+}
+
+# ===== function check_pat_cfg
+#
+# Set current_callsign variable to determine if config is new
+
+function check_pat_cfg() {
+    dbgecho "DEBUG: Entering ${FUNCNAME[0]}"
+    retcode=0
+    current_callsign=
+
+    if [ -e "$PAT_CONFIG_FILE" ] ; then
+
+        dbgecho "${FUNCNAME[0]}: pat config file: $PAT_CONFIG_FILE"
+        # get callsign from PAT config file
+        current_callsign=$(grep -i "\"mycall\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | cut -f2 -d'"')
+    else
+        echo
+        echo "NO PAT config file found after install"
+	echo "WILL RUN: pat configure"
+	echo
+	retcode=1
+    fi
+    dbgecho "${FUNCNAME[0]}: pat call sign: $current_callsign"
+
+    return $retcode
+}
+
+# ===== function config_file_main
+
+function config_file_main() {
+
+    dbgecho "DEBUG: Entering ${FUNCNAME[0]}"
+    # Check for location of PAT configuration file
+    check_pat_config_file
+    # Check if config file has ever been configured
+    check_pat_cfg
+    if [ ! -z $current_callsign ] ; then
+        echo "PAT config file ALREADY exists and his been previously configured"
+        read -t 1 -n 10000 discard
+	read -p "Continue to edit (Y or N): " -n 1 -r REPLY
+	echo
+        if [[ ! "$REPLY" =~ ^[Yy]$ ]] ; then
+            echo
+            echo "PAT config file unchanged."
+            echo
+        fi
+    fi
 }
 
 # ===== function display_status
@@ -161,62 +247,11 @@ EOT
     fi
 }
 
-# ===== function check_pat_cfg
-# Just set current_callsign variable to determine if config is new
-
-function check_pat_cfg() {
-    retcode=0
-
-    if [ -e "$PAT_CONFIG_FILE" ] ; then
-
-        # get callsign from PAT config file
-        current_callsign=$(grep -i "\"mycall\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | cut -f2 -d'"')
-    else
-        echo
-        echo "NO PAT config file found after install"
-	echo "NEED TO RUN: pat configure"
-	echo
-	retcode=1
-    fi
-    return $retcode
-}
-
-# ===== function check_pat_config_file
-
-function check_pat_config_file() {
-
-    cnt_found_cfg_file=0
-
-    if [ -e "$PAT_CONFIG_FILE_1" ] ; then
-        dbgecho "Found PAT config file in .wl2k directory"
-        (( cnt_found_cfg_file++ ))
-        PAT_CONFIG_FILE="$PAT_CONFIG_FILE_1"
-    fi
-
-    if [ -e "$PAT_CONFIG_FILE_2" ] ; then
-        dbgecho "Found PAT config file in .config/pat directory"
-        (( cnt_found_cfg_file++ ))
-
-        # If 2 config files found default to using ./config/pat/config.json
-        PAT_CONFIG_FILE="$PAT_CONFIG_FILE_2"
-    fi
-
-    if (( cnt_found_cfg_file == 2 )) ; then
-        echo "WARNING: Found 2 PAT config files"
-    fi
-
-    if [ ! -z $PAT_CONFIG_FILE ] ; then
-	echo "Using PAT config file: $PAT_CONFIG_FILE"
-    else
-        echo "NO PAT config file found."
-    fi
-}
-
 # ===== function pat_config_file_edit
 
 function pat_config_file_edit() {
 
-    echo "Basic config for file: $PAT_CONFIG_FILE"
+    dbgecho "Basic config for file: $PAT_CONFIG_FILE"
     # Flush the read buffer
     read -t 1 -n 10000 discard
 
@@ -263,27 +298,43 @@ function config_pat() {
         #  go get -tags 'libax25 libhamlib' github.com/la5nta/pat
         #  TAGS="libax25 libhamlib" ./make.bash
 
+        echo
+        echo "Select editor to use for 'pat configure'"
         sudo update-alternatives --config editor
+
 	if [ -e "$HOME/.selected_editor" ] ; then
             EDITOR=$(cat $HOME/.selected_editor | tail -n 1 |  cut -f2 -d"=")
+	else
+	    EDITOR=$(echo "$(basename  $(readlink /etc/alternatives/editor))")
 	fi
 
-        if [ 1 -eq 0 ] ; then
+        if [ 1 -eq 1 ] ; then
             # echo "Edit PAT config file using $(editor --version | head -n 1)"
             # echo "PAT config file will not exist until after the first time PAT is run."
-
+            echo "Running 'pat configure' JUST to create config file."
             echo "Edit PAT config file using $EDITOR"
-	    pat configure
+	    echo
+	    echo "$(tput setaf 1) PLEASE EXIT editor immediately$(tput sgr0)"
+	    echo
+	    # Wait a couple of seconds to read above message
+	    sleep 2
+	    sh -c "pat configure"
+#            read -t 1 -n 10000 discard
+
+	    PAT_CONFIG_FILE="$PAT_CONFIG_FILE_2"
+            echo "${FUNCNAME[0]}: Editing PAT config file: $PAT_CONFIG_FILE with sed"
+	    pat_config_file_edit
         else
 	    echo "NOT Editing PAT config file using $EDITOR, does NOT work yet"
 	fi
     fi
+    dbgecho "DEBUG: Leaving ${FUNCNAME[0]}"
 }
 
 # ===== function install_pat
 function install_pat() {
 
-    echo "Checking PAT configuration"
+    echo "${FUNCNAME[0]}: Checking PAT configuration"
     check_pat_ver
     if [ -z "$pat_ver" ] ; then
         echo
@@ -300,7 +351,7 @@ function install_pat() {
         # Allow a way to test without having to do a download of the deb
         # file each time. No download is done if DEBUG flag is defined
 
-        if [ -z "$DEBUG" ] ; then
+        if [ -z "$SPECIAL_DEBUG" ] ; then
             wget https://github.com/la5nta/pat/releases/download/v${pat_ver}/pat_${pat_ver}_linux_armhf.deb
             if [ $?  -ne 0 ] ; then
                 echo "Failed getting pat deb file ... exiting"
@@ -311,22 +362,24 @@ function install_pat() {
         fi
         echo " == Installing pat ver: $pat_ver"
         sudo dpkg -i pat_${pat_ver}_linux_armhf.deb
-	echo "DEBUG: install check: $(which pat)"
+	dbgecho "DEBUG: install check: $(which pat)"
     fi
 
-    echo "DEBUG: check for desktop file"
+    dbgecho "DEBUG: check for desktop file"
     # Install pat desktop icon file
     desktop_pat_file
 
-    echo "DEBUG: check for config file"
-    # Check if ever been configured
+    dbgecho "DEBUG: check for config file"
+    # Check if config file has ever been configured
     check_pat_cfg
-    if [ $? -eq 1 ] ; then
-        echo
-        echo "Select editor to use for 'pat configure'"
+    ret_code=$?
+#    if [ -z $current_callsign ] ; then
+     if [[ "$ret_code" -eq 1 ]] ; then
+        dbgecho "DEBUG: no config file found"
         config_pat
     else
-       echo "DEBUG: check for callsign in config file"
+        # Found a PAT config file
+       dbgecho "DEBUG: Found a config file, check for callsign in config file"
        if [ -z $current_callsign ] ; then
            echo  "Edit PAT config.json file"
            config_pat
@@ -370,8 +423,11 @@ while [[ $# -gt 0 ]] ; do
             echo "Set DEBUG flag"
         ;;
         -c|--config)
-            check_pat_config_file
+            config_file_main
+	    # Prompt for call sign, Winlink password, Maidenhead locator
 	    pat_config_file_edit
+	    echo
+	    display_status
 	    exit 0
 	;;
         -r|--remove)
@@ -386,8 +442,9 @@ while [[ $# -gt 0 ]] ; do
                 dbgecho "Found PAT config file in .config/pat directory"
 		rm -R ~/.config/pat
             fi
-	    echo "PAT config file check"
-            check_pat_config_file
+
+	    # Check for location of PAT configuration file
+	    check_pat_config_file
 	    exit 0
         ;;
         -f|--force)
@@ -402,6 +459,16 @@ while [[ $# -gt 0 ]] ; do
             usage
             exit 0
         ;;
+	-t)
+	    echo "START test"
+	    echo
+	    check_pat_config_file
+	    pat configure
+	    echo "return val: $?"
+	    echo
+	    echo "END test"
+	    exit 0
+	;;
         *)
 	    echo "Unknown option: $key"
             usage
@@ -413,24 +480,61 @@ done
 
 check_required_packages
 
-# Check which PAT config file is being used
+# Check for location of PAT configuration file
+dbgecho "${FUNCNAME[0]}: DEBUG: check_pat_config_file enter: $PAT_CONFIG_FILE"
 check_pat_config_file
+dbgecho "${FUNCNAME[0]}: DEBUG: check_pat_config_file exit: $PAT_CONFIG_FILE"
+
 
 if [ ! -z "$PAT_CONFIG_FILE" ] ; then
-    # Set current_callsign variable
-    check_pat_cfg
+    # Get here if PAT config file exists
+    # Set current_callsign variable from PAT config file
+    current_callsign=
+
+    if [ -e "$PAT_CONFIG_FILE" ] ; then
+        dbgecho "${FUNCNAME[0]}: pat config file: $PAT_CONFIG_FILE"
+        # get callsign from PAT config file
+        current_callsign=$(grep -i "\"mycall\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | cut -f2 -d'"')
+    fi
+
+    dbgecho "${FUNCNAME[0]}: after check_pat_cfg"
     # Set pat_ver & installed_pat_ver variables
     check_pat_ver
-    if [ "$pat_ver" == "$installed_pat_ver" ] && [ -z "$FORCE_INSTALL" ] && [ ! -z $current_callsign ] ; then
+
+    # Init exit_now flag
+    exit_now=0
+    if [ "$pat_ver" == "$installed_pat_ver" ] ; then
         echo "Installed PAT version: $installed_pat_ver is current."
-        echo "OR PAT config file ALREADY exists, use -f option to force another install."
-	exit 0
-    else
+	exit_now=1
+    fi
+    if [ ! -z $current_callsign ] ; then
+        echo "PAT config file ALREADY exists and has been previously configured"
+	exit_now=1
+    fi
+
+    if [ ! -z "$FORCE_INSTALL" ] ; then
+	exit_now=0
+    fi
+
+    # Check if exit_now flag has been set.
+    if [ "$exit_now" = 0 ] ; then
+        echo
+        echo "$(tput setaf 6)PAT config file DOES exist, installing PAT$(tput sgr0)"
+        echo
         install_pat
+#	config_file_main
+        display_status
+    else
+        # Will fall through to exit
+        echo "Can use -f command line option to force another install."
     fi
 else
-    echo "PAT config file does not exist, installing PAT"
+    echo
+    echo "$(tput setaf 4)PAT config file does NOT exist, installing PAT$(tput sgr0)"
+    echo
     install_pat
+#    config_file_main
+    display_status
 fi
 
 exit 0
