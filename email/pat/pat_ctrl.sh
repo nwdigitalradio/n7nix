@@ -4,16 +4,92 @@
 scriptname="`basename $0`"
 
 SYSTEMCTL="systemctl"
+service="pat_listen"
+pat_service_file="/etc/systemd/system/$service.service"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function start_service
+
+function start_service() {
+
+    service="$1"
+    echo "Starting service: $service"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        echo "ENABLING $service"
+        $SYSTEMCTL enable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem ENABLING $service"
+        fi
+    fi
+    $SYSTEMCTL --no-pager start "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem starting $service"
+    fi
+}
 
 # ===== function stop_service
 
 function stop_service() {
 
+    service="$1"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+        echo "DISABLING $service"
+        $SYSTEMCTL disable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem DISABLING $service"
+        fi
+    else
+        echo "Service: $service already disabled."
+    fi
+    $SYSTEMCTL stop "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem STOPPING $service"
+    fi
+    echo "Service: $service now stopped."
+}
+
+# ===== function start_pat_service
+
+# Use a heredoc to build the pat_listen.service file
+# then Start pat ax25 listen service
+
+function start_pat_service() {
+
+    if [ ! -e "$pat_service_file" ] ; then
+
+    sudo tee $pat_service_file > /dev/null << EOT
+[Unit]
+Description=pat ax25 listener
+After=network.target
+
+[Service]
+#User=pi
+type=forking
+ExecStart=/usr/bin/pat --listen="ax25" "http"
+WorkingDirectory=/home/pi/
+StandardOutput=inherit
+StandardError=inherit
+Restart=no
+
+[Install]
+WantedBy=default.target
+EOT
+        $SYSTEMCTL daemon-reload
+	start_service $service
+    else
+        echo "PAT service file already exists."
+    fi
+}
+
+# ===== function stop_service
+
+function stop_pat_service() {
+
     kill_flag=$1
 
-    service="pat"
     process="pat"
 
     pid_pat="$(pidof $process)"
@@ -104,11 +180,12 @@ case $APP_ARG in
    ;;
     stop)
         echo "Kill PAT process"
-        stop_service true
+        stop_pat_service
 	exit 0
     ;;
     start)
         dbgecho "Finished starting PAT"
+	start_pat_service
         exit 0
     ;;
     status)
@@ -120,7 +197,7 @@ case $APP_ARG in
         status_service $service
         echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
 
-	# check for a PID
+	# check for a PID of the PAT service
         pid_pat="$(pidof $service)"
         ret=$?
         # Display process: name, pid, arguments
@@ -149,6 +226,7 @@ esac
 shift # past argument
 done
 
+# Default to displaying status of draws_manager & PAT
 
 service="draws-manager"
 status_service $service
