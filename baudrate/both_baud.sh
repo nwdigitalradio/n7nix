@@ -25,7 +25,9 @@ DIREWOLF_CFGFILE="/etc/direwolf.conf"
 SED="sudo sed"
 
 PRIMARY_DEVICE="udr0"
+PRIMARY_SPEED="1200"
 SECONDARY_DEVICE="udr1"
+SECONDARY_SPEED="9600"
 
 # ===== function get_callsign
 function get_callsign() {
@@ -63,10 +65,10 @@ function get_callsign() {
 
 function set_port_conf() {
 
-    $SED -in '/\[port0\]/,/\[/ s/^speed=.*/speed=9600/' $PORT_CFG_FILE
+    $SED -in "/\[port0\]/,/\[/ s/^speed=.*/speed=$PRIMARY_SPEED/" $PORT_CFG_FILE
     $SED -in '/\[port0\]/,/\[/ s/^receive_out=.*/receive_out=disc/' $PORT_CFG_FILE
 
-    $SED -in '/\[port1\]/,/\[/ s/^speed=.*/speed=1200/' $PORT_CFG_FILE
+    $SED -in "/\[port1\]/,/\[/ s/^speed=.*/speed=$SECONDARY_SPEED/" $PORT_CFG_FILE
     $SED -in '/\[port1\]/,/\[/ s/^receive_out=.*/receive_out=disc/' $PORT_CFG_FILE
 
     echo "DEBUG: File: $PORT_CFG_FILE set, verify"
@@ -276,13 +278,16 @@ port_speed2=$(grep "^MODEM" /etc/direwolf.conf | tail -n1 | cut -f2 -d' ')
 
 if (( port_speed1 == port_speed2 )) ; then
     echo "WARNING: direwolf not configured for 2 differnet baud rates ... will edit."
-
-    direwolf_set_baud_first 9600
-    direwolf_set_baud_second 1200
-
-    port_speed1=$(grep "^MODEM" /etc/direwolf.conf | head -n1 | cut -f2 -d' ')
-    port_speed2=$(grep "^MODEM" /etc/direwolf.conf | tail -n1 | cut -f2 -d' ')
-    echo "After edit: First port speed: $port_speed1, Second port speed: $port_speed2"
-else
-    echo "Direwolf config OK for modem speed settings."
 fi
+
+# Setup direwolf modem baud rates
+
+    direwolf_set_baud_first "$PRIMARY_SPEED"
+    direwolf_set_baud_second "$SECONDARY_SPEED"
+
+# Count number of MODEM speeds set
+modem_cnt=$(grep -c "^MODEM" /etc/direwolf.conf)
+
+port_speed1=$(grep "^MODEM" /etc/direwolf.conf | head -n1 | cut -f2 -d' ')
+port_speed2=$(grep "^MODEM" /etc/direwolf.conf | tail -n1 | cut -f2 -d' ')
+echo "After edit: modem settings: $modem_cnt,  First port speed: $port_speed1, Second port speed: $port_speed2"
