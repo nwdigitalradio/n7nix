@@ -368,11 +368,17 @@ if [ -z "$DEBUG1" ] ; then
 
     # This removes all html tags:  sed -e 's/<[^>]*>//g' worked for 2.1.2 but not 2.2.2
 #    wsjtx_ver=$(curl -s $ver_url | grep -A 1 -i "Availability (GA).*" | head -n 1 | sed -e 's/<[^>]*>//g' | sed -n 's/.*WSJT-X//p')
-     # Works for 2.2.2
-     wsjtx_ver=$(curl -Ls https://physics.princeton.edu/pulsar/K1JT/wsjtx.html | grep -A 1 -i "Availability (GA).*" | tail -n 1 |  sed -e 's/<[^>]*>//g')
+
+     # ----- Works for 2.2.2
+#     wsjtx_ver=$(curl -Ls
+#     https://physics.princeton.edu/pulsar/K1JT/wsjtx.html | grep -A 1 -i "Availability (GA).*" | tail -n 1 |  sed -e 's/<[^>]*>//g')
+#     wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | tr -dc '[:alnum:].' )
+
+     # ------works for 2.5.2
+     wsjtx_ver=$(curl -Ls https://physics.princeton.edu/pulsar/K1JT/wsjtx.html | grep -A 2 -i "raspberry" | grep -i "wsjtx_.*armhf.*" | sed -e 's/<[^>]*>//g' | cut -f2 -d'>')
 
     # Remove preceding white space & any non printable characters
-    wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | tr -dc '[:alnum:].' )
+    wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | cut -f2 -d '_' )
 
     installed_prog_ver_get "$wsjtx_app"
 
