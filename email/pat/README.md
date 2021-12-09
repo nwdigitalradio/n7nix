@@ -1,13 +1,53 @@
-## How to run PAT with ARDOP & AX.25
+## Installing PAT
 
-### List of processes running to support PAT/ARDOP
+* All scripts are run from the PAT script directory
+
 ```
-pi        5598  0.1  0.6 928304 13864 pts/7    Sl+  Apr21   3:59 pat http
-pi       12767  8.5  0.1   5736  3580 pts/10   S+   Apr22 112:25 ./piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=12
-pi       13585  0.0  0.4 911528  9676 pts/9    Sl+  Apr22   0:09 pat --listen=ardop interactive
-pi       18821  0.5  2.8 258144 55992 pts/8    Sl+  Apr21  15:06 ./piARDOP_GUI
-pi        6257  0.0  0.3  28100  7748 pts/0    Sl+  Apr21   0:00 rigctld -m311 -r /dev/ttyUSB0 -s 4800
+cd
+cd n7nix/email/pat
 ```
+
+### Initial install
+
+* Running the following will install or upgrade to the latest PAT version from the la5nta github releases directory.
+
+```
+./pat_install.sh
+```
+* If this is an initial install THEN you will see the following message,
+
+```PAT config file does NOT exist, installing PAT```
+
+  * Then _pat configure_ will be executed
+  * **NOTE:** when _pat configure_ is run, an editor is spawned, please exit the editor WITHOUT editing any json values
+  * You will be prompted for
+    * Call sign
+    * Winlink password
+    * [Maidenhead locator](https://en.wikipedia.org/wiki/Maidenhead_Locator_System)
+    * At the end of the install these values will be displayed.
+* To verify the install you can run:
+```
+./pat_install.sh --status
+```
+
+* Other options for the PAT install script
+
+```
+./pat_install.sh --help
+Usage: pat_install.sh [-f][-d][-h]
+    -c | --config  Initial config edit
+    -r | --remove  Completely remove PAT package
+    -f | --force   force update/install of PAT
+    -s | --status  display PAT config information
+    -d | --debug   turn on debug display
+    -h | --help    display this message.
+```
+* You can run _pat_install.sh_ at any time to keep your version of PAT current
+* The _--remove__ option will remove the PAT package __AND__ delete the PAT configuration file
+  * This option was intended for development purposes only
+* The _--force_ option does a package install __ONLY__ it does not remove the PAT configuration file
+
+### Verify that the PAT port 8080 is not already in use by some other program
 
 * Run _pat_ctrl.sh status_ like this:
 ```
@@ -16,7 +56,7 @@ cd n7nix/email/pat
 ./pat_ctrl.sh status
 ```
 
-If you see the following then need to stop DRAWS Manager
+If you see the following then you need to stop DRAWS Manager
 ```
 Status for draws-manager: RUNNING and ENABLED
 Status for pat: NOT RUNNING and NOT ENABLED
@@ -41,6 +81,23 @@ Port 8080 NOT in use
 ```
 # From n7nix/email/pat directory
 ./pat_ctrl.sh status
+```
+
+## How to run PAT with AX.25
+```
+pat connect ax25://udr0/<P2P callsign or RMS gateway callsign>
+pat connect ax25://udr1/<P2P callsign or RMS gateway callsign>
+```
+
+## How to run PAT with ARDOP
+
+### List of processes running to support PAT/ARDOP
+```
+pi        5598  0.1  0.6 928304 13864 pts/7    Sl+  Apr21   3:59 pat http
+pi       12767  8.5  0.1   5736  3580 pts/10   S+   Apr22 112:25 ./piardopc 8515 plughw:1,0 plughw:1,0 -p GPIO=12
+pi       13585  0.0  0.4 911528  9676 pts/9    Sl+  Apr22   0:09 pat --listen=ardop interactive
+pi       18821  0.5  2.8 258144 55992 pts/8    Sl+  Apr21  15:06 ./piARDOP_GUI
+pi        6257  0.0  0.3  28100  7748 pts/0    Sl+  Apr21   0:00 rigctld -m311 -r /dev/ttyUSB0 -s 4800
 ```
 
 ### PAT config - general
