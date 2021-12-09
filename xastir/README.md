@@ -39,77 +39,7 @@ apt-get install xastir
   * Status should change from Down to Up
 
 ##### Configure Audio
-* Need to enable the RPi audio device
-  * uncomment the following line in _/boot/config.txt_
-```
-# dtparam=audio=on
-```
-* The _Audio Play Command_ is different for analog & HDMI audio
-
-* Download xastir sound files
-```
-git clone https://github.com/Xastir/xastir-sounds
-cd xastir-sounds/sounds
-cp *.wav /usr/share/xastir/sounds
-```
-* **Note:** audio device plughw:0,0 is for normal analog audio out
-* File -> Configure -> Audio Alarms
-  * _Audio Play Command_ for analog audio: aplay -D "plughw:0,0"
-  * Select alerts: New Station, New Message, Proximity, Weather Alert
-
-###### Only needed for HDMI audio
-
-* **Note:** audio device plughw:0,1 is for a Sunfounder LCD display with HDMI audio
-
-* HDMI audio starts about 2 seconds delayed
-  * Make a wave file that is 2 seconds of silence
-  * Just use [silence.wav file in this repo](https://github.com/nwdigitalradio/n7nix/blob/master/xastir/silence.wav)
-  * Put silence.wav in Xastir sounds directory /usr/share/xastir/sounds
-
-  * _Audio Play Command_ for HDMI:
-
-```aplay -D "plughw:0,1" /usr/share/xastir/sounds/silence.wav```
-
-* To make a two second silent wave file execute the following on a computer with audio input
-  * Make sure the microphone is not attached.
-```
-rec silence.wav trim 0 02
-```
-
-* Make sure audio is routed to HDMI
-```
-amixer cget numid=3
-```
-* If value is not equal to 2 then:
-```
-amixer cset numid=3 2
-```
-* Make sure audio for bcm 2835 chip is enabled in /boot/config.txt file
-```
-# Enable audio (loads snd_bcm2835)
-dtparam=audio=on
-```
-
-###### Verify Audio
-* Play a wave file
-```
-cd /usr/share/xastir/sounds
-
-# For Analog audio
-aplay -D "plughw:0,0" bandopen.wav
-
-# For HDMI audio
-aplay -D "plughw:0,1" silence.wav bandopen.wav
-```
-* Run speaker test & listen for white noise
-```
-# x = 0 for analog or x = 1 for HDMI
-speaker-test -D plughw:0,x -c 2
-```
-* List sound devices
-```
-aplay -l
-```
+[Follow this link to setup audio alerts for Xastir](https://github.com/nwdigitalradio/n7nix/blob/master/xastir/README_AUDIO.md)
 
 ###### Verify Xastir
 * View -> incoming Data
