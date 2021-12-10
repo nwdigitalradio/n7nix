@@ -60,15 +60,25 @@ if [ -d "$SHARE_DIR" ] ; then
     echo "xastir share dir exists, with $filecnt sound files"
 else
     echo "xastir share dir ($SHARE_DIR) does NOT exist"
-
+    COPY_FLAG=1
 fi
 
 SHARE_DIR="/usr/local/share/xastir"
 if [ -d "$SHARE_DIR" ] ; then
     filecnt=$(ls -salt $SHARE_DIR/sounds | grep -c -i "wav")
     echo "xastir local share dir  exists, with $filecnt sound files"
+    if (( $filecnt > 0 )) && [ ! -z $COPY_FLAG ] ; then
+        dst_dir="/usr/share"
+        echo "Copy sound files to $dst_dir/xastir/sounds"
+	sudo rsync -a --quiet  $SHARE_DIR $dst_dir
+	filecnt=$(ls -salt $dst_dir/xastir/sounds | grep -c -i "wav")
+	echo "xastir share dir ($dst_dir/xastir/sounds) now has $filecnt sound files"
+    fi
+
     if [ -e "$XASTIR_CFG_FILE" ] ; then
-        sound_alerts=$(grep -i "sound_play"  $XASTIR_CFG_FILE)
+        echo "Found Xastir config file: $XASTIR_CFG_FILE"
+
+        sound_alerts=$(grep -i "sound_play" $XASTIR_CFG_FILE)
         while IFS= read -r line; do
 #           echo "... $line ..."
             alert_var=$(echo $line | cut -f1 -d ':')
@@ -110,7 +120,6 @@ else
 fi
 
 if [ -e "$XASTIR_CFG_FILE" ] ; then
-    echo "Found Xastir config file: $XASTIR_CFG_FILE"
     sound_cmd=$(grep "SOUND_COMMAND" $XASTIR_CFG_FILE | cut -f2- -d':')
     echo "SOUND COMMAND configured: $sound_cmd"
     sound_dir=$(grep "SOUND_DIR" $XASTIR_CFG_FILE | cut -f2- -d':')
