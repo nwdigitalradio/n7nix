@@ -6,9 +6,9 @@
       * If you run the [_n7nix/xastir/xs_sound.sh_ script](https://github.com/nwdigitalradio/n7nix/blob/master/xastir/xs_sound.sh) it will check and fix the sound files location.
     - Determine the audio device that Xastir will use
       * ```aplay -l```
-    - Test audio device from console with audio device ie. for RPi audio device, card 1 is _plughw:1,0_
+    - Test audio device to be used in Xastir from console ie. for RPi audio device, card 1 is _plughw:1,0_
       * ```aplay -D "plughw:1,0" /usr/share/xastir/sounds/bandopen.wav```
-      * [Link for notes on verifying audio device](#verify_audio)
+      * [Link for notes on verifying audio device](#verify-audio)
     - In __File -> Configure -> Audio Alarms__
       - Set proper __Audio Play Command__
       - Also, at least Initially, **enable all alarms in "Alarm on" list**
@@ -49,10 +49,10 @@ card 2: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi
 aplay -D "plughw:1,0"
 ```
 * For a display with embedded speaker the audio play command would be:
-  * [Follow this link for HDMI audio](#Instructions_if_using_an_HDMI_audio_device)
+  * [Follow this link for HDMI audio](#instructions-if-using-an-hdmi-audio-device)
 
 ```
-aplay -D "plughw:1,0" silence.wav
+aplay -D "plughw:0,1" silence.wav
 ```
 
 ### Instructions for enabling audio if __NOT__ using an NWDR image
@@ -83,7 +83,7 @@ cp *.wav /usr/share/xastir/sounds
 
 * HDMI audio starts about 2 seconds delayed
   * Make a wave file that is 2 seconds of silence
-  * Just use [silence.wav file in this repo](https://github.com/nwdigitalradio/n7nix/blob/master/xastir)
+    * __OR__ just use [silence.wav file in this repo](https://github.com/nwdigitalradio/n7nix/blob/master/xastir)
   * Put silence.wav in Xastir sounds directory /usr/share/xastir/sounds
 
   * _Audio Play Command_ for HDMI:
