@@ -15,7 +15,7 @@
 
 ### How to determine an audio device to use
 
-* Run _aplay -l_ and choose the most likely device.
+* Run [aplay -l](http://manpages.org/aplay) command and choose the most likely device.
   * From the list below:
     * Card 0 is the HDMI device - you might use this if the speaker is embedded in your display.
       * Device name is ```plughw:0,0```
@@ -70,9 +70,10 @@ git clone https://github.com/Xastir/xastir-sounds
 cd xastir-sounds/sounds
 cp *.wav /usr/share/xastir/sounds
 ```
-* **Note:** audio device plughw:0,0 is for normal analog audio out
+* **Note:** audio device plughw:1,0 is for normal analog audio out on a Raspberry Pi
+  * Verify audio card number using [aplay -l](http://manpages.org/aplay) command
 * File -> Configure -> Audio Alarms
-  * _Audio Play Command_ for analog audio: aplay -D "plughw:0,0"
+  * _Audio Play Command_ for analog audio: aplay -D "plughw:1,0"
   * Select alerts: New Station, New Message, Proximity, Weather Alert
 
 ### Instructions if using an HDMI audio device
