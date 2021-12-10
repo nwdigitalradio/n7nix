@@ -229,7 +229,8 @@ if [ -e $XASTIR_CFG_FILE ] ; then
     # replace string after ':' in SOUND_COMMAND:play
     silence_file="$SHARE_DIR/sounds/silence.wav"
 
-    sed -i -e "s|^SOUND_COMMAND:.*|SOUND_COMMAND:aplay -D \"plughw:0,1\" $silence_file |" $XASTIR_CFG_FILE
+    # Wrong command for external speaker on an RPi
+    # sed -i -e "s|^SOUND_COMMAND:.*|SOUND_COMMAND:aplay -D \"plughw:0,1\" $silence_file |" $XASTIR_CFG_FILE
 
 else
     echo "Local config file: $XASTIR_CFG_FILE does NOT exist ... yet"
