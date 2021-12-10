@@ -1,14 +1,17 @@
 ## Enable Audio alerts for Xastir
 
-* If you are using a NWDR image and install files then most of what is described below is already done
+* If you are using an NWDR image and install files then most of what is described below is already done
   * When using the image you should only need to:
     - Verify there are wave sound files in /usr/share/xastir/sounds
+      * If you run the [_n7nix/xastir/xs_sound.sh_ script](https://github.com/nwdigitalradio/n7nix/blob/master/xastir/xs_sound.sh) it will check and fix the sound files location.
     - Determine the audio device that Xastir will use
       * ```aplay -l```
-    - Test audio device from console with audio device ie. card 0 device is _plughw:0,0_
-      * ```aplay -D "plughw:0,0" /usr/l/share/xastir/sounds/bandopen.wav```
-    - Put proper command in File -> Configure -> Audio Alarms -> Audio Play Command
-    - Initially, **enable all alarms in "Alarm on" list**
+    - Test audio device from console with audio device ie. for RPi audio device, card 1 is _plughw:1,0_
+      * ```aplay -D "plughw:1,0" /usr/share/xastir/sounds/bandopen.wav```
+      * [Link for notes on verifying audio device](#verify_audio)
+    - In __File -> Configure -> Audio Alarms__
+      - Set proper __Audio Play Command__
+      - Also, at least Initially, **enable all alarms in "Alarm on" list**
 
 ### How to determine an audio device to use
 
@@ -41,6 +44,17 @@ card 2: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi
   Subdevice #0: subdevice #0
 ```
 
+* Given the above output of  ```aplay -l``` the proper __Audio Play Command__ for Xastir using a powered speaker would be:
+```
+aplay -D "plughw:1,0"
+```
+* For a display with embedded speaker the audio play command would be:
+  * [Follow this link for HDMI audio](#Instructions_if_using_an_HDMI_audio_device)
+
+```
+aplay -D "plughw:1,0" silence.wav
+```
+
 ### Instructions for enabling audio if __NOT__ using an NWDR image
 
 * Need to enable the RPi audio device
@@ -60,10 +74,6 @@ cp *.wav /usr/share/xastir/sounds
 * File -> Configure -> Audio Alarms
   * _Audio Play Command_ for analog audio: aplay -D "plughw:0,0"
   * Select alerts: New Station, New Message, Proximity, Weather Alert
-
-### HDMI audio
-* [Follow this link for HDMI audio](#Instructions_if_using_an_HDMI_audio_device)
-
 
 ### Instructions if using an HDMI audio device
 * Use this if you have an audio speaker in your video display.
