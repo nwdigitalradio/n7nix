@@ -19,7 +19,7 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 REPO_BASE_DIR="/usr/local/src"
 RMSGW_BUILD_DIR="$REPO_BASE_DIR/rmsgw"
 
-PKG_REQUIRE="xutils-dev libxml2 libxml2-dev python-requests"
+PKG_REQUIRE="xutils-dev libxml2 libxml2-dev python3-requests"
 
 BUILD_PKG_REQUIRE="build-essential autoconf automake libtool"
 RMS_BUILD_FILE="rmsbuild.txt"
