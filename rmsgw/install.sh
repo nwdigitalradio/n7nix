@@ -136,7 +136,6 @@ if [ "$needs_pkg" = "true" ] ; then
 fi
 
 # check if required packages are installed
-PKG_REQUIRE="xutils-dev libxml2 libxml2-dev python-requests"
 
 sudo apt-get install -y -q python3-pip
 
@@ -146,7 +145,7 @@ sudo apt-get install -y -q python3-pip
 # policy_requests=$(apt-cache policy python-requests)
 
 
-package="python-requests"
+package="python3-requests"
 apt-cache policy $package 2>&1 | grep -qi "$package"
 retcode=$?
 if [ $retcode -ne 0 ] ; then
