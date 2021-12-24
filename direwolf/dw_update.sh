@@ -5,7 +5,10 @@ DEBUG=1
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+DIREWOLF_CFGFILE="/etc/direwolf.conf"
 pkgname="direwolf"
+
+SED="sudo sed"
 
 #DW_VER="1.5"
 #DW_VER="1.6"
@@ -187,6 +190,22 @@ fi
 
 install_direwolf
 dire_new_ver=$(direwolf -v 2>/dev/null | grep -m 1 -i version)
+
+logfile_entry=$(grep -i "LOGFILE" $DIREWOLF_CFGFILE)
+retcode=$?
+if [ $retcode -ne 0 ] ; then
+    echo "Direwolf log file not configured ... adding"
+
+    # Last line in an UNedited initial comment section
+    search_str="# Command parameters are"
+    # Insert string after first blank line after $search_str
+    $SED -i "/${search_str}/,/^$/s/^$/#\n\n\
+LOGFILE \/var\/log\/direwolf\/direwolf\.log\n/" $DIREWOLF_CFGFILE
+# command line test:
+# sed -i "/# Command parameters/,/^$/s/^$/#\nLOGFILE \/var\/log\/direwolf\/direwolf\.log\n/" /etc/direwolf.conf
+else
+    echo "Found LOGFILE entry: $logfile_entry"
+fi
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: direwolf update script FINISHED" >> $UDR_INSTALL_LOGFILE
 echo
