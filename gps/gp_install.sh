@@ -25,11 +25,11 @@ function is_integer() {
 
 # Install files for the NW Digital Radio DRAWS HAT
 # DO NOT install gpsd package
-# sudo apt-get install -y -q gpsd gpsd-clients python-gps pps-tools
+# sudo apt-get install -y -q gpsd gpsd-clients python3-gps pps-tools
 # libgps-dev chrony
 echo " == Install gpsd support packages"
 # This may install gpsd package as a dependency
-sudo apt-get install -y -q gpsd-clients python-gps pps-tools libgps-dev chrony
+sudo apt-get install -y -q gpsd-clients python3-gps pps-tools libgps-dev chrony
 
 echo
 echo " == Build gpsd from source"
@@ -69,7 +69,7 @@ sudo scons
 sudo scons check
 sudo scons udev-install
 
-echo " == Setup default gpsd file"
+echo " == Setup default gpsd config file"
 
 sudo  tee /etc/default/gpsd > /dev/null << EOT
 # Configure gpsd
