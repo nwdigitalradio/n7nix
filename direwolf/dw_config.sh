@@ -844,6 +844,8 @@ esac
 shift # past argument or value
 done
 
+# ====== begin key string
+
 # Add the following string to initial comment section
 keystring="# Configured with ${scriptname}"
 
@@ -867,7 +869,6 @@ else
     cur_device_type=$(echo $cur_keystr | cut -d':' -f3)
     cur_device_type=$(echo ${cur_device_type##+([[:space:]])})
 
-
     echo "Direwolf current configured: Channel: -${cur_chan_num}-, Device -${cur_device_type}-"
 fi
 
@@ -889,6 +890,10 @@ ${keystring}, Channel: $CHAN_NUM, Device: ${DEVICE_TYPE} on $(date)/" $DIREWOLF_
     retcode=$?
     echo "DEBUG: Second sed: chan: $CHAN_NUM, dev: $DEVICE_TYPE, ret: $retcode"
 fi
+
+# ====== end key string
+
+
 
 # echo "DEBUG1: Check difference of direwolf config to a reference file"
 # diff direwolf.conf /etc
