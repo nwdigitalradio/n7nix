@@ -39,6 +39,19 @@ ip_parse=
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function cidr_to_netmask
+
+# Copied from here:
+# https://gist.github.com/kwilczynski/5d37e1cced7e76c7c9ccfdf875ba6c5b
+#
+# CIDR to netmask in bash.
+# Return netmask for a given network and CIDR.
+
+cidr_to_netmask() {
+    value=$(( 0xffffffff ^ ((1 << (32 - $2)) - 1) ))
+    echo "$(( (value >> 24) & 0xff )).$(( (value >> 16) & 0xff )).$(( (value >> 8) & 0xff )).$(( value & 0xff ))"
+}
+
 # ===== function valid_ip
 
 # Copied from here:
