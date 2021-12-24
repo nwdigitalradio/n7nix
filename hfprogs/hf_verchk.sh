@@ -217,7 +217,7 @@ function test_fldigi_ver() {
 function installed_version_display() {
     # Get version numbers of all hf programs
 
-    for progname in "js8call" "wsjtx" "fldigi" "flrig" "flmsg" "flamp" "fllog" ; do
+    for progname in "wsjtx" "js8call" "fldigi" "flrig" "flmsg" "flamp" "fllog" ; do
         installed_prog_ver_get "$progname"
         echo "$progname: $prog_ver"
         test_fldigi_ver "$progname" "$prog_ver"
