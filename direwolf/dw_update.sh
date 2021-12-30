@@ -191,6 +191,7 @@ fi
 install_direwolf
 dire_new_ver=$(direwolf -v 2>/dev/null | grep -m 1 -i version)
 
+# Add log file entry to config file
 logfile_entry=$(grep -i "LOGFILE" $DIREWOLF_CFGFILE)
 retcode=$?
 if [ $retcode -ne 0 ] ; then
