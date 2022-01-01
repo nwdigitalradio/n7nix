@@ -7,7 +7,8 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # Compare country code in X11 layout, WPA config file & iw reg settings
 
 function check_locale() {
-    wificonf_file="/etc/wpa_supplicant/wpa_supplicant.conf"
+
+    # === X11 country code
     x11_country=$(localectl status | grep "X11 Layout" | cut -d ':' -f2)
     dbgecho "DEGBUG: x11_country 1: $x11_country"
 
@@ -19,6 +20,7 @@ function check_locale() {
     x11_country=$(echo "$x11_country" | tr '[a-z]' '[A-Z]')
     dbgecho "DEGBUG: x11_country 3: $x11_country"
 
+    # === WiFi devcie country code
     iw_country=$(iw reg get | grep -i country | cut -d' ' -f2 | cut -d':' -f1)
     dbgecho "DEGBUG: iw_country 1: $iw_country"
 
@@ -26,6 +28,8 @@ function check_locale() {
     iw_country=$(echo "$iw_country" | tr '[a-z]' '[A-Z]')
     dbgecho "DEGBUG: iw_country 2: $iw_country"
 
+    # === WiFi configuration country code
+    wificonf_file="/etc/wpa_supplicant/wpa_supplicant.conf"
     if [ -e "$wificonf_file" ] ; then
         # Only match last occurrence
 	wifi_country=$(sudo grep -i "country=" "$wificonf_file" | tail -n 1 | cut -d '=' -f2 )
