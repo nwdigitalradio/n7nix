@@ -142,15 +142,22 @@ SRC_DIR="/usr/local/src"
                 dirname="$(ls -1 $SRC_DIR/$progname*.tar.gz | tail -n1)"
                 prog_ver=$(basename $dirname .tar.gz | cut -d '-' -f2)
             else
-                dbgecho "Get version from directory name"
+                dbgecho "Get version for $progname from directory name"
                 # Get version number from directory name
                 prog_ver=$(ls -d $SRC_DIR/$progname*/ | tail -n1 | cut -d'-' -f2 | tr -d '/')
 #               prog_ver=$(grep -i version $SRC_DIR/$progname*/ChangeLog | head -n1)
            fi
         else
-            #dirname="$(ls -1 $SRC_DIR/$progname*.deb | tail -n1)"
-            #prog_ver=$(basename $dirname .deb | cut -d'_' -f2)
-            prog_ver=$(dpkg -l $progname | tail -n 1 | tr -s ' ' | cut -d' ' -f3)
+	    # WSJTX can no longer (bullseye be installed from a package
+	    if [ "${progname}" == "wsjtx" ] ; then
+                dbgecho "Get version for $progname from directory name"
+                # Get version number from directory name
+                prog_ver=$(ls -d $SRC_DIR/$progname*/ | tail -n1 | cut -d'-' -f2 | tr -d '/')
+	    else
+                #dirname="$(ls -1 $SRC_DIR/$progname*.deb | tail -n1)"
+                #prog_ver=$(basename $dirname .deb | cut -d'_' -f2)
+                prog_ver=$(dpkg -l $progname | tail -n 1 | tr -s ' ' | cut -d' ' -f3)
+	    fi
         fi
     fi
 }
