@@ -25,7 +25,7 @@ ALSA_LOG_FILE="$ALSA_LOG_DIR/alsa_mixer.log"
 
 # Default to 1200 baud settings for both channels
 #PCM_LEFT="-7.5"
-PCM_LEFT="-0.0"
+PCM_LEFT="0.0"
 PCM_RIGHT="2.0"
 
 LO_DRIVER_LEFT="-6.0"
