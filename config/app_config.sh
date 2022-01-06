@@ -192,6 +192,30 @@ function is_hostname() {
     return $retcode
 }
 
+# ===== function get_hostname
+# Validate hostname
+#   https://stackoverflow.com/questions/20763980/check-if-a-string-contains-only-specified-characters-including-underscores/20764037
+
+function get_hostname() {
+
+    #  Clear the read buffer
+    read -t 1 -n 10000 discard
+
+    read -ep "Enter new host name followed by [enter]: " HOSTNAME
+
+    # From hostname(7) man page
+    # Valid characters for hostnames are ASCII(7) letters from a to z,
+    # the digits from 0 to 9, and the hyphen (-).
+    # A hostname may not start with a hyphen.
+    if [[ $HOSTNAME =~ ^[a-z0-9\-]+$ ]]; then
+        dbgecho "str: $HOSTNAME  matches"
+        return 0
+    else
+        dbgecho "str: $HOSTNAME does NOT match"
+        return 1
+    fi
+}
+
 # ===== function set_hostname
 # Change host machine name in these files:
 # - /etc/hostname
@@ -201,17 +225,24 @@ function is_hostname() {
 function set_hostname() {
 
     hostname_default="draws"
+    HOSTNAME=$(cat /etc/hostname | tail -1)
 
     # Check hostname
     echo "=== Verify current hostname: $HOSTNAME"
 
     # Check for any of the default hostnames
     if ! is_hostname  ; then
-        # Change hostname
+
         echo "Current host name: $HOSTNAME, change it"
-        read -t 1 -n 10000 discard
-        echo -n "Enter new host name followed by [enter]"
-        read -ep ": " HOSTNAME
+
+        # Change hostname
+        while  ! get_hostname ; do
+            echo "Input error for: $HOSTNAME, try again"
+            echo "Valid characters for hostnames are:"
+            echo " letters from a to z,"
+            echo " the digits from 0 to 9,"
+            echo " and the hyphen (-)"
+        done
 
         if [ ! -z "$HOSTNAME" ] ; then
             echo "Setting new hostname: $HOSTNAME"
@@ -219,7 +250,8 @@ function set_hostname() {
             echo "Setting hostname to default: $hostname_default"
             HOSTNAME="$hostname_default"
         fi
-        echo "$HOSTNAME" > /etc/hostname
+        # echo "$HOSTNAME" > /etc/hostname
+        echo "$HOSTNAME" | sudo tee /etc/hostname > /dev/null
     fi
 
     # Get hostname again incase it was changed
