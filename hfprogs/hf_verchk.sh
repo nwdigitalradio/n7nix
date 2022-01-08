@@ -148,7 +148,7 @@ SRC_DIR="/usr/local/src"
 #               prog_ver=$(grep -i version $SRC_DIR/$progname*/ChangeLog | head -n1)
            fi
         else
-	    # WSJTX can no longer (bullseye be installed from a package
+	    # WSJTX can no longer (bullseye) be installed from a package
 	    if [ "${progname}" == "wsjtx" ] ; then
                 dbgecho "Get version for $progname from directory name"
                 # Get version number from directory name
