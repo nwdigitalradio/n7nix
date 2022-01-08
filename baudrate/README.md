@@ -51,7 +51,7 @@ The remainder of this README is for the last method using __both__ ports of a DR
 
 * Assuming you are using a kennwood TM-V71a radio, run the following scripts:
 ```
-both_baud.sh
+~/n7nix/baudrate/both_baud.sh
 setalsa_tmv71a.sh
 ax25-restart
 ```
