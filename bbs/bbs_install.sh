@@ -80,7 +80,7 @@ check_user
 # check if required packages are installed
 dbgecho "Check packages: $PKG_REQUIRE"
 
-apt-get install -y -q $PKG_REQUIRE
+sudo apt-get install -y -q $PKG_REQUIRE
 
 echo "=== Install fbb version $BBS_VER from source using $num_cores cores"
 
