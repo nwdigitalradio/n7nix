@@ -25,7 +25,8 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 usage () {
 	(
-	echo "Usage: $scriptname user_name [hfprog_name][hfprog_version]"
+	echo "Usage: $scriptname user_name [hfprog_name]
+	[hfprog_version]"
         echo "    login user name"
         echo "    hfprog_name needs to be one of:"
         echo "      js8call wsjtx hamlib fldigi flrig flmsg flamp fllog"
@@ -371,14 +372,15 @@ num_cores=$(nproc --all)
 if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     hfapp="ALL"
     # Build js8call first to satisfy some wsjtx dependencies
+    # - js8call breaks wsjtx package 11/2021
     build_js8call "2.2.0"
-    build_wsjtx "2.5.2"
-    build_hamlib "4.3.1"
+    build_wsjtx "2.5.4"
+    build_hamlib "4.4"
     build_flapp "0.1.4" flxmlrpc
     # Must build fldigi before the other apps
     # apps rely on /usr/bin/fltk-config
     build_fldigi "4.1.20"
-    build_flapp "1.4.2" flrig
+    build_flapp "1.4.4" flrig
     build_flapp "4.0.19" flmsg
     build_flapp "2.2.07" flamp
     build_fllog "1.2.7" fllog
