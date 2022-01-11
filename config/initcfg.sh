@@ -299,6 +299,7 @@ if [ $runcnt -eq 0 ] ; then
     echo
     echo "$(tput setaf 2) == First pass of initial config FINISHED, about to reboot $(tput sgr0)"
     echo "$(tput setaf 2) == If you run this script again it will install Winlink packet programs$(tput sgr0)"
+    echo "$(date "+%Y %m %d %T %Z"): $scriptname: run $((runcnt+1)) FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
     sudo shutdown -r now
 
 else
@@ -395,3 +396,5 @@ if [ $? -ne 0 ] ; then
     echo "dtparam=act_led_trigger=heartbeat" | sudo tee -a /boot/config.txt > /dev/null
 fi
 pi_leds.sh heartbeat
+
+echo "$(date "+%Y %m %d %T %Z"): $scriptname: run $((runcnt+1)) FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
