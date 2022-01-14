@@ -13,14 +13,14 @@ GRIDSQUARE="AA00aa"
 AX25PORT="udr0"
 SSID="10"
 AX25_CFGDIR="/usr/local/etc/ax25"
+
 RMSGW_CFGDIR="/etc/rmsgw"
 RMSGW_GWCFGFILE=$RMSGW_CFGDIR/gateway.conf
+RMSGW_CFG_FILES="gateway.conf channels.xml banner"
 
+REQUIRED_PRGMS="rmschanstat python rmsgw rmsgw_aci"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
-
-RMSGW_CFG_FILES="gateway.conf channels.xml banner"
-REQUIRED_PRGMS="rmschanstat python rmsgw rmsgw_aci"
 
 # ===== function is_gateway_configured
 
@@ -79,32 +79,34 @@ dbgecho "Using Grid Square: $GRIDSQUARE"
 
 function prompt_read_gwcfg() {
 
-# Use default SSID 10
-#echo "Enter ssid, followed by [enter]:"
-#read SSID
+    # Use default SSID 10
+    #echo "Enter ssid, followed by [enter]:"
+    #read SSID
 
-sizessidstr=${#SSID}
+    sizessidstr=${#SSID}
 
-if (( sizessidstr > 2 )) || ((sizessidstr < 0 )) ; then
-   echo "Invalid ssid: $SSID, length = $sizessidstr"
-   exit 1
-fi
+    if (( sizessidstr > 2 )) || ((sizessidstr < 0 )) ; then
+        echo "Invalid ssid: $SSID, length = $sizessidstr"
+        exit 1
+    fi
 
-dbgecho "Using SSID: $SSID"
+    dbgecho "Using SSID: $SSID"
 
-echo "Enter city name where gateway resides, follwed by [enter]:"
-read -e CITY
+    echo "Enter city name where gateway resides, follwed by [enter]:"
+    read -e CITY
 
-echo "Enter state or province name where gateway resides, follwed by [enter]:"
-read -e STATE
+    echo "Enter state or province name where gateway resides, follwed by [enter]:"
+    read -e STATE
 
-get_gridsquare
+    get_gridsquare
 
-echo "You can change any of the above by manually editing these files"
-for filename in `echo ${RMSGW_CFG_FILES}` ; do
-   echo -n "$RMSGW_CFGDIR/$filename "
-done
-echo
+    echo
+    echo "=== You can change any of the above by manually editing these files"
+    for filename in `echo ${RMSGW_CFG_FILES}` ; do
+       echo -n "$RMSGW_CFGDIR/$filename "
+    done
+
+    echo
 }
 
 # ===== function prompt_read_chanxml
