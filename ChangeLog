@@ -1,3 +1,17 @@
+Sat Jan 15 10:39:32 PST 2022  Basil Gunn <basil@pacabunga.com>
+
+  * Image NWDR21.1 release (Raspbian Bullseye):
+    * Uses kernel 5.10.63-v7l+ #1488
+
+  * Add direwolf log file to config when updating.
+  * Log both initcfg.sh completion runs
+  * Update a number of program files
+  * Qualify hostname entry
+  * Build wsjtx from source to exist with js8call package file.
+  * Fix getting wifi country code
+  * Fix Xastir copying sound files to proper location
+  * Refine PAT install/config
+
 Tue Nov 16 10:45:59 PST 2021  Basil Gunn <basil@pacabunga.com>
 
   * Image NWDR20.2 release (Raspbian Buster):
