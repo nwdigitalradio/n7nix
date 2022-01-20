@@ -274,6 +274,14 @@ fi
 package_update_only
 #package_upgrade_only
 
+## ------ remove piwiz splash screen
+
+file_piwiz_splash="etc/xdg/autostart/piwiz.desktop"
+if [ -e "$file_piwiz_splash" ] ; then
+    sudo rm "$file_piwiz_splash"
+    echo
+    echo "piwiz splash screen removed."
+fi
 
 ## ------ first config
 # Verify if first config has already been done
