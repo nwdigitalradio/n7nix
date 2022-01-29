@@ -102,5 +102,36 @@ if [ $? -ne 0 ] ; then
 fi
 
 echo
+echo "== hamlib check"
+
+# Check for older versions of hamlib
+hamlib_dir="/usr/lib/arm-linux-gnueabihf"
+if [ -d "$hamlib_dir" ] && [ -e $hamlib_dir/libhamlib.so.4 ] ; then
+    libcnt=$(ls -1 $hamlib_dir/libhamlib* | wc -l)
+    if ((libcnt > 0 )) ; then
+        echo "hamlib: Found $libcnt hamlib files in $hamlib_dir"
+        ls -alt $hamlib_dir/libhamlib*
+    else
+        echo "hamlib: NO hamlib files found in $hamlib_dir"
+    fi
+else
+    echo "hamlib directory: $hamlib_dir files do NOT exist"
+fi
+
+# Check for newer versions of hamlib
+hamlib_dir="/usr/local/lib"
+if [ -d "$hamlib_dir" ] && [ -e "$hamlib_dir/libhamlib.so.4" ] ; then
+    libcnt=$(ls -1 $hamlib_dir/libhamlib* | wc -l)
+    if ((libcnt > 0 )) ; then
+        echo "hamlib: Found $libcnt hamlib files in $hamlib_dir"
+        ls -alt $hamlib_dir/libhamlib*
+    else
+        echo "hamlib: NO hamlib files found in $hamlib_dir"
+    fi
+else
+    echo "hamlib directory: $hamlib_dir files do NOT exist"
+fi
+
+echo
 echo "== /boot/config file"
 grep -v "^$\|^#" /boot/config.txt
