@@ -2,6 +2,14 @@
 #
 # If hamlib is built from source make sure there are no old versions in
 # path
+TEST_ONLY=
+
+# if there are any args then do NOT remove anyfiles
+if (( $# > 0 )) ; then
+    # Do not remove files
+    echo "Setting TEST_ONLY flag"
+    TEST_ONLY=1
+fi
 
 echo
 echo "== hamlib check"
@@ -42,8 +50,15 @@ fi
 echo
 hamlib_dir="/usr/lib/arm-linux-gnueabihf"
 if ((arm_hamlib_cnt > 0)) && ((local_hamlib_cnt > 0)) ; then
-    echo "Removing conflicting hamlib files from: $hamlib_dir"
-    sudo rm $hamlib_dir/libhamlib*
+
+    # Check if debugging script
+    if [ -z "$TEST_ONLY" ] ; then
+        echo "Removing conflicting hamlib files from: $hamlib_dir"
+        sudo rm $hamlib_dir/libhamlib*
+    else
+        echo "TEST ONLY: Would have removed files from $hamlib_dir"
+        echo "No hamlib files removed"
+    fi
 else
     echo "No hamlib files removed"
 fi
