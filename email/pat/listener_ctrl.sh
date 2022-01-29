@@ -70,14 +70,14 @@ echo "Entries in daemon file: $callsign_cnt after"
 # Use a heredoc to build the pat_ax25_listen.service file
 
 function unitfile_pat() {
-sudo tee /etc/systemd/system/pat_ax25_listen.service > /dev/null << EOT
+sudo tee /etc/systemd/system/pat_listen.service > /dev/null << EOT
 [Unit]
 Description=pat ax25 listener
 After=network.target
 
 [Service]
 #User=pi
-type=forking
+#type=forking
 ExecStart=/usr/bin/pat --listen="ax25" "http"
 WorkingDirectory=/home/pi/
 StandardOutput=inherit
