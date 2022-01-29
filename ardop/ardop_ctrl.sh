@@ -11,6 +11,7 @@
 BIN="/usr/bin"
 
 scriptname="$(basename "$0")"
+PAT_CONFIG_FILE="${HOME}/.config/pat/config.json"
 
 SYSTEMD_DIR="/etc/systemd/system"
 FORCE_UPDATE=
@@ -186,7 +187,7 @@ EOT
 # Use a heredoc to build the pat_ardop_listen.service file
 
 function unitfile_pat() {
-sudo tee /etc/systemd/system/pat_ardop_listen.service > /dev/null << EOT
+sudo tee /etc/systemd/system/pat_listen.service > /dev/null << EOT
 [Unit]
 Description=pat
 #Before=network.target
@@ -303,6 +304,82 @@ function check_service() {
     else
         echo "Service: $service is already stopped"
     fi
+}
+
+# ===== function start_pat_service
+
+# Use a heredoc to build the pat_listen.service file
+# then Start pat ax25 listen service
+
+
+function start_pat_service() {
+
+    callsign=$(grep -i "\"mycall\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | cut -f2 -d'"')
+    if [ -z "$callsign" ] ; then
+        echo "${FUNCNAME[0]} No call sign found, must run $(tput setaf 6)pat_install.sh --config $(tput sgr0)before starting pat service"
+	exit 1
+    else
+        echo "${FUNCNAME[0]} Found call sign: $callsign"
+    fi
+
+    # ==== pat_listen service
+    service="pat_listen"
+    pat_service_file="/etc/systemd/system/$service.service"
+
+    if [ ! -e "$pat_service_file" ] ; then
+
+    sudo tee $pat_service_file > /dev/null << EOT
+[Unit]
+Description=pat ax25 listener
+After=network.target
+
+[Service]
+#User=pi
+#type=forking
+ExecStart=/usr/bin/pat --listen="ax25" "http"
+WorkingDirectory=/home/pi/
+StandardOutput=inherit
+StandardError=inherit
+Restart=no
+
+[Install]
+WantedBy=default.target
+EOT
+        $SYSTEMCTL daemon-reload
+    else
+        echo "PAT service file: $pat_service_file already exists."
+    fi
+    start_service $service
+
+    # ==== pat service
+    service="pat"
+    pat_service_file="/etc/systemd/system/$service.service"
+
+    if [ ! -e "$pat_service_file" ] ; then
+
+    sudo tee $pat_service_file > /dev/null << EOT
+[Unit]
+Description=pat web app
+After=network.target
+
+[Service]
+User=pi
+Environment="HOME=/home/pi/"
+ExecStart=/usr/bin/pat http
+WorkingDirectory=/home/pi/
+StandardOutput=inherit
+StandardError=inherit
+Restart=no
+
+[Install]
+WantedBy=default.target
+EOT
+
+        $SYSTEMCTL daemon-reload
+    else
+        echo "PAT service file: $pat_service_file already exists."
+    fi
+    start_service $service
 }
 
 # ===== function kill_ardop
@@ -713,6 +790,17 @@ while [[ $# -gt 0 ]] ; do
 APP_ARG="$1"
 
 case $APP_ARG in
+    -p)
+        DISPLAY_PARAMETERS=true
+   ;;
+    -f|--force)
+        FORCE_UPDATE=true
+        echo "Force update mode on"
+   ;;
+    -d|--debug)
+        DEBUG=1
+        echo "Debug mode on"
+   ;;
     -a)
         # specify radio name
         radioname=$2
@@ -727,7 +815,6 @@ case $APP_ARG in
         radioname="radio_${radioname}"
         declare -n radio=$radioname
         echo "Setting radio name to: $radioname, rig name: ${radio[rigname]}"
-
 
         #echo "DEBUG: radio name: $radioname, radio: $radio_name"
         #printf "rig ctrl baud rate: %s\n" ${radio[baudrate]}
@@ -746,13 +833,21 @@ case $APP_ARG in
     ;;
     start)
 
+        dbgecho "Start adrop processes 1"
         if [ "$FORCE_UPDATE" = "true" ] ; then
             echo "DEBUG: Updating systemd unitfiles"
             unitfile_update
         fi
-        for service in "rigctld" "ardop" "pat" ; do
+        dbgecho "Start adrop processes 2"
+	# This will start pat services: "pat" "pat_listen"
+	start_pat_service
+
+        dbgecho "Start adrop processes 3"
+        for service in "rigctld" "ardop" ; do
             start_service $service
         done
+
+        dbgecho "Start adrop processes 4"
         # Will create desktop icon start up file if:
         #  Not running as root and (Desktop file does not exist or FORCE_UPDATE is true)
         desktop_waterfall_file
@@ -769,17 +864,6 @@ case $APP_ARG in
         echo "Finished ardop status"
         exit 0
     ;;
-    -p)
-        DISPLAY_PARAMETERS=true
-   ;;
-    -f|--force)
-        FORCE_UPDATE=true
-        echo "Force update mode on"
-   ;;
-    -d|--debug)
-        DEBUG=1
-        echo "Debug mode on"
-   ;;
     -h|--help|-?)
         usage
         exit 0
