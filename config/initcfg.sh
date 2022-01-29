@@ -237,7 +237,7 @@ function check_hamlib() {
         if ((libcnt > 0 )) ; then
             local_hamlib_cnt=$libcnt
             echo "hamlib: Found $local_hamlib_cnt hamlib files in $hamlib_dir"
-            ls -alt $hamlib_dir/libhamlib*
+            #ls -alt $hamlib_dir/libhamlib*
         else
             echo "hamlib: NO hamlib files found in $hamlib_dir"
         fi
