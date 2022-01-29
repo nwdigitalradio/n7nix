@@ -2,10 +2,9 @@
 #
 
 scriptname="`basename $0`"
+PAT_CONFIG_FILE="${HOME}/.config/pat/config.json"
 
 SYSTEMCTL="systemctl"
-service="pat_listen"
-pat_service_file="/etc/systemd/system/$service.service"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -56,7 +55,20 @@ function stop_service() {
 # Use a heredoc to build the pat_listen.service file
 # then Start pat ax25 listen service
 
+
 function start_pat_service() {
+
+    callsign=$(grep -i "\"mycall\":" $PAT_CONFIG_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | cut -f2 -d'"')
+    if [ -z "$callsign" ] ; then
+        echo "${FUNCNAME[0]} No call sign found, must run $(tput setaf 6)pat_install.sh --config $(tput sgr0)before starting pat service"
+	exit 1
+    else
+        echo "${FUNCNAME[0]} Found call sign: $callsign"
+    fi
+
+    # ==== pat_listen service
+    service="pat_listen"
+    pat_service_file="/etc/systemd/system/$service.service"
 
     if [ ! -e "$pat_service_file" ] ; then
 
@@ -67,7 +79,7 @@ After=network.target
 
 [Service]
 #User=pi
-type=forking
+#type=forking
 ExecStart=/usr/bin/pat --listen="ax25" "http"
 WorkingDirectory=/home/pi/
 StandardOutput=inherit
@@ -78,17 +90,52 @@ Restart=no
 WantedBy=default.target
 EOT
         $SYSTEMCTL daemon-reload
-	start_service $service
     else
-        echo "PAT service file already exists."
+        echo "PAT service file: $pat_service_file already exists."
     fi
+    start_service $service
+
+    # ==== pat service
+    service="pat"
+    pat_service_file="/etc/systemd/system/$service.service"
+
+    if [ ! -e "$pat_service_file" ] ; then
+
+    sudo tee $pat_service_file > /dev/null << EOT
+[Unit]
+Description=pat web app
+After=network.target
+
+[Service]
+User=pi
+Environment="HOME=/home/pi/"
+ExecStart=/usr/bin/pat http
+WorkingDirectory=/home/pi/
+StandardOutput=inherit
+StandardError=inherit
+Restart=no
+
+[Install]
+WantedBy=default.target
+EOT
+
+        $SYSTEMCTL daemon-reload
+    else
+        echo "PAT service file: $pat_service_file already exists."
+    fi
+    start_service $service
 }
 
-# ===== function stop_service
+# ===== function stop_pat_service
+# Requires argument of "true" to kill pat process
 
 function stop_pat_service() {
 
     kill_flag=$1
+    if [ -z "$kill_flag" ] ; then
+        echo "${FUNCNAME[0]} needs an argument"
+	exit
+    fi
 
     process="pat"
 
@@ -98,6 +145,8 @@ function stop_pat_service() {
     if [ "$ret" -eq 0 ] ; then
         args=$(ps aux | grep -i $pid_pat | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
         echo "proc $process: $ret, pid: $pid_pat, args: $args"
+    else
+        echo "${FUNCNAME[0]} no process id found for $process"
     fi
 
     if $SYSTEMCTL is-active --quiet "$service" ; then
