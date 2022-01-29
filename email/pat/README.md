@@ -162,7 +162,7 @@ cd n7nix/email/pat
 ```
 
 ### Winlink Point to point connection
-* [Verify Pat listener is running](#console-2-ardop-listener)
+* [Verify Pat listener is running](#console-2:-ardop-listener)
 
 ```
 pat connect ardop:///AF4PM?freq=7101
