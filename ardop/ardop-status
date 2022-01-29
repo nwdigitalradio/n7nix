@@ -28,6 +28,45 @@ function is_pulseaudio() {
     return $retcode
 }
 
+# ==== ardop_file_status
+# Verify ardop programs are installed
+
+function ardop_file_status() {
+
+    is_pulseaudio
+    if [ "$?" -eq 0 ] ; then
+        echo "== Pulse Audio is running with pid: $pid"
+    else
+        echo "Pulse Audio is NOT running"
+    fi
+
+    USER=$(whoami)
+    # Check for .asoundrc & asound.conf ALSA configuration files
+    # Verify virtual sound device ARDOP
+    cfgfile="/home/$USER/.asoundrc"
+
+    if [ ! -e "$cfgfile" ] ; then
+        echo "File: $cfgfile does not exist"
+    else
+        grep -i "pcm.ARDOP" $cfgfile > /dev/null 2>&1
+        if [ $? -ne 0 ] ; then
+            echo "No ARDOP entry in $cfgfile"
+        else
+            echo "Found ARDOP entry in $cfgfile"
+        fi
+    fi
+
+    # Verify config file to define virtual devices for split channel operation
+    cfgfile="/etc/asound.conf"
+
+    if [ ! -e "$cfgfile" ] ; then
+        echo "File: $cfgfile does not exist"
+    else
+        echo "Found file: $cfgfile for split channel operation"
+    fi
+}
+
+
 # ===== main
 
 bardopc_running=false
@@ -47,38 +86,7 @@ else
     echo "Direwolf is NOT running"
 fi
 
-is_pulseaudio
-if [ "$?" -eq 0 ] ; then
-    echo "== Pulse Audio is running with pid: $pid"
-else
-    echo "Pulse Audio is NOT running"
-fi
-
-USER=$(whoami)
-# Check for .asoundrc & asound.conf ALSA configuration files
-# Verify virtual sound device ARDOP
-cfgfile="/home/$USER/.asoundrc"
-
-if [ ! -e "$cfgfile" ] ; then
-    echo "File: $cfgfile does not exist"
-else
-    grep -i "pcm.ARDOP" $cfgfile > /dev/null 2>&1
-    if [ $? -ne 0 ] ; then
-        echo "No ARDOP entry in $cfgfile"
-    else
-        echo "Found ARDOP entry in $cfgfile"
-    fi
-fi
-
-# Verify config file to define virtual devices for split channel operation
-cfgfile="/etc/asound.conf"
-
-if [ ! -e "$cfgfile" ] ; then
-    echo "File: $cfgfile does not exist"
-else
-    echo "Found file: $cfgfile for split channel operation"
-fi
-
+ardop_file_status
 
 progname="piardopc"
 pid=$(pidof $progname)
