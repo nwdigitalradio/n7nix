@@ -309,7 +309,7 @@ function check_service() {
 # ===== function start_pat_service
 
 # Use a heredoc to build the pat_listen.service file
-# then Start pat ax25 listen service
+# then Start pat ardop listen service
 
 
 function start_pat_service() {
@@ -330,13 +330,13 @@ function start_pat_service() {
 
     sudo tee $pat_service_file > /dev/null << EOT
 [Unit]
-Description=pat ax25 listener
+Description=pat ardop listener
 After=network.target
 
 [Service]
 #User=pi
 #type=forking
-ExecStart=/usr/bin/pat --listen="ax25" "http"
+ExecStart=/usr/bin/pat --listen="ardop" "http"
 WorkingDirectory=/home/pi/
 StandardOutput=inherit
 StandardError=inherit
