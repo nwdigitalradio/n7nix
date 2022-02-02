@@ -6,6 +6,8 @@ PAT_CONFIG_FILE="${HOME}/.config/pat/config.json"
 
 SYSTEMCTL="systemctl"
 
+ONLY_PAT_LISTEN=1
+
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function start_service
@@ -21,10 +23,17 @@ function start_service() {
         if [ "$?" -ne 0 ] ; then
             echo "Problem ENABLING $service"
         fi
+    else
+        echo "Service: $service already ENabled."
     fi
-    $SYSTEMCTL --no-pager start "$service"
-    if [ "$?" -ne 0 ] ; then
-        echo "Problem starting $service"
+
+    if systemctl is-active --quiet "$service" ; then
+        echo "Starting service but service: $service is already running"
+    else
+        $SYSTEMCTL --no-pager start "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem starting $service"
+        fi
     fi
 }
 
@@ -43,11 +52,35 @@ function stop_service() {
     else
         echo "Service: $service already disabled."
     fi
+
     $SYSTEMCTL stop "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem STOPPING $service"
     fi
     echo "Service: $service now stopped."
+}
+
+# ===== function status_port
+# Check if network port is already in-use
+
+function status_port() {
+
+    if [ -z "$1" ] ; then
+        service="none specified"
+    else
+        service="$1"
+    fi
+
+    chk_port=$(sudo lsof -i -P -n | grep LISTEN | grep 8080)
+    if [ $? -eq 0 ] ; then
+        port_cmd=$(echo "$chk_port" | cut -f1 -d ' ')
+	echo
+        echo "Port 8080 is already in use by: $port_cmd"
+	echo "Service $service will NOT start"
+	echo
+    else
+        echo "Port 8080 NOT in use"
+    fi
 }
 
 # ===== function start_pat_service
@@ -93,15 +126,17 @@ EOT
     else
         echo "PAT service file: $pat_service_file already exists."
     fi
+    status_port $service
     start_service $service
 
-    # ==== pat service
-    service="pat"
-    pat_service_file="/etc/systemd/system/$service.service"
+    if [ -z $ONLY_PAT_LISTEN ] ; then
+        # ==== pat service
+        service="pat"
+        pat_service_file="/etc/systemd/system/$service.service"
 
-    if [ ! -e "$pat_service_file" ] ; then
+        if [ ! -e "$pat_service_file" ] ; then
 
-    sudo tee $pat_service_file > /dev/null << EOT
+            sudo tee $pat_service_file > /dev/null << EOT
 [Unit]
 Description=pat web app
 After=network.target
@@ -119,11 +154,14 @@ Restart=no
 WantedBy=default.target
 EOT
 
-        $SYSTEMCTL daemon-reload
-    else
-        echo "PAT service file: $pat_service_file already exists."
-    fi
-    start_service $service
+            $SYSTEMCTL daemon-reload
+        else
+            echo "PAT service file: $pat_service_file already exists."
+        fi
+
+        status_port $service
+        start_service $service
+    fi  # ONLY_PAT_LISTEN
 }
 
 # ===== function stop_pat_service
@@ -137,7 +175,7 @@ function stop_pat_service() {
 	exit
     fi
 
-    process="pat"
+    process="pat_listen"
 
     pid_pat="$(pidof $process)"
     ret=$?
@@ -149,6 +187,7 @@ function stop_pat_service() {
         echo "${FUNCNAME[0]} no process id found for $process"
     fi
 
+    service="pat_listen"
     if $SYSTEMCTL is-active --quiet "$service" ; then
         stop_service $service
     else
@@ -158,6 +197,11 @@ function stop_pat_service() {
             kill $pid_pat
         fi
     fi
+
+#    if [ -z $ONLY_PAT_LISTEN ] ; then
+        service="pat"
+        stop_service $service
+#    fi
 }
 
 # ===== function status_service
@@ -176,19 +220,6 @@ function status_service() {
         IS_RUNNING="NOT RUNNING"
     fi
 
-}
-
-# ===== function status_port
-
-function status_port() {
-
-    chk_port=$(sudo lsof -i -P -n | grep LISTEN | grep 8080)
-    if [ $? -eq 0 ] ; then
-        port_cmd=$(echo "$chk_port" | cut -f1 -d ' ')
-        echo "Port 8080 is already in use by: $port_cmd"
-    else
-        echo "Port 8080 NOT in use"
-    fi
 }
 
 # ==== function display arguments used by this script
@@ -229,7 +260,7 @@ case $APP_ARG in
    ;;
     stop)
         echo "Kill PAT process"
-        stop_pat_service
+        stop_pat_service "true"
 	exit 0
     ;;
     start)
@@ -242,9 +273,15 @@ case $APP_ARG in
         status_service $service
         echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
 
-        service="pat"
+        service="pat_listen"
         status_service $service
         echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
+
+        if [ -z $ONLY_PAT_LISTEN ] ; then
+            service="pat"
+            status_service $service
+            echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
+        fi
 
 	# check for a PID of the PAT service
         pid_pat="$(pidof $service)"
@@ -257,7 +294,7 @@ case $APP_ARG in
             echo "proc $service: $ret, NOT running"
         fi
 
-	status_port
+	status_port $service
         exit 0
     ;;
     -h|--help|-?)
@@ -280,10 +317,15 @@ done
 service="draws-manager"
 status_service $service
 echo " Status for $service: $IS_RUNNING and $IS_ENABLED"
-service="pat"
+if [ -z $ONLY_PAT_LISTEN ] ; then
+    service="pat"
+    status_service $service
+fi
+echo " Status for $service: $IS_RUNNING and $IS_ENABLED"
+service="pat_listen"
 status_service $service
 echo " Status for $service: $IS_RUNNING and $IS_ENABLED"
 
-status_port
+status_port $service
 
 exit 0
