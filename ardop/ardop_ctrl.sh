@@ -7,6 +7,7 @@
 # Creates these 3 systemd unit files
 # rigctld.service, ardop.service, pat_ardop_listen.service
 
+ONLY_PAT_LISTEN=1
 
 BIN="/usr/bin"
 
@@ -184,19 +185,25 @@ EOT
 }
 
 # ===== function unitfile_pat
-# Use a heredoc to build the pat_ardop_listen.service file
+# Use a heredoc to unconditionally build the pat_ardop_listen.service file
 
 function unitfile_pat() {
-sudo tee /etc/systemd/system/pat_listen.service > /dev/null << EOT
+
+    # ==== pat_listen service
+    service="pat_listen"
+    pat_service_file="/etc/systemd/system/$service.service"
+
+    sudo tee $pat_service_file > /dev/null << EOT
 [Unit]
-Description=pat
-#Before=network.target
+Description="pat ardop listener"
+After=network.target
 Requires=rigctld
 #Wants=rigctld
 
 [Service]
 User=pi
-ExecStart=/usr/bin/pat --listen="ardop" http
+Environment="HOME=/home/pi/"
+ExecStart=/usr/bin/pat --listen="ardop" "http"
 WorkingDirectory=/home/pi/
 StandardOutput=inherit
 StandardError=inherit
@@ -205,6 +212,33 @@ Restart=no
 [Install]
 WantedBy=multi-user.target
 EOT
+
+    if [ -z $ONLY_PAT_LISTEN ] ; then
+        # ==== pat service
+        service="pat"
+        pat_service_file="/etc/systemd/system/$service.service"
+
+        sudo tee $pat_service_file > /dev/null << EOT
+[Unit]
+Description=pat web app
+After=network.target
+Requires=rigctld
+
+[Service]
+User=pi
+Environment="HOME=/home/pi/"
+ExecStart=/usr/bin/pat http
+WorkingDirectory=/home/pi/
+StandardOutput=inherit
+StandardError=inherit
+Restart=no
+
+[Install]
+WantedBy=default.target
+EOT
+    fi # ONLY_PAT_LISTEN
+
+    $SYSTEMCTL daemon-reload
 }
 
 # ===== function unitfile_exists
@@ -231,9 +265,12 @@ function status_service() {
 }
 
 # ===== function status_all_processes
-function status_all_processes() {
-    for process in "rigctld" "piardopc" "piARDOP_GUI" "pat" ; do
+# pat_listen has a process ID of pat
 
+function status_all_processes() {
+    # ONLY_PAT_LISTEN
+#    for process in "rigctld" "piardopc" "piARDOP_GUI" "pat" "pat_listen" ; do
+    for process in "rigctld" "piardopc" "piARDOP_GUI" "pat"  ; do
         pid_pat="$(pidof $process)"
         ret=$?
         # Display process: name, pid, arguments
@@ -249,7 +286,8 @@ function status_all_processes() {
 # ===== function status_all_services
 
 function status_all_services() {
-    for service in "rigctld" "ardop" "pat" ; do
+
+    for spervice in "rigctld" "ardop" "pat_listen" ; do
         status_service
     done
 }
@@ -257,6 +295,7 @@ function status_all_services() {
 # ===== function start_service
 
 function start_service() {
+
     service="$1"
     echo "Starting service: $service"
     systemctl is-enabled "$service" > /dev/null 2>&1
@@ -266,10 +305,17 @@ function start_service() {
         if [ "$?" -ne 0 ] ; then
             echo "Problem ENABLING $service"
         fi
+    else
+        echo "Service: $service already ENabled."
     fi
-    $SYSTEMCTL --no-pager start "$service"
-    if [ "$?" -ne 0 ] ; then
-        echo "Problem starting $service"
+
+    if systemctl is-active --quiet "$service" ; then
+        echo "Starting service but service: $service is already running"
+    else
+        $SYSTEMCTL --no-pager start "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem starting $service"
+        fi
     fi
 }
 
@@ -306,6 +352,29 @@ function check_service() {
     fi
 }
 
+# ===== function status_port
+# Check if network port is already in-use
+
+function status_port() {
+
+    if [ -z "$1" ] ; then
+        service="none specified"
+    else
+        service="$1"
+    fi
+
+    chk_port=$(sudo lsof -i -P -n | grep LISTEN | grep 8080)
+    if [ $? -eq 0 ] ; then
+        port_cmd=$(echo "$chk_port" | cut -f1 -d ' ')
+	echo
+        echo "Port 8080 IS IN USE by: $port_cmd"
+#	echo "Service $service will NOT start"
+	echo
+    else
+        echo "Port 8080 NOT in use"
+    fi
+}
+
 # ===== function start_pat_service
 
 # Use a heredoc to build the pat_listen.service file
@@ -330,12 +399,13 @@ function start_pat_service() {
 
     sudo tee $pat_service_file > /dev/null << EOT
 [Unit]
-Description=pat ardop listener
+Description="pat ardop listener"
 After=network.target
+Requires=rigctld
 
 [Service]
-#User=pi
-#type=forking
+User=pi
+Environment="HOME=/home/pi/"
 ExecStart=/usr/bin/pat --listen="ardop" "http"
 WorkingDirectory=/home/pi/
 StandardOutput=inherit
@@ -349,18 +419,23 @@ EOT
     else
         echo "PAT service file: $pat_service_file already exists."
     fi
+    status_port $service
     start_service $service
+    status_port $service
 
-    # ==== pat service
-    service="pat"
-    pat_service_file="/etc/systemd/system/$service.service"
 
-    if [ ! -e "$pat_service_file" ] ; then
+    if [ -z $ONLY_PAT_LISTEN ] ; then
+        # ==== pat service
+        service="pat"
+        pat_service_file="/etc/systemd/system/$service.service"
 
-    sudo tee $pat_service_file > /dev/null << EOT
+        if [ ! -e "$pat_service_file" ] ; then
+
+            sudo tee $pat_service_file > /dev/null << EOT
 [Unit]
 Description=pat web app
 After=network.target
+Requires=rigctld
 
 [Service]
 User=pi
@@ -375,11 +450,13 @@ Restart=no
 WantedBy=default.target
 EOT
 
-        $SYSTEMCTL daemon-reload
-    else
-        echo "PAT service file: $pat_service_file already exists."
-    fi
-    start_service $service
+            $SYSTEMCTL daemon-reload
+        else
+            echo "PAT service file: $pat_service_file already exists."
+        fi
+        status_port $service
+        start_service $service
+    fi  # ONLY_PAT_LISTEN
 }
 
 # ===== function kill_ardop
@@ -389,7 +466,9 @@ function kill_ardop() {
     echo "DEBUG: kill_ardop: kill_flag $kill_flag"
     echo
 
-    for process in "rigctld" "piardopc" "pat" ; do
+    # ONLY_PAT_LISTEN
+#    for process in "rigctld" "piardopc" "pat" "pat_listen" ; do
+    for process in "rigctld" "piardopc" "pat_listen" ; do
 
         pid_pat="$(pidof $process)"
         ret=$?
@@ -462,23 +541,13 @@ function unitfile_update() {
 
     echo " == unit file update"
 
-    for unit_file in "rigctld" "ardop" "pat" ; do
-        case $unit_file in
-            rigctld)
-                unitfile_rigctld
-            ;;
-            ardop)
-                unitfile_ardop
-            ;;
-            pat)
-                unitfile_pat
-            ;;
-            *)
-                echo "Do not recognize this unit file name: $unit_file"
-                exit 1
-            ;;
-        esac
-    done
+    # rigctld
+    unitfile_rigctld
+    # ardop
+    unitfile_ardop
+    # pat
+    unitfile_pat
+
     $SYSTEMCTL daemon-reload
 }
 
@@ -488,7 +557,7 @@ function unitfile_update() {
 function unitfile_check() {
 
     retcode=0
-    for file in "rigctld" "ardop" "pat" ; do
+    for file in "rigctld" "ardop" "pat_listen" ; do
         if [ ! -e "$SYSTEMD_DIR/${file}.service" ] ; then
             retcode=1
             echo "Systemd unit file: $SYSTEMD_DIR/${file}.service NOT found."
@@ -838,14 +907,15 @@ case $APP_ARG in
             echo "DEBUG: Updating systemd unitfiles"
             unitfile_update
         fi
-        dbgecho "Start adrop processes 2"
-	# This will start pat services: "pat" "pat_listen"
-	start_pat_service
 
-        dbgecho "Start adrop processes 3"
+        dbgecho "Start adrop processes 2"
         for service in "rigctld" "ardop" ; do
             start_service $service
         done
+
+	dbgecho "Start pat processes 3"
+	# This will start pat services: "pat" "pat_listen"
+	start_pat_service
 
         dbgecho "Start adrop processes 4"
         # Will create desktop icon start up file if:
