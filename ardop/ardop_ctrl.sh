@@ -468,7 +468,7 @@ function kill_ardop() {
 
     # ONLY_PAT_LISTEN
 #    for process in "rigctld" "piardopc" "pat" "pat_listen" ; do
-    for process in "rigctld" "piardopc" "pat_listen" ; do
+    for process in "rigctld" "piardopc" "pat_listen" "pat" ; do
 
         pid_pat="$(pidof $process)"
         ret=$?
@@ -556,6 +556,8 @@ function unitfile_update() {
 
 function unitfile_check() {
 
+    status_port
+
     retcode=0
     for file in "rigctld" "ardop" "pat_listen" ; do
         if [ ! -e "$SYSTEMD_DIR/${file}.service" ] ; then
@@ -590,6 +592,7 @@ function ardop_process_status() {
     fi
 
     echo " == Ardop process check"
+
     status_all_services
     status_all_processes
 
