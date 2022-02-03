@@ -56,8 +56,9 @@ function stop_service() {
     $SYSTEMCTL stop "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem STOPPING $service"
+    else
+        echo "Service: $service now stopped."
     fi
-    echo "Service: $service now stopped."
 }
 
 # ===== function status_port
@@ -82,6 +83,7 @@ function status_port() {
         echo "Port 8080 NOT in use"
     fi
 }
+
 # ===== function is_ardop_service
 function is_ardop_service() {
 
@@ -102,12 +104,12 @@ function is_ardop_service() {
 function is_ardop_running() {
 
     retcode=1
-    process="pat"
-    pid_pat="$(pidof $process)"
+    process="ardop"
+    pid_ardop="$(pidof $process)"
     ret=$?
     # Display process: name, pid, arguments
     if [ "$ret" -eq 0 ] ; then
-        args=$(ps aux | grep "$pid_pat " | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
+        args=$(ps aux | grep "$pid_ardop " | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
 	grep -iq "ardop" <<< "$args"
 	retcode="$?"
     fi
@@ -134,6 +136,13 @@ function start_pat_service() {
     # ==== pat_listen service
     service="pat_listen"
     pat_service_file="/etc/systemd/system/$service.service"
+    if [ ! -e "$pat_service_file" ] ; then
+    	if is_ardop_service ; then
+	    echo "$(tput setaf 1) === PAT listen is set to ARDOP will replace$(tput sgr0)"
+	    echo
+	    sudo rm $pat_service_file
+	fi
+    fi
 
     if [ ! -e "$pat_service_file" ] ; then
 
@@ -196,6 +205,45 @@ EOT
     fi  # ONLY_PAT_LISTEN
 }
 
+
+# ===== function kill_ardop
+function kill_ardop() {
+
+    kill_flag="true"
+    echo
+    echo "DEBUG: kill_ardop: kill_flag $kill_flag"
+    echo
+
+    # ONLY_PAT_LISTEN
+#    for process in "rigctld" "piardopc" "pat" "pat_listen" ; do
+    for process in "rigctld" "piardopc" "pat_listen" "pat" ; do
+
+        pid_pat="$(pidof $process)"
+        ret=$?
+        # Display process: name, pid, arguments
+        if [ "$ret" -eq 0 ] ; then
+            args=$(ps aux | grep -i $pid_pat | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
+            echo "proc $process: $ret, pid: $pid_pat, args: $args"
+        fi
+
+        # Stop systemd services
+        service="$process"
+        if [ "$process" = "piardopc" ] ; then
+            service="ardop"
+        fi
+
+        if $SYSTEMCTL is-active --quiet "$service" ; then
+            stop_service $service
+        else
+            # kill ardop process
+            if [ "$ret" -eq 0 ] && [ "$kill_flag" = "true" ] ; then
+                echo "$process running with pid: $pid_pat, killing"
+                kill $pid_pat
+            fi
+        fi
+    done
+}
+
 # ===== function stop_pat_service
 # Requires argument of "true" to kill pat process
 
@@ -250,6 +298,48 @@ function status_service() {
 
 }
 
+# ===== function status_all_processes
+# pat_listen has a process ID of pat
+
+function status_all_processes() {
+
+    # check for a PID of the PAT process
+    process="pat"
+    pid_pat="$(pidof $process)"
+    ret=$?
+
+    # Display process: name, pid, arguments
+    if [ "$ret" -eq 0 ] ; then
+        args=$(ps aux | grep "$pid_pat " | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
+        echo "proc $process: $ret, pid: $pid_pat, args: $args"
+    else
+        echo "proc $process: $ret, NOT running"
+    fi
+}
+
+# ===== function status_port
+# Check if network port is already in-use
+
+function status_port() {
+
+    if [ -z "$1" ] ; then
+        service="none specified"
+    else
+        service="$1"
+    fi
+
+    chk_port=$(sudo lsof -i -P -n | grep LISTEN | grep 8080)
+    if [ $? -eq 0 ] ; then
+        port_cmd=$(echo "$chk_port" | cut -f1 -d ' ')
+	echo
+        echo "Port 8080 is already in use by: $port_cmd"
+	echo "Service $service will NOT start"
+	echo
+    else
+        echo "Port 8080 NOT in use"
+    fi
+}
+
 # ==== function display arguments used by this script
 
 usage () {
@@ -292,7 +382,16 @@ case $APP_ARG in
 	exit 0
     ;;
     start)
-        dbgecho "Finished starting PAT"
+
+        if is_ardop_running ; then
+            echo
+	    echo "$(tput setaf 1) === ARDOP is running, will stop$(tput sgr0)"
+	    kill_ardop
+	    stop_service "ardop"
+	fi
+
+
+        dbgecho "Starting PAT"
 	start_pat_service
         exit 0
     ;;
@@ -302,7 +401,7 @@ case $APP_ARG in
 	    echo "$(tput setaf 1) === ARDOP is running$(tput sgr0)"
 	fi
 	if is_ardop_service ; then
-	    echo "$(tput setaf 1) === PAT listen is set to ARDOP $(tput sgr0)"
+	    echo "$(tput setaf 1) === PAT listen is set to ARDOP$(tput sgr0)"
 	    echo
 	fi
 
@@ -320,17 +419,7 @@ case $APP_ARG in
             echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
         fi
 
-	# check for a PID of the PAT service
-        pid_pat="$(pidof $service)"
-        ret=$?
-        # Display process: name, pid, arguments
-        if [ "$ret" -eq 0 ] ; then
-            args=$(ps aux | grep "$pid_pat " | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$service//p")
-            echo "proc $service: $ret, pid: $pid_pat, args: $args"
-        else
-            echo "proc $service: $ret, NOT running"
-        fi
-
+	status_all_processes
 	status_port $service
         exit 0
     ;;
