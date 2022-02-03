@@ -336,8 +336,9 @@ function stop_service() {
     $SYSTEMCTL stop "$service"
     if [ "$?" -ne 0 ] ; then
         echo "Problem STOPPING $service"
+    else
+        echo "Service: $service now stopped."
     fi
-    echo "Service: $service now stopped."
 }
 
 # ===== function check_service
@@ -375,6 +376,21 @@ function status_port() {
     fi
 }
 
+# ===== function is_ax25_service
+function is_ax25_service() {
+
+    retcode=1
+    service_file="/etc/systemd/system/pat_listen.service"
+    if [ -e "$service_file" ] ; then
+        grep -iq "ax25" $service_file
+	if [ $? -eq 0 ] ; then
+	    retcode=0
+	fi
+    fi
+
+    return "$retcode"
+}
+
 # ===== function start_pat_service
 
 # Use a heredoc to build the pat_listen.service file
@@ -394,6 +410,15 @@ function start_pat_service() {
     # ==== pat_listen service
     service="pat_listen"
     pat_service_file="/etc/systemd/system/$service.service"
+
+    if [ ! -e "$pat_service_file" ] ; then
+    	if is_ax25_service ; then
+	    echo "$(tput setaf 1) === PAT listen is set to AX25 will replace$(tput sgr0)"
+	    echo
+	    sudo rm $pat_service_file
+	fi
+    fi
+
 
     if [ ! -e "$pat_service_file" ] ; then
 
@@ -845,10 +870,12 @@ fi
 # draws manager collides with pat http
 
 check_service "draws-manager"
-
-# For now assume NOT running in split_channel mode and
-#  shut down direwolf
-check_service "direwolf"
+service="direwolf"
+if $SYSTEMCTL is-active --quiet "$service" ; then
+    echo "Service: $service IS running"
+else
+    echo "Service: $service is already stopped"
+fi
 
 if [[ $# -eq 0 ]] ; then
     APP_ARG="status"
@@ -904,8 +931,26 @@ case $APP_ARG in
         kill_ardop true
     ;;
     start)
+        dbgecho "Check for conflicting direwolf process"
+
+        # For now assume NOT running in split_channel mode and
+        #  shut down direwolf
+	# If direwolf is running shutdown ALL AX.25 processes
+
+        service="direwolf"
+        if $SYSTEMCTL is-active --quiet "$service" ; then
+            echo "  == Stopping all AX.25 processes"
+            SERVICE_LIST="ax25dev.service ax25dev.path direwolf.service ax25-mheardd.service ax25d.service"
+            for service in `echo ${SERVICE_LIST}` ; do
+                # echo "DEBUG: Stopping service: $service"
+                stop_service $service
+            done
+        else
+            echo "Service: $service is already stopped"
+        fi
 
         dbgecho "Start adrop processes 1"
+
         if [ "$FORCE_UPDATE" = "true" ] ; then
             echo "DEBUG: Updating systemd unitfiles"
             unitfile_update
@@ -928,6 +973,10 @@ case $APP_ARG in
         exit 0
     ;;
     status)
+        if is_ax25_service ; then
+	    echo "$(tput setaf 1) === PAT listen is set to AX25$(tput sgr0)"
+	    echo
+	fi
         radio_name_verify
 
         echo
