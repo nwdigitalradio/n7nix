@@ -2,7 +2,7 @@
 #
 # Test script for checking if 'app_config.sh core' has been run
 #
-#DEBUG=1
+DEBUG=
 
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 cfg_script_name="app_config.sh core"
@@ -38,25 +38,17 @@ function is_hostname() {
 function is_password() {
 
     retcode=0
-    GREPCMD="grep -i"
-
-    dbgecho " === Verify current password"
-    if [ ! -r /etc/shadow ] ; then
-        # Need to elevate permissions
-        GREPCMD="sudo grep -i"
-    fi
-
     # get salt
-    SALT=$(sudo grep -i pi /etc/shadow | awk -F\$ '{print $3}')
+    SALT=$($GREPCMD pi /etc/shadow | awk -F\$ '{print $3}')
 
     PASSGEN_RASPBERRY=$(mkpasswd --method=sha-512 --salt=$SALT raspberry)
     PASSGEN_NWCOMPASS=$(mkpasswd --method=sha-512 --salt=$SALT nwcompass)
     PASSFILE=$($GREPCMD pi /etc/shadow | cut -d ':' -f2)
 
-#   dbgecho "SALT: $SALT"
-#   dbgecho "pass file: $PASSFILE"
-#   dbgecho "pass  gen raspberry: $PASSGEN_RASPBERRY"
-#   dbgecho "pass  gen nwcompass: $PASSGEN_NWCOMPASS"
+   dbgecho "SALT: $SALT"
+   dbgecho "pass file: $PASSFILE"
+   dbgecho "pass  gen raspberry: $PASSGEN_RASPBERRY"
+   dbgecho "pass  gen nwcompass: $PASSGEN_NWCOMPASS"
 
     if [ "$PASSFILE" = "$PASSGEN_RASPBERRY" ] || [ "$PASSFILE" = "$PASSGEN_NWCOMPASS" ] ; then
         dbgecho "User pi IS using default password"
@@ -94,11 +86,49 @@ function is_logappcfg() {
 
 # ===== main
 
-if is_hostname && is_password && is_logappcfg ; then
-    echo "-- $cfg_script_name script has ALREADY been run"
+if [[ $# -gt 0 ]] ; then
+    DEBUG=1
+fi
+
+GREPCMD="grep -i"
+
+if [ ! -r /etc/shadow ] ; then
+    # Need to elevate permissions
+    GREPCMD="sudo grep -i"
+fi
+
+# Debian 11 and newer uses yescript instead of sha-512
+# 6 = sha-512
+# y = yescrypt
+
+encrypt_type=$($GREPCMD "pi" /etc/shadow | cut -f2 -d '$')
+
+# Debian 11 and newer uses yescript instead of sha-512
+# 6 = sha-512
+# y = yescrypt
+
+encrypt_type=$($GREPCMD "pi" /etc/shadow | cut -f2 -d '$')
+
+dbgecho "DEBUG: encrypt_type: $encrypt_type"
+
+if [ "$encrypt_type" = 6 ] ; then
+dbgecho " === Verify current password"
+
+    if is_hostname && is_password && is_logappcfg ; then
+        echo "-- $cfg_script_name script has ALREADY been run"
+    else
+        # This sets the return code for the other checks in case conditional failed on is_hostname
+        is_password
+        is_logappcfg
+        echo "-- $cfg_script_name script has NOT been run: hostname: $ret_hostname, passwd: $ret_password, logfile: $ret_logappcfg"
+    fi
 else
-    # This sets the return code for the other checks in case conditional failed on is_hostname
-    is_password
-    is_logappcfg
-    echo "-- $cfg_script_name script has NOT been run: hostname: $ret_hostname, passwd: $ret_password, logfile: $ret_logappcfg"
+    echo "Password file is using something other than sha-512 encryption, NO password check done"
+    if is_hostname && is_logappcfg ; then
+        echo "-- $cfg_script_name script has ALREADY been run"
+    else
+        # This sets the return code for the other checks in case conditional failed on is_hostname
+        is_logappcfg
+        echo "-- $cfg_script_name script has NOT been run: hostname: $ret_hostname, passwd: $ret_password, logfile: $ret_logappcfg"
+    fi
 fi
