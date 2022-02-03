@@ -80,6 +80,13 @@ function is_logappcfg() {
         echo "File: $UDR_INSTALL_LOGFILE does not exist"
     fi
     dbgecho "is_logappcfg ret: $retcode"
+
+    initcfg_cnt=$(grep -i initcfg /var/log/udr_install.log | rev | cut -f2 -d' ' | tail -n 1)
+    if [ -z "$initcfg_cnt" ] ; then
+        echo "-- initcfg script has NOT been run"
+    else
+        echo "-- initcfg script has been run $initcfg_cnt time(s)."
+    fi
     ret_logappcfg=$retcode
     return $retcode
 }
