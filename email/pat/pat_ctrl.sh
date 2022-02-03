@@ -82,6 +82,38 @@ function status_port() {
         echo "Port 8080 NOT in use"
     fi
 }
+# ===== function is_ardop_service
+function is_ardop_service() {
+
+    retcode=1
+    service_file="/etc/systemd/system/pat_listen.service"
+    if [ -e "$service_file" ] ; then
+        grep -iq "ardop" $service_file
+	if [ $? -eq 0 ] ; then
+	    retcode=0
+	fi
+    fi
+
+    return "$retcode"
+}
+
+
+# ===== function is_ardop_running
+function is_ardop_running() {
+
+    retcode=1
+    process="pat"
+    pid_pat="$(pidof $process)"
+    ret=$?
+    # Display process: name, pid, arguments
+    if [ "$ret" -eq 0 ] ; then
+        args=$(ps aux | grep "$pid_pat " | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
+	grep -iq "ardop" <<< "$args"
+	retcode="$?"
+    fi
+    dbgecho "${FUNCNAME[0]}: retcode=$retcode"
+    return "$retcode"
+}
 
 # ===== function start_pat_service
 
@@ -175,33 +207,29 @@ function stop_pat_service() {
 	exit
     fi
 
-    process="pat_listen"
+    for process in "pat_listen" "pat" ; do
 
-    pid_pat="$(pidof $process)"
-    ret=$?
-    # Display process: name, pid, arguments
-    if [ "$ret" -eq 0 ] ; then
-        args=$(ps aux | grep -i $pid_pat | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
-        echo "proc $process: $ret, pid: $pid_pat, args: $args"
-    else
-        echo "${FUNCNAME[0]} no process id found for $process"
-    fi
-
-    service="pat_listen"
-    if $SYSTEMCTL is-active --quiet "$service" ; then
-        stop_service $service
-    else
-        # kill process
-        if [ "$ret" -eq 0 ] && [ "$kill_flag" = "true" ] ; then
-            echo "$process running with pid: $pid_pat, killing"
-            kill $pid_pat
+        pid_pat="$(pidof $process)"
+        ret=$?
+        # Display process: name, pid, arguments
+        if [ "$ret" -eq 0 ] ; then
+            args=$(ps aux | grep -i $pid_pat | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
+            echo "proc $process: $ret, pid: $pid_pat, args: $args"
+        else
+            echo "${FUNCNAME[0]} no process id found for $process"
         fi
-    fi
 
-#    if [ -z $ONLY_PAT_LISTEN ] ; then
-        service="pat"
-        stop_service $service
-#    fi
+        service="$process"
+        if $SYSTEMCTL is-active --quiet "$service" ; then
+            stop_service $service
+        else
+            # kill process
+            if [ "$ret" -eq 0 ] && [ "$kill_flag" = "true" ] ; then
+                echo "$process running with pid: $pid_pat, killing"
+                kill $pid_pat
+            fi
+        fi
+    done
 }
 
 # ===== function status_service
@@ -269,6 +297,15 @@ case $APP_ARG in
         exit 0
     ;;
     status)
+        if is_ardop_running ; then
+            echo
+	    echo "$(tput setaf 1) === ARDOP is running$(tput sgr0)"
+	fi
+	if is_ardop_service ; then
+	    echo "$(tput setaf 1) === PAT listen is set to ARDOP $(tput sgr0)"
+	    echo
+	fi
+
         service="draws-manager"
         status_service $service
         echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
