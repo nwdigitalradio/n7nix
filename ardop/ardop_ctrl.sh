@@ -213,31 +213,6 @@ Restart=no
 WantedBy=multi-user.target
 EOT
 
-    if [ -z $ONLY_PAT_LISTEN ] ; then
-        # ==== pat service
-        service="pat"
-        pat_service_file="/etc/systemd/system/$service.service"
-
-        sudo tee $pat_service_file > /dev/null << EOT
-[Unit]
-Description=pat web app
-After=network.target
-Requires=rigctld
-
-[Service]
-User=pi
-Environment="HOME=/home/pi/"
-ExecStart=/usr/bin/pat http
-WorkingDirectory=/home/pi/
-StandardOutput=inherit
-StandardError=inherit
-Restart=no
-
-[Install]
-WantedBy=default.target
-EOT
-    fi # ONLY_PAT_LISTEN
-
     $SYSTEMCTL daemon-reload
 }
 
@@ -376,6 +351,21 @@ function status_port() {
     fi
 }
 
+# ===== function is_direwolf_running
+
+function is_direwolf_running() {
+
+    retcode=1
+    service="direwolf"
+    if $SYSTEMCTL is-active --quiet "$service" ; then
+	retcode=0
+    else
+        retcode=1
+    fi
+
+    return "$retcode"
+}
+
 # ===== function is_ax25_service
 function is_ax25_service() {
 
@@ -411,77 +401,24 @@ function start_pat_service() {
     service="pat_listen"
     pat_service_file="/etc/systemd/system/$service.service"
 
-    if [ ! -e "$pat_service_file" ] ; then
+    if [ -e "$pat_service_file" ] ; then
     	if is_ax25_service ; then
 	    echo "$(tput setaf 1) === PAT listen is set to AX25 will replace$(tput sgr0)"
 	    echo
 	    sudo rm $pat_service_file
+	    unitfile_pat
+	else
+	    dbgecho
+	    dbgecho "=== PAT listen is NOT set to AX25"
+	    dbgecho
 	fi
-    fi
-
-
-    if [ ! -e "$pat_service_file" ] ; then
-
-    sudo tee $pat_service_file > /dev/null << EOT
-[Unit]
-Description="pat ardop listener"
-After=network.target
-Requires=rigctld
-
-[Service]
-User=pi
-Environment="HOME=/home/pi/"
-ExecStart=/usr/bin/pat --listen="ardop" "http"
-WorkingDirectory=/home/pi/
-StandardOutput=inherit
-StandardError=inherit
-Restart=no
-
-[Install]
-WantedBy=default.target
-EOT
-        $SYSTEMCTL daemon-reload
     else
-        echo "PAT service file: $pat_service_file already exists."
+        unitfile_pat
     fi
+
     status_port $service
     start_service $service
     status_port $service
-
-
-    if [ -z $ONLY_PAT_LISTEN ] ; then
-        # ==== pat service
-        service="pat"
-        pat_service_file="/etc/systemd/system/$service.service"
-
-        if [ ! -e "$pat_service_file" ] ; then
-
-            sudo tee $pat_service_file > /dev/null << EOT
-[Unit]
-Description=pat web app
-After=network.target
-Requires=rigctld
-
-[Service]
-User=pi
-Environment="HOME=/home/pi/"
-ExecStart=/usr/bin/pat http
-WorkingDirectory=/home/pi/
-StandardOutput=inherit
-StandardError=inherit
-Restart=no
-
-[Install]
-WantedBy=default.target
-EOT
-
-            $SYSTEMCTL daemon-reload
-        else
-            echo "PAT service file: $pat_service_file already exists."
-        fi
-        status_port $service
-        start_service $service
-    fi  # ONLY_PAT_LISTEN
 }
 
 # ===== function kill_ardop
@@ -870,13 +807,8 @@ fi
 # draws manager collides with pat http
 
 check_service "draws-manager"
-service="direwolf"
-if $SYSTEMCTL is-active --quiet "$service" ; then
-    echo "Service: $service IS running"
-else
-    echo "Service: $service is already stopped"
-fi
 
+# No args on command line, just show status
 if [[ $# -eq 0 ]] ; then
     APP_ARG="status"
 fi
@@ -895,6 +827,8 @@ case $APP_ARG in
     -f|--force)
         FORCE_UPDATE=true
         echo "Force update mode on"
+        echo "DEBUG: Updating PAT systemd unitfile"
+        unitfile_pat
    ;;
     -d|--debug)
         DEBUG=1
@@ -973,8 +907,11 @@ case $APP_ARG in
         exit 0
     ;;
     status)
+        if is_direwolf_running ; then
+	    echo "$(tput setaf 1) === ERROR: direwolf IS running$(tput sgr0)"
+	fi
         if is_ax25_service ; then
-	    echo "$(tput setaf 1) === PAT listen is set to AX25$(tput sgr0)"
+	    echo "$(tput setaf 1) === ERROR: PAT listen IS set to AX25$(tput sgr0)"
 	    echo
 	fi
         radio_name_verify
