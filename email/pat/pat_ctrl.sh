@@ -75,13 +75,44 @@ function status_port() {
     chk_port=$(sudo lsof -i -P -n | grep LISTEN | grep 8080)
     if [ $? -eq 0 ] ; then
         port_cmd=$(echo "$chk_port" | cut -f1 -d ' ')
-	echo
-        echo "Port 8080 is already in use by: $port_cmd"
-	echo "Service $service will NOT start"
-	echo
+        echo " == Port 8080 in use by: $port_cmd"
+#	echo "Service $service will NOT start"
     else
         echo "Port 8080 NOT in use"
     fi
+}
+
+
+# ===== function unitfile_pat
+# Use a heredoc to unconditionally build the pat_ardop_listen.service file
+
+function unitfile_pat() {
+
+    # ==== pat_listen service
+    service="pat_listen"
+    pat_service_file="/etc/systemd/system/$service.service"
+
+    sudo tee $pat_service_file > /dev/null << EOT
+[Unit]
+Description="pat ax25 listener"
+After=network.target
+Requires=rigctld
+#Wants=rigctld
+
+[Service]
+User=pi
+Environment="HOME=/home/pi/"
+ExecStart=/usr/bin/pat --listen="ax25" "http"
+WorkingDirectory=/home/pi/
+StandardOutput=inherit
+StandardError=inherit
+Restart=no
+
+[Install]
+WantedBy=multi-user.target
+EOT
+
+    $SYSTEMCTL daemon-reload
 }
 
 # ===== function is_ardop_service
@@ -136,75 +167,26 @@ function start_pat_service() {
     # ==== pat_listen service
     service="pat_listen"
     pat_service_file="/etc/systemd/system/$service.service"
-    if [ ! -e "$pat_service_file" ] ; then
+
+    if [ -e "$pat_service_file" ] ; then
     	if is_ardop_service ; then
 	    echo "$(tput setaf 1) === PAT listen is set to ARDOP will replace$(tput sgr0)"
 	    echo
 	    sudo rm $pat_service_file
+	    unitfile_pat
+	else
+	    dbgecho
+	    dbgecho "=== PAT listen is NOT set to ARDOP"
+	    dbgecho
 	fi
-    fi
-
-    if [ ! -e "$pat_service_file" ] ; then
-
-    sudo tee $pat_service_file > /dev/null << EOT
-[Unit]
-Description=pat ax25 listener
-After=network.target
-
-[Service]
-#User=pi
-#type=forking
-ExecStart=/usr/bin/pat --listen="ax25" "http"
-WorkingDirectory=/home/pi/
-StandardOutput=inherit
-StandardError=inherit
-Restart=no
-
-[Install]
-WantedBy=default.target
-EOT
-        $SYSTEMCTL daemon-reload
     else
-        echo "PAT service file: $pat_service_file already exists."
+        unitfile_pat
     fi
+
     status_port $service
     start_service $service
-
-    if [ -z $ONLY_PAT_LISTEN ] ; then
-        # ==== pat service
-        service="pat"
-        pat_service_file="/etc/systemd/system/$service.service"
-
-        if [ ! -e "$pat_service_file" ] ; then
-
-            sudo tee $pat_service_file > /dev/null << EOT
-[Unit]
-Description=pat web app
-After=network.target
-
-[Service]
-User=pi
-Environment="HOME=/home/pi/"
-ExecStart=/usr/bin/pat http
-WorkingDirectory=/home/pi/
-StandardOutput=inherit
-StandardError=inherit
-Restart=no
-
-[Install]
-WantedBy=default.target
-EOT
-
-            $SYSTEMCTL daemon-reload
-        else
-            echo "PAT service file: $pat_service_file already exists."
-        fi
-
-        status_port $service
-        start_service $service
-    fi  # ONLY_PAT_LISTEN
+    status_port $service
 }
-
 
 # ===== function kill_ardop
 function kill_ardop() {
@@ -264,7 +246,7 @@ function stop_pat_service() {
             args=$(ps aux | grep -i $pid_pat | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
             echo "proc $process: $ret, pid: $pid_pat, args: $args"
         else
-            echo "${FUNCNAME[0]} no process id found for $process"
+            echo "${FUNCNAME[0]}: no process id found for $process"
         fi
 
         service="$process"
@@ -295,7 +277,6 @@ function status_service() {
     if [ $? -ne 0 ] ; then
         IS_RUNNING="NOT RUNNING"
     fi
-
 }
 
 # ===== function status_all_processes
@@ -311,33 +292,56 @@ function status_all_processes() {
     # Display process: name, pid, arguments
     if [ "$ret" -eq 0 ] ; then
         args=$(ps aux | grep "$pid_pat " | grep -v "grep" | head -n 1 | tr -s '[[:space:]]' | sed -n "s/.*$process//p")
-        echo "proc $process: $ret, pid: $pid_pat, args: $args"
+        echo " proc $process: $ret, pid: $pid_pat, args: $args"
+        grep -iq "ardop" <<< $args
+	if [ $? -eq 0 ] ; then
+            echo "$(tput setaf 1) === ardop process IS running, need to stop it$(tput sgr0)"
+	fi
     else
-        echo "proc $process: $ret, NOT running"
+        echo " proc $process: $ret, NOT running"
     fi
 }
 
-# ===== function status_port
-# Check if network port is already in-use
+# ===== function audio_device_status
+function audio_device_status() {
 
-function status_port() {
-
-    if [ -z "$1" ] ; then
-        service="none specified"
+    audio_device="udrc"
+    echo -n " == audio device $audio_device check: "
+    if [ -e "/proc/asound/$audio_device/pcm0c/sub0/status" ] ; then
+        grep -i "state:\|closed" "/proc/asound/$audio_device/pcm0c/sub0/status"
     else
-        service="$1"
+        echo "device status file does NOT exist"
+    fi
+}
+
+# ===== function pat_status
+
+function pat_status() {
+    if is_ardop_running ; then
+        echo
+        echo "$(tput setaf 1) === ARDOP is running$(tput sgr0)"
+    fi
+    if is_ardop_service ; then
+        echo "$(tput setaf 1) === PAT listen is set to ARDOP$(tput sgr0)"
+        echo
     fi
 
-    chk_port=$(sudo lsof -i -P -n | grep LISTEN | grep 8080)
-    if [ $? -eq 0 ] ; then
-        port_cmd=$(echo "$chk_port" | cut -f1 -d ' ')
-	echo
-        echo "Port 8080 is already in use by: $port_cmd"
-	echo "Service $service will NOT start"
-	echo
-    else
-        echo "Port 8080 NOT in use"
+    service="draws-manager"
+    status_service $service
+    echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
+
+    service="pat_listen"
+    status_service $service
+    echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
+
+    if [ -z $ONLY_PAT_LISTEN ] ; then
+        service="pat"
+        status_service $service
+        echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
     fi
+
+    status_all_processes
+    status_port $service
 }
 
 # ==== function display arguments used by this script
@@ -346,7 +350,8 @@ usage () {
 	(
 	echo "Usage: $scriptname [-d][-h][status][stop][start]"
         echo "                  No args will show status"
-        echo "  -d              Set DEBUG flag"
+        echo "  -f | --force    Update systemd unit files"
+	echo "  -d              Set DEBUG flag"
 	echo
         echo "                  args with dashes must come before following arguments"
 	echo
@@ -376,6 +381,12 @@ case $APP_ARG in
         DEBUG=1
         echo "Debug mode on"
    ;;
+    -f|--force)
+        FORCE_UPDATE=true
+        echo "Force update mode on"
+        echo "DEBUG: Updating systemd unitfiles"
+        unitfile_pat
+   ;;
     stop)
         echo "Kill PAT process"
         stop_pat_service "true"
@@ -389,38 +400,14 @@ case $APP_ARG in
 	    kill_ardop
 	    stop_service "ardop"
 	fi
-
-
         dbgecho "Starting PAT"
 	start_pat_service
         exit 0
     ;;
     status)
-        if is_ardop_running ; then
-            echo
-	    echo "$(tput setaf 1) === ARDOP is running$(tput sgr0)"
-	fi
-	if is_ardop_service ; then
-	    echo "$(tput setaf 1) === PAT listen is set to ARDOP$(tput sgr0)"
-	    echo
-	fi
-
-        service="draws-manager"
-        status_service $service
-        echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
-
-        service="pat_listen"
-        status_service $service
-        echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
-
-        if [ -z $ONLY_PAT_LISTEN ] ; then
-            service="pat"
-            status_service $service
-            echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
-        fi
-
-	status_all_processes
-	status_port $service
+        pat_status
+	audio_device_status
+        echo "Finished pat ax.25 status"
         exit 0
     ;;
     -h|--help|-?)
@@ -438,20 +425,7 @@ esac
 shift # past argument
 done
 
-# Default to displaying status of draws_manager & PAT
-
-service="draws-manager"
-status_service $service
-echo " Status for $service: $IS_RUNNING and $IS_ENABLED"
-if [ -z $ONLY_PAT_LISTEN ] ; then
-    service="pat"
-    status_service $service
-fi
-echo " Status for $service: $IS_RUNNING and $IS_ENABLED"
-service="pat_listen"
-status_service $service
-echo " Status for $service: $IS_RUNNING and $IS_ENABLED"
-
-status_port $service
-
+pat_status
+audio_device_status
+echo "Finished pat ax.25 status"
 exit 0
