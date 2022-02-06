@@ -8,7 +8,9 @@
 scriptname="`basename $0`"
 DEBUG=
 
-DAEMON_CFG_FILE="ax25d.conf"
+AX25_CONF_DIR="/etc/ax25"
+DAEMON_CFG_FILE="$AX25_CONF_DIR/ax25d.conf"
+
 # Temporary for debug
 # cp /etc/ax25/$DAEMON_CFG_FILE .
 
@@ -40,7 +42,7 @@ function del_plu_listener() {
     # cat $tmpfile
 
     sed -ie '/wl2kax25/I,+3 d' $tmpfile
-    tac $tmpfile > $DAEMON_CFG_FILE
+    tac $tmpfile | sudo tee $DAEMON_CFG_FILE > /dev/null
     rm $tmpfile
 }
 
@@ -48,22 +50,54 @@ function del_plu_listener() {
 
 function add_plu_listener() {
 
-callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
-echo "Entries in daemon file: $callsign_cnt before"
+    callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
+    echo
+    echo "Entries in daemon file: $callsign_cnt before"
+    echo
 
-PRIMARY_DEVICE="udr0"
-SECONDARY_DEVICE="udr1"
+    PRIMARY_DEVICE="udr0"
+    SECONDARY_DEVICE="udr1"
 
-sed "0,/ rmsgw /a\
-#\
-[${CALLSIGN}-10 VIA ${PRIMARY_DEVICE}]\
-NOCALL   * * * * * *  L\
+#   sudo sed -i -e "0,/ rmsgw /a\
+
+if [ 1 -eq 0 ] ; then
+
+    sudo sed  "0,/ rmsgw /a\
+    #\
+    [${CALLSIGN}-10 VIA ${PRIMARY_DEVICE}]\
+    NOCALL   * * * * * *  L\
+    default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d\
+    " $DAEMON_CFG_FILE
+
+else
+#\[${CALLSIGN} VIA ${PRIMARY_DEVICE}\]\n\
+#NOCALL   * * * * * *  L\n\
+#default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d\n\
+
+# add after first occurrence
+    sudo sed -i "0,/^default/!b;//a \
+# test\n\
+\[${CALLSIGN} VIA ${PRIMARY_DEVICE}\]\n\
+NOCALL   * * * * * *  L\n\
 default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d\
 " $DAEMON_CFG_FILE
 
-callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
-echo "Entries in daemon file: $callsign_cnt after"
+# Add after last occurrence based on line number
+lineno=$(grep -n "^default" /etc/ax25/ax25d.conf | tail -n 1 | cut -f 1 -d ':')
 
+    sudo sed  "$lineno a \
+# test\n\
+\[${CALLSIGN} VIA ${SECONDARY_DEVICE}\]\n\
+NOCALL   * * * * * *  L\n\
+default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d\
+" $DAEMON_CFG_FILE
+
+fi
+
+    callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
+
+echo
+echo "Entries in daemon file: $callsign_cnt after"
 }
 
 # ===== function add pat ax25 listen service
@@ -133,6 +167,7 @@ usage () {
         echo "  -d|--del      Delete wl2kax25 listener"
         echo "  -D            Set DEBUG flag"
         echo "  -h            Display this message."
+	echo "  status        Display PAT & paclink-unix status"
         echo
 	) 1>&2
 	exit 1
