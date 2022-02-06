@@ -33,17 +33,43 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 function del_plu_listener() {
 
+   grep -iq "wl2kax25d" $DAEMON_CFG_FILE
+   if [ "$?" = 1 ] ; then
+       echo
+       echo "No paclink-unix listeners are configured."
+       return
+   fi
+
+    callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
+    echo
+    echo "Entries in daemon file: $callsign_cnt before"
+    echo
+
+   # Delete first listener
     tmpfile=$(mktemp /tmp/ax25d_edit.XXXXXX)
-    echo "temporary file name: $tmpfile"
+    # echo "temporary file name: $tmpfile"
 
     tac $DAEMON_CFG_FILE > $tmpfile
     echo
     # echo "After tac:"
     # cat $tmpfile
 
+    dbgecho "Delete first occurrence"
     sed -ie '/wl2kax25/I,+3 d' $tmpfile
     tac $tmpfile | sudo tee $DAEMON_CFG_FILE > /dev/null
     rm $tmpfile
+
+    # Delete second listener
+    # /I case insensitive
+    endlineno=$(grep -n "wl2kax25d" /etc/ax25/ax25d.conf | tail -n 1 | cut -f 1 -d ':')
+    startlineno=(endlineno -3)
+
+    dbgecho "Delete second occurrence"
+    sudo sed -ie "/wl2kax25/I $startlineno,$endlineno d" $DAEMON_CFG_FILE
+
+    callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
+    echo
+    echo "Entries in daemon file: $callsign_cnt after"
 }
 
 # ===== function add wl2kax25d sections
@@ -55,11 +81,22 @@ function add_plu_listener() {
     echo "Entries in daemon file: $callsign_cnt before"
     echo
 
+   listener_cnt=$(grep -ic "wl2kax25d" $DAEMON_CFG_FILE)
+   if [ $listener_cnt -ne 0 ] ; then
+
+       echo
+       echo " Some paclink-unix listener(s) already configured."
+       echo " NO additional listeners added."
+       return
+   fi
+
+
     PRIMARY_DEVICE="udr0"
     SECONDARY_DEVICE="udr1"
 
-#   sudo sed -i -e "0,/ rmsgw /a\
+    # sudo sed -i -e "0,/ rmsgw /a\
 
+# Replacement section
 if [ 1 -eq 0 ] ; then
 
     sudo sed  "0,/ rmsgw /a\
@@ -70,34 +107,43 @@ if [ 1 -eq 0 ] ; then
     " $DAEMON_CFG_FILE
 
 else
+
 #\[${CALLSIGN} VIA ${PRIMARY_DEVICE}\]\n\
 #NOCALL   * * * * * *  L\n\
 #default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d\n\
-
-# add after first occurrence
+    if [ ! -z $DEBUG ] ; then
+        lineno=$(grep -n "^default" /etc/ax25/ax25d.conf | head -n 1 | cut -f 1 -d ':')
+        echo "Add first occurrence after line: $lineno"
+    fi
+# add after first occurrence of paclink-unix listener
     sudo sed -i "0,/^default/!b;//a \
-# test\n\
+# paclink-unix listener\n\
 \[${CALLSIGN} VIA ${PRIMARY_DEVICE}\]\n\
 NOCALL   * * * * * *  L\n\
 default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d\
 " $DAEMON_CFG_FILE
 
+    if [ ! -z $DEBUG ] ; then
+        lineno=$(grep -n "^default" /etc/ax25/ax25d.conf | tail -n 1 | cut -f 1 -d ':')
+        echo "Add second occurrence after line: $lineno"
+    fi
+
+# Add second occurrence of paclink-unix listener
 # Add after last occurrence based on line number
 lineno=$(grep -n "^default" /etc/ax25/ax25d.conf | tail -n 1 | cut -f 1 -d ':')
 
-    sudo sed  "$lineno a \
-# test\n\
+    sudo sed  -i "$lineno a \
+# paclink-unix listener\n\
 \[${CALLSIGN} VIA ${SECONDARY_DEVICE}\]\n\
 NOCALL   * * * * * *  L\n\
 default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d\
 " $DAEMON_CFG_FILE
 
-fi
+fi  # end replacement section
 
     callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
-
-echo
-echo "Entries in daemon file: $callsign_cnt after"
+    echo
+    echo "Entries in daemon file: $callsign_cnt after"
 }
 
 # ===== function add pat ax25 listen service
@@ -195,11 +241,20 @@ case $APP_ARG in
     status)
         pat_status
         plu_status
+        # Display all lines without a comment character
+        grep ^[^#] $DAEMON_CFG_FILE
         exit 0
     ;;
     -d|--del)
         echo "Delete wl2kax25d section for $CALLSIGN"
 	del_plu_listener
+	if [ ! -z $DEBUG ] ; then
+	    echo
+            cat $DAEMON_CFG_FILE
+	    echo
+	fi
+
+	echo
 	echo "Restart AX.25 stack"
 #	ax25-restart
 	exit 0
@@ -207,6 +262,13 @@ case $APP_ARG in
     -a|--add)
         echo "Add wl2kax25d section for $CALLSIGN"
 	add_plu_listener
+	if [ ! -z $DEBUG ] ; then
+	    echo
+            cat $DAEMON_CFG_FILE
+	    echo
+	fi
+
+	echo
 	echo "Restart AX.25 stack"
 #	ax25-restart
 	exit 0
