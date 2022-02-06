@@ -130,6 +130,20 @@ function is_ardop_service() {
     return "$retcode"
 }
 
+# ===== function is_direwolf_running
+
+function is_direwolf_running() {
+
+    retcode=1
+    service="direwolf"
+    if $SYSTEMCTL is-active --quiet "$service" ; then
+	retcode=0
+    else
+        retcode=1
+    fi
+
+    return "$retcode"
+}
 
 # ===== function is_ardop_running
 function is_ardop_running() {
@@ -400,6 +414,11 @@ case $APP_ARG in
 	    kill_ardop
 	    stop_service "ardop"
 	fi
+	if ! is_direwolf_running ; then
+	    echo "$(tput setaf 1) === direwolf NOT running, will start$(tput sgr0)"
+	    ax25-start
+	fi
+
         dbgecho "Starting PAT"
 	start_pat_service
         exit 0
