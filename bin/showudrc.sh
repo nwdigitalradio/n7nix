@@ -247,6 +247,10 @@ function check_pi_ver() {
 CPUINFO_FILE="/proc/cpuinfo"
 HAS_WIFI=false
 
+# Get CPU clock frequency
+cpu_clk=$(vcgencmd measure_clock arm | cut -f2 -d'=')
+cpu_clk=${cpu_clk::-6}
+
 # This method works as well
 #piver="$(grep "Revision" $CPUINFO_FILE | cut -d':' -f2- | tr -d '[[:space:]]')"
 
@@ -344,7 +348,7 @@ esac
         retcode=0
     fi
 
-    echo "$VERSION_STRING $WIFI_STRING"
+    echo "$VERSION_STRING $WIFI_STRING, $cpu_clk MHz"
 
 # Display Raspberry Pi serial number
 tail -n 4 $CPUINFO_FILE
