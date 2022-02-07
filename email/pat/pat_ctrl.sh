@@ -279,9 +279,12 @@ function stop_pat_service() {
 # ===== function status_service
 
 function status_service() {
+
     service="$1"
+    service_status=0
     IS_ENABLED="ENABLED"
     IS_RUNNING="RUNNING"
+
     # echo "Checking service: $service"
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
@@ -290,7 +293,9 @@ function status_service() {
     systemctl is-active "$service" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
         IS_RUNNING="NOT RUNNING"
+	service_status=1
     fi
+    return $service_status
 }
 
 # ===== function status_all_processes
@@ -343,6 +348,11 @@ function pat_status() {
     service="draws-manager"
     status_service $service
     echo " Status for systemd service: $service: $IS_RUNNING and $IS_ENABLED"
+    # if draws-manager is running, stop it.
+    if [ $service_status = 0 ] ; then
+        echo "Stopping service: $service"
+	stop_service $service
+    fi
 
     service="pat_listen"
     status_service $service
