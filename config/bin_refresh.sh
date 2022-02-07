@@ -101,6 +101,12 @@ cp -u /home/$USER/n7nix/watchdog/wd-status.sh $userbindir
 # Copy direwolf version display file
 cp -u /home/$USER/n7nix/direwolf/dw_ver.sh $userbindir
 
+# Copy scripts to support PAT AX.25/ARDOP
+cp -u /home/$USER/n7nix/email/pat/listener_ctrl.sh $userbindir
+cp -u /home/$USER/n7nix/email/pat/pat_ctrl.sh $userbindir
+cp -u /home/$USER/n7nix/ardop/ardop_ctrl.sh $userbindir
+
+# Update this script
 cp -u /home/$USER/n7nix/config/bin_refresh.sh $userbindir
 cp -u /home/$USER/n7nix/config/sensor_update.sh $userbindir
 
