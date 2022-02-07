@@ -43,14 +43,13 @@ function del_plu_listener() {
     callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
     echo
     echo "Entries in daemon file: $callsign_cnt before"
-    echo
 
    # Delete first listener
     tmpfile=$(mktemp /tmp/ax25d_edit.XXXXXX)
     # echo "temporary file name: $tmpfile"
 
     tac $DAEMON_CFG_FILE > $tmpfile
-    echo
+    # echo
     # echo "After tac:"
     # cat $tmpfile
 
@@ -68,7 +67,7 @@ function del_plu_listener() {
     sudo sed -ie "/wl2kax25/I $startlineno,$endlineno d" $DAEMON_CFG_FILE
 
     callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
-    echo
+
     echo "Entries in daemon file: $callsign_cnt after"
 }
 
@@ -79,7 +78,6 @@ function add_plu_listener() {
     callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
     echo
     echo "Entries in daemon file: $callsign_cnt before"
-    echo
 
    listener_cnt=$(grep -ic "wl2kax25d" $DAEMON_CFG_FILE)
    if [ $listener_cnt -ne 0 ] ; then
@@ -142,7 +140,7 @@ default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d\
 fi  # end replacement section
 
     callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
-    echo
+
     echo "Entries in daemon file: $callsign_cnt after"
 }
 
