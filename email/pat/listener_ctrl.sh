@@ -254,7 +254,7 @@ case $APP_ARG in
 
 	echo
 	echo "Restart AX.25 stack"
-#	ax25-restart
+	ax25-restart
 	exit 0
     ;;
     -a|--add)
@@ -268,7 +268,7 @@ case $APP_ARG in
 
 	echo
 	echo "Restart AX.25 stack"
-#	ax25-restart
+	ax25-restart
 	exit 0
     ;;
     -h|--help|-?)
