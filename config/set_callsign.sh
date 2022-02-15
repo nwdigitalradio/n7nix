@@ -332,11 +332,19 @@ function display_mutt() {
 
     filename="$MUTT_CFG_FILE"
 
-    echo
-    echo " == Call signs in $filename =="
-    grep -i "^set realname=" $filename | cut -f2 -d'='
-    grep -i "^set from=" $filename |  cut -f2 -d'=' | sed -E 's@[[:blank:]]*(//|#).*@@;T;/./!d'
-    grep -i "^my_hdr Reply-To:" $filename | cut -f3 -d' '
+    if [ -e $filename ] ; then
+        echo
+        echo " == Call signs in $filename =="
+
+        mail_name=$(grep -i "^set realname=" $filename | cut -f2 -d'=')
+        echo "Mail name: $mail_name"
+
+        mail_from=$(grep -i "^set from=" $filename |  cut -f2 -d'=' | sed -E 's@[[:blank:]]*(//|#).*@@;T;/./!d')
+	echo "Mail from: $mail_from"
+
+        mail_reply=$(grep -i "^my_hdr Reply-To:" $filename | cut -f3 -d' ')
+	echo "Mail reply-To: $mail_reply"
+    fi
 }
 
 # ===== set_mutt
@@ -344,13 +352,65 @@ function display_mutt() {
 function set_mutt() {
 
     filename="$MUTT_CFG_FILE"
-    # Set from=
-    sudo sed -ie "/set from=/ s/^set from=.*/set from=$CALLSIGN@winlink.org/" $MUTT_CFG_FILE
-    # Set realname
-    sudo sed -ie "/set realname=/ s/^set realname=.*/set realname=\"$REALNAME\"/" $MUTT_CFG_FILE
 
-    # my_hdr Reply-To:
-    sudo sed -ie "/my_hdr Reply-To:/ s/^my_hdr Reply-To:.*/my_hdr Reply-To: $CALLSIGN@winlink.org/" $MUTT_CFG_FILE
+    if [ -e $filename ] ; then
+
+        # Set from=
+        sudo sed -ie "/set from=/ s/^set from=.*/set from=$CALLSIGN@winlink.org/" $MUTT_CFG_FILE
+        # Set realname
+        sudo sed -ie "/set realname=/ s/^set realname=.*/set realname=\"$REALNAME\"/" $MUTT_CFG_FILE
+
+        # my_hdr Reply-To:
+        sudo sed -ie "/my_hdr Reply-To:/ s/^my_hdr Reply-To:.*/my_hdr Reply-To: $CALLSIGN@winlink.org/" $MUTT_CFG_FILE
+    fi
+}
+
+# ===== display xastir
+
+function display_xastir() {
+
+    filename="~/.xastir/config/xastir.cnf"
+
+    if [ -e $filename ] ; then
+        echo
+        echo " == Call signs in $filename =="
+
+        grep -i "^STATION_CALLSIGN:" $filename
+    fi
+}
+
+# ===== display aprx
+
+function display_aprx() {
+
+    filename="/etc/aprx.conf"
+    if [ -e $filename ] ; then
+        echo
+        echo " == Call signs in $filename =="
+
+        grep -i "^mycall " $filename
+    fi
+}
+
+# ===== display tracker
+
+function display_tracker() {
+    filename="/etc/tracker/aprs_tracker.ini"
+    if [ -e $filename ] ; then
+        echo
+        echo " == Call signs in $filename =="
+
+        grep -i "^mycall " $filename
+    fi
+}
+
+# ===== display pat
+
+function display_pat() {
+    filename="~/.config/pat/config.json"
+    if [ -e $filename ] ; then
+        grep -i "^\"mycall\" " $filename
+    fi
 }
 
 
@@ -382,6 +442,9 @@ function display_callsigns() {
     display_rmsgw
     display_winlink
     display_mutt
+    display_xastir
+    display_aprx
+    display_tracker
 }
 
 # ===== backup_config
@@ -579,7 +642,7 @@ esac
 shift # past argument
 done
 
-echo "No args used"
+echo " === Display Configured Call Signs ==="
 display_callsigns
 
 exit 0
