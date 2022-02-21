@@ -9,7 +9,101 @@ scriptname="`basename $0`"
 DEBUG=
 
 AX25_CONF_DIR="/etc/ax25"
+AXPORTS_FILE="$AX25_CONF_DIR/axports"
 DAEMON_CFG_FILE="$AX25_CONF_DIR/ax25d.conf"
+
+PAT_CONF_FILE=$HOME/.config/pat/config.json
+
+# ===== function get_axport_device
+# Pull device names from string
+function get_axport_device() {
+    udr_device=
+    dev_str="$1"
+    device_axports=$(echo $dev_str | cut -d ' ' -f1)
+    callsign_axports=$(echo $dev_str | cut -d ' ' -f2)
+
+    dbgecho "DEBUG: get_axport: arg: $dev_str, $device_axports"
+
+    # Test if device string is not null
+    if [ ! -z "$device_axports" ] ; then
+        udr_device="$device_axports"
+        echo "axport: found device: $udr_device, with call sign $callsign_axports"
+    else
+        echo "axport: NO ax25 devices found in string: $dev_str"
+    fi
+}
+
+function test_only() {
+
+    echo "List axport device names"
+    # Debug only
+    # grep -v '^#' $AXPORTS_FILE | tr -s '[[:space:]] '
+
+    # Collapse all spaces on lines that do not begin with a comment
+    getline=$(grep -v '^#' $AXPORTS_FILE | tr -s '[[:space:]] ')
+    linecnt=$(wc -l <<< $getline)
+    if (( linecnt == 0 )) ; then
+        echo "No axports found in $AXPORTS_FILE"
+        return
+    else
+        dbgecho "axports: found $linecnt lines:"
+        dbgecho "$getline"
+        dbgecho
+    fi
+
+    portcnt=0
+    declare -A portname
+
+    while IFS= read -r line ; do
+        get_axport_device "$line"
+	index=$((portcnt))
+	dbgecho "index: $index, portcnt: $portcnt, udr: $udr_device"
+	portname[ax$index]=$udr_device
+	((portcnt++))
+    done <<< $getline
+
+    for key in "${!portname[@]}"; do
+        echo -n "$key -> ${portname[$key]}, "
+    done
+    echo
+
+	b_portmatch="false"
+
+    if [ -e $PAT_CONF_FILE ] ; then
+        echo "Display listen ax.25 device"
+	PAT_CFG="$PAT_CONF_FILE"
+        # iterate through the JSON parsed file
+	ax25_value=$(jq '.ax25["port"]' $PAT_CFG)
+	#Remove surronding quotes
+        ax25_value="${ax25_value%\"}"
+        ax25_port="${ax25_value#\"}"
+        echo "AX.25 port: $ax25_port"
+
+        for key in "${!portname[@]}"; do
+	    if [ ${portname[$key]} == $ax25_port ] ; then
+                echo "Port match key: $key -> value: ${portname[$key]}, "
+	        b_portmatch="true"
+	    fi
+        done
+
+    else
+        echo "PAT config file: $PAT_CONF_FILE does not exist"
+    fi
+    if [ "$b_portmatch" == "false" ] ; then
+        echo "$(tput setaf 1)ERROR in PAT config file, PAT AX.25 port: $ax25_port does not match any configured AX.25 port$(tput sgr0)"
+	echo "Will edit from script."
+	# Variable to write to file
+	# Assume want to use first AX.25 port name ax0
+	ax25_port="${portname[ax0]}"
+    # Write 1config variables to PAT config file
+    jq --arg axport "${ax25_port}" '.ax25["port"] = $axport' $PAT_CONF_FILE  > temp.$$.json
+    dbgecho "jq ret code: $?"
+    echo "Updating PAT config file: $PAT_CONF_FILE"
+    head -n 20 temp.$$.json
+    #mv temp.$$.json $PAT_CONF_FILE
+
+    fi
+}
 
 # Temporary for debug
 # cp /etc/ax25/$DAEMON_CFG_FILE .
@@ -33,6 +127,15 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 function del_plu_listener() {
 
+    # Check for number of rmsgw entries
+    rmsgw_cnt=$(grep -c -i "rmsgw rmsgw" $DAEMON_CFG_FILE)
+    if ((rmsgw_cnt > 2 )) ; then
+    echo
+    echo "rmsgw Entries in daemon file: $rmsgw_cnt"
+	echo "$(tput setaf 1) == Too many RMSGW entries, FIX THIS ==$(tput sgr0)"
+        sudo sed -ie "$(( $(wc -l < $DAEMON_CFG_FILE)-3+1 )),$ d" $DAEMON_CFG_FILE
+    fi
+
    grep -iq "wl2kax25d" $DAEMON_CFG_FILE
    if [ "$?" = 1 ] ; then
        echo
@@ -54,7 +157,7 @@ function del_plu_listener() {
     # cat $tmpfile
 
     dbgecho "Delete first occurrence"
-    sed -ie '/wl2kax25/I,+3 d' $tmpfile
+    sudo sed -ie '/wl2kax25/I,+3 d' $tmpfile
     tac $tmpfile | sudo tee $DAEMON_CFG_FILE > /dev/null
     rm $tmpfile
 
@@ -68,7 +171,6 @@ function del_plu_listener() {
 
     callsign_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
 
-    echo "Entries in daemon file: $callsign_cnt after"
 }
 
 # ===== function add wl2kax25d sections
@@ -178,6 +280,16 @@ function plu_status() {
 
     echo "Daemon file: Total entries: $callsign_cnt, wl2kax25 entries: $wl2kax25d_cnt"
 
+    rmsgw_cnt=$(grep -c -i "rmsgw rmsgw" $DAEMON_CFG_FILE)
+
+    echo
+    echo "rmsgw Entries in daemon file: $rmsgw_cnt"
+    rmsgw_cnt=$(grep -c -i "$CALLSIGN" $DAEMON_CFG_FILE)
+    if ((rmsgw_cnt > 2 )) ; then
+	echo "$(tput setaf 1) == Too many RMSGW entries, FIX THIS ==$(tput sgr0)"
+    fi
+
+
 }
 
 # ===== function pat_status
@@ -199,6 +311,7 @@ function pat_status() {
     else
         echo "proc $process: $ret, NOT running"
     fi
+    # Display ax25 listen port
 }
 
 # ==== function display arguments used by this script
@@ -207,9 +320,9 @@ usage () {
 	(
 	echo "Usage: $scriptname [-f][-d][-h][status][stop][start][restart]"
         echo "                single letter args must come before other arguments"
-        echo "  -a|--add      Add wl2kax25 listener"
-        echo "  -d|--del      Delete wl2kax25 listener"
-        echo "  -D            Set DEBUG flag"
+        echo "  -A|--add      Add wl2kax25 listener"
+        echo "  -D|--del      Delete wl2kax25 listener"
+        echo "  -d            Set DEBUG flag"
         echo "  -h            Display this message."
 	echo "  status        Display PAT & paclink-unix status"
         echo
@@ -220,16 +333,26 @@ usage () {
 
 # ===== main
 
-# Find callsign Greedy match
+# Determine if PAT has been configured
+pat_callsign=$(grep -i "\"mycall\":" $PAT_CONF_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | cut -f2 -d'"')
+if [ -z "$pat_callsign" ] ; then
+    echo "${FUNCNAME[0]} No call sign found in PAT config file, must run $(tput setaf 6)pat_install.sh --config $(tput sgr0)before starting pat service"
+    exit 1
+else
+    dbgecho "${FUNCNAME[0]} Found PAT call sign: $pat_callsign"
+fi
+
+
+# Find ax25d callsign Greedy match
 CALLSIGN=$(grep -o -P '(?<=^\[).*(?=\])' $DAEMON_CFG_FILE | head -n 1 | cut -f1 -d'-')
-dbgecho "Using call sign: $CALLSIGN"
+dbgecho "Using AX.25 daemon call sign: $CALLSIGN"
 
 
 while [[ $# -gt 0 ]] ; do
 APP_ARG="$1"
 
 case $APP_ARG in
-    -D|--debug)
+    -d|--debug)
         DEBUG=1
         echo "Debug mode on"
     ;;
@@ -243,7 +366,7 @@ case $APP_ARG in
         grep ^[^#] $DAEMON_CFG_FILE
         exit 0
     ;;
-    -d|--del)
+    -D|--del)
         echo "Delete wl2kax25d section for $CALLSIGN"
 	del_plu_listener
 	if [ ! -z $DEBUG ] ; then
@@ -252,12 +375,13 @@ case $APP_ARG in
 	    echo
 	fi
 
-	echo
-	echo "Restart AX.25 stack"
-	ax25-restart
+	# Is this required??
+#	echo
+#	echo "Restart AX.25 stack"
+#	ax25-restart
 	exit 0
     ;;
-    -a|--add)
+    -A|--add)
         echo "Add wl2kax25d section for $CALLSIGN"
 	add_plu_listener
 	if [ ! -z $DEBUG ] ; then
@@ -269,6 +393,10 @@ case $APP_ARG in
 	echo
 	echo "Restart AX.25 stack"
 	ax25-restart
+	exit 0
+    ;;
+    -t|--test)
+        test_only
 	exit 0
     ;;
     -h|--help|-?)
