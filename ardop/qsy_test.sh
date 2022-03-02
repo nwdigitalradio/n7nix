@@ -61,6 +61,7 @@ function set_vfo_freq() {
             vfomode_read=$($RIGCTL -r $SERIAL_DEVICE  -m $RADIO_MODEL_ID f)
             errorsetfreq=$set_freq_ret
             errorcode=$returncode
+            to_time=$((SECONDS-to_secs))
             b_found_error=true
         else
             ret_code=0
