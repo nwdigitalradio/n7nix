@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 DEBUG=
+SYSTEMCTL="systemctl"
 
 # ===== Edit the following to match environment =====
 
@@ -27,6 +28,54 @@ RIGCTL="$LOCAL_BINDIR/rigctl"
 # ===== end Edit section =====
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function check_serial_device
+
+function check_serial_device() {
+
+    if [ ! -e $SERIAL_DEVICE ] ; then
+        echo "Serial device: $SERIAL_DEVICE does not exist"
+        exit 1
+    fi
+    serial_cnt=$(ls -1 /dev/ttyUS* | wc -l)
+    if (( $serial_cnt > 1 )) ; then
+        echo "$(tput setaf 1)Warning: verify you are using the correct USB serial device$(tput sgr0)"
+    fi
+}
+
+# ===== function stop_service
+
+function stop_service() {
+    service="$1"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -eq 0 ] ; then
+        echo "DISABLING $service"
+        $SYSTEMCTL disable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem DISABLING $service"
+        fi
+    else
+        echo "Service: $service already disabled."
+    fi
+    $SYSTEMCTL stop "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem STOPPING $service"
+    else
+        echo "Service: $service now stopped."
+    fi
+}
+
+# ===== function check_service
+
+function check_service() {
+
+    service="$1"
+    if $SYSTEMCTL is-active --quiet "$service" ; then
+        stop_service $service
+    else
+        echo "Service: $service is already stopped"
+    fi
+}
 
 # ===== function get_vfo_freq
 
@@ -79,12 +128,16 @@ function set_vfo_freq() {
 
 # ===== main
 
-
-if [ ! -e $SERIAL_DEVICE ] ; then
-
-    echo "Serial device: $SERIAL_DEVICE does not exist"
-    exit 1
+# Check if running as root
+if [[ $EUID != 0 ]] ; then
+   SYSTEMCTL="sudo systemctl "
+else
+   SYSTEMCTL="systemctl"
 fi
+
+check_serial_device
+
+check_service "rigctld"
 
 set_freq=$DEFAULT_FREQ
 
