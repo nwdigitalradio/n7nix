@@ -1,7 +1,9 @@
 #!/bin/bash
 #
 DEBUG=
+VERSION="1.1"
 SYSTEMCTL="systemctl"
+scriptname="$(basename "$0")"
 
 # ===== Edit the following to match environment =====
 
@@ -127,6 +129,8 @@ function set_vfo_freq() {
 }
 
 # ===== main
+
+echo "$scriptname Ver: $VERSION"
 
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
