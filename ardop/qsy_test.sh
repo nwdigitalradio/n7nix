@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 DEBUG=
-VERSION="1.1"
+VERSION="1.2"
 SYSTEMCTL="systemctl"
 scriptname="$(basename "$0")"
 
@@ -49,6 +49,7 @@ function check_serial_device() {
 
 function stop_service() {
     service="$1"
+
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -eq 0 ] ; then
         echo "DISABLING $service"
@@ -130,7 +131,7 @@ function set_vfo_freq() {
 
 # ===== main
 
-echo "$scriptname Ver: $VERSION"
+echo "$scriptname Ver: $VERSION, Radio: $RADIO_MODEL_ID, Device: $SERIAL_DEVICE"
 
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
