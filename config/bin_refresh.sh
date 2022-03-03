@@ -89,6 +89,8 @@ cp -u /home/$USER/n7nix/ardop/ardop-* $userbindir
 cp -u /home/$USER/n7nix/ardop/ardoplist.sh $userbindir
 cp -u /home/$USER/n7nix/tracker/tracker-* $userbindir
 cp -u /home/$USER/n7nix/tracker/updown_log.sh $userbindir
+# include rigctl test script
+cp -u /home/$USER/n7nix/ardop/qsy_test.sh $userbindir
 
 # Copy baud rate chanage files to local bin
 cp -u /home/$USER/n7nix/baudrate/speed_switch.sh $userbindir
