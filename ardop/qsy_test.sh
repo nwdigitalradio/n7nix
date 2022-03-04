@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 DEBUG=
-VERSION="1.2"
+VERSION="1.3"
 SYSTEMCTL="systemctl"
 scriptname="$(basename "$0")"
 
@@ -147,6 +147,9 @@ fi
 check_serial_device
 
 check_service "rigctld"
+check_service "rigctld-wsjtx"
+
+echo
 
 set_freq=$DEFAULT_FREQ
 
