@@ -131,7 +131,11 @@ function set_vfo_freq() {
 
 # ===== main
 
-echo "$scriptname Ver: $VERSION, Radio: $RADIO_MODEL_ID, Device: $SERIAL_DEVICE"
+echo "$scriptname Ver: $VERSION"
+echo "Radio: $RADIO_MODEL_ID"
+echo "Device: $SERIAL_DEVICE"
+rigctl --version
+echo
 
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
