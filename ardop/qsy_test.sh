@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 DEBUG=
-VERSION="1.3"
+VERSION="1.4"
 SYSTEMCTL="systemctl"
 scriptname="$(basename "$0")"
 
