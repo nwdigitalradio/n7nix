@@ -23,6 +23,7 @@ DEFAULT_FREQ=7101300
 
 # Serial device for Rig Control
 SERIAL_DEVICE="/dev/ttyUSB0"
+SERIAL_BAUDRATE="19200"
 
 LOCAL_BINDIR="/usr/local/bin"
 RIGCTL="$LOCAL_BINDIR/rigctl"
@@ -84,7 +85,11 @@ function check_service() {
 
 function get_vfo_freq() {
 
-    read_freq=$($RIGCTL -r $SERIAL_DEVICE  -m $RADIO_MODEL_ID f)
+    if [ "$RADIO_MODEL_ID" -eq 3073 ] ; then
+        read_freq=$($RIGCTL -r $SERIAL_DEVICE -s $SERIAL_BAUDRATE  -m $RADIO_MODEL_ID f)
+    else
+        read_freq=$($RIGCTL -r $SERIAL_DEVICE  -m $RADIO_MODEL_ID f)
+    fi
 }
 
 # ===== function set_vfo_freq
@@ -105,12 +110,22 @@ function set_vfo_freq() {
         # This errors out
         # rigctl -r $SERIAL_DEVICE -m $RADIO_MODEL_ID --vfo F $gw_freq $DATBND
 
-        set_freq_ret=$($RIGCTL -r $SERIAL_DEVICE -m $RADIO_MODEL_ID F $vfo_freq)
+        if [ "$RADIO_MODEL_ID" -eq 3073 ] ; then
+            set_freq_ret=$($RIGCTL -r $SERIAL_DEVICE -s $SERIAL_BAUDRATE -m $RADIO_MODEL_ID F $vfo_freq)
+            returncode=$?
+	else
+            set_freq_ret=$($RIGCTL -r $SERIAL_DEVICE -m $RADIO_MODEL_ID F $vfo_freq)
+            returncode=$?
+	fi
 
-        returncode=$?
         if [ ! -z "$set_freq_ret" ] ; then
             ret_code=1
-            vfomode_read=$($RIGCTL -r $SERIAL_DEVICE  -m $RADIO_MODEL_ID f)
+
+        if [ "$RADIO_MODEL_ID" -eq 3073 ] ; then
+	    vfomode_read=$($RIGCTL -r $SERIAL_DEVICE -s $SERIAL_BAUDRATE -m $RADIO_MODEL_ID f)
+        else
+	    vfomode_read=$($RIGCTL -r $SERIAL_DEVICE  -m $RADIO_MODEL_ID f)
+	fi
             errorsetfreq=$set_freq_ret
             errorcode=$returncode
             to_time=$((SECONDS-to_secs))
@@ -122,7 +137,12 @@ function set_vfo_freq() {
 
     # Display some debug data
     if $b_found_error && [ $to_time -gt 3 ] ; then
-        vfomode_read=$($RIGCTL -r $SERIAL_DEVICE  -m $RADIO_MODEL_ID v)
+        if [ "$RADIO_MODEL_ID" -eq 3073 ] ; then
+	    vfomode_read=$($RIGCTL -r $SERIAL_DEVICE  -s $SERIAL_BAUDRATE -m $RADIO_MODEL_ID v)
+	else
+	    vfomode_read=$($RIGCTL -r $SERIAL_DEVICE  -m $RADIO_MODEL_ID v)
+        fi
+
         gw_log "RIG CTRL ERROR[$errorcode]: set freq: $vfo_freq, TOut: $to_time, VFO mode=$vfomode_read, error:$errorsetfreq"
     fi
 
@@ -131,9 +151,16 @@ function set_vfo_freq() {
 
 # ===== main
 
+SERIAL_BAUDRATE="auto"
+if [ "$RADIO_MODEL_ID" -eq 3073 ] ; then
+    SERIAL_BAUDRATE="19200"
+fi
+
 echo "$scriptname Ver: $VERSION"
 echo "Radio: $RADIO_MODEL_ID"
 echo "Device: $SERIAL_DEVICE"
+echo "Device baud rate: $SERIAL_BAUDRATE"
+
 rigctl --version
 echo
 
