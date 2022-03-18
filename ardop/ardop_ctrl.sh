@@ -12,17 +12,20 @@ ONLY_PAT_LISTEN=1
 BIN="/usr/bin"
 
 scriptname="$(basename "$0")"
+
 PAT_CONFIG_FILE="${HOME}/.config/pat/config.json"
 
 SYSTEMD_DIR="/etc/systemd/system"
 FORCE_UPDATE=
 DISPLAY_PARAMETERS=false
 
+rigctrl_device="/dev/ttyUSB0"
+
 # names of supported radios
 RADIOLIST="ic706 ic7000 ic7300 k2 k3 kx2 kx3"
 
 # Rig numbers are from rigctl -l
-declare -A radio_ic706=( [rigname]="IC-706" [rignum]=3011 [audioname]=udrc [samplerate]=48000 [baudrate]=4800 [pttctrl]="GPIO=12" [catctrl]="" [rigctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-26.5" )
+declare -A radio_ic706=( [rigname]="IC-706" [rignum]=3011 [audioname]=udrc [samplerate]=48000 [baudrate]=4800 [pttctrl]="GPIO=12" [catctrl]="" [rigctrl]="-p 12" [alsa_lodriver]="-6.0" [alsa_pcm]="-26.5" )
 declare -A radio_ic7000=( [rigname]="IC-7000" [rignum]=3060 [audioname]=udrc [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [rigctrl]="" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
 declare -A radio_ic7300=( [rigname]="IC-7300" [rignum]=3073 [audioname]=CODEC [samplerate]=48000 [baudrate]=19200 [pttctrl]="/dev/ttyUSB0" [catctrl]="-c /dev/ttyUSB0" [rigctrl]="-p /dev/ttyUSB0 -P RTS" [alsa_lodriver]="-6.0" [alsa_pcm]="-16.5" )
 declare -A radio_k2=( [rigname]="K2" [rignum]=2021 [audioname]=udrc [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [rigctrl]="" [alsa_lodriver]="0.0" [alsa_pcm]="0.0" )
@@ -141,7 +144,7 @@ Description=rigctld
 #Before=pat
 
 [Service]
-ExecStart=/usr/local/bin/rigctld -m ${radio[rignum]} -r /dev/ttyUSB0 ${radio[rigctrl]} -s ${radio[baudrate]}
+ExecStart=/usr/local/bin/rigctld -m ${radio[rignum]} -r /dev/ttyUSB0 -s ${radio[baudrate]}  -P ${radio[pttctrl]} ${radio[rigctrl]}
 WorkingDirectory=/home/pi/
 StandardOutput=inherit
 StandardError=inherit
