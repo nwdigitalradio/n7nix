@@ -127,7 +127,7 @@ function desktop_waterfall_file() {
 [Desktop Entry]
 Name=ARDOP-waterfall
 Comment=Startup waterfall for ardop
-Exec=/home/pi/bin/piARDOP_GUI
+Exec=$BIN_DIR/piARDOP_GUI
 Type=Application
 # Some random icon
 Icon=/usr/lib/python3/dist-packages/thonny/plugins/pi/res/zoom.png

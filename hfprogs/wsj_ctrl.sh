@@ -17,6 +17,7 @@ rigservice_name="rigctld-wsjtx"
 
 SYSTEMD_DIR="/etc/systemd/system"
 FORCE_UPDATE=
+USER=
 DISPLAY_PARAMETERS=false
 
 rigctrl_device="/dev/ttyUSB0"
@@ -34,6 +35,39 @@ declare -A radio_kx2=( [rigname]="KX2" [rignum]=2044 [audioname]=udrc [samplerat
 declare -A radio_kx3=( [rigname]="KX3" [rignum]=2045 [audioname]=udrc [samplerate]=48000 [baudrate]=19200 [pttctrl]="GPIO=12" [catctrl]="" [rigctrl]="" [alsa_lodriver]="0.0" [alsa_pcm]="0.0" )
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function get_user
+
+function get_user() {
+   # Check if there is only a single user on this system
+   if (( `ls /home | wc -l` == 1 )) ; then
+      USER=$(ls /home)
+   else
+      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+      read -e USER
+   fi
+}
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   echo
+   echo "using USER: $USER"
+}
 
 # ===== function name_check
 # Verify that the supplied radio name is in the supported list
@@ -88,10 +122,10 @@ function desktop_waterfall_file() {
 [Desktop Entry]
 Name=ARDOP-waterfall
 Comment=Startup waterfall for ardop
-Exec=/home/pi/bin/piARDOP_GUI
+Exec=/home/$USER/bin/piARDOP_GUI
 Type=Application
 # Some random icon
-Icon=/usr/lib/python3/dist-packages/thonny/plugins/pi/res/zoom.png
+Icon=/usr/lib/python3/dist-packages/thonny/plugins/$USER/res/zoom.png
 Terminal=False
 Categories=Network;HAM Radio;
 EOT
@@ -151,7 +185,7 @@ Restart=on-failure
 RestartSec=5s
 
 ExecStart=/usr/bin/$rigservice_name -m ${radio[rignum]} -r $rigctrl_device -s ${radio[baudrate]} -P ${radio[pttctrl]} ${radio[rigctrl]}
-WorkingDirectory=/home/pi/
+WorkingDirectory=/home/$USER/
 StandardOutput=inherit
 StandardError=inherit
 User=pi
@@ -182,9 +216,9 @@ After=network.target sound.target
 
 [Service]
 User=pi
-WorkingDirectory=/home/pi/
-ExecStart=/bin/sh -c "/home/pi/bin/piardopc 8515 pcm.ARDOP pcm.ARDOP ${radio[catctrl]} -p ${radio[pttctrl]}"
-#ExecStart=/bin/sh -c "/home/pi/bin/piardopc 8515 plughw:1,0 plughw:1,0 ${radio[catctrl]} -p ${radio[pttctrl]} "
+WorkingDirectory=/home/$USER/
+ExecStart=/bin/sh -c "/home/$USER/bin/piardopc 8515 pcm.ARDOP pcm.ARDOP ${radio[catctrl]} -p ${radio[pttctrl]}"
+#ExecStart=/bin/sh -c "/home/$USER/bin/piardopc 8515 plughw:1,0 plughw:1,0 ${radio[catctrl]} -p ${radio[pttctrl]} "
 Restart=no
 
 [Install]
@@ -206,7 +240,7 @@ Requires=rigctld
 [Service]
 User=pi
 ExecStart=/usr/bin/pat --listen="ardop" http
-WorkingDirectory=/home/pi/
+WorkingDirectory=/home/$USER/
 StandardOutput=inherit
 StandardError=inherit
 Restart=no
@@ -767,8 +801,15 @@ if [[ $EUID != 0 ]] ; then
    SYSTEMCTL="sudo systemctl "
 else
    SYSTEMCTL="systemctl"
+   echo "Advise NOT running this script as root"
 fi
 
+# Get list of users with home directories
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+get_user
+check_user
 
 # draws manager collides with pat http
 
