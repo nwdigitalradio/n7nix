@@ -42,7 +42,7 @@ prog_ver_3rd_dig=$(echo $gpsd_ver | cut -d '.' -f3)
 
 echo "DEBUG: prog_ver_3rd dig: $prog_ver_3rd_dig"
 if [ ! $(is_integer $prog_ver_3rd_dig) ] ; then
-    if [ "$prog_ver_3rd_dig" = "tar" ] ; then
+    if [ "$prog_ver_3rd_dig" = "tar" ] || [ "$prog_ver_3rd_dig" = "zip" ] ; then
         gpsd_ver=$(echo $gpsd_ver | cut -d '.' -f1,2)
    else
         echo "CHECK: 3rd version digit is NOT numeric: $prog_ver_3rd_dig"
@@ -54,7 +54,12 @@ echo " Downloading gpsd version: $gpsd_ver"
 echo
 
 # Download tarball
-wget http://download-mirror.savannah.gnu.org/releases/gpsd/gpsd-$gpsd_ver.tar.gz
+download_file=gpsd-$gpsd_ver.tar.gz
+wget http://download-mirror.savannah.gnu.org/releases/gpsd/$download_file
+if [ $? -ne 0 ] ; then
+    echo "Failed to download file: $download_file"
+    exit
+fi
 tar -zxvf gpsd-$gpsd_ver.tar.gz
 # get rid of version number in directory name
 mv gpsd-$gpsd_ver gpsd
