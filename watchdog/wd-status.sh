@@ -22,6 +22,7 @@ function display_service_status() {
 
 # ===== main
 
+echo "=== $(date)"
 display_service_status watchdog
 RSTS_REG=$(vcgencmd get_rsts)
 
