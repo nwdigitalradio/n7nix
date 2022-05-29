@@ -7,6 +7,11 @@ DEBUG=1
 
 myname="`basename $0`"
 
+# Currently manually check for latest version
+# SourceForge has version 2.15
+# Debian packages has version 2.13
+URONODE_VER="2.13"
+
 AX25_CFGDIR="/usr/local/etc/ax25"
 PKG_REQUIRE="telnet openbsd-inetd"
 
@@ -179,12 +184,12 @@ type -P $prog_name &>/dev/null
 if [ $? -ne 0 ] ; then
   echo
   echo "uronode NOT installed, will install now"
+
 # Currently manually check for latest version
-   URONODE_VER="2.13"
 
 #   cd /usr/local/src/uronode-$URONODE_VER.tar.gz
 #   tar -xzxf uro
-#   wget http://downloads.sourceforge.net/project/uronodenode-$URONODE_VER.tar.gz
+#   wget http://downloads.sourceforge.net/projects/uronode/uronode-$URONODE_VER.tar.gz
 
     cd /usr/local/src
 
