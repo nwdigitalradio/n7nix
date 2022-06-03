@@ -91,19 +91,22 @@ function is_integer() {
 # ===== function get_source_version
 
 function get_source_version() {
-    # Get source version number of gpsd program
 
+    # Get source version number of gpsd program
     source_prog_ver=
+
     # cd "$SRC_DIR_GPSD"
     #./revision.h:#define REVISION "3.18.1"
     # source_prog_ver=$(grep -i revision revision.h | cut -d' ' -f3 | tr -d '\"')
-    source_prog_ver=$(curl -s http://download-mirror.savannah.gnu.org/releases/gpsd/?C=M | tail -n 2 | head -n 1 | cut -d'-' -f2 | cut -d '.' -f1,2,3)
+    source_prog_ver=$(curl -s http://download-mirror.savannah.gnu.org/releases/gpsd/?C=M | tail -n 3 | head -n 1 | cut -d'-' -f2 | cut -d '.' -f1,2,3)
 
     # Verify last version digit is numeric & not tar
-    prog_ver_3rd_dig=$(echo $source_prog_ver | cut -d '.' -f3)
+    prog_ver_3rd_dig=$(echo $source_prog_ver | cut -d '.' -f3 | cut -c -3)
 
-    if [ "$prog_ver_3rd_dig" = "tar" ] ; then
-        gpsd_ver=$(echo $gpsd_ver | cut -d '.' -f1,2)
+    if [ "$prog_ver_3rd_dig" = "tar" ] || [ "$prog_ver_3rd_dig" = "zip" ] ; then
+#	echo "TEST 1: gpsd_ver: $gpsd_ver, gpsd_src: $source_prog_ver, 3rd: $prog_ver_3rd_dig"
+        source_prog_ver=$(echo $source_prog_ver | cut -d '.' -f1,2)
+	dbgecho "TEST: gpsd source version: $source_prog_ver"
    else
         dbgecho "CHECK: 3rd version digit is NOT numeric: $prog_ver_3rd_dig"
    fi
