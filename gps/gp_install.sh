@@ -38,7 +38,7 @@ echo " == Build gpsd from source"
 gpsd_ver="$(curl -s http://download-mirror.savannah.gnu.org/releases/gpsd/?C=M | tail -n 2 | head -n 1 | cut -d'-' -f2 |cut -d '.' -f1,2,3)"
 
 # Verify last version digit is numeric & not tar
-prog_ver_3rd_dig=$(echo $gpsd_ver | cut -d '.' -f3)
+prog_ver_3rd_dig=$(echo $gpsd_ver | cut -d '.' -f3 | cut -c -3)
 
 echo "DEBUG: prog_ver_3rd dig: $prog_ver_3rd_dig"
 if [ ! $(is_integer $prog_ver_3rd_dig) ] ; then
