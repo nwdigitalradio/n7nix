@@ -14,16 +14,16 @@
 # example crontab entries follows:
 #
 # First beacon after power up
-# @reboot /home/pi/tmp/updown_log.sh -u | at now + 1 minute
+# @reboot $HOME/tmp/updown_log.sh -u | at now + 1 minute
 #
 # First beacon after power up
-# @reboot sleep 120 && /home/pi/bin/updown_log.sh u
+# @reboot sleep 120 && $HOME/bin/updown_log.sh u
 #
 # Test down
-#*/2  *  *  *  *  /home/pi/bin/updown_log.sh d
+#*/2  *  *  *  *  $HOME/bin/updown_log.sh d
 #
 # Test gps
-# */10  *  *  *  *  /home/pi/bin/updown_log.sh -g
+# */10  *  *  *  *  $HOME/bin/updown_log.sh -g
 #
 # Uncomment this statement for debug echos
 # DEBUG=1
