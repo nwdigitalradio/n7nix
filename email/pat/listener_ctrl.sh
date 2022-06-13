@@ -33,17 +33,17 @@ function get_axport_device() {
     fi
 }
 
-function verify_config() {
-# Determine if PAT has been configured
-pat_callsign=$(grep -i "\"mycall\":" $PAT_CONF_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | cut -f2 -d'"')
-if [ -z "$pat_callsign" ] ; then
-    echo "${FUNCNAME[0]} No call sign found in PAT config file, must run $(tput setaf 6)pat_install.sh --config $(tput sgr0)before starting pat service"
-    exit 1
-else
-    dbgecho "${FUNCNAME[0]} Found PAT call sign: $pat_callsign"
-fi
-
+function config_verify() {
+    # Determine if PAT has been configured
+    pat_callsign=$(grep -i "\"mycall\":" $PAT_CONF_FILE | cut -f2 -d':' | sed -e 's/^[[:space:]]*//' | cut -f2 -d'"')
+    if [ -z "$pat_callsign" ] ; then
+        echo "${FUNCNAME[0]} No call sign found in PAT config file, must run $(tput setaf 6)pat_install.sh --config $(tput sgr0)before starting pat service"
+        exit 1
+    else
+        dbgecho "${FUNCNAME[0]} Found PAT call sign: $pat_callsign"
+    fi
 }
+
 function test_only() {
 
     echo "List axport device names"
