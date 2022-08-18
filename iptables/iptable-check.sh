@@ -20,8 +20,10 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # sets variable rule_count
 
 function get_rule_count() {
-
+    # Counts iptables rules in rules file
     rule_count=$(grep -c "\-A OUTPUT" $rules_file)
+    # Counts iptables rules currently active
+    $SU iptables -L -nvx | grep -c "DROP"
 }
 # ===== write iptable rules
 function write_rules() {
