@@ -76,10 +76,15 @@ if [ ! -d "$userbindir" ] ; then
    mkdir $userbindir
 fi
 
+# Copy miscellaneous scripts
 cp -u /home/$USER/n7nix/systemd/bin/* $userbindir
 cp -u /home/$USER/n7nix/bin/* $userbindir
 cp -u /home/$USER/n7nix/iptables/iptable-*.sh $userbindir
 cp -u /usr/local/src/paclink-unix/test_scripts/chk_perm.sh $userbindir
+
+# Used to send generated messages in Winlink outbox
+cp -u /home/$USER/n7nix/debug/wl2k_outboxchk.sh $userbindir
+cp -u /home/$USER/n7nix/debug/wl2klog_sendmail.sh $userbindir
 
 cp -u /home/$USER/n7nix/hostap/ap-*.sh $userbindir
 cp -u /home/$USER/n7nix/hostap/fixed_ip.sh $userbindir
