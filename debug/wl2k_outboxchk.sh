@@ -11,11 +11,6 @@ user=$(whoami)
 outboxdir="/usr/local/var/wl2k/outbox"
 errorlogfile="/home/$user/tmp/wl2ksendchk_error.txt"
 
-WL2KXPORT=$(grep -m 1 "wl2ktransport" wl2klog_sendmail.sh  | cut -d"=" -f2 | cut -d" " -f1)
-
-#remove leading quote
-WL2KXPORT=$(echo "${WL2KXPORT#\"}")
-
 # ===== function wl2ksend()
 # Send messages in Winlink outbox via telnet
 
@@ -32,11 +27,23 @@ function wl2ksend () {
 
 # ===== Main
 
+WL2KXPORT=$(grep -m 1 "wl2ktransport" /home/$user/bin/wl2klog_sendmail.sh  | cut -d"=" -f2 | cut -d" " -f1)
+
+# remove leading quote
+WL2KXPORT=$(echo "${WL2KXPORT#\"}")
+
+# check that script wl2klog_sendmail.sh exists
+if [ ! -e "/home/$user/bin/wl2klog_sendmail.sh" ] ; then
+    WL2KXPORT="/usr/local/bin/wl2ktelnet"
+fi
+
 # check that WL2K program is installed in the path
 type -P "$WL2KXPORT" >/dev/null 2>&1
 if [ $?  -ne 0 ]; then
-   echo "Could not locate program: $WL2LXPORT"
-   exit 1
+    echo "Could not locate program: $WL2LXPORT"
+    exit 1
+else
+    WL2KXPORT="/usr/local/bin/wl2ktelnet"
 fi
 
 filecountb4=$(ls -1 $outboxdir | wc -l)
