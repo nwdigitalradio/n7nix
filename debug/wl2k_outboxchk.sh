@@ -7,6 +7,8 @@
 # Get the wl2k transport program from wl2log_sendmail.sh script
 
 scriptname="`basename $0`"
+VERSION="1.1"
+
 user=$(whoami)
 outboxdir="/usr/local/var/wl2k/outbox"
 errorlogfile="/home/$user/tmp/wl2ksendchk_error.txt"
@@ -16,7 +18,7 @@ errorlogfile="/home/$user/tmp/wl2ksendchk_error.txt"
 
 function wl2ksend () {
 
-   echo "$scriptname: $(date): starting winlink cmd" >> $errorlogfile
+   echo "$scriptname: $(date): starting winlink cmd from $scriptname ver: $VERSION" | tee -a $errorlogfile
    $WL2KXPORT -s >> $errorlogfile 2>&1
 
    lastline=$(tail -1 $errorlogfile)
@@ -40,7 +42,7 @@ fi
 # check that WL2K program is installed in the path
 type -P "$WL2KXPORT" >/dev/null 2>&1
 if [ $?  -ne 0 ]; then
-    echo "Could not locate program: $WL2LXPORT"
+    echo "Could not locate program: $WL2LXPORT" | tee -a $errorlogfile
     exit 1
 else
     WL2KXPORT="/usr/local/bin/wl2ktelnet"
@@ -55,7 +57,8 @@ fi
 # If nothing in outbox just exit
 if [ "$filecountb4" -eq 0 ]; then
 #  echo "Outbox empty."
-  exit 0
+    echo "$scriptname ($VERSION): $(date): No file in outbox" | tee -a $errorlogfile
+    exit 0
 fi
 
 # If the output file exists delete it
@@ -70,13 +73,13 @@ wl2ksend
 # check if connection was refused
 echo $lastline | grep -i "refused"  > /dev/null
 if [ $? -eq 0 ] ; then
-    echo "Connection refused, retrying"
+    echo "Connection refused, retrying" | tee -a $errorlogfile
 
     wl2ksend
 
     echo $lastline | grep -i "refused"  > /dev/null
     if [ $? -eq 0 ] ; then
-	echo "Connection refused TWICE, exiting!"
+	echo "Connection refused TWICE, exiting!" | tee -a $errorlogfile
     fi
     # Save the output file, might learn something
     mv $errorlogfile $errorlogfile.$(date "+%d%H")
