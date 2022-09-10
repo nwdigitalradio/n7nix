@@ -7,27 +7,69 @@
 # Get the wl2k transport program from wl2log_sendmail.sh script
 
 scriptname="`basename $0`"
-VERSION="1.1"
+VERSION="1.2"
 
 user=$(whoami)
 outboxdir="/usr/local/var/wl2k/outbox"
-errorlogfile="/home/$user/tmp/wl2ksendchk_error.txt"
+error_logfile="/home/$user/tmp/wl2ksendchk_error.txt"
+sys_logfile="/var/log/syslog"
 
 # ===== function wl2ksend()
 # Send messages in Winlink outbox via telnet
 
 function wl2ksend () {
 
-   echo "$scriptname: $(date): starting winlink cmd from $scriptname ver: $VERSION" | tee -a $errorlogfile
-   $WL2KXPORT -s >> $errorlogfile 2>&1
+   echo "$scriptname: $(date): starting winlink cmd from $scriptname ver: $VERSION" | tee -a $error_logfile
+   $WL2KXPORT -s >> $error_logfile 2>&1
 
-   lastline=$(tail -1 $errorlogfile)
+   lastline=$(tail -1 $error_logfile)
 
    echo "Outbox sending $filecountb4 msgs"
    echo "Last line: $lastline"
 }
 
+# ===== function usage
+
+function usage() {
+   echo "Usage: $scriptname [-l][-h]" >&2
+   echo "   -l                display log files"
+   echo "   -h | --help       display this message"
+   echo
+   echo
+}
+
 # ===== Main
+
+# if there are any args then parse them
+while [[ $# -gt 0 ]] ; do
+   key="$1"
+
+   case $key in
+      -l)   # display log files
+
+          echo "Logile: $error_logfile"
+	  echo "--------------------------------------------"
+          cat $error_logfile
+
+	  echo
+	  echo "logfile: $sys_logfile"
+	  echo "------------------------"
+          grep -i "wl2k_*" $sys_logfile
+
+          exit 0
+          ;;
+      -h|--help)
+          usage
+	  exit 0
+	  ;;
+      *)
+          echo "Unknown option: $key"
+	  usage
+	  exit 1
+	  ;;
+   esac
+shift # past argument or value
+done
 
 WL2KXPORT=$(grep -m 1 "wl2ktransport" /home/$user/bin/wl2klog_sendmail.sh  | cut -d"=" -f2 | cut -d" " -f1)
 
@@ -42,7 +84,7 @@ fi
 # check that WL2K program is installed in the path
 type -P "$WL2KXPORT" >/dev/null 2>&1
 if [ $?  -ne 0 ]; then
-    echo "Could not locate program: $WL2LXPORT" | tee -a $errorlogfile
+    echo "Could not locate program: $WL2LXPORT" | tee -a $error_logfile
     exit 1
 else
     WL2KXPORT="/usr/local/bin/wl2ktelnet"
@@ -57,13 +99,13 @@ fi
 # If nothing in outbox just exit
 if [ "$filecountb4" -eq 0 ]; then
 #  echo "Outbox empty."
-    echo "$scriptname ($VERSION): $(date): No file in outbox" | tee -a $errorlogfile
+    echo "$scriptname ($VERSION): $(date): No file in outbox" | tee -a $error_logfile
     exit 0
 fi
 
 # If the output file exists delete it
-if [ -e $errorlogfile ] ; then
-    rm $errorlogfile
+if [ -e $error_logfile ] ; then
+    rm $error_logfile
 fi
 
 # Send messages found in outbox
@@ -73,16 +115,16 @@ wl2ksend
 # check if connection was refused
 echo $lastline | grep -i "refused"  > /dev/null
 if [ $? -eq 0 ] ; then
-    echo "Connection refused, retrying" | tee -a $errorlogfile
+    echo "Connection refused, retrying" | tee -a $error_logfile
 
     wl2ksend
 
     echo $lastline | grep -i "refused"  > /dev/null
     if [ $? -eq 0 ] ; then
-	echo "Connection refused TWICE, exiting!" | tee -a $errorlogfile
+	echo "Connection refused TWICE, exiting!" | tee -a $error_logfile
     fi
     # Save the output file, might learn something
-    mv $errorlogfile $errorlogfile.$(date "+%d%H")
+    mv $error_logfile $error_logfile.$(date "+%d%H")
 fi
 
 exit 0
