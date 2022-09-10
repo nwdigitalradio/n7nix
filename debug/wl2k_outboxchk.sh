@@ -52,7 +52,7 @@ while [[ $# -gt 0 ]] ; do
           cat $error_logfile
 
 	  echo
-	  echo "logfile: $sys_logfile"
+	  echo "Logfile: $sys_logfile"
 	  echo "------------------------"
           grep -i "wl2k_*" $sys_logfile
 
