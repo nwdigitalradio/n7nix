@@ -177,6 +177,18 @@ if [ -e "/root/$filename" ] ; then
    mv /root/$filename /root/direwolf.conf.dist
 fi
 
+# Verify $prog_name has been installed
+prog_name="unzip"
+type -P $prog_name &>/dev/null
+if [ $? -ne 0 ] ; then
+    apt-get install -y -q $prog_name
+    if [ "$?" -ne 0 ] ; then
+        echo
+        echo "Install failed for program $prog_name. Please try this command manually"
+	echo
+    fi
+fi
+
 # Check if direwolf config file exists in /etc
 
 if [ ! -e "/etc/$filename" ] ; then
