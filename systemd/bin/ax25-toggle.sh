@@ -3,13 +3,13 @@
 DEBUG=
 scriptname="`basename $0`"
 
-DESKTOP_FILE="/home/pi/Desktop/ax25-startstop.desktop"
-ICON_START_FILE="/home/pi/bin/ax25-start.desktop"
-ICON_STOP_FILE="/home/pi/bin/ax25-stop.desktop"
+DESKTOP_FILE="/home/$USER/Desktop/ax25-startstop.desktop"
+ICON_START_FILE="/home/$USER/bin/ax25-start.desktop"
+ICON_STOP_FILE="/home/$USER/bin/ax25-stop.desktop"
 
 SYSTEMCTL="sudo systemctl"
 SERVICE_LIST="direwolf.service ax25dev.path ax25dev.service ax25-mheardd.service ax25d.service"
-LOG_DIR="/home/pi/log"
+LOG_DIR="/home/$USER/log"
 LOG_FILE="$LOG_DIR/ax25-startstop.log"
 LOG_OUTPUT="$LOG_FILE"
 
