@@ -384,10 +384,22 @@ cd $START_DIR
 # gps required before direwolf build
 # Install latest gpsd version from source
 #  BEFORE building direwolf from source
-pushd ../gps
-echo "=== $scriptname: Install DRAWS gps programs"
-./gp_install.sh
-popd > /dev/null
+
+echo "Test if gpsd has been installed"
+# type command will return 0 if program is installed
+type -P gpsd &>/dev/null
+if [ $? -ne 0 ] ; then
+    pushd ../gps
+    echo "=== $scriptname: Install DRAWS gps programs"
+    ./gp_install.sh
+    popd > /dev/null
+else
+    # display version number of installed gpsd
+    echo
+    echo "=== $scriptname: gpsd already installed"
+    gpsd --version
+fi
+
 
 # Test if direwolf has previously been installed.
 #  - if not installed try installing Debian package
