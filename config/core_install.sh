@@ -144,8 +144,20 @@ ldconfig
 # ===== function install direwolf from source
 
 function install_direwolf_source() {
-    num_cores=$(nproc --all)
 
+# Verify unzip has been installed
+    prog_name="unzip"
+    type -P $prog_name &>/dev/null
+    if [ $? -ne 0 ] ; then
+        apt-get install -y -q $prog_name
+        if [ "$?" -ne 0 ] ; then
+           echo
+           echo "Install failed for program $prog_name. Please try this command manually"
+	   echo
+        fi
+    fi
+
+    num_cores=$(nproc --all)
     echo "=== Install direwolf version $DW_VER from source using $num_cores cores"
 
     # Update build requirements
@@ -153,6 +165,10 @@ function install_direwolf_source() {
 
    SRC_DIR="/usr/local/src/"
    cd "$SRC_DIR"
+
+   # Get rid of any previous versions of downloaded direwolf source zip
+   # files.
+   rm dev.zip*
 
 # This gets current HOT version
 #   git clone https://www.github.com/wb2osz/direwolf
