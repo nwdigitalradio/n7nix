@@ -72,7 +72,7 @@ if [ 1 -eq 1 ] ; then
        gpsd_major_ver=$(echo $gpsd_major_ver | tr -s '[[:space:]]')
        # echo "DEBUG 2: gspd_major_ver: $gpsd_major_ver"
        # grep "GPSD_API_MAJOR_VERSION" $DWGPSD_FILE
-       sed -i -e "/#if GPSD_API_MAJOR_VERSION/ s/11/12/" $DWGPSD_FILE
+       sed -i -e "/#if GPSD_API_MAJOR_VERSION/ s/11/14/" $DWGPSD_FILE
        echo "sed check: "
        grep "GPSD_API_MAJOR_VERSION < 5" $DWGPSD_FILE
    else
