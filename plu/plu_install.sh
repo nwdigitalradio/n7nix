@@ -17,9 +17,9 @@ POSTFIX_CFG_FILE="/etc/postfix/transport"
 PLU_VAR_DIR="/usr/local/var/wl2k"
 
 BUILD_PKG_REQUIRE="build-essential autoconf automake libtool"
-#INSTALL_PKG_REQUIRE="postfix mutt libdb-dev libglib2.0-0 zlib1g-dev libncurses5-dev libdb5.3-dev libgmime-2.6-dev jq curl"
-# Had to update libgmime to build on latest Ubuntu (kinetic)
-INSTALL_PKG_REQUIRE="postfix mutt libdb-dev libglib2.0-0 zlib1g-dev libncurses5-dev libdb5.3-dev libgmime-3.0-dev jq curl"
+INSTALL_PKG_REQUIRE="postfix mutt libdb-dev libglib2.0-0 zlib1g-dev libncurses5-dev libdb5.3-dev libgmime-2.6-dev jq curl"
+# Never update libgmime without modifiy paclink-unix code  (Ubuntu kinetic)
+# INSTALL_PKG_REQUIRE="postfix mutt libdb-dev libglib2.0-0 zlib1g-dev libncurses5-dev libdb5.3-dev libgmime-3.0-dev jq curl"
 
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
