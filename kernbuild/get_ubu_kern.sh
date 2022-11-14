@@ -1,25 +1,120 @@
 #!/bin/bash
 #
+# When installing with dpkg must maintain order of modules, image then
+# headers otherwise install will error out with dependency errors.
+#
 # Download mainline Ubuntu kernels from Ubuntu ppa (11112022)
 #  https://kernel.ubuntu.com/~kernel-ppa/mainline/v$KERN_VER/
 #
+#  KERN_VER="5.19.11" 2022-09-23 14:39
+#  kernver="5.19.11-051911-generic_5.19.11-051911.202209231341"
+#
+## Note 2 different header files
 #  amd64/linux-headers-5.19.11-051911-generic_5.19.11-051911.202209231341_amd64.deb
 #  amd64/linux-headers-5.19.11-051911_5.19.11-051911.202209231341_all.deb
 #  amd64/linux-image-unsigned-5.19.11-051911-generic_5.19.11-051911.202209231341_amd64.deb
 #  amd64/linux-modules-5.19.11-051911-generic_5.19.11-051911.202209231341_amd64.deb
+#
+#  KERN_VER="5.19.17" 2022-10-24 14:25
+#  kernver="5.19.17-051917-generic_5.19.17-051917.202210240939"
+#
+#  amd64/linux-headers-5.19.17-051917-generic_5.19.17-051917.202210240939_amd64.deb
+#  amd64/linux-headers-5.19.17-051917_5.19.17-051917.202210240939_all.deb
+#
+#  amd64/linux-image-unsigned-5.19.17-051917-generic_5.19.17-051917.202210240939_amd64.deb
+#  amd64/linux-modules-5.19.17-051917-generic_5.19.17-051917.202210240939_amd64.deb
 
 
-KERN_VER="5.19.11"
+KERN_VER="5.19.17"
+kernver="5.19.17-051917-generic_5.19.17-051917.202210240939"
+kernver_h="5.19.17-051917_5.19.17-051917.202210240939"
+amd64/linux-headers-5.19.17-051917_5.19.17-051917.202210240939_all.deb
+
 PPA_URL="https://kernel.ubuntu.com/~kernel-ppa/mainline/v$KERN_VER"
 
+echo "User: $USER"
+download_dir="/home/$USER/Downloads"
+
+if [ ! -d "$download_dir" ] ; then
+    echo "Download Directory: $download_dir does not exist"
+    exit 1
+fi
+
+echo "Downloading to directory $download_dir"
+cd $download_dir
+
 # Download headers, image & modules
-wget $PPA_URL/amd64/linux-headers-5.19.11-051911-generic_5.19.11-051911.202209231341_amd64.deb
-wget $PPA_URL/amd64/linux-image-unsigned-5.19.11-051911-generic_5.19.11-051911.202209231341_amd64.deb
-wget $PPA_URL/amd64/linux-modules-5.19.11-051911-generic_5.19.11-051911.202209231341_amd64.deb
+
+if [ ! -e "linux-headers-${kernver}_amd64.deb" ] ; then
+
+    wget $PPA_URL/amd64/linux-headers-${kernver}_amd64.deb
+    if [ "$?" -ne 0 ] ; then
+        echo "headers download FAILED: $PPA_URL/amd64/linux-headers-${kernver}_amd64.deb"
+	exit 1
+    fi
+else
+    echo "file already exists: linux-headers-${kernver}_amd64.deb"
+fi
+
+## Note: 2 different header files
+#amd64/linux-headers-5.19.17-051917-generic_5.19.17-051917.202210240939_amd64.deb
+#amd64/linux-headers-5.19.17-051917_5.19.17-051917.202210240939_all.deb
+
+if [ ! -e "linux-headers-${kernver_h}_all.deb" ] ; then
+
+    wget $PPA_URL/amd64/linux-headers-${kernver_h}_all.deb
+    if [ "$?" -ne 0 ] ; then
+        echo "headers download FAILED: $PPA_URL/amd64/linux-headers-${kernver_h}_all.deb"
+	exit 1
+    fi
+else
+    echo "file already exists: linux-headers-${kernver_h}_all.deb"
+fi
+
+
+
+if [ ! -e "linux-image-unsigned-${kernver}_amd64.deb" ] ; then
+
+    wget $PPA_URL/amd64/linux-image-unsigned-${kernver}_amd64.deb
+    if [ "$?" -ne 0 ] ; then
+        echo "Linux image download FAILED: $PPA_URL/amd64/linux-image-unsigned-${kernver}_amd64.deb"
+	exit 1
+    fi
+else
+    echo "file already exists: linux-image-unsigned-${kernver}_amd64.deb"
+fi
+
+if [ ! -e linux-modules-${kernver}_amd64.deb ] ; then
+    wget $PPA_URL/amd64/linux-modules-${kernver}_amd64.deb
+    if [ "$?" -ne 0 ] ; then
+        echo "Linux Modules download FAILED: $PPA_URL/amd64/linux-modules-${kernver}_amd64.deb"
+	exit 1
+    fi
+else
+    echo "file already exists: linux-modules-${kernver}_amd64.deb"
+fi
 
 # Install downloaded packages
-# sudo dpkg -i amd64/linux-headers-5.19.11-051911-generic_5.19.11-051911.202209231341_amd64.deb
-# sudo dpkg -i linux-image-unsigned-5.19.11-051911-generic_5.19.11-051911.202209231341_amd64.deb
-# sudo dpkg -i linux-modules-5.19.11-051911-generic_5.19.11-051911.202209231341_amd64.deb
+echo
+echo "Installing modules"
+sudo dpkg -i linux-modules-${kernver}_amd64.deb
+if [ "$?" -ne 0 ] ; then
+    echo "modules install FAILED"
+fi
 
-echo "Finished installing kernel version: $KERN_VER
+echo
+echo "Installing kernel image"
+sudo dpkg -i linux-image-unsigned-${kernver}_amd64.deb
+if [ "$?" -ne 0 ] ; then
+    echo "kernel image install FAILED"
+fi
+
+echo
+echo "Installing headers"
+sudo dpkg -i linux-headers-${kernver}_amd64.deb
+if [ "$?" -ne 0 ] ; then
+    echo "headers install FAILED"
+fi
+
+echo
+echo "Finished installing kernel version: $KERN_VER"
