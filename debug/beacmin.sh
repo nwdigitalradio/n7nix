@@ -164,7 +164,7 @@ function get_lat_lon_gpsdsentence() {
 # Pull a call sign from the /etc/ax25/axports file
 function callsign_axports () {
    # Collapse all spaces on lines that do not begin with a comment
-   getline=$(grep -v '^#' $AXPORTS_FILE | tr -s '[[:space:]] ')
+   getline=$(grep -v '^#' $AXPORTS_FILE | tr -s '[[:space:]] ' | tail -n 1)
    dbgecho "axports: found line: $getline"
 
    # Only set CALLSIGN if has not already been set manually
