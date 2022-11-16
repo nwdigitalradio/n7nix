@@ -86,6 +86,10 @@ b03114)
    VERSION_STRING=" Pi 4 Model B, Rev 1.4, 2GB mem, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
+b03115)
+   VERSION_STRING=" Pi 4 Model B, Rev 1.5, 2GB mem, Mfg by Sony UK"
+   HAS_WIFI=true
+;;
 c03111)
    VERSION_STRING=" Pi 4 Model B, Rev 1.1, 4GB mem, Mfg by Sony UK"
    HAS_WIFI=true
@@ -98,8 +102,16 @@ c03114)
    VERSION_STRING=" Pi 4 Model B, Rev 1.4, 4GB mem, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
+c03115)
+   VERSION_STRING=" Pi 4 Model B, Rev 1.5, 4GB mem, Mfg by Sony UK"
+   HAS_WIFI=true
+;;
 d03114)
    VERSION_STRING=" Pi 4 Model B, Rev 1.4, 8GB mem, Mfg by Sony UK"
+   HAS_WIFI=true
+;;
+d03115)
+   VERSION_STRING=" Pi 4 Model B, Rev 1.5, 8GB mem, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
 c03130)
