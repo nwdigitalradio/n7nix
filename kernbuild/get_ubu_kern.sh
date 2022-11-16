@@ -20,15 +20,23 @@
 #
 #  amd64/linux-headers-5.19.17-051917-generic_5.19.17-051917.202210240939_amd64.deb
 #  amd64/linux-headers-5.19.17-051917_5.19.17-051917.202210240939_all.deb
-#
 #  amd64/linux-image-unsigned-5.19.17-051917-generic_5.19.17-051917.202210240939_amd64.deb
 #  amd64/linux-modules-5.19.17-051917-generic_5.19.17-051917.202210240939_amd64.deb
+#
+# KERN_VER="6.0.8" 22-11-10
+# kernver="6.0.8-060008-generic_6.0.8-060008.202211101901"
+# amd64/linux-headers-6.0.8-060008-generic_6.0.8-060008.202211101901_amd64.deb
+# amd64/linux-headers-6.0.8-060008_6.0.8-060008.202211101901_all.deb
+# amd64/linux-image-unsigned-6.0.8-060008-generic_6.0.8-060008.202211101901_amd64.deb
+# amd64/linux-modules-6.0.8-060008-generic_6.0.8-060008.202211101901_amd64.deb
 
+#KERN_VER="5.19.17"
+#kernver="5.19.17-051917-generic_5.19.17-051917.202210240939"
+#kernver_h="5.19.17-051917_5.19.17-051917.202210240939"
 
-KERN_VER="5.19.17"
-kernver="5.19.17-051917-generic_5.19.17-051917.202210240939"
-kernver_h="5.19.17-051917_5.19.17-051917.202210240939"
-amd64/linux-headers-5.19.17-051917_5.19.17-051917.202210240939_all.deb
+KERN_VER="6.0.8"
+kernver="6.0.8-060008-generic_6.0.8-060008.202211101901"
+kernver_h="6.0.8-060008_6.0.8-060008.202211101901"
 
 PPA_URL="https://kernel.ubuntu.com/~kernel-ppa/mainline/v$KERN_VER"
 
@@ -111,9 +119,16 @@ fi
 
 echo
 echo "Installing headers"
-sudo dpkg -i linux-headers-${kernver}_amd64.deb
+sudo dpkg -i linux-headers-${kernver_h}_all.deb
 if [ "$?" -ne 0 ] ; then
     echo "headers install FAILED"
+fi
+
+echo
+echo "Installing generic headers"
+sudo dpkg -i linux-headers-${kernver}_amd64.deb
+if [ "$?" -ne 0 ] ; then
+    echo "generic headers install FAILED"
 fi
 
 echo
