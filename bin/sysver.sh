@@ -31,3 +31,9 @@ else
    # Get rid of escape characters
    echo "----- D${verstr#*D}"
 fi
+# Check if GPIO SYSFS system was loaded
+
+if [ ! -d "/sys/class/gpio" ] ; then
+    echo
+    echo "NO GPIO SYSFS system found, gpio's will not work"
+fi
