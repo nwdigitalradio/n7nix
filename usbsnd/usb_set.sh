@@ -19,56 +19,126 @@ DIREWOLF_CFGFILE="/etc/direwolf.conf"
 PORT_CFGFILE="/usr/local/etc/ax25/port.conf"
 modem_speed=1200
 
-# ===== function edit_cfg
-#
-function edit_cfg() {
-    echo "Edit Configuration files for DEVICE: $DEVICE_TYPE"
-    echo
-    case $DEVICE_TYPE in
-        usb)
-            echo "Configuring for a single USB sound card"
-            config_dw_1chan
-            config_port
-        ;;
-        udrc)
-            echo "Configuring for a 2 channel DRAWS sound card"
-            config_dw_2chan
-        ;;
-        *)
-            echo "Invalid device type: $DEVICE_TYPE"
-        ;;
-    esac
+firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
+firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
+firmware_vendorfile="/sys/firmware/devicetree/base/hat/vendor"
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function EEPROM id_check
+
+# Return code:
+# 0 = no EEPROM or no device tree found
+# 1 = HAT found but not a UDRC
+# 2 = UDRC
+# 3 = UDRC II
+# 4 = DRAWS
+# 5 = 1WSpot
+
+function id_check() {
+# Initialize to EEPROM not found
+udrc_prod_id=0
+
+# Does firmware file exist
+if [ -f $firmware_prodfile ] ; then
+   # Read product file
+   UDRC_PROD="$(tr -d '\0' < $firmware_prodfile)"
+   # Read vendor file
+   FIRM_VENDOR="$(tr -d '\0' < $firmware_vendorfile)"
+   # Read product id file
+   UDRC_ID="$(tr -d '\0' < $firmware_prod_idfile)"
+   #get last character in product id file
+   UDRC_ID=${UDRC_ID: -1}
+
+   dbgecho "UDRC_PROD: $UDRC_PROD, ID: $UDRC_ID"
+
+   if [[ "$FIRM_VENDOR" == "$NWDIG_VENDOR_NAME" ]] ; then
+      case $UDRC_PROD in
+         "Universal Digital Radio Controller")
+            udrc_prod_id=2
+         ;;
+         "Universal Digital Radio Controller II")
+            udrc_prod_id=3
+         ;;
+         "Digital Radio Amateur Work Station")
+            udrc_prod_id=4
+         ;;
+         "1WSpot")
+            udrc_prod_id=5
+         ;;
+         *)
+            echo "Found something but not a UDRC: $UDRC_PROD"
+            udrc_prod_id=1
+         ;;
+      esac
+   else
+
+      dbgecho "Probably not a NW Digital Radio product: $FIRM_VENDOR"
+      udrc_prod_id=1
+   fi
+
+   if [ udrc_prod_id != 0 ] && [ udrc_prod_id != 1 ] ; then
+      if (( UDRC_ID == udrc_prod_id )) ; then
+         dbgecho "Product ID match: $udrc_prod_id"
+      else
+         echo "Product ID MISMATCH $UDRC_ID : $udrc_prod_id"
+         udrc_prod_id=1
+      fi
+   fi
+   dbgecho "Found HAT for ${PROD_ID_NAMES[$UDRC_ID]} with product ID: $UDRC_ID"
+else
+   # Get here if no UDRC or DRAWS firmware detected
+   # RPi HAT ID EEPROM may not have been programmed in engineering samples
+   # or there is no RPi HAT installed.
+   udrc_prod_id=0
+   # Detect a DINAH USB sound device
+   DEVICE=
+#   echo "aplay command: "
+#   aplay -l
+   aplay -l | grep -q -i "USB Audio Device"
+   if [ "$?" -eq 0 ] ; then
+       DEVICE="dinah"
+   fi
+fi
+
+PORTNAME_1="${DEVICE}0"
+PORTNAME_2="${DEVICE}1"
+
+return $udrc_prod_id
 }
 
 # ===== function show_cfg
 #
 function show_cfg() {
 
+    id_check
+    id_check_ret=$?
+    echo "id_check returned: $id_check_ret, port name: $PORTNAME_1"
     echo
-    echo "Check port.conf file"
+    echo " === Check port.conf file"
     CFILE="/usr/local/etc/ax25/port.conf"
     grep -n -m1 "^speed=" $CFILE
     grep -n -m1 "^receive_out=" $CFILE
 
     # Get callsign
     echo
-    echo "Check ax25/axports file"
+    echo " === Check ax25/axports file"
     CFILE="/usr/local/etc/ax25/axports"
     axports_line=$( tail -n3 $CFILE | grep -vE "^#|\[" |  head -n 1)
     callsign=$(echo $axports_line | tr -s '[[:space:]]' | cut -d' ' -f2 | cut -d '-' -f1)
     echo "Using call sign: $callsign"
 
     echo
-    echo "Check ax25d.conf file"
+    echo " === Check ax25d.conf file"
     CFILE="/usr/local/etc/ax25/ax25d.conf"
     grep -i " via " $CFILE
 
-    echo
-    echo "Check ax25-upd file"
-    CFILE="/usr/local/etc/ax25/ax25-upd"
+#    echo
+#    echo "Check ax25-upd file"
+#    CFILE="/usr/local/etc/ax25/ax25-upd"
 
     echo
-    echo "Check direwolf.conf file"
+    echo " === Check direwolf.conf file"
     CFILE="/etc/direwolf.conf"
     parse_direwolf_config
 }
@@ -118,14 +188,6 @@ function compare_files() {
     diff $testdir/$CFILE $testdir1
 }
 
-# ===== function config_port
-# Configure /usr/local/etc/ax25/port.conf file
-
-function config_port() {
-    # Modify first occurrence of MODEM configuration line
-    sudo sed -i -e "0,/^speed=/ s/^speed=.*/speed= $modem_speed/" $PORT_CFGFILE
-}
-
 # ===== function config_dw_1chan
 # Configure direwolf to:
 #  - use only one direwolf channel for CM108 sound card
@@ -147,6 +209,45 @@ function config_dw_2chan() {
 
     # Assume direwolf config was previously set up for 2 channels
     sudo sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 12/" $DIREWOLF_CFGFILE
+}
+# ===== function config_port
+# Edit /usr/local/etc/ax25/port.conf file for speed parameter
+
+function config_port() {
+    # Get speed parameter
+    speed_param=$(grep -m1 "^speed=" $PORT_CFGFILE | cut -f2 -d'=')
+
+    # Check speed parameter
+    if [ "$peed_param != "$modem_speed ] ; then
+        # Edit speed parameter
+        # Modify first occurrence of MODEM configuration line
+        sudo sed -i -e "0,/^speed=/ s/^speed=.*/speed= $modem_speed/" $PORT_CFGFILE
+    fi
+}
+
+# ===== function edit config files
+#
+function edit_cfg() {
+    echo "Edit Configuration files for DEVICE: $DEVICE_TYPE"
+    echo
+    case $DEVICE_TYPE in
+        usb)
+            echo "Configuring for a single USB sound card"
+            config_dw_1chan
+            config_port
+	    config_ax25d
+	    # only have a single port
+	    # change udrc to dinah0
+	    config_axports
+        ;;
+        udrc)
+            echo "Configuring for a 2 channel DRAWS sound card"
+            config_dw_2chan
+        ;;
+        *)
+            echo "Invalid device type: $DEVICE_TYPE"
+        ;;
+    esac
 }
 
 parse_direwolf_config() {
