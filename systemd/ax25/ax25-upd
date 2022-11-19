@@ -1,5 +1,5 @@
 #!/bin/bash
-# version: 1.1
+# version: 1.2
 #
 # ax25-upd for use with systemd & direwolf
 # Ax25, rose, & mkiss - are pre-loaded via /etc/modules or built into kernel
@@ -14,8 +14,7 @@ KISSPARMS="$SBINDIR/kissparms"
 PORT_CFG_FILE="/etc/ax25/port.conf"
 
 # portname set in /etc/ax25/axports
-PORTNAME_1="udr0"
-PORTNAME_2="udr1"
+DEVICE="udr"
 SERIALPORT_DIREWOLF="/tmp/kisstnc"
 declare -A ax25_ipaddr
 ax25_ipaddr[0]="192.168.255.2"
@@ -92,10 +91,20 @@ if [ -f $firmware_prodfile ] ; then
    fi
    dbgecho "Found HAT for ${PROD_ID_NAMES[$UDRC_ID]} with product ID: $UDRC_ID"
 else
+   # Get here if no UDRC or DRAWS firmware detected
    # RPi HAT ID EEPROM may not have been programmed in engineering samples
    # or there is no RPi HAT installed.
    udrc_prod_id=0
+   # Detect a DINAH USB sound device
+   DEVICE=
+   aplay -l | grep -q -i "USB Audio Device"
+   if [ "$?" -eq 0 ] ; then
+       DEVICE="dinah"
+   fi
 fi
+
+PORTNAME_1="${DEVICE}0"
+PORTNAME_2="${DEVICE}1"
 
 return $udrc_prod_id
 }
@@ -114,7 +123,7 @@ function get_port_speed() {
         return 1
     fi
 
-    portname="udr$portnumber"
+    portname="$DEVICE$portnumber"
     portcfg="port$portnumber"
     dbgecho "Debug: portname=$portname, portcfg=$portcfg"
 
@@ -159,7 +168,7 @@ function get_kissparms() {
 
     devnum=$1
     if [ -z $devnum ] ; then
-        echo "Need to supply a device number in get_kjissparms"
+        echo "Need to supply a device number in get_kissparms"
         return 1
     fi
 
@@ -180,7 +189,7 @@ function get_kissparms() {
             T1_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t1_timeout" | cut -f2 -d'=')
             T2_TIMEOUT=$(sed -n "/\[$baudrate_parm\]/,/\[/p" $PORT_CFG_FILE | grep -i "^t2_timeout" | cut -f2 -d'=')
         else
-            echo "Use split channel config, HF on channel udr$devnum"
+            echo "Use split channel config, HF on channel $DEVICE$devnum"
         fi
     fi
     dbgecho "port: $devnum, speed: $PORTSPEED, slottime: $SLOTTIME, txdelay: $TXDELAY, t1 timeout: $T1_TIMEOUT, t2 timeout: $T2_TIMEOUT"
@@ -218,9 +227,10 @@ function get_ipaddr() {
 function packet_1port() {
    portnum=$1
    pseudoterm=$($SBINDIR/mkiss $SERIALPORT_DIREWOLF /dev/ptmx none | tail -1)
-   echo "using mkiss with UDRC and pseudo term=$pseudoterm on port $portnum"
+
+   echo "using mkiss with Device $DEVICE and pseudo term=$pseudoterm on port $portnum"
    get_ipaddr $portnum
-   PORTNAME="udr${portnum}"
+   PORTNAME="$DEVICE${portnum}"
    $SBINDIR/kissattach  ${pseudoterm} $PORTNAME ${IPADDR} >/tmp/ax25-config.tmp
    kissattach_ret=$?
    dbgecho "kissattach return: $?"
@@ -253,8 +263,11 @@ function packet_2port() {
 
 # ===== main =====
 
-echo "ax25-upd: Start Port ${PORTNAME_1} with device ${SERIALPORT_DIREWOLF}"
+# Check which UDRC or USB sound card is found
+id_check
+id_check_ret="$?"
 
+echo "ax25-upd: Start Port ${PORTNAME_1} with device ${SERIALPORT_DIREWOLF}"
 
 # Determine if running split channel
 #  direwolf on one channel & HF on the other
@@ -275,10 +288,6 @@ else
     exit 1
 fi
 
-# Check which UDRC product is found
-id_check
-id_check_ret="$?"
-
 # Install KISS Parameter: P=32, W=$SLOTTIME, TXDelay=$TXDELAY
 #  -l txtail   Sets the TX Tail time in milliseconds, in steps of ten milliseconds only
 #  -r persist  Sets the persist value. range 0 to 255.
@@ -290,8 +299,11 @@ kissattach_ret=-1
 
 case $id_check_ret in
     0|1)
-        echo "No UDRC found, exiting"
-        exit 1
+        packet_1port 0
+        PORTNAME_1="$PORTNAME"
+        echo "No UDRC found, using USB device, $PORTNAME_1"
+        get_kissparms 0
+        $KISSPARMS -p ${PORTNAME_1} -f no -l $TXTAIL -r $PERSIST -s $SLOTTIME -t $TXDELAY
     ;;
     2)
         echo "Original UDRC is installed."
