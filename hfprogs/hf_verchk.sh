@@ -118,7 +118,9 @@ function fl_ver_get() {
     # fl_ver=$(curl -Ls "$ver_url" | grep -i ".tar.gz" | tail -1 | cut -d '>' -f3 | cut -d '<' -f1 | cut -d '-' -f2)
     # fl_ver=$(basename $fl_ver .tar.gz)
     # The following gets JUST the filename
-    fl_filename=$(curl -Ls "$ver_url" | grep -i ".tar.gz" | tail -1 | sed -e 's/<[^>]*>//g' | cut -f2 -d';' | cut -f1 -d' ')
+    # fl_filename=$(curl --insecure -Ls "$ver_url" | grep -i ".tar.gz" | tail -1 | sed -e 's/<[^>]*>//g' | cut -f2 -d';' | cut -f1 -d' ')
+    # Changed 11/20/2022
+    fl_filename=$(curl --insecure -Ls "$ver_url" | grep -i ".tar.gz" | tail -1 | sed -e 's/<[^>]*>//g')
     # echo "DEBUG: fl_filename: $fl_filename"
     fl_ver=$(basename $fl_filename .tar.gz | cut -f2 -d'-')
 }
@@ -330,11 +332,11 @@ else
     js8ver=$(grep "^- " /tmp/js8call_changelog.txt | cut -d' ' -f2 | head -n1)
     # Even though this is the latest version number there may not be an armhf.deb file for this version
     # Check if this package version file exists
-    curl -L --head --fail --silent http://files.js8call.com/${js8ver}/js8call_${js8ver}_armhf.deb >/dev/null;
+    curl --insecure -L --head --fail --silent http://files.js8call.com/${js8ver}/js8call_${js8ver}_armhf.deb >/dev/null;
     if [ $? -ne 0 ] ; then
         echo "Could not locate js8call version: $js8ver"
         js8ver=$(grep "^- " /tmp/js8call_changelog.txt | cut -d' ' -f2 | head -n2 | tail -n1)
-        curl -L --head --fail --silent http://files.js8call.com/$js8ver/js8call_$js8ver_armhf.deb >/dev/null
+        curl --insecure -L --head --fail --silent http://files.js8call.com/$js8ver/js8call_$js8ver_armhf.deb >/dev/null
         if [ $? -ne 0 ] ; then
             echo "js8call install of version $js8ver FAILED"
        fi
@@ -382,7 +384,7 @@ if [ -z "$DEBUG1" ] ; then
 #     wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | tr -dc '[:alnum:].' )
 
      # ------works for 2.5.2
-     wsjtx_ver=$(curl -Ls https://physics.princeton.edu/pulsar/K1JT/wsjtx.html | grep -A 2 -i "raspberry" | grep -i "wsjtx_.*armhf.*" | sed -e 's/<[^>]*>//g' | cut -f2 -d'>')
+     wsjtx_ver=$(curl --insecure -Ls https://physics.princeton.edu/pulsar/K1JT/wsjtx.html | grep -A 2 -i "raspberry" | grep -i "wsjtx_.*armhf.*" | sed -e 's/<[^>]*>//g' | cut -f2 -d'>')
 
     # Remove preceding white space & any non printable characters
     wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | cut -f2 -d '_' )
@@ -405,7 +407,7 @@ fi
 # hamlib
 hamlib_name="hamlib"
 prog_ver=$(ls -d $SRC_DIR/hamlib*/ | cut -f2 -d'-' | sed 's/\///' | tail -n 1)
-hamlib_ver=$(curl -Ls https://sourceforge.net/projects/hamlib/files/hamlib/ | grep "net.sf.files" | cut -f2 -d'"')
+hamlib_ver=$(curl --insecure -Ls https://sourceforge.net/projects/hamlib/files/hamlib/ | grep "net.sf.files" | cut -f2 -d'"')
 echo "$hamlib_name:  current version: $hamlib_ver, installed: $prog_ver"
 
 if $UPDATE_FLAG ; then
