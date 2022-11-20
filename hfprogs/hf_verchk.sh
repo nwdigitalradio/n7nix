@@ -348,6 +348,22 @@ else
     #js8ver=$(echo $js8ver | cut -d'-' -f1 | head -n1)
 
     installed_prog_ver_get "$js8_app"
+
+    dbgecho "DEBUG: prog_ver (${#prog_ver}) $prog_ver, js8ver (${#js8ver}) $js8ver"
+
+    # Check if version string lengths match
+    if [[ ${#js8ver} != ${#prog_ver} ]]; then
+        ver_minstr=$(( ${#js8ver} < ${#prog_ver} ? ${#js8ver} : ${#prog_ver} ))
+
+	if (( ver_minstr < ${#js8ver} )) ; then
+            dbgecho "Truncating js8ver ($js8ver) to ${ver_minstr} chars"
+	    js8ver=$(echo $js8ver | cut -c -${ver_minstr})
+	else
+            dbgecho "Truncating prog_ver ($prog_ver) to ${ver_minstr} chars"
+	    prog_ver=$(echo $prog_ver | cut -c -${ver_minstr})
+	fi
+    fi
+
     echo "$js8_app: current version: $js8ver, installed: $prog_ver"
 
     if $UPDATE_FLAG ; then
