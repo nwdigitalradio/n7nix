@@ -29,6 +29,22 @@ NWDIG_VENDOR_NAME="NW Digital Radio"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function is_udrc
+
+function is_udrc()
+
+    aplay -l | grep -i "udrc"
+    return $?
+}
+
+# ===== function is_dinah
+
+function is_dinah()
+
+    aplay -l | grep  "USB Audio Device"
+    return $?
+}
+
 # ===== function EEPROM id_check
 
 # Return code:
@@ -101,6 +117,11 @@ else
    if [ "$?" -eq 0 ] ; then
        DEVICE="dinah"
    fi
+fi
+
+if is_udrc  && is_dinah  ; then
+    # If both sound devices are installed default to DINAH
+    DEVICE="dinah"
 fi
 
 PORTNAME_1="${DEVICE}0"
