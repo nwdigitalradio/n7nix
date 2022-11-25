@@ -14,16 +14,37 @@
 scriptname="`basename $0`"
 
 DEBUG=
+VERSION="1.0"
 DEVICE_TYPE="usb"
+DEVICE=
+# List config files that will be edited
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
 PORT_CFGFILE="/usr/local/etc/ax25/port.conf"
+AX25D_CFGFILE="/usr/local/etc/ax25/ax25d.conf"
+AXPORTS_CFGFILE="/usr/local/etc/ax25/axports"
+
 modem_speed=1200
 
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
 firmware_vendorfile="/sys/firmware/devicetree/base/hat/vendor"
 
+NWDIG_VENDOR_NAME="NW Digital Radio"
+
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function check_4_dinah
+# Sets variable $DEVICE
+
+function check_4_dinah() {
+
+    #   echo "aplay command: "
+    #   aplay -l
+    aplay -l | grep -q -i "USB Audio Device"
+    if [ "$?" -eq 0 ] ; then
+        DEVICE="dinah"
+    fi
+}
 
 # ===== function EEPROM id_check
 
@@ -80,6 +101,7 @@ if [ -f $firmware_prodfile ] ; then
    if [ udrc_prod_id != 0 ] && [ udrc_prod_id != 1 ] ; then
       if (( UDRC_ID == udrc_prod_id )) ; then
          dbgecho "Product ID match: $udrc_prod_id"
+	 DEVICE=udrc
       else
          echo "Product ID MISMATCH $UDRC_ID : $udrc_prod_id"
          udrc_prod_id=1
@@ -93,12 +115,21 @@ else
    udrc_prod_id=0
    # Detect a DINAH USB sound device
    DEVICE=
-#   echo "aplay command: "
-#   aplay -l
-   aplay -l | grep -q -i "USB Audio Device"
-   if [ "$?" -eq 0 ] ; then
-       DEVICE="dinah"
-   fi
+   check_4_dinah
+fi
+
+# Check for both udrc & usb sound devices found
+if [ "$DEVICE" = "udrc" ] ; then
+    old_device=$DEVICE
+    check_4_dinah
+    if [ "$old_device" != "$DEVICE" ] ; then
+        echo "Change sound device from $old_device to $DEVICE"
+    fi
+fi
+
+# Check for NO sound devices found
+if [ -z "$DEVICE" ] ; then
+    echo "No sound devices found"
 fi
 
 PORTNAME_1="${DEVICE}0"
@@ -127,6 +158,7 @@ function show_cfg() {
     axports_line=$( tail -n3 $CFILE | grep -vE "^#|\[" |  head -n 1)
     callsign=$(echo $axports_line | tr -s '[[:space:]]' | cut -d' ' -f2 | cut -d '-' -f1)
     echo "Using call sign: $callsign"
+    grep -i "$callsign" $CFILE
 
     echo
     echo " === Check ax25d.conf file"
@@ -141,6 +173,47 @@ function show_cfg() {
     echo " === Check direwolf.conf file"
     CFILE="/etc/direwolf.conf"
     parse_direwolf_config
+}
+
+# ===== function save_cfg_files
+# Save all config files
+
+function save_cfg_files() {
+
+    testdir="/home/$USER/tmp/udrc"
+    if [ -d "$testdir" ] ; then
+        echo "save directory exists: $testdir"
+    else
+        echo "test directory ($testdir) does NOT exist, making"
+	mkdir -p "$testdir"
+    fi
+
+    CFILE="port.conf"
+    cp_dir="/usr/local/etc/ax25"
+    echo
+    echo "Coping file $CFILE"
+    cp $cp_dir/$CFILE $testdir
+
+    CFILE="ax25d.conf"
+    echo
+    echo "Coping file $CFILE"
+    cp $cp_dir/$CFILE $testdir
+
+    CFILE="axports"
+    echo
+    echo "Coping file $CFILE"
+    cp $cp_dir/$CFILE $testdir
+
+    CFILE="ax25-upd"
+    echo
+    echo "Coping file $CFILE"
+    cp $cp_dir/$CFILE $testdir
+
+    CFILE="direwolf.conf"
+    cp_dir="/etc"
+    echo
+    echo "Coping file $CFILE"
+    cp $cp_dir/$CFILE $testdir
 }
 
 # ===== function compare_files
@@ -194,8 +267,17 @@ function compare_files() {
 
 function config_dw_1chan() {
     sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=Device,DEV=0/"  $DIREWOLF_CFGFILE
+    if [ "$?" -ne 0 ] ; then
+        echo "sed failed with var: ADEVICE on file: $DIREWOLF_CFGFILE"
+    fi
     sudo sed -i -e '/^ACHANNELS 2/ s/2/1/' $DIREWOLF_CFGFILE
+    if [ "$?" -ne 0 ] ; then
+        echo "sed failed with var: ACHANNELS on file: $DIREWOLF_CFGFILE"
+    fi
     sudo sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT CM108/" $DIREWOLF_CFGFILE
+    if [ "$?" -ne 0 ] ; then
+        echo "sed failed with var: PTT GPIO on file: $DIREWOLF_CFGFILE"
+    fi
 }
 
 # ===== function config_dw_2chan
@@ -205,10 +287,18 @@ function config_dw_2chan() {
 
 #   sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE draws-capture-$CONNECTOR draws-playback-$CONNECTOR/"  $DIREWOLF_CFGFILE
     sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=udrc,DEV=0 plughw:CARD=udrc,DEV=0/"  $DIREWOLF_CFGFILE
+    if [ "$?" -ne 0 ] ; then
+        echo "sed failed on file: $DIREWOLF_CFGFILE"
+    fi
     sudo sed -i -e '/^ACHANNELS 1/ s/1/2/' $DIREWOLF_CFGFILE
-
+    if [ "$?" -ne 0 ] ; then
+        echo "sed failed on file: $DIREWOLF_CFGFILE"
+    fi
     # Assume direwolf config was previously set up for 2 channels
     sudo sed -i -e "0,/^PTT GPIO.*/ s/PTT GPIO.*/PTT GPIO 12/" $DIREWOLF_CFGFILE
+    if [ "$?" -ne 0 ] ; then
+        echo "sed failed on file: $DIREWOLF_CFGFILE"
+    fi
 }
 # ===== function config_port
 # Edit /usr/local/etc/ax25/port.conf file for speed parameter
@@ -222,6 +312,35 @@ function config_port() {
         # Edit speed parameter
         # Modify first occurrence of MODEM configuration line
         sudo sed -i -e "0,/^speed=/ s/^speed=.*/speed= $modem_speed/" $PORT_CFGFILE
+        if [ "$?" -ne 0 ] ; then
+            echo "sed failed with var: speed on file: $PORT_CFGFILE"
+        fi
+    fi
+}
+
+# ===== function config_ax25d
+#
+# Change port name from udrc to dinah
+function config_ax25d() {
+
+    dbgecho "${FUNCNAME[0]}:"
+    grep -i "udr" $AX25D_CFGFILE
+    sudo sed -i -e "/udr/ s/udr/dinah/" $AX25D_CFGFILE
+    if [ "$?" -ne 0 ] ; then
+        echo "sed failed with var: udr on file: $AX25D_CFGFILE"
+    fi
+}
+
+# ===== function config_axports
+#
+# Change port name from udrc to dinah
+function config_axports() {
+
+    dbgecho "${FUNCNAME[0]}:"
+    grep -i "udr" $AXPORTS_CFGFILE
+    sudo sed -i -e "/udr/ s/udr/dinah/" $AXPORTS_CFGFILE
+    if [ "$?" -ne 0 ] ; then
+        echo "sed failed with var: udr on file: $AXPORTS_CFGFILE"
     fi
 }
 
@@ -269,8 +388,9 @@ parse_direwolf_config() {
 function usage() {
    echo "Usage: $scriptname [-D <device_name>][-h]" >&2
    echo "   -D Device type, either udrc or usb, default usb"
-   echo "   -t compare files"
-   echo "   -s show config"
+   echo "   -e Edit config files"
+   echo "   -t compare config files"
+   echo "   -s show status/config"
    echo "   -d set debug flag"
    echo "   -h no arg, display this message"
    echo
@@ -278,11 +398,14 @@ function usage() {
 
 # ===== main
 
+echo "$scriptname Ver: $VERSION"
+
 while [[ $# -gt 0 ]] ; do
 key="$1"
 
 case $key in
    -e)
+       save_cfg_files
        edit_cfg
        exit 0
    ;;
