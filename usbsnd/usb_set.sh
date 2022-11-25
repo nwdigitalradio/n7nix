@@ -15,7 +15,7 @@ scriptname="`basename $0`"
 
 DEBUG=
 VERSION="1.0"
-DEVICE_TYPE="usb"
+DEVICE_TYPE="dinah"
 DEVICE=
 # List config files that will be edited
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
@@ -33,7 +33,7 @@ NWDIG_VENDOR_NAME="NW Digital Radio"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
-# ===== function check_4_dinah
+# ===== function check_4
 # Sets variable $DEVICE
 
 function check_4_dinah() {
@@ -101,7 +101,7 @@ if [ -f $firmware_prodfile ] ; then
    if [ udrc_prod_id != 0 ] && [ udrc_prod_id != 1 ] ; then
       if (( UDRC_ID == udrc_prod_id )) ; then
          dbgecho "Product ID match: $udrc_prod_id"
-	 DEVICE=udrc
+	 DEVICE="udr"
       else
          echo "Product ID MISMATCH $UDRC_ID : $udrc_prod_id"
          udrc_prod_id=1
@@ -118,8 +118,8 @@ else
    check_4_dinah
 fi
 
-# Check for both udrc & usb sound devices found
-if [ "$DEVICE" = "udrc" ] ; then
+# Check for both udrc & dinah sound devices found
+if [ "$DEVICE" = "udr" ] ; then
     old_device=$DEVICE
     check_4_dinah
     if [ "$old_device" != "$DEVICE" ] ; then
@@ -350,7 +350,7 @@ function edit_cfg() {
     echo "Edit Configuration files for DEVICE: $DEVICE_TYPE"
     echo
     case $DEVICE_TYPE in
-        usb)
+        dinah)
             echo "Configuring for a single USB sound card"
             config_dw_1chan
             config_port
@@ -359,7 +359,7 @@ function edit_cfg() {
 	    # change udrc to dinah0
 	    config_axports
         ;;
-        udrc)
+        udr)
             echo "Configuring for a 2 channel DRAWS sound card"
             config_dw_2chan
         ;;
@@ -387,12 +387,13 @@ parse_direwolf_config() {
 # ===== function usage
 function usage() {
    echo "Usage: $scriptname [-D <device_name>][-h]" >&2
-   echo "   -D Device type, either udrc or usb, default usb"
-   echo "   -e Edit config files"
-   echo "   -t compare config files"
-   echo "   -s show status/config"
-   echo "   -d set debug flag"
-   echo "   -h no arg, display this message"
+   echo "   -D <device type> | --device <device type>  Set device to either udrc or dinah, default dinah"
+   echo "   -e               Edit config files"
+   echo "   -t               compare config files"
+   echo "   -s               show status/config"
+   echo "   -S <baud rate> | --speed <baud rate>  Set speed to 1200 or 9600 baud, default 1200"
+   echo "   -d | --debug     set debug flag"
+   echo "   -h               no arg, display this message"
    echo
 }
 
@@ -404,25 +405,36 @@ while [[ $# -gt 0 ]] ; do
 key="$1"
 
 case $key in
-   -e)
-       save_cfg_files
-       edit_cfg
-       exit 0
-   ;;
    -s|--status)
         show_cfg
         exit 1
     ;;
 
+   -S|--speed)
+      DEVICE_SPEED="$2"
+      shift # past argument
+      if [ "$DEVICE_SPEED" != "1200" ] && [ "$DEVICE_SPEED" != "9600" ] ; then
+          echo "Invalid device speed: $DEVICE_SPEED, default to 1200 baud"
+	  DEVICE_SPEED="1200"
+      fi
+      echo "DEBUG setting device speed to: $DEVICE_SPEED"
+      set_speed
+    ;;
+
    -D|--device)
       DEVICE_TYPE="$2"
       shift # past argument
-      if [ "$DEVICE_TYPE" != "usb" ] && [ "$DEVICE_TYPE" != "udrc" ] ; then
-          echo "Invalid device type: $DEVICE_TYPE, default to usb device"
-	  DEVICE_TYPE="usb"
+      if [ "$DEVICE_TYPE" != "dinah" ] && [ "$DEVICE_TYPE" != "udr" ] ; then
+          echo "Invalid device type: $DEVICE_TYPE, default to dinah device"
+	  DEVICE_TYPE="dinah"
       fi
-      echo "TEST device type & port number: $DEVICE_TYPE$PORT_NUM"
+      echo "DEBUG device type & port number: $DEVICE_TYPE$PORT_NUM"
     ;;
+   -e)
+       save_cfg_files
+       edit_cfg
+       exit 0
+   ;;
    -t|--test)
        compare_files
        exit 0
