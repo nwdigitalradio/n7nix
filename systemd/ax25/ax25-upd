@@ -31,17 +31,17 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function is_udrc
 
-function is_udrc()
+function is_udrc() {
 
-    aplay -l | grep -i "udrc"
+    (/usr/bin/aplay -l) | (/usr/bin/grep -i "udrc")
     return $?
 }
 
 # ===== function is_dinah
 
-function is_dinah()
+function is_dinah() {
 
-    aplay -l | grep  "USB Audio Device"
+    /usr/bin/aplay -l | /usr/bin/grep  "USB Audio Device"
     return $?
 }
 
