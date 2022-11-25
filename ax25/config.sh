@@ -121,7 +121,7 @@ function get_ssid() {
 
     SSID=16
     read -t 1 -n 10000 discard
-    echo -n "Enter ssid (0 - 15) for direwolf APRS, followed by [enter]"
+    echo -n "Enter ssid (1 - 15) for direwolf APRS, followed by [enter]"
     read -ep ": " SSID
 
     # Remove any leading zeros
