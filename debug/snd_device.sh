@@ -45,7 +45,7 @@ if [ -f $PORT_CFG_FILE ] ; then
     if [ $? -eq 0  ] ; then
 #        DEVICE=$(grep -i "^Device" $PORT_CFG_FILE)
 	DEVICE=$(grep -m1 "^Device=" $PORT_CFG_FILE | cut -f2 -d'=')
-	echo "Device set in port config file is: $DEVICE"
+	echo "Device set in port config file: $DEVICE"
     else
 	echo "Device parameter NOT set in $PORT_CFG_FILE"
     fi
