@@ -387,7 +387,7 @@ parse_direwolf_config() {
 # ===== function usage
 function usage() {
    echo "Usage: $scriptname [-D <device_name>][-h]" >&2
-   echo "   -D <device type> | --device <device type>  Set device to either udrc or dinah, default dinah"
+   echo "   -D <device type> | --device <device type>  Set device to either udr or dinah, default dinah"
    echo "   -e               Edit config files"
    echo "   -t               compare config files"
    echo "   -s               show status/config"
