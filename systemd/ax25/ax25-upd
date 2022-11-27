@@ -99,7 +99,8 @@ if [ -f $firmware_prodfile ] ; then
 
    if [ udrc_prod_id != 0 ] && [ udrc_prod_id != 1 ] ; then
       if (( UDRC_ID == udrc_prod_id )) ; then
-         dbgecho "Product ID match: $udrc_prod_id"
+          DEVICE="udr"
+          dbgecho "Product ID match: $udrc_prod_id"
       else
          echo "Product ID MISMATCH $UDRC_ID : $udrc_prod_id"
          udrc_prod_id=1
@@ -120,10 +121,20 @@ else
 fi
 
 if is_udrc  && is_dinah  ; then
-    # If both sound devices are installed default to DINAH
-    DEVICE="dinah"
+    # If both sound devices are installed then get DEVICE name from
+    # port.conf file
+    if [ -f $PORT_CFG_FILE ] ; then
+        grep -q -i "^Device" $PORT_CFG_FILE
+        if [ $? -eq 0  ] ; then
+#           DEVICE=$(grep -i "^Device" $PORT_CFG_FILE)
+	    DEVICE=$(grep -m1 "^Device=" $PORT_CFG_FILE | cut -f2 -d'=')
+            echo "Device set in port config file is: $DEVICE"
+        else
+	    echo "Device parameter NOT set in $PORT_CFG_FILE"
+            DEVICE="dinah"
+        fi
+    fi
 fi
-
 PORTNAME_1="${DEVICE}0"
 PORTNAME_2="${DEVICE}1"
 
