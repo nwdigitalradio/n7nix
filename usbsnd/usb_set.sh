@@ -304,6 +304,21 @@ function config_dw_2chan() {
 # Edit /usr/local/etc/ax25/port.conf file for speed parameter
 
 function config_port() {
+
+    # Get device parmater
+    device_param=$(grep -m1 "^Device=" $PORT_CFG_FILE | cut -f2 -d'=')
+
+    # check device parameter, switch to dinah
+    DEVICE="dinah"
+    if [ "$device_param = "udr ] ; then
+        # Edit device parameter
+        # Modify first occurrence of device configuration line
+        sudo sed -i -e "0,/^device=/ s/^device=.*/device=${DEVICE}/" $PORT_CFGFILE
+        if [ "$?" -ne 0 ] ; then
+            echo "sed failed with var: speed on file: $PORT_CFGFILE"
+        fi
+    fi
+
     # Get speed parameter
     speed_param=$(grep -m1 "^speed=" $PORT_CFGFILE | cut -f2 -d'=')
 
@@ -311,7 +326,7 @@ function config_port() {
     if [ "$peed_param != "$modem_speed ] ; then
         # Edit speed parameter
         # Modify first occurrence of MODEM configuration line
-        sudo sed -i -e "0,/^speed=/ s/^speed=.*/speed= $modem_speed/" $PORT_CFGFILE
+        sudo sed -i -e "0,/^speed=/ s/^speed=.*/speed=${modem_speed}/" $PORT_CFGFILE
         if [ "$?" -ne 0 ] ; then
             echo "sed failed with var: speed on file: $PORT_CFGFILE"
         fi
