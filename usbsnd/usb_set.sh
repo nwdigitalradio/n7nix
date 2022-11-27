@@ -305,6 +305,17 @@ function config_dw_2chan() {
 
 function config_port() {
 
+    # Verify "Device=" parameter exists
+    grep -q -i "^Device=" $PORT_CFG_FILE
+    if [ $? -ne 0  ] ; then
+        # Find line number of last comment line
+        line_num=$(grep -n '^#'| tail -1 | cut -f1 -d':' $PORT_CFG_FILE)
+        sudo sed -i -e "${linenum}a\\\nDevice=dinah " $PORT_CFG_FILE
+        if [ "$?" -ne 0 ] ; then
+            echo "sed failed creating var: Device in file: $PORT_CFGFILE"
+        fi
+    fi
+
     # Get device parmater
     device_param=$(grep -m1 "^Device=" $PORT_CFG_FILE | cut -f2 -d'=')
 
@@ -315,7 +326,7 @@ function config_port() {
         # Modify first occurrence of device configuration line
         sudo sed -i -e "0,/^device=/ s/^device=.*/device=${DEVICE}/" $PORT_CFGFILE
         if [ "$?" -ne 0 ] ; then
-            echo "sed failed with var: speed on file: $PORT_CFGFILE"
+            echo "sed failed replacing var: Device in file: $PORT_CFGFILE"
         fi
     fi
 
