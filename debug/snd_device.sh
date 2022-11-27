@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PORT_CFG_FILE="/usr/local/etc/ax25/port.conf"
+
 # ===== function is_udrc
 
 function is_udrc() {
@@ -37,4 +39,19 @@ if is_udrc && is_dinah  ; then
 else
     echo "Found $sndcard_cnt sound cards"
 fi
+
+if [ -f $PORT_CFG_FILE ] ; then
+    grep -q -i "^Device" $PORT_CFG_FILE
+    if [ $? -eq 0  ] ; then
+#        DEVICE=$(grep -i "^Device" $PORT_CFG_FILE)
+	DEVICE=$(grep -m1 "^Device=" $PORT_CFG_FILE | cut -f2 -d'=')
+	echo "Device set in port config file is: $DEVICE"
+    else
+	echo "Device parameter NOT set in $PORT_CFG_FILE"
+    fi
+else
+    echo "No port config file found: $PORT_CFG_FILE"
+    DEVICE="dinah"
+fi
+
 
