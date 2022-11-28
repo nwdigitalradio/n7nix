@@ -266,6 +266,9 @@ function compare_files() {
 #  - use only one direwolf channel for CM108 sound card
 
 function config_dw_1chan() {
+
+    dbgecho "${FUNCNAME[0]}:"
+
     sudo sed -i -e "0,/^ADEVICE .*/ s/^ADEVICE .*/ADEVICE plughw:CARD=Device,DEV=0/"  $DIREWOLF_CFGFILE
     if [ "$?" -ne 0 ] ; then
         echo "sed failed with var: ADEVICE on file: $DIREWOLF_CFGFILE"
@@ -305,19 +308,21 @@ function config_dw_2chan() {
 
 function config_port() {
 
+    dbgecho "${FUNCNAME[0]}:"
+
     # Verify "Device=" parameter exists
-    grep -q -i "^Device=" $PORT_CFG_FILE
+    grep -q -i "^Device=" $PORT_CFGFILE
     if [ $? -ne 0  ] ; then
         # Find line number of last comment line
-        line_num=$(grep -n '^#'| tail -1 | cut -f1 -d':' $PORT_CFG_FILE)
-        sudo sed -i -e "${linenum}a\\\nDevice=dinah " $PORT_CFG_FILE
+        line_num=$(grep -n '^#'| tail -1 | cut -f1 -d':' $PORT_CFGFILE)
+        sudo sed -i -e "${linenum}a\\\nDevice=dinah " $PORT_CFGFILE
         if [ "$?" -ne 0 ] ; then
             echo "sed failed creating var: Device in file: $PORT_CFGFILE"
         fi
     fi
 
     # Get device parmater
-    device_param=$(grep -m1 "^Device=" $PORT_CFG_FILE | cut -f2 -d'=')
+    device_param=$(grep -m1 "^Device=" $PORT_CFGFILE | cut -f2 -d'=')
 
     # check device parameter, switch to dinah
     DEVICE="dinah"
@@ -350,11 +355,18 @@ function config_port() {
 function config_ax25d() {
 
     dbgecho "${FUNCNAME[0]}:"
+
+    echo
+    echo "${FUNCNAME[0]}: Before edit"
     grep -i "udr" $AX25D_CFGFILE
+
     sudo sed -i -e "/udr/ s/udr/dinah/" $AX25D_CFGFILE
     if [ "$?" -ne 0 ] ; then
         echo "sed failed with var: udr on file: $AX25D_CFGFILE"
     fi
+    echo
+    echo "${FUNCNAME[0]}: After edit"
+    grep -i "dinah" $AX25D_CFGFILE
 }
 
 # ===== function config_axports
@@ -363,11 +375,18 @@ function config_ax25d() {
 function config_axports() {
 
     dbgecho "${FUNCNAME[0]}:"
+
+    echo
+    echo "${FUNCNAME[0]}: Before edit"
     grep -i "udr" $AXPORTS_CFGFILE
+
     sudo sed -i -e "/udr/ s/udr/dinah/" $AXPORTS_CFGFILE
     if [ "$?" -ne 0 ] ; then
         echo "sed failed with var: udr on file: $AXPORTS_CFGFILE"
     fi
+    echo
+    echo "${FUNCNAME[0]}: After edit"
+    grep -i "dinah" $AXPORTS_CFGFILE
 }
 
 # ===== function edit config files
@@ -395,6 +414,8 @@ function edit_cfg() {
     esac
 }
 
+# ===== function parse_direwolf_config
+#
 parse_direwolf_config() {
     numchan=$(grep "^ACHANNELS"  $DIREWOLF_CFGFILE | cut -d' ' -f2)
     if [ $numchan -eq 1 ] ; then
