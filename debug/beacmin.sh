@@ -193,7 +193,7 @@ function is_ax25up() {
 # ===== function usage
 function usage() {
    echo "Usage: $scriptname [-D <device_name>][-h]" >&2
-   echo "   -D <device type> | --device <device type>  Set device to either udrc or dinah, default dinah"
+   echo "   -D <device type> | --device <device type>  Set device to either udr or dinah, default dinah"
    echo "   -d | --debug     set debug flag"
    echo "   -h               no arg, display this message"
    echo
@@ -210,7 +210,7 @@ case $key in
    -D|--device)
       DEVICE_TYPE="$2"
       shift # past argument
-      if [ "$DEVICE_TYPE" != "dinah" ] && [ "$DEVICE_TYPE" != "udrc" ] ; then
+      if [ "$DEVICE_TYPE" != "dinah" ] && [ "$DEVICE_TYPE" != "udr" ] ; then
           echo "Invalid device type: $DEVICE_TYPE, default to dinah device"
           $DEVICE_TYPE="dinah"
       fi
