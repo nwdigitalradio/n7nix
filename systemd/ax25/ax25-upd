@@ -296,6 +296,7 @@ function packet_2port() {
 # ===== main =====
 
 # Check which UDRC or USB sound card is found
+#  Also sets "DEVICE" variable
 id_check
 id_check_ret="$?"
 
