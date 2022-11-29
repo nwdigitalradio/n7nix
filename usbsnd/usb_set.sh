@@ -23,7 +23,7 @@ PORT_CFGFILE="/usr/local/etc/ax25/port.conf"
 AX25D_CFGFILE="/usr/local/etc/ax25/ax25d.conf"
 AXPORTS_CFGFILE="/usr/local/etc/ax25/axports"
 
-modem_speed=1200
+DEVICE_SPEED="1200"
 
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
@@ -303,6 +303,23 @@ function config_dw_2chan() {
         echo "sed failed on file: $DIREWOLF_CFGFILE"
     fi
 }
+
+# ===== function set_speed
+#
+function set_speed() {
+
+    modem_speed="$1"
+
+    dbgecho "${FUNCNAME[0]}: speed: $modem_speed"
+
+    # Edit speed parameter
+    # Modify first occurrence of MODEM configuration line
+    sudo sed -i -e "0,/^speed=/ s/^speed=.*/speed=${modem_speed}/" $PORT_CFGFILE
+    if [ "$?" -ne 0 ] ; then
+        echo "sed failed with var: speed on file: $PORT_CFGFILE"
+    fi
+}
+
 # ===== function config_port
 # Edit /usr/local/etc/ax25/port.conf file for speed parameter
 
@@ -311,17 +328,26 @@ function config_port() {
     dbgecho "${FUNCNAME[0]}:"
 
     # Verify "Device=" parameter exists
+    dbgecho "Verify Device parameter"
+
     grep -q -i "^Device=" $PORT_CFGFILE
-    if [ $? -ne 0  ] ; then
+    if [ "$?" -ne 0 ] ; then
+        dbgecho "Device parameter NOT found"
+
         # Find line number of last comment line
-        line_num=$(grep -n '^#'| tail -1 | cut -f1 -d':' $PORT_CFGFILE)
+        line_num=$(grep -n '^#' $PORT_CFGFILE | tail -n1 | cut -f1 -d':' )
+	dbgecho "line: $line_num in $PORT_CFGFILE"
+
         sudo sed -i -e "${linenum}a\\\nDevice=dinah " $PORT_CFGFILE
         if [ "$?" -ne 0 ] ; then
             echo "sed failed creating var: Device in file: $PORT_CFGFILE"
         fi
+    else
+        dbgecho "Device parameter found: $(grep -i "^Device=" $PORT_CFGFILE)"
     fi
 
     # Get device parmater
+    dbgecho "Get Device parameter"
     device_param=$(grep -m1 "^Device=" $PORT_CFGFILE | cut -f2 -d'=')
 
     # check device parameter, switch to dinah
@@ -336,17 +362,16 @@ function config_port() {
     fi
 
     # Get speed parameter
+    dbgecho "Get speed parameter"
+
     speed_param=$(grep -m1 "^speed=" $PORT_CFGFILE | cut -f2 -d'=')
 
     # Check speed parameter
-    if [ "$peed_param != "$modem_speed ] ; then
-        # Edit speed parameter
-        # Modify first occurrence of MODEM configuration line
-        sudo sed -i -e "0,/^speed=/ s/^speed=.*/speed=${modem_speed}/" $PORT_CFGFILE
-        if [ "$?" -ne 0 ] ; then
-            echo "sed failed with var: speed on file: $PORT_CFGFILE"
-        fi
+    if [ "$speed_param" != "$DEVICE_SPEED" ] ; then
+        set_speed "$DEVICE_SPEED"
     fi
+
+    dbgecho "Device=$DEVICE, speed=$DEVICE_SPEED"
 }
 
 # ===== function config_ax25d
@@ -460,17 +485,19 @@ case $key in
    -S|--speed)
       DEVICE_SPEED="$2"
       shift # past argument
+
       if [ "$DEVICE_SPEED" != "1200" ] && [ "$DEVICE_SPEED" != "9600" ] ; then
           echo "Invalid device speed: $DEVICE_SPEED, default to 1200 baud"
 	  DEVICE_SPEED="1200"
       fi
       echo "DEBUG setting device speed to: $DEVICE_SPEED"
-      set_speed
+      set_speed "$DEVICE_SPEED"
     ;;
 
    -D|--device)
       DEVICE_TYPE="$2"
       shift # past argument
+
       if [ "$DEVICE_TYPE" != "dinah" ] && [ "$DEVICE_TYPE" != "udr" ] ; then
           echo "Invalid device type: $DEVICE_TYPE, default to dinah device"
 	  DEVICE_TYPE="dinah"
