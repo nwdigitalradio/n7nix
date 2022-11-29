@@ -59,6 +59,7 @@ function id_check() {
 # Initialize to EEPROM not found
 udrc_prod_id=0
 
+## Check UDRC firmware
 # Does firmware file exist
 if [ -f $firmware_prodfile ] ; then
    # Read product file
@@ -120,19 +121,26 @@ else
    fi
 fi
 
+## Check if both an UDRC & DINAH are installed
+# If both sound devices are installed then get DEVICE name from
+# port.conf file
 if is_udrc  && is_dinah  ; then
-    # If both sound devices are installed then get DEVICE name from
-    # port.conf file
     if [ -f $PORT_CFG_FILE ] ; then
+        # Check for Device= parameter in port.conf file
         grep -q -i "^Device" $PORT_CFG_FILE
         if [ $? -eq 0  ] ; then
 #           DEVICE=$(grep -i "^Device" $PORT_CFG_FILE)
 	    DEVICE=$(grep -m1 "^Device=" $PORT_CFG_FILE | cut -f2 -d'=')
             echo "Device set in port config file is: $DEVICE"
         else
-	    echo "Device parameter NOT set in $PORT_CFG_FILE"
-            DEVICE="dinah"
+	    # No Device= parameter found default to UDRC
+	    echo "$(tput setaf 6)'Device=' parameter NOT set in $PORT_CFG_FILE$(tput sgr0)"
+            DEVICE="udr"
         fi
+    else
+        echo
+        echo "$(tput setaf 1)NO $PORT_CFG_FILE found!$(tput sgr0)"
+	echo
     fi
 fi
 PORTNAME_1="${DEVICE}0"
