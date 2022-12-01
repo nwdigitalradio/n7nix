@@ -123,8 +123,9 @@ if [ "$DEVICE" = "udr" ] ; then
     old_device=$DEVICE
     check_4_dinah
     if [ "$old_device" != "$DEVICE" ] ; then
-        echo "Change sound device from $old_device to $DEVICE"
+        echo "Is possible to change sound device from $old_device to $DEVICE"
     fi
+    DEVICE="udr"
 fi
 
 # Check for NO sound devices found
