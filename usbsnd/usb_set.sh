@@ -18,10 +18,12 @@ VERSION="1.0"
 DEVICE_TYPE="dinah"
 DEVICE=
 # List config files that will be edited
-DIREWOLF_CFGFILE="/etc/direwolf.conf"
 PORT_CFGFILE="/usr/local/etc/ax25/port.conf"
 AX25D_CFGFILE="/usr/local/etc/ax25/ax25d.conf"
 AXPORTS_CFGFILE="/usr/local/etc/ax25/axports"
+
+DIREWOLF_CFGFILE="/etc/direwolf.conf"
+DW_LOG_FILE="/var/log/direwolf/direwolf.log"
 
 DEVICE_SPEED="1200"
 
@@ -30,6 +32,10 @@ firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
 firmware_vendorfile="/sys/firmware/devicetree/base/hat/vendor"
 
 NWDIG_VENDOR_NAME="NW Digital Radio"
+
+# For display to console
+TEE_CMD="sudo tee -a $DW_LOG_FILE"
+
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -172,7 +178,7 @@ function show_cfg() {
 
     echo
     echo " === Check direwolf.conf file"
-    CFILE="/etc/direwolf.conf"
+    CFILE="$DIREWOLF_CFGFILE"
     parse_direwolf_config
 }
 
@@ -305,7 +311,32 @@ function config_dw_2chan() {
     fi
 }
 
+# ===== function direwolf_set_baud_first
+# Lifted from baudrate/both_baud.sh script
+# Expects modem speed as arg 1
+
+# Set baud rate on MODEM line for the FIRST modem channel
+
+direwolf_set_baud_first() {
+
+    modem_speed="$1"
+
+    echo "$scriptname: set $DIREWOLF_CFGFILE first baud rate to: $modem_speed" | $TEE_CMD
+
+    # Modify first occurrence of MODEM configuration line
+    sudo sed -i "0,/^MODEM/ s/^MODEM .*/MODEM $modem_speed/" $DIREWOLF_CFGFILE
+
+    # Modify both occurrences of MODEM configuration line
+    # sudo sed -i "/^MODEM/ s/^MODEM .*/MODEM $modem_speed/" $DIREWOLF_CFGFILE
+
+    modem_cnt=$(grep "^MODEM" $DIREWOLF_CFGFILE | wc -l)
+    if (( modem_cnt != 2 )) ; then
+        echo "WARNING: Wrong number of modem entries: $modem_cnt"
+    fi
+}
+
 # ===== function set_speed
+# Expects modem speed as arg 1
 #
 function set_speed() {
 
@@ -313,12 +344,14 @@ function set_speed() {
 
     dbgecho "${FUNCNAME[0]}: speed: $modem_speed"
 
-    # Edit speed parameter
+    # Edit speed parameter in port.conf file
     # Modify first occurrence of MODEM configuration line
     sudo sed -i -e "0,/^speed=/ s/^speed=.*/speed=${modem_speed}/" $PORT_CFGFILE
     if [ "$?" -ne 0 ] ; then
         echo "sed failed with var: speed on file: $PORT_CFGFILE"
     fi
+    # Edit MODEM parameter in direwolf.conf
+    direwolf_set_baud_first "$modem_speed"
 }
 
 # ===== function config_port
@@ -337,23 +370,36 @@ function config_port() {
 
         # Find line number of last comment line
         line_num=$(grep -n '^#' $PORT_CFGFILE | tail -n1 | cut -f1 -d':' )
+	((line_num++))
 	dbgecho "line: $line_num in $PORT_CFGFILE"
 
-        sudo sed -i -e "${linenum}a\\\nDevice=dinah " $PORT_CFGFILE
+#	echo
+#	echo "Before edit: line number: $line_num"
+#	cat $PORT_CFGFILE
+        # Add a blank line after last comment before 'Device='
+        sudo sed -i -e "${line_num}i \\\nDevice=dinah" $PORT_CFGFILE
         if [ "$?" -ne 0 ] ; then
             echo "sed failed creating var: Device in file: $PORT_CFGFILE"
         fi
+#	echo
+#	echo "After edit"
+#	cat $PORT_CFGFILE
+
     else
         dbgecho "Device parameter found: $(grep -i "^Device=" $PORT_CFGFILE)"
     fi
 
     # Get device parmater
-    dbgecho "Get Device parameter"
     device_param=$(grep -m1 "^Device=" $PORT_CFGFILE | cut -f2 -d'=')
+    # Remove all white space
+    device_param="$(echo -e "${device_param}" | tr -d '[:space:]')"
+
+    dbgecho "Get Device parameter: $device_param"
+
 
     # check device parameter, switch to dinah
     DEVICE="dinah"
-    if [ "$device_param = "udr ] ; then
+    if [ "$device_param" = "udr" ] ; then
         # Edit device parameter
         # Modify first occurrence of device configuration line
         sudo sed -i -e "0,/^device=/ s/^device=.*/device=${DEVICE}/" $PORT_CFGFILE
@@ -363,9 +409,11 @@ function config_port() {
     fi
 
     # Get speed parameter
-    dbgecho "Get speed parameter"
-
     speed_param=$(grep -m1 "^speed=" $PORT_CFGFILE | cut -f2 -d'=')
+    # Remove all white space
+    speed_param="$(echo -e "${speed_param}" | tr -d '[:space:]')"
+
+    dbgecho "Get speed parameter: $speed_param"
 
     # Check speed parameter
     if [ "$speed_param" != "$DEVICE_SPEED" ] ; then
