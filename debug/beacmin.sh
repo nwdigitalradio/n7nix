@@ -218,6 +218,10 @@ case $key in
 
       echo "DEBUG device type & port number: $DEVICE_TYPE$PORT_NUM"
     ;;
+   -d|--debug)
+      DEBUG=1
+      echo "Debug mode on"
+    ;;
   -h|--help|?)
       usage
       exit 0
