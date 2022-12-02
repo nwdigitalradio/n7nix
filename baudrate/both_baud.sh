@@ -21,6 +21,7 @@ PORT_CFG_FILE="$AX25_CFGDIR/port.conf"
 AX25D_CFG_FILE="$AX25_CFGDIR/ax25d.conf"
 
 DIREWOLF_CFGFILE="/etc/direwolf.conf"
+DW_LOG_FILE="/var/log/direwolf/direwolf.log"
 
 SED="sudo sed"
 
@@ -28,6 +29,10 @@ PRIMARY_DEVICE="udr0"
 PRIMARY_SPEED="1200"
 SECONDARY_DEVICE="udr1"
 SECONDARY_SPEED="9600"
+
+# For display to console
+TEE_CMD="sudo tee -a $DW_LOG_FILE"
+
 
 # ===== function get_callsign
 function get_callsign() {
