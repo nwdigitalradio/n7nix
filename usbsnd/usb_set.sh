@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-# Edit config files to use CM108 sound dongle or a DRAWS hat
+# Edit config files to use CM108 sound dongle (DINAH) after
+#   a DRAWS hat install.
 #
 # Files modified:
 #  /usr/local/etc/ax25
@@ -14,7 +15,7 @@
 scriptname="`basename $0`"
 
 DEBUG=
-VERSION="1.0"
+VERSION="1.1"
 DEVICE_TYPE="dinah"
 DEVICE=
 # List config files that will be edited
