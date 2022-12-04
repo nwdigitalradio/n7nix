@@ -1,11 +1,34 @@
 # Notes for changing default soundcard from DRAWS to DINAH
+### usb_set.sh command options
+```
+usb_set.sh Ver: 1.1
+Usage: usb_set.sh [-D <device_name>][-h]
+   -D <device type> | --device <device type>  Set device to either udr or dinah, default dinah
+   -e               Edit config files
+   -t               compare config files
+   -s               show status/config
+   -S <baud rate> | --speed <baud rate>  Set speed to 1200 or 9600 baud, default 1200
+   -d | --debug     set debug flag
+   -h               no arg, display this message
+```
+* Typical usage would be to check config status, _-s_ then edit config files with the edit option, _-e_
 
-### Verify DINAH sound card is enumerated
-* Use ```arecord``` command
+### Confile File Edit List
+
+* List of config files edited
+```
+/usr/local/etc/ax25/port.conf
+/usr/local/etc/ax25/ax25d.conf
+/usr/local/etc/ax25/axports
+/etc/direwolf.conf
+```
+
+### Verify DINAH (or DRAWS) sound card is enumerated
+* Use ```arecord``` command:
 ```
 arecord -l
 ```
-* Output from this command will look like the following if BOTH a DRAWS card AND a DINAH USB device are installed.
+* Output from this command will look like the following if BOTH a DRAWS card AND a DINAH USB sound device are installed.
 ```
 **** List of CAPTURE Hardware Devices ****
 card 2: Device [USB Audio Device], device 0: USB Audio [USB Audio]
@@ -17,19 +40,20 @@ card 3: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi
 ```
 
 ### How to run usb_set.sh
-* How to run script to set sound card to USB device
+* How to run script to set config files to use a DINAH USB sound device as the default sound card
 
 * Verify there are no problems with current running installation
 ```
+cd
+cd n7nix/usbsnd
+
+./usb_set.sh -s
 ax25-status
 ```
 
-* Run the script witch will edit these files:
-  * /usr/local/etc/ax25/port.conf
-  * /usr/local/etc/ax25/ax25d.conf
-  * /usr/local/etc/ax25/axports
-  * /etc/direwolf.conf
-* The following command sets the baud rate to 9600 baud.
+* Run the _usb_set.sh_ script which will edit above mentioned config files:
+
+* The following ```usb_set.sh``` command sets the baud rate to 9600 baud.
   * This should match the jumper plug 1 (JP1) settings on the [DINAH PCB](https://kitsforhams.com/wp-content/uploads/2022/10/DINAH-V4-Construction-Manual_v4.0.pdf)
 ```
 cd
@@ -56,7 +80,7 @@ ax25-start
 ax25-status
 ```
 
-### Test with the following commands
+### Test the sound card switch with the following commands
 * Send a beacon
 
 ```
