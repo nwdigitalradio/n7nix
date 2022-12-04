@@ -40,7 +40,7 @@ TEE_CMD="sudo tee -a $DW_LOG_FILE"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
-# ===== function check_4
+# ===== function check_4_dinah
 # Sets variable $DEVICE
 
 function check_4_dinah() {
@@ -67,7 +67,7 @@ function id_check() {
 # Initialize to EEPROM not found
 udrc_prod_id=0
 
-# Does firmware file exist
+# Does firmware file for a UDR exist
 if [ -f $firmware_prodfile ] ; then
    # Read product file
    UDRC_PROD="$(tr -d '\0' < $firmware_prodfile)"
@@ -116,21 +116,31 @@ if [ -f $firmware_prodfile ] ; then
    fi
    dbgecho "Found HAT for ${PROD_ID_NAMES[$UDRC_ID]} with product ID: $UDRC_ID"
 else
-   # Get here if no UDRC or DRAWS firmware detected
-   # RPi HAT ID EEPROM may not have been programmed in engineering samples
-   # or there is no RPi HAT installed.
-   udrc_prod_id=0
-   # Detect a DINAH USB sound device
-   DEVICE=
-   check_4_dinah
+    # Get here if no UDRC or DRAWS firmware detected
+    # RPi HAT ID EEPROM may not have been programmed in engineering samples
+    # or there is no RPi HAT installed.
+    udrc_prod_id=0
+    # Detect a DINAH USB sound device
+    DEVICE=
+    check_4_dinah
+    # Check for NO dinah USB sound device found
+    if [ -z "$DEVICE" ] ; then
+        echo "No DINAH USB sound device found"
+    fi
 fi
 
 # Check for both udrc & dinah sound devices found
 if [ "$DEVICE" = "udr" ] ; then
     old_device=$DEVICE
     check_4_dinah
-    if [ "$old_device" != "$DEVICE" ] ; then
-        echo "Is possible to change sound device from $old_device to $DEVICE"
+    if [ ! -z "$DEVICE" ] ; then
+        if [ "$old_device" != "$DEVICE" ] ; then
+            echo "Is possible to change sound device from $old_device to $DEVICE"
+	fi
+    else
+        echo
+        echo "NO DINAH USB sound device found!"
+        echo
     fi
     DEVICE="udr"
 fi
