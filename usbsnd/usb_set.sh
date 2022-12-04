@@ -45,6 +45,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 function check_4_dinah() {
 
+    DEVICE=
     #   echo "aplay command: "
     #   aplay -l
     aplay -l | grep -q -i "USB Audio Device"
@@ -54,6 +55,7 @@ function check_4_dinah() {
 }
 
 # ===== function EEPROM id_check
+# Checks for both an UDR & a DINAH sound device
 
 # Return code:
 # 0 = no EEPROM or no device tree found
@@ -120,12 +122,13 @@ else
     # RPi HAT ID EEPROM may not have been programmed in engineering samples
     # or there is no RPi HAT installed.
     udrc_prod_id=0
-    # Detect a DINAH USB sound device
-    DEVICE=
+
+    # Check for a DINAH USB sound device
     check_4_dinah
-    # Check for NO dinah USB sound device found
     if [ -z "$DEVICE" ] ; then
-        echo "No DINAH USB sound device found"
+        echo "No UDR or DINAH USB sound device found"
+    else
+        echo "Found DINAH USB sound device but NO UDR sound card."
     fi
 fi
 
@@ -135,11 +138,11 @@ if [ "$DEVICE" = "udr" ] ; then
     check_4_dinah
     if [ ! -z "$DEVICE" ] ; then
         if [ "$old_device" != "$DEVICE" ] ; then
-            echo "Is possible to change sound device from $old_device to $DEVICE"
+            echo "Found BOTH a UDRC & DINAH USB sound device, IS possible to change sound device from $old_device to $DEVICE"
 	fi
     else
         echo
-        echo "NO DINAH USB sound device found!"
+        echo "Found UDR sound card but NO DINAH USB sound device found!"
         echo
     fi
     DEVICE="udr"
