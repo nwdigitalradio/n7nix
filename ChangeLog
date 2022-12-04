@@ -1,3 +1,30 @@
+Sun Dec  4 11:06:24 PST 2022  Basil Gunn <basil@pacabunga.com>
+
+  * Image NWDR22 release (Raspbian Bullseye 11.5):
+    * Uses kernel 5.15.32-v7l+ #1538
+    * Kernel version is pinned because subsequent kernels broke AX.25 stack
+
+  * Got rid of all (hopefully) hard coded user names (pi)
+  * Add support for DINAH USB sound card.
+  * Add support for IC-7100
+  * Add more support for PAT
+
+Sat Jan 29 09:23:09 PST 2022  Basil Gunn <basil@pacabunga.com>
+
+  * Image NWDR21.3 release (Raspbian Bullseye):
+    * Uses kernel 5.10.92-v7l+ #1514
+
+  * Fix wsjt-x install
+  * Fix different versions of hamlib preventing rigctl to run
+  * Update pat install for ardop
+
+Fri Jan 21 09:48:01 PST 2022  Basil Gunn <basil@pacabunga.com>
+
+  * Image NWDR21.2 release (Raspbian Bullseye):
+    * Uses kernel 5.10.92-v7l+ #1514
+
+  * Remove piwiz splash screen
+
 Sat Jan 15 10:39:32 PST 2022  Basil Gunn <basil@pacabunga.com>
 
   * Image NWDR21.1 release (Raspbian Bullseye):
