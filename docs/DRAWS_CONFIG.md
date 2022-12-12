@@ -203,3 +203,17 @@ sudo rpi-update 0642816ed05d31fb37fc8fbbba9e1774b475113f
 
 ##### Fall of 2021 Kernel Hold is **NOT** required
 * Kernels 5.10.52 and newer work fine with the DRAWS codec drivers
+
+
+##### Fall of 2022 Kernel hold **IS** required
+* Problem on RPi Raspbian OS 5.15.61 kernel on images released after Aug 30, 2022
+* To revert back to a kernel that works ie kernel version: 5.15.30
+  * Follow [this method](https://github.com/HinTak/RaspberryPi-Dev/blob/master/Downgrading-Pi-Kernel.md) to downgrade
+
+```
+wget -O kernel-headers_armhf.deb http://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-firmware/raspberrypi-kernel-headers_1.20220331-1_armhf.deb
+wget -O kernel_armhf.deb http://archive.raspberrypi.org/debian/pool/main/r/raspberrypi-firmware/raspberrypi-kernel_1.20220331-1_armhf.deb
+sudo dpkg -i kernel-headers_armhf.deb kernel_armhf.deb
+sudo apt-mark hold raspberrypi-kernel-headers raspberrypi-kernel
+sudo apt-mark showhold
+```
