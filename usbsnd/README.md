@@ -13,7 +13,7 @@ Usage: usb_set.sh [-D <device_name>][-h]
 ```
 * Typical usage would be to check config status, _-s_ then edit config files with the edit option, _-e_
 
-### Confile File Edit List
+### Configuration File Edit List
 
 * List of config files edited
 ```
