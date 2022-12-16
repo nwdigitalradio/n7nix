@@ -121,6 +121,11 @@ echo "== DRAWS hardware:"
 draws_ver
 
 echo
+echo "== Device tree hat check:"
+cat /proc/device-tree/hat/product
+echo
+
+echo
 echo "== image version"
 head -n 1 /var/log/udr_install.log
 
