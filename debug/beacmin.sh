@@ -13,7 +13,8 @@ scriptname="`basename $0`"
 
 SID=15
 #DEVICE=dinah
-DEVICE=udr
+DEVICE="udr"
+DEVICE_TYPE=
 PORT_NUM=0
 
 AX25PORT=${DEVICE}${PORT_NUM}
@@ -192,8 +193,9 @@ function is_ax25up() {
 
 # ===== function usage
 function usage() {
-   echo "Usage: $scriptname [-D <device_name>][-h]" >&2
-   echo "   -D <device type> | --device <device type>  Set device to either udr or dinah, default dinah"
+   echo "Usage: $scriptname [-P <port number][-D <device_name>][-h]" >&2
+   echo "   -P <port number> Set device port number (0 or 1)"
+   echo "   -D <device type> | --device <device type>  Set device name to either udr or dinah, default udr"
    echo "   -d | --debug     set debug flag"
    echo "   -h               no arg, display this message"
    echo
@@ -207,16 +209,21 @@ while [[ $# -gt 0 ]] ; do
 key="$1"
 
 case $key in
+   -P|--portnum)
+        PORT_NUM="$2"
+        shift # past argument
+        if [ "$PORT_NUM" != 0 ] && [ "$PORT_NUM" != 1 ] ; then
+            echo " Port number must be either 0 or 1"
+	    exit 1
+        fi
+   ;;
    -D|--device)
-      DEVICE_TYPE="$2"
-      shift # past argument
-      if [ "$DEVICE_TYPE" != "dinah" ] && [ "$DEVICE_TYPE" != "udr" ] ; then
-          echo "Invalid device type: $DEVICE_TYPE, default to dinah device"
-          $DEVICE_TYPE="dinah"
-      fi
-      AX25PORT=${DEVICE_TYPE}${PORT_NUM}
-
-      echo "DEBUG device type & port number: $DEVICE_TYPE$PORT_NUM"
+        DEVICE_TYPE="$2"
+        shift # past argument
+        if [ "$DEVICE_TYPE" != "dinah" ] && [ "$DEVICE_TYPE" != "udr" ] ; then
+            echo "Invalid device type: $DEVICE_TYPE, default to dinah device"
+            DEVICE_TYPE="dinah"
+        fi
     ;;
    -d|--debug)
       DEBUG=1
@@ -235,6 +242,12 @@ case $key in
 esac
 shift # past argument or value
 done
+
+if [ -z "$DEVICE_TYPE" ] ; then
+    DEVICE_TYPE="$DEVICE"
+fi
+AX25PORT=${DEVICE_TYPE}${PORT_NUM}
+echo "DEBUG device type & port number: $DEVICE_TYPE$PORT_NUM"
 
 # Check if AX.25 port ax0 exists & is up
 if ! is_ax25up ; then
