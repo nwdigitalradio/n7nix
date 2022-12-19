@@ -3,12 +3,80 @@
 # Test script for checking if 'app_config.sh core' has been run
 #
 DEBUG=
+VERSION="1.1"
+scriptname="`basename $0`"
 
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 cfg_script_name="app_config.sh core"
 CFG_FINISHED_MSG="app_config.sh: core config script FINISHED"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function check_4_dinah
+# Sets variable $DEVICE
+
+function check_4_dinah() {
+
+    DEVICE=
+    #   echo "aplay command: "
+    #   aplay -l
+    aplay -l | grep -q -i "USB Audio Device"
+    if [ "$?" -eq 0 ] ; then
+        DEVICE="dinah"
+    fi
+}
+
+# ===== function check udrc enumeration
+
+function check_udrc() {
+    retcode=1
+    CARDNO=$(aplay -l | grep -i udrc)
+
+    if [ ! -z "$CARDNO" ] ; then
+        dbgecho "udrc card number line: $CARDNO"
+        CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
+        echo "UDRC is sound card #$CARDNO"
+        retcode=0
+    else
+	echo "$(tput setaf 1)$(tput bold) == No UDRC/DRAWS sound card found. $(tput sgr0)"
+    fi
+    return $retcode
+}
+
+# ===== function check_dtoverlay
+#
+# Verify the DT overlay file matches HAT product ID
+# Requires variable prod_id to be set
+
+function check_dtoverlay() {
+
+    bootcfg_file="/boot/config.txt"
+
+    # Check for draws overlay
+    grep "^dtoverlay=draws" $bootcfg_file > /dev/null
+    retcode="$?"
+    if [ $retcode = 0 ] ; then
+        echo "dt overlay configured for a draws"
+        if [ "$prod_id" = "0x0004" ] ; then
+            echo "HAT product ID matches overlay"
+        else
+            echo "$(tput setaf 1)HAT product ID ($prod_id) does NOT match overlay $(tput sgr0)"
+        fi
+    else
+        grep "^dtoverlay=udrc" $bootcfg_file > /dev/null
+        retcode="$?"
+        if [ $retcode = 0 ] ; then
+            echo "dt overlay configured for a UDRC or UDRC II"
+            if [ "$prod_id" = "0x0002" ] || [ "$prod_id" = "0x0003" ] ; then
+                echo "HAT product ID matches overlay"
+            else
+                echo "$(tput setaf 1)HAT product ID ($prod_id) does NOT match overlay $(tput sgr0)"
+            fi
+        else
+            echo "No dt overlay config found for DRAWS or UDRC"
+        fi
+    fi
+}
 
 # ===== function is_hostname
 # Has hostname already been changed?
@@ -38,23 +106,32 @@ function is_hostname() {
 function is_password() {
 
     retcode=0
-    # get salt
-    SALT=$($GREPCMD pi /etc/shadow | awk -F\$ '{print $3}')
 
-    PASSGEN_RASPBERRY=$(mkpasswd --method=sha-512 --salt=$SALT raspberry)
-    PASSGEN_NWCOMPASS=$(mkpasswd --method=sha-512 --salt=$SALT nwcompass)
-    PASSFILE=$($GREPCMD pi /etc/shadow | cut -d ':' -f2)
+    prog_name="mkpasswd"
+    type -P $prog_name &>/dev/null
+    mkpasswd_exists=$?
 
-   dbgecho "SALT: $SALT"
-   dbgecho "pass file: $PASSFILE"
-   dbgecho "pass  gen raspberry: $PASSGEN_RASPBERRY"
-   dbgecho "pass  gen nwcompass: $PASSGEN_NWCOMPASS"
+    if [ $mkpasswd_exists -eq 0 ] ; then
+        # get salt
+        SALT=$($GREPCMD pi /etc/shadow | awk -F\$ '{print $3}')
 
-    if [ "$PASSFILE" = "$PASSGEN_RASPBERRY" ] || [ "$PASSFILE" = "$PASSGEN_NWCOMPASS" ] ; then
-        dbgecho "User pi IS using default password"
-        retcode=1
+        PASSGEN_RASPBERRY=$(mkpasswd --method=sha-512 --salt=$SALT raspberry)
+        PASSGEN_NWCOMPASS=$(mkpasswd --method=sha-512 --salt=$SALT nwcompass)
+        PASSFILE=$($GREPCMD pi /etc/shadow | cut -d ':' -f2)
+
+        dbgecho "SALT: $SALT"
+        dbgecho "pass file: $PASSFILE"
+        dbgecho "pass  gen raspberry: $PASSGEN_RASPBERRY"
+        dbgecho "pass  gen nwcompass: $PASSGEN_NWCOMPASS"
+
+        if [ "$PASSFILE" = "$PASSGEN_RASPBERRY" ] || [ "$PASSFILE" = "$PASSGEN_NWCOMPASS" ] ; then
+            dbgecho "User pi IS using default password"
+            retcode=1
+        else
+            dbgecho "User pi NOT using default password"
+        fi
     else
-        dbgecho "User pi NOT using default password"
+        retcode=0
     fi
     dbgecho "is_password ret: $retcode"
     ret_password=$retcode
@@ -93,9 +170,46 @@ function is_logappcfg() {
 
 # ===== main
 
+echo "$scriptname: $VERSION"
+
 if [[ $# -gt 0 ]] ; then
     DEBUG=1
 fi
+
+# Verify UDRC device is enumerated
+echo "$(tput setaf 6) == Verify UDRC/DRAWS sound card device$(tput sgr0)"
+check_udrc
+if [ $? -eq 1 ] ; then
+    echo "No sound card enumerated by kernel driver"
+fi
+
+# Check vendor name & HAT product id
+prod_id=0
+echo "== Device tree hat check:"
+if [ -d "/proc/device-tree/hat" ] ; then
+
+    dtree_vendorfile="/proc/device-tree/hat/vendor"
+    vendor="$(tr -d '\0' < $dtree_vendorfile)"
+
+    dtree_prodidfile="/proc/device-tree/hat/product_id"
+    prod_id="$(tr -d '\0' < $dtree_prodidfile)"
+
+    echo "Found an RPi hat from: $vendor, product id: $prod_id"
+else
+    echo "No RPi hat found"
+fi
+
+# Check for a DINAH USB sound device
+check_4_dinah
+if [ -z "$DEVICE" ] ; then
+    echo "No DINAH USB sound device found"
+else
+    echo "Found DINAH USB device"
+fi
+
+# Check /boot/config.txt file for correct DT overlay loaded
+# Uses prod_id set from product_id file /proc/device-tree/hat
+check_dtoverlay
 
 GREPCMD="grep -i"
 
@@ -110,16 +224,9 @@ fi
 
 encrypt_type=$($GREPCMD "pi" /etc/shadow | cut -f2 -d '$')
 
-# Debian 11 and newer uses yescript instead of sha-512
-# 6 = sha-512
-# y = yescrypt
-
-encrypt_type=$($GREPCMD "pi" /etc/shadow | cut -f2 -d '$')
-
 dbgecho "DEBUG: encrypt_type: $encrypt_type"
-
 if [ "$encrypt_type" = 6 ] ; then
-dbgecho " === Verify current password"
+    dbgecho " === Verify current password"
 
     if is_hostname && is_password && is_logappcfg ; then
         echo "-- $cfg_script_name script has ALREADY been run"
