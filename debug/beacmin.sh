@@ -195,7 +195,7 @@ function is_ax25up() {
 function usage() {
    echo "Usage: $scriptname [-P <port number][-D <device_name>][-h]" >&2
    echo "   -P <port number> Set device port number (0 or 1)"
-   echo "   -D <device type> | --device <device type>  Set device name to either udr or dinah, default udr"
+   echo "   -D <device name> | --device <device name>  Set device name to either udr or dinah, default udr"
    echo "   -d | --debug     set debug flag"
    echo "   -h               no arg, display this message"
    echo
