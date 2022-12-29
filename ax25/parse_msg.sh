@@ -5,7 +5,11 @@
 #
 # Set DEBUG=1 for debug echos
 DEBUG=
-VERSION="1.2"
+
+# Set bRESET_COUNT to 1 to clear associate array call sign counts
+bRESET_COUNT=0
+
+VERSION="1.3"
 scriptname="`basename $0`"
 
 # Used to parse only 'listen' lines from a particular port name
@@ -21,11 +25,14 @@ AX25_CFGDIR="/usr/local/etc/ax25"
 AXPORTS_FILE="$AX25_CFGDIR/axports"
 last_line=
 declare -A callsign
+# https://stackoverflow.com/questions/50932280/shell-script-to-run-through-the-day-to-create-files-at-particular-time
 declare -A timestops=(
-  [15:00]="abc.txt"
-  [16:00]="def.txt"
-  [17:00]="hij.txt"
-  [18:00]="xyz.txt"
+  [00:01]="time0001.txt"
+  [06:01]="time0601.txt"
+  [12:01]="time1201.txt"
+  [15:01]="time1501.txt"
+  [18:01]="time1801.txt"
+  [21:01]="time2101.txt"
 )
 
 # trap ctrl-c and call ctrl_c()
@@ -35,13 +42,18 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function output_summary
 #
+# first argument $1 is trigger identifier
+# outfile name: printf '%(%Y%m%d)T-%(%H%M)T' 20221228-2217g
+#
+
 function output_summary() {
 
+    trigger="$1"
     # Get elapsed time in seconds
     et=$((SECONDS-start_time))
     {
         echo
-        echo "On machine $(uname -n)"
+        echo "On machine $(uname -n), triggered by $trigger"
         # Get number of different call signs found.
         callsign_cnt=${#callsign[@]}
         echo "Start:  $start_date"
@@ -52,12 +64,17 @@ function output_summary() {
             rm $tmp_file
         fi
 
-        printf "     APRS Packets\tCount\n"
-        for i in "${!callsign[@]}" ; do
-            printf "%16s\t%3s\n" "$i" "${callsign[$i]}" >> "$tmp_file"
-        done
+	callsign_cnt=${#callsign[@]}
+	if [ $callsign_cnt != 0 ] ; then
+            printf "     APRS Packets\tCount\n"
+            for i in "${!callsign[@]}" ; do
+                printf "%16s\t%3s\n" "$i" "${callsign[$i]}" >> "$tmp_file"
+            done
 
-        sort -k2 -n -r $tmp_file
+            sort -k2 -n -r $tmp_file
+	else
+	    echo "DEBUG: ${FUNCNAME[0]} called with NO call signs"
+	fi
     }  | (tee -a $out_file)
 }
 
@@ -65,7 +82,7 @@ function output_summary() {
 #
 
 function ctrl_c() {
-    output_summary
+    output_summary "ctrl_c"
     exit 0
 }
 
@@ -75,30 +92,40 @@ function trigger_date() {
 
 #printf -v last_time '%(%H:%M)T' -1
 
-#while sleep 1; do
     printf -v curr_time '%(%H:%M)T' -1
-    printf -v curr_date '%(%Y-%m-%d)T' -1
     [[ "$curr_time" = "$last_time" ]] && return
+    printf -v curr_date '%(%Y-%m-%d)T' -1
 #   [[ "$curr_date" = "$run_on_date" ]] || { echo "Day ${run_on_date} has ended; exiting" >&2; exit 0; }
+
     for evt_ts in "${!timestops[@]}"; do
         if [[ $curr_time = "$evt_ts" ]] || [[ $curr_time > $evt_ts && $last_time < $evt_ts ]]; then
             evt_file=${timestops[$evt_ts]}
-            echo "THIS IS TEST FILE." >"$tmp_dir/$evt_file"
-            output_summary
+            callsign_cnt=${#callsign[@]}
+            echo "$(date): Hey TEST FILE, # call signs: $callsign_cnt" >> "$tmp_dir/$evt_file"
+            output_summary "date"
+	    if [ "$bRESET_COUNT" != 0 ] ; then
+                # Empty array
+                callsign=()
+	    fi
         fi
     done
     last_time=$curr_time
-# done
 }
 
 # ===== function trigger_callsign
 
 function trigger_callsign() {
 
+    # DEBUG test for some call signs
+
     if [ "$from_root" = "N7NIX" ] || [ "$from_root" = "$callsign_axport_root" ] ; then
         echo "Found local call sign $from_call at $(date)" >> $debug_file
         echo  >> $debug_file
-        output_summary
+        output_summary "call sign"
+        if [ "$bRESET_COUNT" != 0 ] ; then
+            # Empty array
+            callsign=()
+	fi
     fi
 }
 
@@ -212,10 +239,25 @@ fi
 callsign_axport_root="$(echo "$callsign_axport" | cut -f1 -d'-')"
 
 echo "using AX.25 port name: $PORT_NAME and local call sign: $callsign_axport"
-echo
+# echo "Will trigger on call sign: $callsign_axport, $callsign_axport_root and N7NIX"
 
+times=$(echo  "${!timestops[@]}" | xargs -n1 | sort | xargs)
+echo "Will trigger on times: ${times}"
+reset_str="will NOT"
+if [ $bRESET_COUNT != 0 ] ; then
+   reset_str="WILL"
+fi
+echo "Call sign array counts $reset_str be cleared at trigger times"
+
+#echo "Will trigger on times: ${!timestops[@]}"
+#for evt_ts in "${timestops[@]}"; do
+#    echo -n "$evt_ts "
+#done
+echo ; echo
+
+# Initialize for trigger_date() function
 printf -v run_on_date '%(%Y-%m-%d)T' -1
-# printf -v last_time '%(%H:%M)T' -1
+printf -v last_time '%(%H:%M)T' -1
 
 start_time=$SECONDS
 start_date="$(date "+%Y %m %d %T %Z")"
@@ -259,19 +301,11 @@ while read line ; do
 
 	((total_cnt++))
 
-	# DEBUG test for some call signs
-
-	trigger_callsign
+#	trigger_callsign
 	trigger_date
     fi
 done < "${1:-/dev/stdin}"
 
-# Get elapsed time in seconds
-et=$((SECONDS-start_time))
-echo
-echo "Finish: $(date "+%Y %m %d %T %Z"): Elapsed time: $((et / 3600)) hours, $(((et % 3600)/60)) min, $((et % 60)) secs,  Packet count: $total_cnt"
-# echo "Packet count: $total_cnt"
-echo
-
+output_summary "main loop exit"
 exit 0
 
