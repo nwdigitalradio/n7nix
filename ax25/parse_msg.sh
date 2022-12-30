@@ -7,9 +7,10 @@
 DEBUG=
 
 # Set bRESET_COUNT to 1 to clear associate array call sign counts
-bRESET_COUNT=0
+#  every day
+bRESET_COUNT=1
 
-VERSION="1.3"
+VERSION="1.5"
 scriptname="`basename $0`"
 
 # Used to parse only 'listen' lines from a particular port name
@@ -24,11 +25,13 @@ debug_file="$tmp_dir/aprs_debug.txt"
 AX25_CFGDIR="/usr/local/etc/ax25"
 AXPORTS_FILE="$AX25_CFGDIR/axports"
 last_line=
+
 declare -A callsign
 # https://stackoverflow.com/questions/50932280/shell-script-to-run-through-the-day-to-create-files-at-particular-time
 declare -A timestops=(
   [00:01]="time0001.txt"
   [06:01]="time0601.txt"
+  [09:01]="time0901.txt"
   [12:01]="time1201.txt"
   [15:01]="time1501.txt"
   [18:01]="time1801.txt"
@@ -51,14 +54,15 @@ function output_summary() {
     trigger="$1"
     # Get elapsed time in seconds
     et=$((SECONDS-start_time))
+    period_et=$((SECONDS-period_time))
     {
         echo
-        echo "On machine $(uname -n), triggered by $trigger"
+        echo "On machine $(uname -n), triggered by $trigger, $scriptname Ver: $VERSION"
         # Get number of different call signs found.
         callsign_cnt=${#callsign[@]}
-        echo "Start:  $start_date"
-        echo "Finish: $(date "+%Y %m %d %T %Z"): Elapsed time: $((et / 3600)) hours, $(((et % 3600)/60)) min, $((et % 60)) secs,  Call sign count: $callsign_cnt, Packet count: $total_cnt"
-        echo
+        echo "Start:  $start_date, start count: $period_start__date"
+        echo "Total:  $(date "+%Y %m %d %T %Z"): Elapsed time: $((et / 3600)) hours, $(((et % 3600)/60)) min, $((et % 60)) secs,  Call sign count: $callsign_cnt, Packet count: $total_cnt"
+        echo "Period: Elapsed time: $((period_et / 3600)) hours, $(((et % 3600)/60)) min, $((et % 60)) secs,  Period Packet count: $period_cnt"
 
         if [ -e "$tmp_file" ] ; then
             rm $tmp_file
@@ -95,7 +99,6 @@ function trigger_date() {
     printf -v curr_time '%(%H:%M)T' -1
     [[ "$curr_time" = "$last_time" ]] && return
     printf -v curr_date '%(%Y-%m-%d)T' -1
-#   [[ "$curr_date" = "$run_on_date" ]] || { echo "Day ${run_on_date} has ended; exiting" >&2; exit 0; }
 
     for evt_ts in "${!timestops[@]}"; do
         if [[ $curr_time = "$evt_ts" ]] || [[ $curr_time > $evt_ts && $last_time < $evt_ts ]]; then
@@ -104,8 +107,19 @@ function trigger_date() {
             echo "$(date): Hey TEST FILE, # call signs: $callsign_cnt" >> "$tmp_dir/$evt_file"
             output_summary "date"
 	    if [ "$bRESET_COUNT" != 0 ] ; then
-                # Empty array
-                callsign=()
+	        # reset counts every 24 hours when '%(%Y-%m-%d)T' changes
+                if [[ "$curr_date" != "$run_on_date" ]] ; then
+                    # Empty call sign count array
+                    callsign=()
+		    period_cnt=0
+	            callsign_cnt=${#callsign[@]}
+                    echo "$(date) Resetting count array, Call sign count: $callsign_cnt" >> $debug_file
+
+	    	    period_start_date="$(date "+%Y %m %d %T %Z")"
+		    period_time=$SECONDS
+		    run_on_date="$curr_date"
+                    out_file="$tmp_dir/aprs_report_${curr_date}.txt"
+		fi
 	    fi
         fi
     done
@@ -119,12 +133,14 @@ function trigger_callsign() {
     # DEBUG test for some call signs
 
     if [ "$from_root" = "N7NIX" ] || [ "$from_root" = "$callsign_axport_root" ] ; then
-        echo "Found local call sign $from_call at $(date)" >> $debug_file
+        echo "$(date) Found local call sign $from_call" >> $debug_file
         echo  >> $debug_file
         output_summary "call sign"
         if [ "$bRESET_COUNT" != 0 ] ; then
-            # Empty array
+            # reset array
             callsign=()
+	    echo "$(date) Resetting count array" >> $debug_file
+	    start_count_date="$(date "+%Y %m %d %T %Z")"
 	fi
     fi
 }
@@ -182,6 +198,21 @@ function get_portname() {
 #
 
 echo "$scriptname Ver: $VERSION" | tee -a $out_file
+
+# Verify there is a local temporary directory
+if [ ! -d $tmp_dir ] ; then
+    # Verify user home dir name
+    # Get list of users with home directories
+    USERLIST="$(ls /home)"
+    # Check if there is only a single user on this system
+    if (( `ls /home | wc -l` == 1 )) ; then
+        USER=$(ls /home)
+    else
+        echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+        read -e USER
+   fi
+   mkdir -p /home/$USER/tmp
+fi
 
 while [[ $# -gt 0 ]] ; do
 key="$1"
@@ -247,7 +278,7 @@ reset_str="will NOT"
 if [ $bRESET_COUNT != 0 ] ; then
    reset_str="WILL"
 fi
-echo "Call sign array counts $reset_str be cleared at trigger times"
+echo "Call sign array counts $reset_str be cleared at beginning of new day"
 
 #echo "Will trigger on times: ${!timestops[@]}"
 #for evt_ts in "${timestops[@]}"; do
@@ -260,8 +291,15 @@ printf -v run_on_date '%(%Y-%m-%d)T' -1
 printf -v last_time '%(%H:%M)T' -1
 
 start_time=$SECONDS
+period_time=$SECONDS
+
 start_date="$(date "+%Y %m %d %T %Z")"
+period_start_date="$(date "+%Y %m %d %T %Z")"
 total_cnt=0
+period_cnt=0
+printf -v curr_date '%(%Y-%m-%d)T' -1
+out_file="$tmp_dir/aprs_report_${curr_date}.txt"
+
 
 while read line ; do
 #    echo "begin1:${line}:end1"
@@ -270,6 +308,7 @@ while read line ; do
     if [ $? -eq 0 ] ; then
         from_call=$(echo "$line" | cut -f3 -d' ')
 	to_call=$(echo "$line" | cut -f5 -d' ')
+	via_call=$(echo "$line" | cut -f7 -d' ')
 	at_time=$(echo "$line" | rev | cut -d' ' -f 1 | rev)
 #        echo "begin2:$(echo $line | cut -f3 -d' '):end2"
 #        echo "$from_call to $to_call at $at_time"
@@ -277,10 +316,17 @@ while read line ; do
 
 	curr_line=$(printf "%s to %s" "$from_call" "$to_call")
 	if [ "$last_line" = "$curr_line" ] ; then
-            via_call=$(echo "$line" | cut -f7 -d' ')
-	    echo "Dup $via_call at $at_time"
+	    if [[ ${#via_call} -le 8 ]] ; then
+                printf "Dup %s at\t\t\t\t%s\n" "$via_call" "$at_time"
+	    else
+	        printf "Dup %s at\t\t\t%s\n" "$via_call" "$at_time"
+	    fi
 	else
-            printf "%s to %s at\t%s\n" "$from_call" "$to_call" "$at_time"
+	    if [[ ${#from_call} -le 7 ]] ; then
+                printf "%s\t\t%s via %-8s\t%s\n" "$from_call" "$to_call" "$via_call" "$at_time"
+	    else
+                printf "%s\t%s via %-8s\t%s\n" "$from_call" "$to_call" "$via_call" "$at_time"
+	    fi
 	fi
 	last_line="$curr_line"
 
@@ -299,11 +345,13 @@ while read line ; do
 	    dbgecho "DEBUG: new array entry: $from_call"
 	fi
 
+	((period_cnt++))
 	((total_cnt++))
 
-#	trigger_callsign
-	trigger_date
     fi
+
+    trigger_date
+
 done < "${1:-/dev/stdin}"
 
 output_summary "main loop exit"
