@@ -1,8 +1,10 @@
 #!/bin/bash
 #
+# aprs_cs_collect
+#
 # If there any command line args will be used as a file name instead of
 #  stdin.
-#
+# This script runs by itself in a continuous loop
 # Set DEBUG=1 for debug echos
 DEBUG=
 
@@ -10,7 +12,7 @@ DEBUG=
 #  every day
 bRESET_COUNT=1
 
-VERSION="1.5"
+VERSION="1.6"
 scriptname="`basename $0`"
 
 # Used to parse only 'listen' lines from a particular port name
@@ -46,7 +48,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # ===== function output_summary
 #
 # first argument $1 is trigger identifier
-# outfile name: printf '%(%Y%m%d)T-%(%H%M)T' 20221228-2217g
+# outfile name: printf '%(%Y%m%d)T-%(%H%M)T' 20221228-2217
 #
 
 function output_summary() {
@@ -60,9 +62,9 @@ function output_summary() {
         echo "On machine $(uname -n), triggered by $trigger, $scriptname Ver: $VERSION"
         # Get number of different call signs found.
         callsign_cnt=${#callsign[@]}
-        echo "Start:  $start_date, start count: $period_start__date"
-        echo "Total:  $(date "+%Y %m %d %T %Z"): Elapsed time: $((et / 3600)) hours, $(((et % 3600)/60)) min, $((et % 60)) secs,  Call sign count: $callsign_cnt, Packet count: $total_cnt"
-        echo "Period: Elapsed time: $((period_et / 3600)) hours, $(((et % 3600)/60)) min, $((et % 60)) secs,  Period Packet count: $period_cnt"
+        echo "Start:  $start_date, start count: $period_start_date"
+        echo "Total:  $(date "+%Y %m %d %T %Z"), Elapsed time: $((et / 3600)) hours, $(((et % 3600)/60)) min, $((et % 60)) secs,  Call sign count: $callsign_cnt, Packet count: $total_cnt"
+        echo "Period: Elapsed time: $((period_et / 3600)) hours, $(((period_et % 3600)/60)) min, $((period_et % 60)) secs,  Period Packet count: $period_cnt"
 
         if [ -e "$tmp_file" ] ; then
             rm $tmp_file
@@ -105,19 +107,22 @@ function trigger_date() {
             evt_file=${timestops[$evt_ts]}
             callsign_cnt=${#callsign[@]}
             echo "$(date): Hey TEST FILE, # call signs: $callsign_cnt" >> "$tmp_dir/$evt_file"
+
             output_summary "date"
+
+	    period_cnt=0
+	    period_start_date="$(date "+%Y %m %d %T %Z")"
+	    period_time=$SECONDS
+
 	    if [ "$bRESET_COUNT" != 0 ] ; then
 	        # reset counts every 24 hours when '%(%Y-%m-%d)T' changes
                 if [[ "$curr_date" != "$run_on_date" ]] ; then
                     # Empty call sign count array
                     callsign=()
-		    period_cnt=0
 	            callsign_cnt=${#callsign[@]}
                     echo "$(date) Resetting count array, Call sign count: $callsign_cnt" >> $debug_file
 
-	    	    period_start_date="$(date "+%Y %m %d %T %Z")"
-		    period_time=$SECONDS
-		    run_on_date="$curr_date"
+        	    run_on_date="$curr_date"
                     out_file="$tmp_dir/aprs_report_${curr_date}.txt"
 		fi
 	    fi
