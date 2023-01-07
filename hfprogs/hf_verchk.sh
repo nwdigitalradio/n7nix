@@ -384,7 +384,7 @@ fi
 # wsjtx
 if [ -z "$DEBUG1" ] ; then
     wsjtx_app="wsjtx"
-    ver_url="https://physics.princeton.edu/pulsar/K1JT/$wsjtx_app.html"
+    # ver_url="https://physics.princeton.edu/pulsar/K1JT/$wsjtx_app.html"
     # Trying to parse this:
     # Availability (GA) release:&nbsp; <i>WSJT-X</i><i> 2.2</i>.1<br>
 
@@ -400,7 +400,11 @@ if [ -z "$DEBUG1" ] ; then
 #     wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | tr -dc '[:alnum:].' )
 
      # ------works for 2.5.2
-     wsjtx_ver=$(curl --insecure -Ls https://physics.princeton.edu/pulsar/K1JT/wsjtx.html | grep -A 2 -i "raspberry" | grep -i "wsjtx_.*armhf.*" | sed -e 's/<[^>]*>//g' | cut -f2 -d'>')
+     # This web URL is deprecated
+     # wsjtx_url="https://physics.princeton.edu/pulsar/K1JT/wsjtx.html"
+     wsjtx_url="https://wsjt.sourceforge.io/wsjtx.html"
+     dbgecho "wsjtx: trying url: $wsjtx_url"
+     wsjtx_ver=$(curl --insecure -Ls "$wsjtx_url" | grep -A 2 -i "raspberry" | grep -i "wsjtx_.*armhf.*" | sed -e 's/<[^>]*>//g' | cut -f2 -d'>')
 
     # Remove preceding white space & any non printable characters
     wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | cut -f2 -d '_' )
