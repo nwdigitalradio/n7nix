@@ -8,7 +8,7 @@
 #     printf -v curr_date '%(%Y-%m-%d)T' -1
 #     out_file="$tmp_dir/aprs_report_${curr_date}.txt"
 
-VERSION="1.0"
+VERSION="1.1"
 scriptname="`basename $0`"
 
 CSMSGFILE="/home/pi/tmp/aprs_parse_file.txt"
@@ -102,7 +102,7 @@ function usage () {
 
 # ===== main
 
-echo "APRS call sign check started: $(date)" > $CSMSGFILE
+echo "APRS call sign report Ver: $VERSION started: $(date)" | tee $CSMSGFILE
 
 # Check if the collection script is running
 pgrep -f aprs_cs_collect.sh > /dev/null
