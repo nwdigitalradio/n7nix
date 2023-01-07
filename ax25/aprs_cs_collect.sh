@@ -12,7 +12,7 @@ DEBUG=
 #  every day
 bRESET_COUNT=1
 
-VERSION="1.6"
+VERSION="1.8"
 scriptname="`basename $0`"
 
 # Used to parse only 'listen' lines from a particular port name
@@ -28,7 +28,8 @@ AX25_CFGDIR="/usr/local/etc/ax25"
 AXPORTS_FILE="$AX25_CFGDIR/axports"
 last_line=
 
-declare -A callsign
+declare -A callsign_tot
+declare -A callsign_per
 # https://stackoverflow.com/questions/50932280/shell-script-to-run-through-the-day-to-create-files-at-particular-time
 declare -A timestops=(
   [00:01]="time0001.txt"
@@ -45,6 +46,37 @@ trap ctrl_c INT
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function summary_total
+
+function summary_total() {
+
+    if [ $callsign_totcnt != 0 ] ; then
+        printf "     APRS Packets\tCount\n"
+        for i in "${!callsign_tot[@]}" ; do
+            printf "%16s\t%3s\n" "$i" "${callsign_tot[$i]}" >> "$tmp_file"
+        done
+
+        sort -k2 -n -r $tmp_file
+    else
+        echo "DEBUG: ${FUNCNAME[0]} called with NO call signs"
+    fi
+}
+# ===== function summary_period
+
+function summary_period() {
+
+    if [ $callsign_percnt != 0 ] ; then
+        printf "     APRS Packets\tCount\n"
+        for i in "${!callsign_per[@]}" ; do
+            printf "%16s\t%3s\n" "$i" "${callsign_per[$i]}" >> "$tmp_file"
+        done
+
+        sort -k2 -n -r $tmp_file
+    else
+	echo "DEBUG: ${FUNCNAME[0]} called with NO call signs"
+    fi
+}
+
 # ===== function output_summary
 #
 # first argument $1 is trigger identifier
@@ -54,33 +86,33 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 function output_summary() {
 
     trigger="$1"
+    bTotal="$2"
+
     # Get elapsed time in seconds
     et=$((SECONDS-start_time))
     period_et=$((SECONDS-period_time))
     {
         echo
-        echo "On machine $(uname -n), triggered by $trigger, $scriptname Ver: $VERSION"
+        echo "On machine $(uname -n), triggered by $trigger, for $bTotal, $scriptname Ver: $VERSION"
+
         # Get number of different call signs found.
-        callsign_cnt=${#callsign[@]}
+        callsign_totcnt=${#callsign_tot[@]}
+        callsign_percnt=${#callsign_per[@]}
+
         echo "Start:  $start_date, start count: $period_start_date"
-        echo "Total:  $(date "+%Y %m %d %T %Z"), Elapsed time: $((et / 3600)) hours, $(((et % 3600)/60)) min, $((et % 60)) secs,  Call sign count: $callsign_cnt, Packet count: $total_cnt"
-        echo "Period: Elapsed time: $((period_et / 3600)) hours, $(((period_et % 3600)/60)) min, $((period_et % 60)) secs,  Period Packet count: $period_cnt"
+        echo "Total:  $(date "+%Y %m %d %T %Z"), Elapsed time: $((et / 3600)) hours, $(((et % 3600)/60)) min, $((et % 60)) secs,  Call sign count: $callsign_totcnt, Packet count: $total_cnt"
+        echo "Period: Elapsed time: $((period_et / 3600)) hours, $(((period_et % 3600)/60)) min, $((period_et % 60)) secs,  Call sign count: $callsign_percnt, Period Packet count: $period_cnt"
 
         if [ -e "$tmp_file" ] ; then
             rm $tmp_file
         fi
 
-	callsign_cnt=${#callsign[@]}
-	if [ $callsign_cnt != 0 ] ; then
-            printf "     APRS Packets\tCount\n"
-            for i in "${!callsign[@]}" ; do
-                printf "%16s\t%3s\n" "$i" "${callsign[$i]}" >> "$tmp_file"
-            done
-
-            sort -k2 -n -r $tmp_file
+	if [ "$bTotal" = "total" ] ; then
+	   summary_total
 	else
-	    echo "DEBUG: ${FUNCNAME[0]} called with NO call signs"
+	   summary_period
 	fi
+
     }  | (tee -a $out_file)
 }
 
@@ -88,7 +120,7 @@ function output_summary() {
 #
 
 function ctrl_c() {
-    output_summary "ctrl_c"
+    output_summary "ctrl_c" "total"
     exit 0
 }
 
@@ -105,11 +137,15 @@ function trigger_date() {
     for evt_ts in "${!timestops[@]}"; do
         if [[ $curr_time = "$evt_ts" ]] || [[ $curr_time > $evt_ts && $last_time < $evt_ts ]]; then
             evt_file=${timestops[$evt_ts]}
-            callsign_cnt=${#callsign[@]}
-            echo "$(date): Hey TEST FILE, # call signs: $callsign_cnt" >> "$tmp_dir/$evt_file"
 
-            output_summary "date"
+            callsign_percnt=${#callsign_per[@]}
 
+            echo "$(date): Hey TEST FILE, # call signs: $callsign_percnt" >> "$tmp_dir/$evt_file"
+
+            output_summary "date" "period"
+
+            # Empty period call sign count array
+            callsign_per=()
 	    period_cnt=0
 	    period_start_date="$(date "+%Y %m %d %T %Z")"
 	    period_time=$SECONDS
@@ -117,10 +153,14 @@ function trigger_date() {
 	    if [ "$bRESET_COUNT" != 0 ] ; then
 	        # reset counts every 24 hours when '%(%Y-%m-%d)T' changes
                 if [[ "$curr_date" != "$run_on_date" ]] ; then
-                    # Empty call sign count array
-                    callsign=()
-	            callsign_cnt=${#callsign[@]}
-                    echo "$(date) Resetting count array, Call sign count: $callsign_cnt" >> $debug_file
+	            callsign_totcnt=${#callsign_tot[@]}
+
+		    output_summary "date" "total"
+
+                    # Empty total call sign count array
+                    callsign_tot=()
+	    	    total_cnt=0
+                    echo "$(date) Resetting total count array, Call sign count: $callsign_totcnt" >> $debug_file
 
         	    run_on_date="$curr_date"
                     out_file="$tmp_dir/aprs_report_${curr_date}.txt"
@@ -140,10 +180,10 @@ function trigger_callsign() {
     if [ "$from_root" = "N7NIX" ] || [ "$from_root" = "$callsign_axport_root" ] ; then
         echo "$(date) Found local call sign $from_call" >> $debug_file
         echo  >> $debug_file
-        output_summary "call sign"
+        output_summary "call sign" "total"
         if [ "$bRESET_COUNT" != 0 ] ; then
             # reset array
-            callsign=()
+            callsign_per=()
 	    echo "$(date) Resetting count array" >> $debug_file
 	    start_count_date="$(date "+%Y %m %d %T %Z")"
 	fi
@@ -321,33 +361,53 @@ while read line ; do
 
 	curr_line=$(printf "%s to %s" "$from_call" "$to_call")
 	if [ "$last_line" = "$curr_line" ] ; then
+
 	    if [[ ${#via_call} -le 8 ]] ; then
                 printf "Dup %s at\t\t\t\t%s\n" "$via_call" "$at_time"
 	    else
 	        printf "Dup %s at\t\t\t%s\n" "$via_call" "$at_time"
 	    fi
 	else
-	    if [[ ${#from_call} -le 7 ]] ; then
-                printf "%s\t\t%s via %-8s\t%s\n" "$from_call" "$to_call" "$via_call" "$at_time"
+	    # via_call with nine characters does not line up only pads
+	    # with 7 spaces, need 15 spaces
+	    from_len=${#from_call}
+
+	    if [[ $from_len -le 7 ]] ; then
+                printf "%s\t\t%s via %-10s\t%s\n" "$from_call" "$to_call" "$via_call" "$at_time"
 	    else
-                printf "%s\t%s via %-8s\t%s\n" "$from_call" "$to_call" "$via_call" "$at_time"
+                printf "%s\t%s via %-10s\t%s\n" "$from_call" "$to_call" "$via_call" "$at_time"
 	    fi
 	fi
 	last_line="$curr_line"
 
-	bFound=false
-	for i in "${!callsign[@]}" ; do
-	    if [ "$i" = "$from_call" ] ; then
-	        callsign[$i]=$((callsign[$i] + 1))
-		dbgecho "DEBUG: incrementing $from_call for index: $i"
-		bFound=true
-		break;
-	    fi
-	done
+        # Weed out some junk aprs packets
+	# Test for NON-ASCII characters and callsign too long
+	if [[ $from_call = *[![:ascii:]]* ]] || [[ $from_len -gt 9 ]] ; then
+	    echo
+            echo "Found Non-ASCII characters in from_call or length too large: $from_len"
+	    echo
+	    continue;
+        fi
 
-	if [ "$bFound" = false ] ; then
-    	    callsign[$from_call]=1;
-	    dbgecho "DEBUG: new array entry: $from_call"
+	if [ 1 -eq 0 ] ; then
+            bFound=false
+	    for i in "${!callsign_tot[@]}" ; do
+	        if [ "$i" = "$from_call" ] ; then
+	            callsign_tot[$i]=$((callsign_tot[$i] + 1))
+		    dbgecho "DEBUG: incrementing $from_call for index: $i"
+	            bFound=true
+		    break;
+	        fi
+	    done
+
+	    if [ "$bFound" = false ] ; then
+    	        callsign_tot[$from_call]=1;
+    	        callsign_per[$from_call]=1;
+	        dbgecho "DEBUG: new array entry: $from_call"
+	    fi
+	else
+            callsign_tot[$from_call]=$((callsign_tot[$from_call] + 1))
+            callsign_per[$from_call]=$((callsign_per[$from_call] + 1))
 	fi
 
 	((period_cnt++))
@@ -359,6 +419,6 @@ while read line ; do
 
 done < "${1:-/dev/stdin}"
 
-output_summary "main loop exit"
+output_summary "main loop exit" "total"
 exit 0
 
