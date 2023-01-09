@@ -42,7 +42,8 @@ function get_start_times() {
 
 #    echo "${FUNCNAME[0]} "
     # Get a string with all start times
-    start_times=$(grep --binary-files=text -i "total: " $aprs_file_name | cut -f1 -d','| cut -d: -f2-)
+#    start_times=$(grep --binary-files=text -i "total: " $aprs_file_name | cut -f1 -d','| cut -d: -f2-)
+    start_times=$(grep --binary-files=text -i "^Period:" $aprs_file_name | cut -f1 -d',' | cut -d':' -f3- | sed 's|\(.*\):.*|\1|')
 
     # Some DEV notes:
     # echo "start times 1: $start_times"
@@ -55,6 +56,7 @@ function get_start_times() {
     # Break start time string up into array elements
     i=0
     while IFS='\n' read -r line ; do
+        line="${line#"${line%%[![:space:]]*}"}"
 #        echo "$i, -$line-"
         arrVar+=("$line")
 	((i++))
@@ -76,7 +78,20 @@ function display_cnts() {
     i=0
     for value in "${arrVar[@]}" ; do
 
-        callsign_cnt=$(grep --binary-files=text -A 999 "$value, " "$aprs_file_name" | grep --binary-files=text  -B 999  "${arrVar[i+1]}" | grep --binary-files=text -i "$call_sign")
+
+#        callsign_cnt=$(grep --binary-files=text -A 999 "$value, " "$aprs_file_name" | grep --binary-files=text  -B 999  "${arrVar[i+1]}" | grep --binary-files=text -i "$call_sign")
+        callsign_cnt=$(grep --binary-files=text -A 999 "$value" "$aprs_file_name" | grep --binary-files=text  -B 999  "${arrVar[i+1]}" | grep --binary-files=text -i "$call_sign")
+#                       grep --binary-files=text -A 999 "2023 01 09 06:01" /home/pi/tmp/aprs_report_2023-01-09.txt | grep --binary-files=text  -B 999  "2023 01 09 09:01" | grep --binary-files=text -i "n7nix"
+
+#      test_cnt="$(grep --binary-files=text -A 999 "$value, " "$aprs_file_name" | grep --binary-files=text  -B 999  "${arrVar[i+1]}")"
+#        echo "test_count value: $value, value_1 "${arrVar[i+1]}": $test_cnt"
+
+#        echo "${FUNCNAME[0]}  DEBUG: count:=$callsign_cnt="
+	# remove leading whitespace characters
+        callsign_cnt="${callsign_cnt#"${callsign_cnt%%[![:space:]]*}"}"
+
+#        echo "debug: VALUE: $value Next VALUE: ${arrVar[i+1]} CALL SIGN: $call_sign COUNT: $callsign_cnt"
+
 	# remove leading whitespace characters
         callsign_cnt="${callsign_cnt#"${callsign_cnt%%[![:space:]]*}"}"
 #        echo "$i, $value, 2nd grep "${arrVar[i+1]}", $callsign_cnt"
