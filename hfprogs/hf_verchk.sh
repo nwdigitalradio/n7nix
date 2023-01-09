@@ -400,10 +400,12 @@ if [ -z "$DEBUG1" ] ; then
 #     wsjtx_ver=$(echo ${wsjtx_ver##+([[:space:]])} | tr -dc '[:alnum:].' )
 
      # ------works for 2.5.2
-     # This web URL is deprecated
+     # The following web URL is deprecated
      # wsjtx_url="https://physics.princeton.edu/pulsar/K1JT/wsjtx.html"
+     # New URL 0107.2023
      wsjtx_url="https://wsjt.sourceforge.io/wsjtx.html"
      dbgecho "wsjtx: trying url: $wsjtx_url"
+
      wsjtx_ver=$(curl --insecure -Ls "$wsjtx_url" | grep -A 2 -i "raspberry" | grep -i "wsjtx_.*armhf.*" | sed -e 's/<[^>]*>//g' | cut -f2 -d'>')
 
     # Remove preceding white space & any non printable characters
