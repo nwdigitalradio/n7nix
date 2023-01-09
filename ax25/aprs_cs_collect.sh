@@ -12,7 +12,7 @@ DEBUG=
 #  every day
 bRESET_COUNT=1
 
-VERSION="1.8"
+VERSION="1.9"
 scriptname="`basename $0`"
 
 # Used to parse only 'listen' lines from a particular port name
@@ -89,19 +89,20 @@ function output_summary() {
     bTotal="$2"
 
     # Get elapsed time in seconds
-    et=$((SECONDS-start_time))
-    period_et=$((SECONDS-period_time))
+    total_et=$(( SECONDS - start_time ))
+    period_et=$(( SECONDS - period_start_time ))
     {
         echo
-        echo "On machine $(uname -n), triggered by $trigger, for $bTotal, $scriptname Ver: $VERSION"
+        echo "On machine $(uname -n), triggered by $trigger, for a $bTotal, $scriptname Ver: $VERSION"
 
         # Get number of different call signs found.
         callsign_totcnt=${#callsign_tot[@]}
         callsign_percnt=${#callsign_per[@]}
 
-        echo "Start:  $start_date, start count: $period_start_date"
-        echo "Total:  $(date "+%Y %m %d %T %Z"), Elapsed time: $((et / 3600)) hours, $(((et % 3600)/60)) min, $((et % 60)) secs,  Call sign count: $callsign_totcnt, Packet count: $total_cnt"
-        echo "Period: Elapsed time: $((period_et / 3600)) hours, $(((period_et % 3600)/60)) min, $((period_et % 60)) secs,  Call sign count: $callsign_percnt, Period Packet count: $period_cnt"
+	# This will mess up the grep between dates
+#	echo "Output summary for: $(date "+%Y %m %d %T %Z")"
+        echo "Running Total:  start date: $start_date, Elapsed time: $((total_et / 3600)) hours, $(((total_et % 3600)/60)) min, $((total_et % 60)) secs,  Call Sign count: $callsign_totcnt, Packet count: $total_cnt"
+        echo "Period:         start date: $period_start_date, Elapsed time: $((period_et / 3600)) hours, $(((period_et % 3600)/60)) min, $((period_et % 60)) secs,  Period Call Sign count: $callsign_percnt, Period Packet count: $period_cnt"
 
         if [ -e "$tmp_file" ] ; then
             rm $tmp_file
@@ -148,7 +149,7 @@ function trigger_date() {
             callsign_per=()
 	    period_cnt=0
 	    period_start_date="$(date "+%Y %m %d %T %Z")"
-	    period_time=$SECONDS
+	    period_start_time=$SECONDS
 
 	    if [ "$bRESET_COUNT" != 0 ] ; then
 	        # reset counts every 24 hours when '%(%Y-%m-%d)T' changes
@@ -160,6 +161,7 @@ function trigger_date() {
                     # Empty total call sign count array
                     callsign_tot=()
 	    	    total_cnt=0
+		    start_time=$SECONDS
                     echo "$(date) Resetting total count array, Call sign count: $callsign_totcnt" >> $debug_file
 
         	    run_on_date="$curr_date"
@@ -336,7 +338,7 @@ printf -v run_on_date '%(%Y-%m-%d)T' -1
 printf -v last_time '%(%H:%M)T' -1
 
 start_time=$SECONDS
-period_time=$SECONDS
+period_start_time=$SECONDS
 
 start_date="$(date "+%Y %m %d %T %Z")"
 period_start_date="$(date "+%Y %m %d %T %Z")"
@@ -349,7 +351,7 @@ out_file="$tmp_dir/aprs_report_${curr_date}.txt"
 while read line ; do
 #    echo "begin1:${line}:end1"
 #    echo "Found $(echo $line | wc -l) lines"
-    echo "$line" | grep -q $PORT_NAME
+    echo "$line" | grep -q "^${PORT_NAME}:"
     if [ $? -eq 0 ] ; then
         from_call=$(echo "$line" | cut -f3 -d' ')
 	to_call=$(echo "$line" | cut -f5 -d' ')
@@ -368,15 +370,19 @@ while read line ; do
 	        printf "Dup %s at\t\t\t%s\n" "$via_call" "$at_time"
 	    fi
 	else
-	    # via_call with nine characters does not line up only pads
-	    # with 7 spaces, need 15 spaces
+	    # via_call with nine characters does not line up,
+	    #  only pads with 7 spaces, need 15 spaces
 	    from_len=${#from_call}
 
-	    if [[ $from_len -le 7 ]] ; then
-                printf "%s\t\t%s via %-10s\t%s\n" "$from_call" "$to_call" "$via_call" "$at_time"
+            if [ 1 -eq 1 ] ; then
+                printf "%-9s\t%s via %-10s\t%s\n" "$from_call" "$to_call" "$via_call" "$at_time"
 	    else
-                printf "%s\t%s via %-10s\t%s\n" "$from_call" "$to_call" "$via_call" "$at_time"
-	    fi
+                if [[ $from_len -le 7 ]] ; then
+                    printf "%s\t\t%s via %-10s\t%s\n" "$from_call" "$to_call" "$via_call" "$at_time"
+                else
+                    printf "%s\t%s via %-10s\t%s\n" "$from_call" "$to_call" "$via_call" "$at_time"
+               fi
+	   fi
 	fi
 	last_line="$curr_line"
 
