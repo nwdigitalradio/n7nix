@@ -125,14 +125,22 @@ function build_wsjtx() {
     download_filename="wsjtx_${wsjtx_ver}_armhf.deb"
     cd "$SRC_DIR"
 
+     # The following web URL is deprecated
+     # wsjtx_url="https://physics.princeton.edu/pulsar/K1JT/wsjtx.html"
+     # New URL 0107.2023
+     #wsjtx_url="https://wsjt.sourceforge.io/wsjtx.html"
+     wsjtx_url="https://sourceforge.net/projects/wsjt/files/wsjtx-${wsjtx_ver}"
+     dbgecho "wsjtx: trying url: $wsjtx_url"
+
+
     # wsjt-x home page:
     #  - https://physics.princeton.edu/pulsar/k1jt/wsjtx.html
-    sudo wget http://physics.princeton.edu/pulsar/K1JT/$download_filename
+    sudo wget ${wsjtx_url}/$download_filename
     if [ $? -ne 0 ] ; then
         echo "$(tput setaf 1)FAILED to download file: $download_filename $(tput setaf 7)"
         exit 1
     else
-        sudo dpkg -i $download_filename
+        sudo dpkg -i --force-overwrite $download_filename
         if [ $? -ne 0 ] ; then
             echo -e "\n$(tput setaf 4)Problem installing $download_filename, attempting to fix broken install$(tput sgr0)\n"
             # attempt to correct a system with broken dependencies
@@ -374,7 +382,7 @@ if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     # Build js8call first to satisfy some wsjtx dependencies
     # - js8call breaks wsjtx package 11/2021
     build_js8call "2.2.0"
-    build_wsjtx "2.5.4"
+    build_wsjtx "2.6.1"
     build_hamlib "4.4"
     build_flapp "0.1.4" flxmlrpc
     # Must build fldigi before the other apps
