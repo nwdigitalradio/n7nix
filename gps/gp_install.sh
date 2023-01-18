@@ -62,7 +62,19 @@ if [ $? -ne 0 ] ; then
 fi
 tar -zxvf gpsd-$gpsd_ver.tar.gz
 # get rid of version number in directory name
+if [ -d gpsd ] ; then
+   sudo rm -r gpsd
+   if [ $? -ne 0 ] ; then
+       echo "Error REMOVING gpsd directory, exiting"
+       exit 1
+   fi
+fi
 mv gpsd-$gpsd_ver gpsd
+if [ $? -ne 0 ] ; then
+    echo "Error MOVING gpsd-$gpsd_ver directory, exiting"
+    exit 1
+fi
+
 cd gpsd
 
 # Clone git repo
