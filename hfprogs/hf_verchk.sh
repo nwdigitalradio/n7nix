@@ -152,10 +152,19 @@ SRC_DIR="/usr/local/src"
         else
 	    # WSJTX can no longer (bullseye) be installed from a package
 	    if [ "${progname}" == "wsjtx" ] ; then
-                dbgecho "Get version for $progname from directory name"
-                # Get version number from directory name
-                prog_ver=$(ls -d $SRC_DIR/$progname*/ | tail -n1 | cut -d'-' -f2 | tr -d '/')
+	        # dpkg silent mode
+	        dpkg -l wsjtx &> /dev/null
+	        if [ $? -eq 0 ] ; then
+		    # Installed package found, get version number from
+		    #  package name
+                    prog_ver=$(dpkg -l $progname | tail -n 1 | tr -s ' ' | cut -d' ' -f3)
+		else
+                    dbgecho "Get version for $progname from directory name"
+                    # Get version number from directory name
+                    prog_ver=$(ls -d $SRC_DIR/$progname*/ | tail -n1 | cut -d'-' -f2 | tr -d '/')
+		fi
 	    else
+	        # Get version number from package name
                 #dirname="$(ls -1 $SRC_DIR/$progname*.deb | tail -n1)"
                 #prog_ver=$(basename $dirname .deb | cut -d'_' -f2)
                 prog_ver=$(dpkg -l $progname | tail -n 1 | tr -s ' ' | cut -d' ' -f3)
