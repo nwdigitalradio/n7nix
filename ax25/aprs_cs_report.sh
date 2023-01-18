@@ -8,7 +8,7 @@
 #     printf -v curr_date '%(%Y-%m-%d)T' -1
 #     out_file="$tmp_dir/aprs_report_${curr_date}.txt"
 
-VERSION="1.1"
+VERSION="1.2"
 scriptname="`basename $0`"
 
 CSMSGFILE="/home/pi/tmp/aprs_parse_file.txt"
@@ -43,6 +43,9 @@ function get_start_times() {
 #    echo "${FUNCNAME[0]} "
     # Get a string with all start times
 #    start_times=$(grep --binary-files=text -i "total: " $aprs_file_name | cut -f1 -d','| cut -d: -f2-)
+
+    # The following will cut all characters after the last ':'
+    #  Keep just the beginning of the time string, no seconds
     start_times=$(grep --binary-files=text -i "^Period:" $aprs_file_name | cut -f1 -d',' | cut -d':' -f3- | sed 's|\(.*\):.*|\1|')
 
     # Some DEV notes:
@@ -70,6 +73,7 @@ function get_start_times() {
 function display_cnts() {
 
     call_sign="$1"
+#    echo "${FUNCNAME[0]} : call sign $call_sign"
 #    echo "DEBUG: display cnts for call sign: $call_sign"
 
     #    grep -i $i $file
@@ -78,15 +82,19 @@ function display_cnts() {
     i=0
     for value in "${arrVar[@]}" ; do
 
+	# Just ignore anything that is not a valid date
+        if [ ${#value} -lt 16 ] ; then
+	    continue;
+        fi
 
 #        callsign_cnt=$(grep --binary-files=text -A 999 "$value, " "$aprs_file_name" | grep --binary-files=text  -B 999  "${arrVar[i+1]}" | grep --binary-files=text -i "$call_sign")
-        callsign_cnt=$(grep --binary-files=text -A 999 "$value" "$aprs_file_name" | grep --binary-files=text  -B 999  "${arrVar[i+1]}" | grep --binary-files=text -i "$call_sign")
+        callsign_cnt=$(grep --binary-files=text -A 999 "$value" "$aprs_file_name" | grep --binary-files=text  -B 999  "${arrVar[i+1]}" | grep --binary-files=text -i "$call_sign" | head -n1)
 #                       grep --binary-files=text -A 999 "2023 01 09 06:01" /home/pi/tmp/aprs_report_2023-01-09.txt | grep --binary-files=text  -B 999  "2023 01 09 09:01" | grep --binary-files=text -i "n7nix"
 
 #      test_cnt="$(grep --binary-files=text -A 999 "$value, " "$aprs_file_name" | grep --binary-files=text  -B 999  "${arrVar[i+1]}")"
 #        echo "test_count value: $value, value_1 "${arrVar[i+1]}": $test_cnt"
 
-#        echo "${FUNCNAME[0]}  DEBUG: count:=$callsign_cnt="
+        # echo "${FUNCNAME[0]}  DEBUG: value:=$value=, count:=$callsign_cnt="
 	# remove leading whitespace characters
         callsign_cnt="${callsign_cnt#"${callsign_cnt%%[![:space:]]*}"}"
 
