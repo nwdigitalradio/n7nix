@@ -92,6 +92,7 @@ function set_static_lan()
     need_manual_edit="false"
 
     # Determine if all 'interface eth0' lines are commented.
+    # Note: < <( ) is a Process Substitution
     while read -r line ; do
         dbgecho "Processing $line"
         # your code goes here

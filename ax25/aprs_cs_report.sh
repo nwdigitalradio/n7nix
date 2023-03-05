@@ -57,6 +57,7 @@ function get_start_times() {
     # IFS=$'\n' read -a arrVar <<< "$start_times"
 
     # Break start time string up into array elements
+    # Note: < <( ) is a Process Substitution,
     i=0
     while IFS='\n' read -r line ; do
         line="${line#"${line%%[![:space:]]*}"}"
