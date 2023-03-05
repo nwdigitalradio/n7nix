@@ -582,7 +582,7 @@ function log_rotate() {
 	notifempty
 	create 640 root adm
 	postrotate
-		invoke-rc.d rsyslog rotate > /dev/null
+		/usr/lib/rsyslog/rsyslog-rotate
 	endscript
 }
 EOT

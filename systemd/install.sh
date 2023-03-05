@@ -163,7 +163,7 @@ service rsyslog restart
 echo "test log rotate for direwolf, view status before ..."
 
 grep direwolf /var/lib/logrotate/status
-logrotate -v -f /etc/logrotate.d/direwolf
+logrotate -vf /etc/logrotate.d/direwolf
 
 echo "test log rotate, view status after ..."
 grep direwolf /var/lib/logrotate/status
