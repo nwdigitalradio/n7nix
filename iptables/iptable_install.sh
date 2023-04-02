@@ -2,6 +2,8 @@
 
 scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
+# Just install iptables-persistent is enough.
+#  It will install netfilter-persistent as dependency automatically.
 PKGLIST="iptables iptables-persistent"
 
 USER=
@@ -156,6 +158,8 @@ if [ "$CREATE_IPTABLES" = "true" ] ; then
     sudo $BIN_DIR/iptable-up.sh
 
     sh -c "iptables-save > /etc/iptables/rules.ipv4.ax25"
+    # for netfilter-persistent create file rules.v4
+    sudo cp /etc/iptables/rules.ipv4.ax25 /etc/iptables/rules.v4
 
     sudo cat  > /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 <<EOF
 iptables-restore < /etc/iptables/rules.ipv4.ax25
