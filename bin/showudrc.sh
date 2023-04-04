@@ -467,7 +467,7 @@ firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
 firmware_vendorfile="/sys/firmware/devicetree/base/hat/vendor"
 
-PROD_ID_NAMES=("INVALID" "INVALID" "UDRC" "UDRC II" "1WSpot")
+PROD_ID_NAMES=("INVALID" "INVALID" "UDRC" "UDRC II" "DRAWS" "1WSpot")
 NWDIG_VENDOR_NAME="NW Digital Radio"
 
 id_check
@@ -504,7 +504,7 @@ case $NWDR_PROD_ID in
    display_id_eeprom
 ;;
 *)
-   echo "Undefined return code: NWDR_PROD_ID"
+   echo "Undefined return code: $NWDR_PROD_ID"
 ;;
 esac
 
