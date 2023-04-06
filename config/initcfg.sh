@@ -366,6 +366,7 @@ else
     echo "$(tput setaf 2) app_config core has already been configured $runcnt time(s)$(tput sgr0)"
 fi
 
+## ------ second config
 
 portnum=0
 # Set radio connected to DRAWS $portnum to use discriminator
