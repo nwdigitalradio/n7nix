@@ -175,7 +175,7 @@ if [ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ] || [ "$NWDR_PROD_ID" -
         grep -iq "dtoverlay=draws" /boot/config.txt
 	grepret=$?
         if [ $grepret -eq 0 ] && [ "$NWDR_PROD_ID" -eq 4 ] ; then
-            echo "boot config matches product ID"
+            echo "boot config dtoverlay matches product ID"
         else
             echo "boot config DOES NOT match product ID"
         fi
@@ -183,7 +183,7 @@ if [ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ] || [ "$NWDR_PROD_ID" -
         if [ $grepret -ne 0 ] ; then
             grep -iq "dtoverlay=udrc" /boot/config.txt
             if [ $? -eq 0 ] && ([ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ]) ; then
-                echo "boot config matches product ID"
+                echo "boot config dtoverlay matches product ID"
             else
                 echo "boot config DOES NOT match ANY NWDR product ID"
             fi
@@ -193,5 +193,5 @@ if [ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ] || [ "$NWDR_PROD_ID" -
     fi
 
 else
-    echo "Not finding an NWDR product, no check of boot config.txt file"
+    echo "Not finding an NWDR product, skipped check of boot config.txt file"
 fi
