@@ -15,6 +15,59 @@ echo "$scriptname: Install paclink-unix, hostapd, dovecot, node.js & systemd fil
 # Define conditional for installing messanger
 messanger="false"
 
+# ===== function dbgecho
+
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function node_ver
+function node_ver() {
+
+    source ~/.nvm/nvm.sh
+
+# expect
+  #  v19.8.1
+  #  0
+  #  9.5.1
+  #  0
+  #  0.39.3
+  #  0
+
+if [ ! -z "$DEBUG" ] ; then
+    echo "debug:"
+    node --version ; echo $? ; npm --version ; echo $? ; nvm --version ; echo $?
+fi
+
+    dbgecho "==== Installed versions ===="
+    # Display node version
+    node_ver=$(node --version)
+    node_ret=$?
+    if [ $node_ret -eq 0 ] ; then
+        # Remove leading 'V'
+        node_ver="${node_ver:1}"
+        echo "node: $node_ver"
+    else
+        echo "node NOT installed"
+    fi
+
+    # Display npm (Node Package Manager) version
+    npm_ver=$(npm --version)
+    npm_ret=$?
+    if [ $npm_ret -eq 0 ] ; then
+        echo "npm: $npm_ver"
+    else
+        echo "npm NOT installed"
+    fi
+
+    # Display nvm (Node Version Manager) version
+    nvm_ver=$(nvm --version)
+    nvm_ret=$?
+    if [ $nvm_ret -eq 0 ] ; then
+        echo "nvm: $nvm_ver"
+    else
+        echo "nvm NOT installed"
+    fi
+}
+
 # ===== Main
 
 # Be sure we're running as root
@@ -47,12 +100,22 @@ if [ "$messanger" == "false" ] ; then
    popd
 fi
 
+
+
 # Setup node.js & modules required to run the plu web page.
 echo "$scriptname: Install nodejs, npm & jquery"
 
 pushd /usr/local/src/paclink-unix/webapp
 
-apt-get install -y -q nodejs npm
+# =======================================
+# Check current versions before installing
+echo "== Check current versions of nodejs & npm before (re) installing"
+
+echo "node, npm & nvm need to be installed manually"
+# display node version
+node_ver
+
+# apt-get install -y -q nodejs npm
 npm install -g websocket connect finalhandler serve-static
 
 # jquery should be installed in same directory as plu.html

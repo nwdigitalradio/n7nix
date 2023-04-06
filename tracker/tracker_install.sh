@@ -40,7 +40,10 @@ LIBINIPARSER_VER="3.1"
 NODEJS_VER="10.15.2"
 
 BIN_FILES="tracker-ctrl.sh tracker-up tracker-down tracker-restart .screenrc.trk"
-PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool libgps-dev screen nodejs npm git"
+# node, npm & nvm now installed manually
+# PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool libgps-dev screen nodejs npm git"
+PKGLIST="build-essential pkg-config imagemagick automake autoconf libtool libgps-dev screen git"
+
 
 # ===== function dbgecho
 
@@ -138,6 +141,57 @@ function start_service() {
     fi
 }
 
+# ===== function node_ver
+
+function node_ver() {
+
+    source ~/.nvm/nvm.sh
+
+# expect
+  #  v19.8.1
+  #  0
+  #  9.5.1
+  #  0
+  #  0.39.3
+  #  0
+
+if [ ! -z "$DEBUG" ] ; then
+    echo "debug:"
+    node --version ; echo $? ; npm --version ; echo $? ; nvm --version ; echo $?
+fi
+
+    dbgecho "==== Installed versions ===="
+    # Display node version
+    node_ver=$(node --version)
+    node_ret=$?
+    if [ $node_ret -eq 0 ] ; then
+        # Remove leading 'V'
+        node_ver="${node_ver:1}"
+        echo "node: $node_ver"
+    else
+        echo "node NOT installed"
+    fi
+
+    # Display npm (Node Package Manager) version
+    npm_ver=$(npm --version)
+    npm_ret=$?
+    if [ $npm_ret -eq 0 ] ; then
+        echo "npm: $npm_ver"
+    else
+        echo "npm NOT installed"
+    fi
+
+    # Display nvm (Node Version Manager) version
+    nvm_ver=$(nvm --version)
+    nvm_ret=$?
+    if [ $nvm_ret -eq 0 ] ; then
+        echo "nvm: $nvm_ver"
+    else
+        echo "nvm NOT installed"
+    fi
+}
+
+
 # ===== main
 
 # Don't be root
@@ -165,6 +219,10 @@ else
    cd $SRC_DIR
    git clone https://github.com/n7nix/${tracker_type}tracker
 fi
+
+echo "node, npm & nvm need to be installed manually"
+# display node version
+node_ver
 
 # as root install a bunch of stuff
 sudo apt-get install -y -q $PKGLIST

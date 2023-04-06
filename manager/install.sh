@@ -10,7 +10,10 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 SRC_DIR="/usr/local/var"
 
+# node, npm & nvm must be installed manually
+# INSTALL_PKG_REQUIRE="nodejs npm git"
 INSTALL_PKG_REQUIRE="nodejs npm git"
+
 SYSTEMD_DIR="/etc/systemd/system"
 CFG_FILES="/etc/default/$PROG $SYSTEMD_DIR/$PROG.service"
 
@@ -38,6 +41,55 @@ function files_exist() {
    return $retcode
 }
 
+# ===== function node_ver
+function node_ver() {
+
+    source /home/$USER/.nvm/nvm.sh
+
+# expect
+  #  v19.8.1
+  #  0
+  #  9.5.1
+  #  0
+  #  0.39.3
+  #  0
+
+if [ ! -z "$DEBUG" ] ; then
+    echo "debug:"
+    node --version ; echo $? ; npm --version ; echo $? ; nvm --version ; echo $?
+fi
+
+    dbgecho "==== Installed versions ===="
+    # Display node version
+    node_ver=$(node --version)
+    node_ret=$?
+    if [ $node_ret -eq 0 ] ; then
+        # Remove leading 'V'
+        node_ver="${node_ver:1}"
+        echo "node: $node_ver"
+    else
+        echo "node NOT installed"
+    fi
+
+    # Display npm (Node Package Manager) version
+    npm_ver=$(npm --version)
+    npm_ret=$?
+    if [ $npm_ret -eq 0 ] ; then
+        echo "npm: $npm_ver"
+    else
+        echo "npm NOT installed"
+    fi
+
+    # Display nvm (Node Version Manager) version
+    nvm_ver=$(nvm --version)
+    nvm_ret=$?
+    if [ $nvm_ret -eq 0 ] ; then
+        echo "nvm: $nvm_ver"
+    else
+        echo "nvm NOT installed"
+    fi
+}
+
 
 # ===== main
 
@@ -53,6 +105,12 @@ fi
 if (( $# != 0 )) ; then
    echo "No args required."
 fi
+
+echo "node, npm & nvm need to be installed manually"
+# display node version
+# fix this
+USER=pi
+node_ver
 
 # check if required packages are installed
 dbgecho "Check required packages: $INSTALL_PKG_REQUIRE"

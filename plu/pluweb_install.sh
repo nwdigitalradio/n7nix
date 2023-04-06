@@ -77,6 +77,55 @@ function start_service() {
     fi
 }
 
+# ===== function node_ver
+function node_ver() {
+
+    source /home/$USER/.nvm/nvm.sh
+
+# expect
+  #  v19.8.1
+  #  0
+  #  9.5.1
+  #  0
+  #  0.39.3
+  #  0
+
+if [ ! -z "$DEBUG" ] ; then
+    echo "debug:"
+    node --version ; echo $? ; npm --version ; echo $? ; nvm --version ; echo $?
+fi
+
+    dbgecho "==== Installed versions ===="
+    # Display node version
+    node_ver=$(node --version)
+    node_ret=$?
+    if [ $node_ret -eq 0 ] ; then
+        # Remove leading 'V'
+        node_ver="${node_ver:1}"
+        echo "node: $node_ver"
+    else
+        echo "node NOT installed"
+    fi
+
+    # Display npm (Node Package Manager) version
+    npm_ver=$(npm --version)
+    npm_ret=$?
+    if [ $npm_ret -eq 0 ] ; then
+        echo "npm: $npm_ver"
+    else
+        echo "npm NOT installed"
+    fi
+
+    # Display nvm (Node Version Manager) version
+    nvm_ver=$(nvm --version)
+    nvm_ret=$?
+    if [ $nvm_ret -eq 0 ] ; then
+        echo "nvm: $nvm_ver"
+    else
+        echo "nvm NOT installed"
+    fi
+}
+
 # ===== Main
 
 echo -e "\n\tConfigure paclink-unix web server start-up\n"
@@ -112,15 +161,22 @@ check_user
 echo
 echo " == $SCRIPTNAME: Install nodejs, npm & node modules"
 
-pushd /usr/local/src/paclink-unix/webapp
+echo "node, npm & nvm need to be installed manually"
+# display node version
+node_ver
 
-PROGLIST="nodejs npm"
-apt-get install -y -q $PROGLIST
-if [[ $? > 0 ]] ; then
-    echo
-    echo "$(tput setaf 1)Failed to install $PROGLIST, install from command line. $(tput sgr0)"
-    echo
+# Don't do this !
+if [ 1 -eq 0 ] ; then
+    PROGLIST="nodejs npm"
+    apt-get install -y -q $PROGLIST
+    if [[ $? > 0 ]] ; then
+        echo
+        echo "$(tput setaf 1)Failed to install $PROGLIST, install from command line. $(tput sgr0)"
+        echo
+    fi
 fi
+
+pushd /usr/local/src/paclink-unix/webapp
 
 npm install -g npm
 npm install -g connect finalhandler serve-static
