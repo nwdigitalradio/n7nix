@@ -236,6 +236,9 @@ sudo npm -g install ctype iniparser connect serve-static finalhandler uid-number
 ## https://github.com/nodejs/node-gyp/issues/454
 sudo npm --unsafe-perm -g install websocket
 
+# rsync -a source/ destination
+rsync -a /home/pi/.nvm/versions/node/v19.8.1/lib/node_modules/ /usr/local/src/paclink-unix/webapp/node_modules
+
 #
 # Do not do this!
 #
