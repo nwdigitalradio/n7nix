@@ -10,9 +10,10 @@ scriptname="`basename $0`"
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 SRC_DIR="/usr/local/var"
 
+# NOTE !!!
 # node, npm & nvm must be installed manually
 # INSTALL_PKG_REQUIRE="nodejs npm git"
-INSTALL_PKG_REQUIRE="nodejs npm git"
+INSTALL_PKG_REQUIRE="git"
 
 SYSTEMD_DIR="/etc/systemd/system"
 CFG_FILES="/etc/default/$PROG $SYSTEMD_DIR/$PROG.service"
