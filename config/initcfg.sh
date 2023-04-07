@@ -456,6 +456,6 @@ grep -i --quiet "act_led_trigger" /boot/config.txt
 if [ $? -ne 0 ] ; then
     echo "dtparam=act_led_trigger=heartbeat" | sudo tee -a /boot/config.txt > /dev/null
 fi
-pi_leds.sh heartbeat
+pi_leds.sh -l 0 timer
 
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: run $((runcnt+1)) FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
