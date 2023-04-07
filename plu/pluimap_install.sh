@@ -119,8 +119,11 @@ node_ver
 npm install -g websocket connect finalhandler serve-static
 
 # jquery should be installed in same directory as plu.html
+#  See pushd above.
 npm install jquery
 cp node_modules/jquery/dist/jquery.min.js jquery.js
+
+rsync -a /home/pi/.nvm/versions/node/v19.8.1/lib/node_modules/ /usr/local/src/paclink-unix/webapp/node_modules
 
 popd
 
