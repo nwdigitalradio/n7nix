@@ -207,6 +207,8 @@ if [ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ] || [ "$NWDR_PROD_ID" -
 	drawsret=$?
         if [ $drawsret -eq 0 ] && [ "$NWDR_PROD_ID" -eq 4 ] ; then
             echo "boot config dtoverlay matches product ID"
+	else
+            echo "boot config dtoverlay (draws) DOES NOT MATCH product ID ($NWDR_PROD_ID)"
         fi
 
         if [ $drawsret -ne 0 ] ; then
