@@ -117,6 +117,36 @@ function display_id_eeprom() {
    echo "Vendor:      $(tr -d '\0' </sys/firmware/devicetree/base/hat/vendor)"
 }
 
+# ===== function check_overlay
+# 07101.230: Loaded overlay 'udrc'
+# 006791.899: Loaded overlay 'draws'
+
+function check_overlay() {
+    sudo vcdbg log msg 2>&1   | grep  -q "Loaded overlay 'draws'"
+    draws_ret=$?
+    sudo vcdbg log msg 2>&1   | grep -q "Loaded overlay 'udrc'"
+    udrc_ret=$?
+
+    dbgecho "UDRC overlay = $udrc_ret, DRAWS overlay = $draws_ret"
+
+    if [ $draws_ret -eq 0 ] ; then
+        echo "draws overlay loaded"
+    fi
+    if [ $udrc_ret -eq 0 ] ; then
+        echo "udrc overlay loaded"
+    fi
+
+    if [ $draws_ret -eq 1 ] && [ $udrc_ret -eq 1 ]  ; then
+        echo "No NWDR overlays were loaded"
+    fi
+
+    if [ ! -z $DEBUG ] ; then
+        echo
+        echo "List of all coverlays loaded"
+        sudo vcdbg log msg 2>&1   | grep "overlays"
+    fi
+}
+
 # ===== main
 
 # If there are any command line args set debug flag
@@ -173,24 +203,26 @@ if [ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ] || [ "$NWDR_PROD_ID" -
 
     if [ -e "/boot/config.txt" ] ; then
         grep -iq "dtoverlay=draws" /boot/config.txt
-	grepret=$?
-        if [ $grepret -eq 0 ] && [ "$NWDR_PROD_ID" -eq 4 ] ; then
+	drawsret=$?
+        if [ $drawsret -eq 0 ] && [ "$NWDR_PROD_ID" -eq 4 ] ; then
             echo "boot config dtoverlay matches product ID"
-        else
-            echo "boot config DOES NOT match product ID"
         fi
 
-        if [ $grepret -ne 0 ] ; then
+        if [ $drawsret -ne 0 ] ; then
             grep -iq "dtoverlay=udrc" /boot/config.txt
-            if [ $? -eq 0 ] && ([ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ]) ; then
+	    udrcret=$?
+            if [ $udrcret -eq 0 ] && ([ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ]) ; then
                 echo "boot config dtoverlay matches product ID"
-            else
-                echo "boot config DOES NOT match ANY NWDR product ID"
-            fi
+	    fi
+            if [ $udrcret -ne 0 ] ; then
+	        echo "dtoverlay specified does not match any NWDR product ID"
+	    fi
 	fi
+
     else
         echo "Could NOT find /boot/config.txt file"
     fi
+    check_overlay
 
 else
     echo "Not finding an NWDR product, skipped check of boot config.txt file"
