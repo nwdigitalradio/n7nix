@@ -122,28 +122,36 @@ function display_id_eeprom() {
 # 006791.899: Loaded overlay 'draws'
 
 function check_overlay() {
-    sudo vcdbg log msg 2>&1   | grep  -q "Loaded overlay 'draws'"
-    draws_ret=$?
-    sudo vcdbg log msg 2>&1   | grep -q "Loaded overlay 'udrc'"
-    udrc_ret=$?
 
-    dbgecho "UDRC overlay = $udrc_ret, DRAWS overlay = $draws_ret"
+    sudo vcdbg log msg > /dev/null 2>&1
+    vcdbg_ret=$?
+    if [ $vcdbg_ret -eq 0 ] ; then
 
-    if [ $draws_ret -eq 0 ] ; then
-        echo "draws overlay loaded"
-    fi
-    if [ $udrc_ret -eq 0 ] ; then
-        echo "udrc overlay loaded"
-    fi
+        sudo vcdbg log msg 2>&1   | grep  -q "Loaded overlay 'draws'"
+        draws_ret=$?
+        sudo vcdbg log msg 2>&1   | grep -q "Loaded overlay 'udrc'"
+        udrc_ret=$?
 
-    if [ $draws_ret -eq 1 ] && [ $udrc_ret -eq 1 ]  ; then
-        echo "No NWDR overlays were loaded"
-    fi
+        dbgecho "UDRC overlay = $udrc_ret, DRAWS overlay = $draws_ret"
 
-    if [ ! -z $DEBUG ] ; then
-        echo
-        echo "List of all coverlays loaded"
-        sudo vcdbg log msg 2>&1   | grep "overlays"
+        if [ $draws_ret -eq 0 ] ; then
+            echo "draws overlay loaded"
+        fi
+        if [ $udrc_ret -eq 0 ] ; then
+            echo "udrc overlay loaded"
+        fi
+
+        if [ $draws_ret -eq 1 ] && [ $udrc_ret -eq 1 ]  ; then
+            echo "No NWDR overlays were loaded"
+        fi
+
+        if [ ! -z $DEBUG ] ; then
+            echo
+            echo "List of all coverlays loaded"
+            sudo vcdbg log msg 2>&1   | grep "overlays"
+        fi
+    else
+        echo "vcdbg DOES NOT WORK on this version of RPi (error=$vcdbg_ret)"
     fi
 }
 
@@ -205,23 +213,27 @@ if [ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ] || [ "$NWDR_PROD_ID" -
     if [ -e "/boot/config.txt" ] ; then
         grep -iq "^dtoverlay=draws" /boot/config.txt
 	drawsret=$?
-        if [ $drawsret -eq 0 ] && [ "$NWDR_PROD_ID" -eq 4 ] ; then
-            echo "boot config dtoverlay matches product ID"
-	else
-            echo "boot config dtoverlay (draws) DOES NOT MATCH product ID ($NWDR_PROD_ID)"
+        if [ $drawsret -eq 0 ] ; then
+	    if [ "$NWDR_PROD_ID" -eq 4 ] ; then
+                echo "boot config dtoverlay (draws) matches product ID ($NWDR_PROD_ID)"
+            else
+                echo "boot config dtoverlay (draws) DOES NOT MATCH product ID ($NWDR_PROD_ID)"
+            fi
         fi
 
         if [ $drawsret -ne 0 ] ; then
             grep -iq "^dtoverlay=udrc" /boot/config.txt
 	    udrcret=$?
             if [ $udrcret -eq 0 ] && ([ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ]) ; then
-                echo "boot config dtoverlay matches product ID"
+                echo "boot config dtoverlay (udrc) matches product ID ($NWDR_PROD_ID)"
+	    fi
+            if [ $udrcret -eq 0 ] && [ "$NWDR_PROD_ID" -eq 4 ] ; then
+                echo "boot config dtoverlay (udrc) DOES NOT MATCH product ID ($NWDR_PROD_ID)"
 	    fi
             if [ $udrcret -ne 0 ] ; then
 	        echo "dtoverlay specified does not match any NWDR product ID"
 	    fi
 	fi
-
     else
         echo "Could NOT find /boot/config.txt file"
     fi
