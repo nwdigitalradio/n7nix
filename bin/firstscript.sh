@@ -200,16 +200,17 @@ if [ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ] || [ "$NWDR_PROD_ID" -
     echo
     echo " == boot config file check"
     # dtoverlay=draws,alsaname=udrc
+    # dtoverlay=udrc
 
     if [ -e "/boot/config.txt" ] ; then
-        grep -iq "dtoverlay=draws" /boot/config.txt
+        grep -iq "^dtoverlay=draws" /boot/config.txt
 	drawsret=$?
         if [ $drawsret -eq 0 ] && [ "$NWDR_PROD_ID" -eq 4 ] ; then
             echo "boot config dtoverlay matches product ID"
         fi
 
         if [ $drawsret -ne 0 ] ; then
-            grep -iq "dtoverlay=udrc" /boot/config.txt
+            grep -iq "^dtoverlay=udrc" /boot/config.txt
 	    udrcret=$?
             if [ $udrcret -eq 0 ] && ([ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ]) ; then
                 echo "boot config dtoverlay matches product ID"
