@@ -1,3 +1,15 @@
+Sun Apr 16 12:31:36 PDT 2023  Basil Gunn <basil@pacabunga.com>
+
+  * Image NWDR23 release (Raspbian Bullseye 11.6):
+    * Uses kernel 6.1.21-v8+ #1642
+      * Kernel is no longer pinned
+
+  * Fixed file /boot/config.txt to work with both UDRC & DRAWS with a
+    small edit.
+  * node.js, npm & nvm have all been updated to latest versions.
+    * Note addition to PATH variable to get these to run.
+  * Fix iptables persistence problem.
+
 Sun Dec  4 11:06:24 PST 2022  Basil Gunn <basil@pacabunga.com>
 
   * Image NWDR22 release (Raspbian Bullseye 11.5):
