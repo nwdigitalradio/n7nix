@@ -219,9 +219,7 @@ if [ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ] || [ "$NWDR_PROD_ID" -
             else
                 echo "boot config dtoverlay (draws) DOES NOT MATCH product ID ($NWDR_PROD_ID)"
             fi
-        fi
-
-        if [ $drawsret -ne 0 ] ; then
+        else  # if [ $drawsret -ne 0 ] ; then
             grep -iq "^dtoverlay=udrc" /boot/config.txt
 	    udrcret=$?
             if [ $udrcret -eq 0 ] && ([ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ]) ; then
@@ -234,6 +232,14 @@ if [ "$NWDR_PROD_ID" -eq 2 ] || [ "$NWDR_PROD_ID" -eq 3 ] || [ "$NWDR_PROD_ID" -
 	        echo "dtoverlay specified does not match any NWDR product ID"
 	    fi
 	fi
+
+        grep -iq "^dtoverlay=udrc" /boot/config.txt
+        udrcret=$?
+	if [ $drawsret -eq 0 ] && [ $udrcret -eq 0 ] ; then
+	    echo "Both UDRC & DRAWS dtoverlays HAVE BEEN selected."
+	    echo " This configuration will NOT work, select one or the other."
+	fi
+
     else
         echo "Could NOT find /boot/config.txt file"
     fi
