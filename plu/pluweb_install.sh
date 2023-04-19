@@ -177,13 +177,15 @@ if [ 1 -eq 0 ] ; then
 fi
 
 pushd /usr/local/src/paclink-unix/webapp
+sudo chown -R pi:pi .
 
 npm install -g npm
 npm install -g connect finalhandler serve-static
 # Temporary
 ## Warning "root" does not have permission to access the dev dir #454
 ## https://github.com/nodejs/node-gyp/issues/454
-sudo npm --unsafe-perm -g install websocket
+# sudo npm --unsafe-perm -g install websocket
+npm install websocket
 
 echo
 echo " == $SCRIPTNAME: Install jquery in directory $(pwd)"
