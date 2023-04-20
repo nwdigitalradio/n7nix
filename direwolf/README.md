@@ -143,8 +143,56 @@ sudo su
 ./dw_update.sh
 ```
 
-### Pulseaudio
+### PulseAudio
 * The pulseaudio systemd service file was moved to this directory so that it is NOT automatically installed.
   * Sometime in 2020 file pulseaudio.service was installed as part of the LXDE Window Manager.
   * Note that this service file is owned by the calling user and not a system wide service
   * pulseaudio.service can be found in _/usr/lib/systemd/user/_ directory.
+```
+ls /usr/lib/systemd/user | grep -i pulse
+pulseaudio.service
+pulseaudio.socket
+```
+
+#### How to Kill PulseAudio
+
+* In file /etc/pulse/client.conf
+```
+autospawn = no
+```
+* Also
+```
+# find out what else depends on pulseaudio and kill/stop those
+# processes before stopping pulseaudio
+
+systemctl --user --reverse list-dependencies pulseaudio
+
+pulseaudio --kill
+
+# Verify the above command actually worked
+ps -e | grep pulse
+
+systemctl --user stop pulseaudio.socket
+systemctl --user stop pulseaudio.service
+systemctl --user disable pulseaudio.socket
+systemctl --user disable pulseaudio.service
+systemctl --user mask pulseaudio.socket
+systemctl --user mask pulseaudio.service
+
+# Verify the above commands actually worked
+systemctl --user status pulseaudio
+```
+
+#### How to Kill PulseAudio for a particular sound device
+* **from Steve Magnuson AG7GN**
+* Rather than disabling PulseAudio this will prevent PulseAudio from recognizing the sound device.
+  * This way PulseAudio is available for other sound interfaces.
+  * exclude your sound device  by adding the following line to this file: ```/etc/udev/89-pulseaudio-udrc.rules```
+```
+ATTRS{id}=="udrc", ENV{PULSE_IGNORE}=1"
+```
+* The ID "udrc" identifies the udrc sound device and is found from ```aplay -l``` and ```arecord -l``` output:
+```
+ aplay -l | grep -i udrc
+card 2: udrc [udrc], device 0: bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi-0 [bcm2835-i2s-tlv320aic32x4-hifi tlv320aic32x4-hifi-0]
+```
