@@ -46,6 +46,39 @@ RECVSIG_RIGHT="audio"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function get_user
+
+function get_user() {
+   # Check if there is only a single user on this system
+   if (( `ls /home | wc -l` == 1 )) ; then
+      USER=$(ls /home)
+   else
+      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+      read -e USER
+   fi
+}
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   echo
+   echo "using USER: $USER"
+}
+
 # ===== function get product id of HAT
 # Sets variable PROD_ID
 
@@ -81,6 +114,27 @@ function get_prod_id() {
 if (( $# != 0 )) ; then
     DEBUG=1
 fi
+
+
+ALSACTL="alsactl"
+if [[ $EUID != 0 ]] ; then
+   # This prevents the following error:
+   #   No protocol specified
+   #   xcb_connection_has_error() returned true
+   unset DISPLAY
+
+   ALSACTL="sudo alsactl"
+fi
+
+# Get list of users with home directories
+USERLIST="$(ls /home)"
+USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+get_user
+check_user
+
+prgram="/home/$USER/bin/alsa-show.sh"
+
 
 # Check if no port config file found
 if [ ! -f $PORT_CFG_FILE ] ; then
@@ -235,20 +289,6 @@ sset 'LOR Output Mixer R_DAC' on
 EOF
 
 dbgecho "amixer finished"
-prgram="alsa-show.sh"
-
-ALSACTL="alsactl"
-if [[ $EUID != 0 ]] ; then
-   # This prevents the following error:
-   #   No protocol specified
-   #   xcb_connection_has_error() returned true
-   unset DISPLAY
-
-   ALSACTL="sudo alsactl"
-   prgram="$HOME/bin/alsa-show.sh"
-else
-  prgram="/home/pi/bin/alsa-show.sh"
-fi
 
 $ALSACTL store
 if [ "$?" -ne 0 ] ; then
@@ -256,6 +296,8 @@ if [ "$?" -ne 0 ] ; then
 else
     dbgecho "ALSA mixer successfully stored."
 fi
+
+prgram="alsa-show.sh"
 
 # Display abreviated listing of settings
 which $prgram > /dev/null
