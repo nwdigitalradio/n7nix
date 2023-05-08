@@ -179,8 +179,8 @@ fi
 pushd /usr/local/src/paclink-unix/webapp
 sudo chown -R pi:pi .
 
-npm install -g npm
-npm install -g connect finalhandler serve-static
+npm install npm
+npm install connect finalhandler serve-static
 # Temporary
 ## Warning "root" does not have permission to access the dev dir #454
 ## https://github.com/nodejs/node-gyp/issues/454
@@ -193,7 +193,7 @@ echo " == $SCRIPTNAME: Install jquery in directory $(pwd)"
 npm install jquery
 
 # rsync -a source/ destination
-rsync -a /home/pi/.nvm/versions/node/v19.8.1/lib/node_modules/ /usr/local/src/paclink-unix/webapp/node_modules
+# rsync -a /home/pi/.nvm/versions/node/v19.8.1/lib/node_modules/ /usr/local/src/paclink-unix/webapp/node_modules
 
 jquery_file="node_modules/jquery/dist/jquery.min.js"
 if [ -f "$jquery_file" ] ; then
