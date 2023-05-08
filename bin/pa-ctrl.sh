@@ -16,6 +16,25 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # if QUIET is defined the DO NOT echo
 function quietecho { if [ -z "$QUIET" ] ; then echo "$*"; fi }
 
+# ===== function start_service
+
+function start_service() {
+    service="$1"
+    echo "Starting service: $service"
+    systemctl is-enabled "$service" > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        echo "ENABLING $service"
+        $SYSTEMCTL enable "$service"
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem ENABLING $service"
+        fi
+    fi
+    $SYSTEMCTL --no-pager start "$service"
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem starting $service"
+    fi
+}
+
 # ===== function stop_service
 
 function stop_service() {
@@ -51,6 +70,70 @@ function stop_service() {
     fi
 }
 
+# ===== function pa_status
+
+function pa_status() {
+    echo
+    echo " == user status =="
+    systemctl --no-pager --user status pulseaudio.service
+
+    echo
+    echo " == system status =="
+    systemctl --no-pager --system status pulseaudio.service
+}
+
+# ===== function pa_stop
+
+function pa_stop() {
+
+    stop_service pulseaudio system
+    SYSTEMCTL="systemctl"
+    stop_service pulseaudio user
+
+    systemctl --user stop pulseaudio.socket
+    systemctl --user stop pulseaudio.service
+    systemctl --user disable pulseaudio.socket
+    systemctl --user disable pulseaudio.service
+    systemctl --user mask pulseaudio.socket
+    systemctl --user mask pulseaudio.service
+}
+
+# ===== function pa_stop
+
+function pa_start() {
+
+    SYSTEMCTL="systemctl"
+#    start_service pulseaudio user
+
+    systemctl --user unmask pulseaudio.socket
+    systemctl --user unmask pulseaudio.service
+
+    systemctl --user start pulseaudio.socket
+    systemctl --user start pulseaudio.service
+
+    systemctl --user enable pulseaudio.socket
+    systemctl --user enable pulseaudio.service
+}
+
+# ==== function display arguments used by this script
+
+usage () {
+	(
+	echo "Usage: $scriptname [-d][-h][status][stop][start][restart]"
+        echo "  start           start required processes"
+        echo "  stop            stop all processes"
+        echo "  status          display status of PulseAudio"
+        echo "  restart         stop PulseAudio then restart"
+        echo "  -f | --force    Update all hostapd systemd unit files"
+        echo "  -d              Set DEBUG flag"
+        echo "  -h              Display this message."
+        echo
+
+	) 1>&2
+	exit 1
+}
+
+
 # ===== main
 
 # Check if running as root
@@ -60,14 +143,44 @@ if [[ $EUID != 0 ]] ; then
     dbgecho "set sudo as user $USER"
 fi
 
-stop_service pulseaudio system
-SYSTEMCTL="systemctl"
-stop_service pulseaudio user
+while [[ $# -gt 0 ]] ; do
+APP_ARG="$1"
 
-echo
-echo " == user status =="
-systemctl --no-pager --user status pulseaudio.service
+case $APP_ARG in
+    -d|--debug)
+        DEBUG=1
+        echo "Debug mode on"
+    ;;
+    -h|--help|-?)
+        usage
+        exit 0
+    ;;
+    stop)
+        pa_stop
+        exit 0
+    ;;
+    start)
+        pa_start
+        exit 0
+    ;;
+    restart)
+        pa_stop
+        sleep  1
+        pa_start
+        exit 0
+    ;;
+    status)
+        pa_status
+        exit 0
+    ;;
+    *)
+        echo "Unrecognized command line argument: $APP_ARG"
+        usage
+        exit 0
+    ;;
+esac
 
-echo
-echo " == system status =="
-systemctl --no-pager --system status pulseaudio.service
+shift # past argument
+done
+
+pa_status
