@@ -385,7 +385,7 @@ if [[ $EUID != 0 ]] ; then
    USER=$(whoami)
    SYSTEMCTL="sudo systemctl "
 else
-   echo "Should ONLY run as user NOT root"
+   echo "Should ONLY run as user, NOT root"
    exit 1
 fi
 
