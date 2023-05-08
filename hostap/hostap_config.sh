@@ -22,7 +22,7 @@ wifidev="wlan0"
 
 DNSMASQ_CFG_FILE="/etc/dnsmasq.conf"
 fixed_ip_address="10.0.40.4"
-ip_root=${fixed_ip_addr%.*}
+ip_root=${fixed_ip_address%.*}
 
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 SSID="NOT_SET"
@@ -372,7 +372,7 @@ hostapd_config
 
 echo "Edit existing default config file to point to new config file."
 # edit default hostapd config to use new config file
-sed -i 's;\#DAEMON_CONF="";DAEMON_CONF="/etc/hostapd/hostapd.conf";' /etc/default/hostapd
+sudo sed -i 's;\#DAEMON_CONF="";DAEMON_CONF="/etc/hostapd/hostapd.conf";' /etc/default/hostapd
 
 # Check dnsmasq version number for dns-root-data problem
 # Dnsmasq bug: in versions below 2.77 there is a recent bug that may
@@ -411,10 +411,10 @@ ipf="$(tr -d '\0' </proc/sys/net/ipv4/ip_forward)"
 
 echo "ip_forward is $ipf"
 if [ "$ipf" = "0" ] ; then
-    sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
+   sudo  sh -c "echo 1 > /proc/sys/net/ipv4/ip_forward"
 fi
 
-sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
+sudo sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
 
 echo "== setup iptables"
 #echo "add iptables-restore to rc.local"
@@ -432,13 +432,13 @@ for ipt_file in `echo ${IPTABLES_FILES}` ; do
 done
 
 if [ "$CREATE_IPTABLES" = "true" ] ; then
-   iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-   iptables -A FORWARD -i eth0 -o $wifidev -m state --state RELATED,ESTABLISHED -j ACCEPT
-   iptables -A FORWARD -i $wifidev -o eth0 -j ACCEPT
-   sh -c "iptables-save > /etc/iptables/rules.ipv4.nat"
+   sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+   sudo iptables -A FORWARD -i eth0 -o $wifidev -m state --state RELATED,ESTABLISHED -j ACCEPT
+   sudo iptables -A FORWARD -i $wifidev -o eth0 -j ACCEPT
+   sudo sh -c "iptables-save > /etc/iptables/rules.ipv4.nat"
 
-   iptables -t nat -S
-   iptables -S
+   sudo iptables -t nat -S
+   sudo iptables -S
    sudo tee /lib/dhcpcd/dhcpcd-hooks/70-ipv4.nat > /dev/null << EOF
 iptables-restore < /etc/iptables/rules.ipv4.nat
 EOF
@@ -462,7 +462,7 @@ if [ "$INPUT_IPADDR" = "true" ] ; then
     done
     if [ ! -z "$ip_addr" ] ; then
         fixed_ip_address="$ip_addr"
-        ip_root=${fixed_ip_addr%.*}
+        ip_root=${fixed_ip_address%.*}
         echo "Setting $wifidev ip address to: $fixed_ip_address, ip address root to: $ip_root"
     fi
 else
@@ -471,7 +471,7 @@ else
     prgram="fixed_ip.sh"
     if [ -e "$currentdir/$prgram" ] ; then
         dbgecho "Found $prgram here: $currentdir OK"
-        ./$currentdir/$prgram -w $fixed_ip_addr > /dev/null 2>&1
+        ./$currentdir/$prgram -w $fixed_ip_address > /dev/null 2>&1
     fi
 fi
 
