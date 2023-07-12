@@ -351,8 +351,34 @@ function install_pat() {
         # Allow a way to test without having to do a download of the deb
         # file each time. No download is done if DEBUG flag is defined
 
+	# For RPi 32 bit
+	# pat_0.15.0_linux_armhf.deb (Raspberry Pi 32-bit)
+	#
+	# For 64 bit Intel
+	# pat_0.15.0_linux_amd64.deb
+
+	# uname -m
+	# x86_64
+	# armv7l
+
+	mach_hardware="$(uname -m)"
+
+	if [ "$mach_hardware" = "x86_64" ] ; then
+	    suffix="amd64"
+	elif [ "$mach_hardware" = "amrv7l" ] ; then
+	    suffix="armhf"
+	else
+            suffix="unknown"
+	fi
+
+        echo "machine architecture: $mach_hardware, suffix: $suffix"
+        if [ "$mach_hardware" = "unknown" ] ; then
+	    echo "Undefined machine hardware, exiting."
+	    exit 1
+	fi
+
         if [ -z "$SPECIAL_DEBUG" ] ; then
-            wget https://github.com/la5nta/pat/releases/download/v${pat_ver}/pat_${pat_ver}_linux_armhf.deb
+            wget https://github.com/la5nta/pat/releases/download/v${pat_ver}/pat_${pat_ver}_linux_${suffix}.deb
             if [ $?  -ne 0 ] ; then
                 echo "Failed getting pat deb file ... exiting"
                 exit 1
@@ -361,7 +387,7 @@ function install_pat() {
            echo "DEBUG flag set so no download of a fresh Debian install file."
         fi
         echo " == Installing pat ver: $pat_ver"
-        sudo dpkg -i pat_${pat_ver}_linux_armhf.deb
+        sudo dpkg -i pat_${pat_ver}_linux_${suffix}.deb
 	dbgecho "DEBUG: install check: $(which pat)"
     fi
 
