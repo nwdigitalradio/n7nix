@@ -131,7 +131,7 @@ function test_only() {
 
 # [KF7FIT VIA udr0]
 # NOCALL   * * * * * *  L
-# default  * * * * * *  - pi /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d
+# default  * * * * * *  - $USER /usr/local/bin/wl2kax25d wl2kax25d -c %U -a %d
 
 # sed -ie '/\[gps\]/,/\[/s/^#type = gpsd/type = gpsd/g' "$TRACKER_CFG_FILE"
 # tac ax25d.conf | sed '/wl2kax25/I,+3 d' | tac
@@ -274,7 +274,7 @@ After=network.target
 #User=pi
 #type=forking
 ExecStart=/usr/bin/pat --listen="ax25" "http"
-WorkingDirectory=/home/pi/
+WorkingDirectory=/home/$USER/
 StandardOutput=inherit
 StandardError=inherit
 Restart=no
@@ -347,6 +347,11 @@ usage () {
 
 
 # ===== main
+
+if [[ $EUID == 0 ]] ; then
+    echo "Do not run as root."
+    exit 0
+fi
 
 config_verify
 
