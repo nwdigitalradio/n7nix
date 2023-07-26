@@ -149,3 +149,17 @@ ii  ax25apps       2.0.1-1      armhf        AX.25 ham radio applications
 ii  ax25tools      1.0.5-1      armhf        Tools used to configure an ax.25 enabled computer
 ii  libax25        1.1.3-1      armhf        AX.25 library for hamradio applications
 ```
+
+#### aprs_cs_collect.sh aprs_cs_report.sh
+
+```
+listen -a | ./aprs_cs_collect.sh
+```
+```
+aprs_cs_report.sh -h
+APRS call sign report Ver: 1.2 started: Fri 21 Jul 2023 11:59:58 AM PDT
+Usage: aprs_cs_report.sh [-p <1|2|etc>][-h]
+   no args           display today's call sign report file
+   -p <1|2|3|etc>    days previous report file
+   -h                display this message.
+```
