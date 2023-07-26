@@ -100,10 +100,10 @@ Requires=rigctld
 #Wants=rigctld
 
 [Service]
-User=pi
-Environment="HOME=/home/pi/"
+User=$USER
+Environment="HOME=/home/$USER/"
 ExecStart=/usr/bin/pat --listen="ax25" "http"
-WorkingDirectory=/home/pi/
+WorkingDirectory=/home/$USER/
 StandardOutput=inherit
 StandardError=inherit
 Restart=no
@@ -211,8 +211,9 @@ function kill_ardop() {
     echo
 
     # ONLY_PAT_LISTEN
+    # !!! NEED to check if running on a PI or an x86 platform
 #    for process in "rigctld" "piardopc" "pat" "pat_listen" ; do
-    for process in "rigctld" "piardopc" "pat_listen" "pat" ; do
+    for process in "rigctld" "$ARDOPC" "pat_listen" "pat" ; do
 
         pid_pat="$(pidof $process)"
         ret=$?
@@ -223,8 +224,9 @@ function kill_ardop() {
         fi
 
         # Stop systemd services
+        # !!! NEED to check if running on a PI or an x86 platform
         service="$process"
-        if [ "$process" = "piardopc" ] ; then
+        if [ "$process" = "$ARDOPC" ] ; then
             service="ardop"
         fi
 
@@ -368,6 +370,86 @@ function pat_status() {
     status_port $service
 }
 
+# ===== function get_user
+
+function get_user() {
+   # Check if there is only a single user on this system
+   if (( `ls /home | wc -l` == 1 )) ; then
+      USER=$(ls /home)
+   else
+      echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+      read -e USER
+   fi
+}
+
+# ==== function check_user
+# verify user name is legit
+
+function check_user() {
+   userok=false
+   dbgecho "$scriptname: Verify user name: $USER"
+   for username in $USERLIST ; do
+      if [ "$USER" = "$username" ] ; then
+         userok=true;
+      fi
+   done
+
+   if [ "$userok" = "false" ] ; then
+      echo "User name ($USER) does not exist,  must be one of: $USERLIST"
+      exit 1
+   fi
+
+   dbgecho "using USER: $USER"
+}
+
+# ===== function get_user_name
+function get_user_name() {
+
+    # Get list of users with home directories
+    USERLIST="$(ls /home)"
+    USERLIST="$(echo $USERLIST | tr '\n' ' ')"
+
+    # Check if user name was supplied on command line
+    if [ -z "$USER" ] ; then
+        # prompt for call sign & user name
+        # Check if there is only a single user on this system
+        get_user
+    fi
+    # Verify user name
+    check_user
+}
+
+# ==== function get_mach_hardware
+# Set variable $suffix to either amd64 or armhf
+
+function get_mach_hardware() {
+	# For RPi 32 bit
+	# pat_0.15.0_linux_armhf.deb (Raspberry Pi 32-bit)
+	#
+	# For 64 bit Intel
+	# pat_0.15.0_linux_amd64.deb
+
+	# uname -m
+	# x86_64
+	# armv7l
+
+	mach_hardware="$(uname -m)"
+
+	if [ "$mach_hardware" = "x86_64" ] ; then
+	    suffix="amd64"
+	elif [ "$mach_hardware" = "armv7l" ] ; then
+	    suffix="armhf"
+	else
+            suffix="unknown"
+	fi
+
+        echo "machine architecture: $mach_hardware, suffix: $suffix"
+        if [ "$mach_hardware" = "unknown" ] ; then
+	    echo "Undefined machine hardware, exiting."
+	    exit 1
+	fi
+}
+
 # ==== function display arguments used by this script
 
 usage () {
@@ -390,10 +472,23 @@ usage () {
 
 # ===== main
 
+USER=
+ARDOPC="piardopc"
+
+# Set variable $suffix for machine hardware
+get_mach_hardware
+if [ "$suffix" = "amd64" ] ; then
+    ARDOPC="ardopc"
+fi
+
 # Check if running as root
 if [[ $EUID != 0 ]] ; then
    SYSTEMCTL="sudo systemctl "
+    USER=$(whoami)
+    dbgecho "set sudo as user $USER"
 else
+   # Running as root
+   get_user_name
    SYSTEMCTL="systemctl"
 fi
 
