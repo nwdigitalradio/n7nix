@@ -349,7 +349,7 @@ function get_mach_hardware() {
 
 	if [ "$mach_hardware" = "x86_64" ] ; then
 	    suffix="amd64"
-	elif [ "$mach_hardware" = "armv7l" ] ; then
+	elif [ "$mach_hardware" = "armv7l" ] || [ "$mach_hardware" = "aarch64" ] ; then
 	    suffix="armhf"
 	else
             suffix="unknown"
