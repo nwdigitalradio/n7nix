@@ -101,6 +101,7 @@ function output_summary() {
 
 	# This will mess up the grep between dates
 #	echo "Output summary for: $(date "+%Y %m %d %T %Z")"
+
         echo "Running Total:  start date: $start_date, Elapsed time: $((total_et / 3600)) hours, $(((total_et % 3600)/60)) min, $((total_et % 60)) secs,  Call Sign count: $callsign_totcnt, Packet count: $total_cnt"
         echo "Period:         start date: $period_start_date, Elapsed time: $((period_et / 3600)) hours, $(((period_et % 3600)/60)) min, $((period_et % 60)) secs,  Period Call Sign count: $callsign_percnt, Period Packet count: $period_cnt"
 
