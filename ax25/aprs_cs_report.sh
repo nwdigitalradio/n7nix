@@ -13,9 +13,12 @@ scriptname="`basename $0`"
 
 CSMSGFILE="/home/pi/tmp/aprs_parse_file.txt"
 tmp_dir="/home/pi/tmp"
+tmpfile="$tmp_dir/tmp_file.txt"
+bverbose="false"
 
 # Array of callsigns to check
 cs=("n7nix-4" "k7bls-4" "wa7law")
+localcs=("n7nix-4" "k7bls-4")
 
 # Array of start times
 arrVar=()
@@ -99,7 +102,7 @@ function display_cnts() {
 	# remove leading whitespace characters
         callsign_cnt="${callsign_cnt#"${callsign_cnt%%[![:space:]]*}"}"
 
-#        echo "debug: VALUE: $value Next VALUE: ${arrVar[i+1]} CALL SIGN: $call_sign COUNT: $callsign_cnt"
+#       echo "debug: VALUE: $value Next VALUE: ${arrVar[i+1]} CALL SIGN: $call_sign COUNT: $callsign_cnt"
 
 	# remove leading whitespace characters
         callsign_cnt="${callsign_cnt#"${callsign_cnt%%[![:space:]]*}"}"
@@ -111,6 +114,55 @@ function display_cnts() {
 
 }
 
+# Function print full report
+
+function full_report() {
+
+    if [ ! -z "$DEBUG" ] ; then
+        echo "full_report: Current csmsgfile"
+        ls -salt $CSMSGFILE
+        cat $CSMSGFILE
+        echo
+    fi
+    rm $CSMSGFILE
+
+    for callsign in "${cs[@]}" ; do
+        {
+            echo
+            echo "Call sign: $callsign file: $aprs_file_name"
+
+            get_start_times
+            display_cnts "$callsign"
+        } | ( tee -a  $CSMSGFILE > /dev/null )
+    done
+
+    if [ ! -z "$DEBUG" ] ; then
+        echo " === full_report: end csmsgfile"
+        ls -salt $CSMSGFILE
+        cat $CSMSGFILE
+        echo
+        echo " === end file"
+    fi
+}
+
+function cnt_report() {
+
+    full_report
+
+    if [ ! -z "$DEBUG" ] ; then
+        echo "cnt report: file $CSMSGFILE"
+        ls -salt $CSMSGFILE
+        cat $CSMSGFILE
+        echo
+        echo " === end file"
+    fi
+
+    nixcnt=$(grep -c "N7NIX-4" $CSMSGFILE)
+    blscnt=$(grep -c "K7BLS-4" $CSMSGFILE)
+
+    echo "Count report N7NIX-4: $nixcnt, K7BLS-4: $blscnt"
+}
+
 # ===== Display program help info
 
 function usage () {
@@ -118,6 +170,8 @@ function usage () {
 	echo "Usage: $scriptname [-p <1|2|etc>][-h]"
 	echo "   no args           display today's call sign report file"
         echo "   -p <1|2|3|etc>    days previous report file"
+	echo "   -c                display counts only"
+	echo "   -d                set debug flag"
         echo "   -h                display this message."
         echo
 	) 1>&2
@@ -125,8 +179,6 @@ function usage () {
 }
 
 # ===== main
-
-echo "APRS call sign report Ver: $VERSION started: $(date)" | tee $CSMSGFILE
 
 # Check if the collection script is running
 pgrep -f aprs_cs_collect.sh > /dev/null
@@ -159,6 +211,13 @@ while [[ $# -gt 0 ]] ; do
 	        check_date=$(date -d "-$days_prev days" "+%Y-%m-%d")
 	    fi
 	;;
+	-c)
+	    dbgecho "Displaying counts only"
+            bdisplay_cnt="true"
+	;;
+	-v)
+            bverbose="true"
+	;;
         -h)
             usage
             exit 0
@@ -172,11 +231,15 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument or value
 done
 
+if [ "$bdisplay_cnt" != "true" ] ; then
+    echo "APRS call sign report Ver: $VERSION started: $(date)"
+fi
+
 # ls 2>/dev/null will suppress any error message
 
 aprs_file_name="/home/pi/tmp/aprs_report_${check_date}.txt"
 if [ -e "$aprs_file_name" ] ; then
-    echo "Found file: $aprs_file_name"
+    dbgecho "Found file: $aprs_file_name"
 else
     echo "Report file: $aprs_file_name NOT found, exiting"
     exit 1
@@ -187,18 +250,18 @@ if [ $report_file_cnt -eq 0 ] ; then
     exit 0
 fi
 
-echo "Found $report_file_cnt report file(s)"
+dbgecho "Found $report_file_cnt report file(s)"
 
+if [ "$bdisplay_cnt" = "true" ] ; then
+    dbgecho "bverbose = $bverbose"
+    cnt_report
+else
+    bverbose="true"
+    full_report
+    cat $CSMSGFILE
+fi
 
-for callsign in "${cs[@]}" ; do
-    {
-        echo
-        echo "Call sign: $callsign file: $aprs_file_name"
-
-        get_start_times
-        display_cnts "$callsign"
-    } | (tee -a $CSMSGFILE)
-done
-
-echo "Finished at: $(date)"
+if [ "$bverbose" = "true" ] ; then
+    echo "Finished at: $(date)"
+fi
 # send_email
