@@ -10,10 +10,12 @@
 
 VERSION="1.2"
 scriptname="`basename $0`"
+DEBUG=
+bdisplay_cnt="false"
 
 CSMSGFILE="/home/pi/tmp/aprs_parse_file.txt"
 tmp_dir="/home/pi/tmp"
-tmpfile="$tmp_dir/tmp_file.txt"
+EMAILFILE="$tmp_dir/email_file.txt"
 bverbose="false"
 
 # Array of callsigns to check
@@ -33,10 +35,11 @@ function send_email() {
     to_email="gunn@beeble"
 
     echo "Debug: subject: $subject, to: $to_email"
-    echo "Debug: file:"
-    cat $CSMSGFILE
+#    echo "Debug: file: N7NIX-4: $nixcnt, K7BLS-4: $blscnt"
+#    cat $CSMSGFILE
 
-    /usr/bin/mutt -s "$subject" $to_email < $CSMSGFILE
+#    /usr/bin/mutt -s "$subject" $to_email < $CSMSGFILE
+    /usr/bin/mutt -s "$subject" $to_email < $EMAILFILE
     echo "Mutt return code $?"
 }
 
@@ -129,10 +132,11 @@ function full_report() {
     for callsign in "${cs[@]}" ; do
         {
             echo
-            echo "Call sign: $callsign file: $aprs_file_name"
 
             get_start_times
             display_cnts "$callsign"
+            echo "Call sign: $callsign file: $aprs_file_name, number counts: $i"
+
         } | ( tee -a  $CSMSGFILE > /dev/null )
     done
 
@@ -150,6 +154,12 @@ function cnt_report() {
     full_report
 
     if [ ! -z "$DEBUG" ] ; then
+        echo "DEBUG flag is NOT null"
+    else
+        echo "DEBUG flag IS null"
+    fi
+
+    if [ ! -z "$DEBUG" ] ; then
         echo "cnt report: file $CSMSGFILE"
         ls -salt $CSMSGFILE
         cat $CSMSGFILE
@@ -160,7 +170,8 @@ function cnt_report() {
     nixcnt=$(grep -c "N7NIX-4" $CSMSGFILE)
     blscnt=$(grep -c "K7BLS-4" $CSMSGFILE)
 
-    echo "Count report N7NIX-4: $nixcnt, K7BLS-4: $blscnt"
+    echo "Count report N7NIX-4: $nixcnt, K7BLS-4: $blscnt" > $EMAILFILE
+    grep "^7," $CSMSGFILE >> $EMAILFILE
 }
 
 # ===== Display program help info
@@ -255,6 +266,7 @@ dbgecho "Found $report_file_cnt report file(s)"
 if [ "$bdisplay_cnt" = "true" ] ; then
     dbgecho "bverbose = $bverbose"
     cnt_report
+    send_email
 else
     bverbose="true"
     full_report
@@ -264,4 +276,3 @@ fi
 if [ "$bverbose" = "true" ] ; then
     echo "Finished at: $(date)"
 fi
-# send_email
