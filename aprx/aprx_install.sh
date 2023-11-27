@@ -372,11 +372,18 @@ Description=APRX Server, an iGate and Digipeater
 After=ax25dev.service
 After=sys-subsystem-net-devices-ax0.device
 
+StartLimitIntervalSec=500
+StartLimitBurst=5
+
 [Service]
 User=root
 Type=oneshot
 RemainAfterExit=yes
+
+Restart=on-failure
+RestartSec=5s
 ExecStart=$aprx_path
+
 
 [Install]
 WantedBy=multi-user.target
