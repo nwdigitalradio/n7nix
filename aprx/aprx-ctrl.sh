@@ -18,10 +18,38 @@ loglines=5
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function installed_version_display
+function installed_version_display() {
+
+    progname="aprx"
+    type -P $progname  >/dev/null 2>&1
+    if [ "$?"  -ne 0 ]; then
+        echo "$progname not installed"
+        exit 1
+    else
+        aprx_ver=$(aprx -V | cut -f2 -d' ')
+        echo "$aprx_ver"
+    fi
+}
+
+# ===== function released_version_display
+function released_version_display() {
+
+    tarname=$(curl -s https://thelifeofkenneth.com/aprx/release/ | grep -i "aprx-" | tail -n 1 | cut -f2 -d'>' | cut -f1 -d'<')
+    if [ $? -ne 0 ] ; then
+       echo "Could not parse aprx release directory"
+    else
+       released_ver=$(echo $tarname | cut -f2 -d'-')
+       released_ver=$(basename $released_ver .tar.gz)
+       echo "$released_ver"
+    fi
+}
+
 # ===== function aprx_status
 
 function aprx_status() {
 
+    echo " ==== Installed version: $(installed_version_display), Released Version: $(released_version_display)"
     echo " ==== uptime: $(uptime)"
     echo " ==== pid of aprx: $(pidof aprx)"
 
@@ -57,11 +85,11 @@ function aprx_status() {
 
 function start_service() {
     service="$1"
-    quietecho "Starting: $service"
+    echo "Starting: $service"
 
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -ne 0 ] ; then
-        quietecho "ENABLING $service"
+        echo "ENABLING $service"
         $SYSTEMCTL enable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem ENABLING $service"
@@ -83,7 +111,7 @@ function stop_service() {
     service="$1"
     systemctl is-enabled "$service" > /dev/null 2>&1
     if [ $? -eq 0 ] ; then
-        quietecho "DISABLING $service"
+        echo "DISABLING $service"
         $SYSTEMCTL disable "$service"
         if [ "$?" -ne 0 ] ; then
             echo "Problem DISABLING $service"
@@ -152,9 +180,9 @@ case $APP_ARG in
         exit 0
     ;;
     restart)
-        aprx_stop
+        stop_service aprx
         sleep  1
-        aprx_start
+        start_service aprx
         exit 0
     ;;
     status)
