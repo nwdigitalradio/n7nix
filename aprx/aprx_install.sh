@@ -17,6 +17,10 @@
 #
 # Requires jq package
 #
+# Fix aprx log rotation
+#   Same fix as applied to direwolf
+#   /home/gunn/dev/github/n7nix/systemd/logcfg
+#
 # Debug flag can be set below or from command line
 DEBUG=
 
@@ -33,6 +37,7 @@ CALLSIGN="N0ONE"
 scriptname="`basename $0`"
 
 aprx_ver="2.9.1"
+UPDATE_FLAG=
 SRC_DIR="/usr/local/src/"
 APRX_SRC_DIR="$SRC_DIR/aprx-$aprx_ver"
 
@@ -327,7 +332,8 @@ done
 
 # ===== function installed_version_display
 function installed_version_display() {
-progname="aprx"
+
+    progname="aprx"
     type -P $progname  >/dev/null 2>&1
     if [ "$?"  -ne 0 ]; then
         echo "$progname not installed"
@@ -336,7 +342,6 @@ progname="aprx"
         aprx_ver=$(aprx -V | cut -f2 -d' ')
         echo "Installed aprx version: $aprx_ver"
     fi
-
 }
 
 # ===== function released_version_display
@@ -377,7 +382,7 @@ StartLimitBurst=5
 
 [Service]
 User=root
-Type=oneshot
+#Type=oneshot
 RemainAfterExit=yes
 
 Restart=on-failure
@@ -619,6 +624,7 @@ function usage() {
    echo "Usage: $scriptname [-d][-l][-c][-d][-g][-h]" >&2
    echo "   -l            Display local version of aprx"
    echo "   -c            Display latest release version of aprx"
+   echo "   -u            Update aprx"
    echo "   -d            Set DEBUG flag"
    echo "   -g | --gps    verify gps is working"
    echo "   -h | --help   Display this message"
@@ -651,6 +657,8 @@ while [[ $# -gt 0 ]] ; do
         -u)
             echo "Update aprx after checking version numbers."
             echo
+            installed_version_display
+	    released_version_display
             UPDATE_FLAG=true
         ;;
         -g|--gps)
@@ -728,25 +736,37 @@ else
     echo
 fi
 
-# Prompt for call sign & SSID
-prompt_read
+if [ "$UPDATE_FLAG" != "true" ] ; then
 
-# Prompt for location & email address
-get_location
-get_email
+    echo
+    echo " Setup config file"
 
-echo " == Set co-ordinates from GPS"
-set_coordinates
+    # Prompt for call sign & SSID
+    prompt_read
 
-echo " == Install aprx config file"
-# Needs a valid callsign
-make_aprx_config_file
+    # Prompt for location & email address
+    get_location
+    get_email
 
-echo " == Configure log rotate"
-log_rotate
+    echo " == Set co-ordinates from GPS"
+    set_coordinates
 
-echo " == Install aprx systemd file, restart daemon"
-make_aprx_service_file
+    echo " == Install aprx config file"
+    # Needs a valid callsign
+    make_aprx_config_file
+
+    echo " == Configure log rotate"
+    log_rotate
+
+    echo " == Install aprx systemd file, restart daemon"
+    make_aprx_service_file
+
+else
+
+    echo
+    echo " Restarting service: $SERVICE_NAME"
+    systemctl restart $SERVICE_NAME
+fi
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: aprx install script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
