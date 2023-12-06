@@ -242,6 +242,19 @@ function get_portname() {
     dbgecho "Using port: $PORT_NAME, call sign: $callsign_axport"
 }
 
+# ===== Display program help info
+
+function usage () {
+	(
+	echo "Usage: $scriptname [-p ][-h]"
+        echo "   -P <port_num>     Set Interface port number (0 or 1)"
+	echo "   -D <device_name>  Set Device name (udr or dinah)"
+        echo "   -d                Set debug flag"
+        echo "   -h                display this message"
+	) 1>&2
+	exit 1
+}
+
 # ===== main
 #
 
@@ -428,4 +441,3 @@ done < "${1:-/dev/stdin}"
 
 output_summary "main loop exit" "total"
 exit 0
-
