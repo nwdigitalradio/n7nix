@@ -4,6 +4,9 @@
 #
 # If there any command line args will be used as a file name instead of
 #  stdin.
+#
+# listen -a | ./aprs_cs_collect.sh
+#
 # This script runs by itself in a continuous loop
 # Set DEBUG=1 for debug echos
 DEBUG=
@@ -258,7 +261,7 @@ function usage () {
 # ===== main
 #
 
-echo "$scriptname Ver: $VERSION" | tee -a $out_file
+echo "$(date): $scriptname Ver: $VERSION" | tee -a $out_file
 
 # Verify there is a local temporary directory
 if [ ! -d $tmp_dir ] ; then
