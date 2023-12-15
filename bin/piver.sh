@@ -118,6 +118,15 @@ c03130)
    VERSION_STRING=" Pi 400, Rev 1.0, 4GB mem, Mfg by Sony UK"
    HAS_WIFI=true
 ;;
+c04170)
+   VERSION_STRING=" Pi 5, Rev 1.0, 4GB mem, Mfg by Sony UK"
+   HAS_WIFI=true
+;;
+d04170)
+   VERSION_STRING=" Pi 5, Rev 1.0, 8GB mem, Mfg by Sony UK"
+   HAS_WIFI=true
+;;
+
 *)
    echo "Unknown pi version: $piver"
    echo "Model: $(tr -d '\0' </proc/device-tree/model)"
