@@ -175,6 +175,9 @@ function cnt_report() {
     grep "^7," $CSMSGFILE >> $EMAILFILE
 }
 
+# function get_ranking
+# Determine the APRS packet count ranking
+
 function get_ranking() {
 
     disp_cnt=$(grep -c "APRS Packets"  "$aprs_file_name")
@@ -192,28 +195,51 @@ function get_ranking() {
     #echo
 
     echo "Total number of stations heard: $total_calls"
-    echo " Rank    Call Sign  Packets"
+
+    echo "    Rank        Call Sign     Packets"
     # display top 3 rankings
     awk "/APRS Packets/{i++}i>7" $aprs_file_name | awk NR\>1 | cat -n |  head -3
 
-#    echo -n "  1"
-#    awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | head -n 1
 
-    callsign=N7NIX-4
+    callsign="N7NIX-4"
+    rank_nix=$(awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | sed -n "0,/${callsign}/p" | wc -l)
+    callsign="K7BLS-4"
+    rank_bls=$(awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | sed -n "0,/${callsign}/p" | wc -l)
+
+
+     callsign1="N7NIX-4"
+     callsign2="K7BLS-4"
+     if (( rank_nix > rank_bls )) ; then
+         callsign1="K7BLS-4"
+         callsign2="N7NIX-4"
+     fi
+
+    callsign="$callsign1"
 
 #    echo "Debug: Call sign: $callsign, display count: $disp_cnt"
     rank=$(awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | sed -n "0,/${callsign}/p" | wc -l)
-    echo -n "    $rank "
-    awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | sed -n "0,/${callsign}/p" | grep "$callsign"
+    pkt_cnt=$(awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | sed -n "0,/${callsign}/p" | grep "$callsign")
+
+    # get rid of white space
+    pkt_cnt=$(echo $pkt_cnt | expand -t 1 | tr -s '[[:space:]]')
+    pkt_cnt2=$(echo $pkt_cnt | cut -f2 -d ' ')
+    printf "   %3d\t\t %s\t%4d\n" "$rank" "$callsign" "$pkt_cnt2"
 
     #awk "/APRS Packets/{i++}i>$disp_cnt" $aprs_file_name | awk NR\>1 | sed -n '0,/$callsign/p'
 
-    callsign="K7BLS-4"
+    callsign="$callsign2"
 
     # echo "Debug: Call sign: $callsign, display count: $disp_cnt"
     rank=$(awk "/APRS Packets/{i++}i>$disp_cnt" $aprs_file_name | awk NR\>1 | sed -n "0,/$callsign/p" | wc -l)
-    echo -n "    $rank "
-    awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | sed -n "0,/${callsign}/p" | grep "$callsign"
+    pkt_cnt=$(awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | sed -n "0,/${callsign}/p" | grep "$callsign")
+
+    # get rid of white space
+    pkt_cnt=$(echo $pkt_cnt | expand -t 1 | tr -s '[[:space:]]')
+    pkt_cnt2=$(echo $pkt_cnt | cut -f2 -d ' ')
+    printf "   %3d\t\t %s\t%4d\n" "$rank" "$callsign" "$pkt_cnt2"
+
+    #echo -n "    $rank "
+    #awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | sed -n "0,/${callsign}/p" | grep "$callsign"
 
 #    echo "Debug:"
     # awk "/APRS Packets/{i++}i>$disp_cnt" $aprs_file_name | awk NR\>1 | sed -n '0,/$callsign/p'
