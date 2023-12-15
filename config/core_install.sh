@@ -1,6 +1,13 @@
 #!/bin/bash
 #
 # Run this after copying a fresh raspbian file system image
+# Installs the following:
+#   build tools
+#   ax25
+#   gpsd
+#   direwolf
+#   chrony
+#   lm-sensors
 #
 # Uncomment this statement for debug echos
 #DEBUG=1
