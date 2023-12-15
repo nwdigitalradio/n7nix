@@ -12,6 +12,7 @@ VERSION="1.2"
 scriptname="`basename $0`"
 DEBUG=
 bdisplay_cnt="false"
+bemail_cnt="false"
 
 CSMSGFILE="/home/pi/tmp/aprs_parse_file.txt"
 tmp_dir="/home/pi/tmp"
@@ -75,7 +76,7 @@ function get_start_times() {
 #    echo "Number of times in array ${#arrVar[@]}"
 }
 
-# ===== function display_cnts
+# ===== function display_cntss
 #
 function display_cnts() {
 
@@ -94,9 +95,9 @@ function display_cnts() {
 	    continue;
         fi
 
-#        callsign_cnt=$(grep --binary-files=text -A 999 "$value, " "$aprs_file_name" | grep --binary-files=text  -B 999  "${arrVar[i+1]}" | grep --binary-files=text -i "$call_sign")
+#       callsign_cnt=$(grep --binary-files=text -A 999 "$value, " "$aprs_file_name" | grep --binary-files=text  -B 999  "${arrVar[i+1]}" | grep --binary-files=text -i "$call_sign")
         callsign_cnt=$(grep --binary-files=text -A 999 "$value" "$aprs_file_name" | grep --binary-files=text  -B 999  "${arrVar[i+1]}" | grep --binary-files=text -i "$call_sign" | head -n1)
-#                       grep --binary-files=text -A 999 "2023 01 09 06:01" /home/pi/tmp/aprs_report_2023-01-09.txt | grep --binary-files=text  -B 999  "2023 01 09 09:01" | grep --binary-files=text -i "n7nix"
+#       grep --binary-files=text -A 999 "2023 01 09 06:01" /home/pi/tmp/aprs_report_2023-01-09.txt | grep --binary-files=text  -B 999  "2023 01 09 09:01" | grep --binary-files=text -i "n7nix"
 
 #      test_cnt="$(grep --binary-files=text -A 999 "$value, " "$aprs_file_name" | grep --binary-files=text  -B 999  "${arrVar[i+1]}")"
 #        echo "test_count value: $value, value_1 "${arrVar[i+1]}": $test_cnt"
@@ -108,7 +109,7 @@ function display_cnts() {
 #       echo "debug: VALUE: $value Next VALUE: ${arrVar[i+1]} CALL SIGN: $call_sign COUNT: $callsign_cnt"
 
 	# remove leading whitespace characters
-        callsign_cnt="${callsign_cnt#"${callsign_cnt%%[![:space:]]*}"}"
+#        callsign_cnt="${callsign_cnt#"${callsign_cnt%%[![:space:]]*}"}"
 #        echo "$i, $value, 2nd grep "${arrVar[i+1]}", $callsign_cnt"
         echo "$i, $value  $callsign_cnt"
 
@@ -174,6 +175,69 @@ function cnt_report() {
     grep "^7," $CSMSGFILE >> $EMAILFILE
 }
 
+function get_ranking() {
+
+    disp_cnt=$(grep -c "APRS Packets"  "$aprs_file_name")
+    echo "Display Count: $disp_cnt"
+
+    (( disp_cnt-- ))
+
+    echo
+    total_calls=$(awk "/APRS Packets/{i++}i>${disp_cnt}" "$aprs_file_name" | awk NR\>1 | wc -l)
+
+    echo "Date: $check_date"
+    #echo "total calls debug: $total_calls"
+    #awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | cat -n
+    #echo "total calls debug: end"
+    #echo
+
+    echo "Total number of stations heard: $total_calls"
+    echo " Rank    Call Sign  Packets"
+    # display top 3 rankings
+    awk "/APRS Packets/{i++}i>7" $aprs_file_name | awk NR\>1 | cat -n |  head -3
+
+#    echo -n "  1"
+#    awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | head -n 1
+
+    callsign=N7NIX-4
+
+#    echo "Debug: Call sign: $callsign, display count: $disp_cnt"
+    rank=$(awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | sed -n "0,/${callsign}/p" | wc -l)
+    echo -n "    $rank "
+    awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | sed -n "0,/${callsign}/p" | grep "$callsign"
+
+    #awk "/APRS Packets/{i++}i>$disp_cnt" $aprs_file_name | awk NR\>1 | sed -n '0,/$callsign/p'
+
+    callsign="K7BLS-4"
+
+    # echo "Debug: Call sign: $callsign, display count: $disp_cnt"
+    rank=$(awk "/APRS Packets/{i++}i>$disp_cnt" $aprs_file_name | awk NR\>1 | sed -n "0,/$callsign/p" | wc -l)
+    echo -n "    $rank "
+    awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | sed -n "0,/${callsign}/p" | grep "$callsign"
+
+#    echo "Debug:"
+    # awk "/APRS Packets/{i++}i>$disp_cnt" $aprs_file_name | awk NR\>1 | sed -n '0,/$callsign/p'
+
+}
+
+function get_report_filename() {
+
+    aprs_file_name="/home/pi/tmp/aprs_report_${check_date}.txt"
+    if [ -e "$aprs_file_name" ] ; then
+        dbgecho "Found file: $aprs_file_name"
+    else
+        echo "Report file: $aprs_file_name NOT found, exiting"
+        exit 1
+    fi
+    report_file_cnt=$(ls -1 $aprs_file_name 2>/dev/null | wc -l)
+    if [ $report_file_cnt -eq 0 ] ; then
+        echo "No information in report file found."
+        exit 0
+    fi
+
+    dbgecho "Found $report_file_cnt report file(s)"
+}
+
 # ===== Display program help info
 
 function usage () {
@@ -182,6 +246,7 @@ function usage () {
 	echo "   no args           display today's call sign report file"
         echo "   -p <1|2|3|etc>    days previous report file"
 	echo "   -c                display counts only"
+	echo "   -C                email counts only"
 	echo "   -d                set debug flag"
         echo "   -h                display this message."
         echo
@@ -226,6 +291,16 @@ while [[ $# -gt 0 ]] ; do
 	    dbgecho "Displaying counts only"
             bdisplay_cnt="true"
 	;;
+	-C)
+	    dbgecho "Displaying counts only"
+            bemail_cnt="true"
+	;;
+	-r) # Get ranking
+            get_report_filename
+
+	    get_ranking
+	    exit
+	;;
 	-v)
             bverbose="true"
 	;;
@@ -248,22 +323,14 @@ fi
 
 # ls 2>/dev/null will suppress any error message
 
-aprs_file_name="/home/pi/tmp/aprs_report_${check_date}.txt"
-if [ -e "$aprs_file_name" ] ; then
-    dbgecho "Found file: $aprs_file_name"
-else
-    echo "Report file: $aprs_file_name NOT found, exiting"
-    exit 1
-fi
-report_file_cnt=$(ls -1 $aprs_file_name 2>/dev/null | wc -l)
-if [ $report_file_cnt -eq 0 ] ; then
-    echo "No information in report file found."
-    exit 0
-fi
-
-dbgecho "Found $report_file_cnt report file(s)"
+get_report_filename
 
 if [ "$bdisplay_cnt" = "true" ] ; then
+    dbgecho "bverbose = $bverbose"
+    cnt_report
+    cat $EMAILFILE
+
+elif [ "$bemail_cnt" = "true" ] ; then
     dbgecho "bverbose = $bverbose"
     cnt_report
     send_email
