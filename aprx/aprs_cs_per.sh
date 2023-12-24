@@ -327,6 +327,7 @@ debug_file="$tmp_dir/aprs_debug.txt"
 
 # Create out_file if it does NOT exist
 if [ ! -e $out_file ] ; then
+    echo "Create file: $out_file"
     touch $out_file
 fi
 echo "$(date): $scriptname Ver: $VERSION" | tee -a $out_file
