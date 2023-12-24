@@ -185,7 +185,7 @@ function get_ranking() {
     echo
     total_calls=$(awk "/APRS Packets/{i++}i>${disp_cnt}" "$aprs_file_name" | awk NR\>1 | wc -l)
 
-    echo "Date: $check_date"
+    echo "Date: $check_date" | tee $RANKFILE
     #echo "total calls debug: $total_calls"
     #awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | cat -n
     #echo "total calls debug: end"
@@ -194,11 +194,11 @@ function get_ranking() {
     # Get Packet count: for second from last display
     total_pkt_cnt=$(awk "/Running Total/{i++}i>${disp_cnt}" "$aprs_file_name" | grep -i "Packet count: " | head -n 1 | sed 's/.* //')
 
-    echo "Total number of stations heard: $total_calls, total packet count: $total_pkt_cnt"
+    echo "Total number of stations heard: $total_calls, total packet count: $total_pkt_cnt" | tee -a $RANKFILE
 
-    echo "    Rank        Call Sign     Packets"
+    echo "    Rank        Call Sign     Packets" | tee -a $RANKFILE
     # display top 3 rankings
-    awk "/APRS Packets/{i++}i>7" $aprs_file_name | awk NR\>1 | cat -n |  head -3
+    awk "/APRS Packets/{i++}i>7" $aprs_file_name | awk NR\>1 | cat -n |  head -3 | tee -a $RANKFILE
 
 
     callsign="N7NIX-4"
@@ -223,7 +223,7 @@ function get_ranking() {
     # get rid of white space
     pkt_cnt=$(echo $pkt_cnt | expand -t 1 | tr -s '[[:space:]]')
     pkt_cnt2=$(echo $pkt_cnt | cut -f2 -d ' ')
-    printf "   %3d\t\t %s\t%4d\n" "$rank" "$callsign" "$pkt_cnt2"
+    printf "   %3d\t\t %s\t%4d\n" "$rank" "$callsign" "$pkt_cnt2" | tee -a $RANKFILE
 
     #awk "/APRS Packets/{i++}i>$disp_cnt" $aprs_file_name | awk NR\>1 | sed -n '0,/$callsign/p'
 
@@ -236,7 +236,7 @@ function get_ranking() {
     # get rid of white space
     pkt_cnt=$(echo $pkt_cnt | expand -t 1 | tr -s '[[:space:]]')
     pkt_cnt2=$(echo $pkt_cnt | cut -f2 -d ' ')
-    printf "   %3d\t\t %s\t%4d\n" "$rank" "$callsign" "$pkt_cnt2"
+    printf "   %3d\t\t %s\t%4d\n" "$rank" "$callsign" "$pkt_cnt2" | tee -a $RANKFILE
 
     #echo -n "    $rank "
     #awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | sed -n "0,/${callsign}/p" | grep "$callsign"
@@ -263,6 +263,7 @@ function get_report_filename() {
 
     dbgecho "Found $report_file_cnt report file(s)"
 }
+
 # ===== function get_user
 
 function get_user() {
@@ -273,6 +274,29 @@ function get_user() {
       echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
       read -e USER
    fi
+}
+
+# ===== function set_user
+# if no USER name is set then check if running from a crontab
+
+function set_user() {
+    #PID test
+    set_cronflag=0
+
+    # Get parent pid of parent
+    PPPID=$(ps h -o ppid= $PPID)
+
+    # get name of the command
+    P_COMMAND=$(ps h -o %c $PPPID)
+
+#    echo "P_COMMAND: $P_COMMAND"
+    # Test name against cron
+    if [ "$P_COMMAND" == "cron" ]; then
+        set_cronflag=1
+	USER="pi"
+    else
+        get_user
+    fi
 }
 
 # ==== function check_user
@@ -306,7 +330,7 @@ function get_user_name() {
     if [ -z "$USER" ] ; then
         # prompt for call sign & user name
         # Check if there is only a single user on this system
-        get_user
+        set_user
     fi
     # Verify user name
     check_user
@@ -337,6 +361,7 @@ get_user_name
 tmp_dir="/home/$USER/tmp"
 CSMSGFILE="$tmp_dir/aprs_parse_file.txt"
 EMAILFILE="$tmp_dir/email_file.txt"
+RANKFILE="$tmp_dir/aprs_rank_file.txt"
 
 # Check if the collection script is running
 pgrep -f aprs_cs_collect.sh > /dev/null
@@ -387,8 +412,8 @@ while [[ $# -gt 0 ]] ; do
             bemail_cnt="true"
 	;;
 	-r) # Get ranking
-            get_report_filename
 
+            get_report_filename
 	    get_ranking
 	    exit
 	;;
@@ -424,6 +449,12 @@ if [ "$bdisplay_cnt" = "true" ] ; then
 elif [ "$bemail_cnt" = "true" ] ; then
     dbgecho "bverbose = $bverbose"
     cnt_report
+
+    check_date=$(date -d yesterday "+%Y-%m-%d")
+    get_report_filename
+    get_ranking
+    cat $RANKFILE >> $EMAILFILE
+
     send_email
 else
     bverbose="true"
