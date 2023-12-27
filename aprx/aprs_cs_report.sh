@@ -198,7 +198,7 @@ function get_ranking() {
 
     echo "    Rank        Call Sign     Packets" | tee -a $RANKFILE
     # display top 3 rankings
-    awk "/APRS Packets/{i++}i>7" $aprs_file_name | awk NR\>1 | cat -n |  head -3 | tee -a $RANKFILE
+    awk "/APRS Packets/{i++}i>${disp_cnt}" $aprs_file_name | awk NR\>1 | cat -n |  head -3 | tee -a $RANKFILE
 
 
     callsign="N7NIX-4"
@@ -278,6 +278,9 @@ function get_user() {
 
 # ===== function set_user
 # if no USER name is set then check if running from a crontab
+#
+# CRON="$( pstree -s $$ | grep -c cron )"
+#  you can check for $CRON being 1 or 0 at any time.
 
 function set_user() {
     #PID test
