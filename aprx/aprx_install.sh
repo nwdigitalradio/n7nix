@@ -370,6 +370,12 @@ function make_aprx_service_file() {
 
     # Get executable path to aprx program
     aprx_path=$(which aprx)
+    if [ -z $aprx_path ] ; then
+        echo
+        echo "No path to aprx, APRX probably did not build!"
+	echo
+	exit 1
+    fi
 
     sudo tee $SERVICE_DIR/$SERVICE_NAME > /dev/null << EOT
 [Unit]
@@ -426,6 +432,11 @@ function get_aprs_server_passcode() {
 
 function make_aprx_config_file() {
 
+    if [ -e "$CONFIG_DIR/$CONFIG_NAME" ] ; then
+        echo "Config file: $CONFIG_DIR/$CONFIG_NAME, already exists, will NOT over write"
+	return
+    fi
+
     if [ -z $lat ] || [ -z $lon ] ; then
         echo "make_aprx_config_file: error lat/lon not set"
         exit 1
@@ -464,7 +475,7 @@ mycall $CALLSIGN-$SSID
   login $CALLSIGN
   passcode $passcode
   server noam.aprs2.net 14580
-  filter "r/${latdd}/${londd}/130 t/m"
+  filter "m/40"
 </aprsis>
 
 <beacon>
@@ -476,16 +487,22 @@ mycall $CALLSIGN-$SSID
 
 <digipeater>
   transmitter \$mycall
+  ratelimit 10 30
   <source>
     source \$mycall
+    # Fill-in digipeater
+    relay-type directonly
   </source>
   <source>
 	source 		APRSIS
 	relay-type 	third-party
-        filter		"r/${latdd}/${londd}/130 t/m"
-	via-path 	WIDE2-2
-	msg-path	WIDE1-1
-	viscous-delay 	3
+	msg-path 	WIDE2-2
+	via-path	WIDE1-1
+	viscous-delay 	6
+	ratelimit       240 480
+        # Do not serve if more than 50km from this coordinate
+	filter		"-r/${latdd}/${londd}/-50.0"
+	filter          -t/st
   </source>
 </digipeater>
 
