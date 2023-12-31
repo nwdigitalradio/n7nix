@@ -20,12 +20,7 @@ scriptname="`basename $0`"
 
 # Used to parse only 'listen' lines from a particular port name
 PORT_NAME=
-PORT_NUM=0
-
-tmp_dir="/home/pi/tmp"
-tmp_file="$tmp_dir/aprs.tmp"
-out_file="$tmp_dir/aprs_report.txt"
-debug_file="$tmp_dir/aprs_debug.txt"
+PORT_NUM=0;
 
 AX25_CFGDIR="/usr/local/etc/ax25"
 AXPORTS_FILE="$AX25_CFGDIR/axports"
@@ -277,6 +272,11 @@ if [ ! -d $tmp_dir ] ; then
    fi
    mkdir -p /home/$USER/tmp
 fi
+
+tmp_dir="/home/$USER/tmp"
+tmp_file="$tmp_dir/aprs.tmp"
+out_file="$tmp_dir/aprs_report.txt"
+debug_file="$tmp_dir/aprs_debug.txt"
 
 while [[ $# -gt 0 ]] ; do
 key="$1"
