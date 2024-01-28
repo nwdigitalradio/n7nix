@@ -256,10 +256,6 @@ function usage () {
 # ===== main
 #
 
-echo "$(date): $scriptname Ver: $VERSION" | tee -a $out_file
-
-# Verify there is a local temporary directory
-if [ ! -d $tmp_dir ] ; then
     # Verify user home dir name
     # Get list of users with home directories
     USERLIST="$(ls /home)"
@@ -270,13 +266,21 @@ if [ ! -d $tmp_dir ] ; then
         echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
         read -e USER
    fi
+
+echo "USER: $USER"
+tmp_dir="/home/$USER/tmp"
+
+# Verify there is a local temporary directory
+if [ ! -e $tmp_dir ] ; then
    mkdir -p /home/$USER/tmp
 fi
 
-tmp_dir="/home/$USER/tmp"
 tmp_file="$tmp_dir/aprs.tmp"
 out_file="$tmp_dir/aprs_report.txt"
 debug_file="$tmp_dir/aprs_debug.txt"
+
+echo "$(date): $scriptname Ver: $VERSION" | tee -a $out_file
+echo "$(date): $scriptname Ver: $VERSION" >> $debug_file
 
 while [[ $# -gt 0 ]] ; do
 key="$1"
@@ -359,8 +363,10 @@ period_start_time=$SECONDS
 
 start_date="$(date "+%Y %m %d %T %Z")"
 period_start_date="$(date "+%Y %m %d %T %Z")"
+
 total_cnt=0
 period_cnt=0
+
 printf -v curr_date '%(%Y-%m-%d)T' -1
 out_file="$tmp_dir/aprs_report_${curr_date}.txt"
 
