@@ -407,7 +407,7 @@ cd $START_DIR
 mach_arch=$(uname -m)
 
 # If machine architecture is not arm do NOT build gpsd
-if [ $mach_arc == "armv7l" ] ; then
+if [ $mach_arch == "armv7l" ] ; then
     # gps required before direwolf build
     # Install latest gpsd version from source
     #  BEFORE building direwolf from source
