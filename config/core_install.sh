@@ -404,10 +404,16 @@ echo " === libax25, ax25apps & ax25tools install FINISHED"
 
 cd $START_DIR
 
+# uname -m
+#   x86_64
+#   armv7l
+#   aarch64
+
 mach_arch=$(uname -m)
 
 # If machine architecture is not arm do NOT build gpsd
-if [ $mach_arch == "armv7l" ] ; then
+
+if [ $mach_arch == "armv7l" ] || [ "$mach_hardware" = "aarch64" ] ; then
     # gps required before direwolf build
     # Install latest gpsd version from source
     #  BEFORE building direwolf from source
