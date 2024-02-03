@@ -214,7 +214,7 @@ for prog in $PROGLIST ; do
     dbgecho "nix repo check: $prog: $first_version, $second_version"
 
     if version_gt "$first_version" "$second_version" ; then
-        echo "Repo version: $first_version is greater than installed version $second_version, n7nix needs to update his repo for $prog"
+        echo "Repo version: $first_version is greater than installed version $second_version, n7nix needs to update its repo for $prog"
         bnixupdate=true
     fi
 done
