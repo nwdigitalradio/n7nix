@@ -430,8 +430,9 @@ function get_mach_hardware() {
 	# pat_0.15.0_linux_amd64.deb
 
 	# uname -m
-	# x86_64
-	# armv7l
+	#   x86_64
+	#   armv7l
+	#   aarch64
 
 	mach_hardware="$(uname -m)"
 
