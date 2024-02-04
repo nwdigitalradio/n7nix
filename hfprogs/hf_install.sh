@@ -383,15 +383,15 @@ if [[ $# -eq 1 ]] && [[ "$1" -eq "$USER" ]] ; then
     # - js8call breaks wsjtx package 11/2021
     build_js8call "2.2.0"
     build_wsjtx "2.6.1"
-    build_hamlib "4.4"
+    build_hamlib "4.5.5"
     build_flapp "0.1.4" flxmlrpc
     # Must build fldigi before the other apps
     # apps rely on /usr/bin/fltk-config
-    build_fldigi "4.1.20"
-    build_flapp "1.4.4" flrig
-    build_flapp "4.0.19" flmsg
-    build_flapp "2.2.07" flamp
-    build_fllog "1.2.7" fllog
+    build_fldigi "4.2.04"
+    build_flapp "2.0.05" flrig
+    build_flapp "4.0.23" flmsg
+    build_flapp "2.2.11" flamp
+    build_fllog "1.2.8" fllog
 else
 
     if [[ $# -ne 3 ]] ; then
