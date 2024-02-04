@@ -610,7 +610,12 @@ echo
 echo "==== boot config ===="
 # tail -n 15 /boot/config.txt
 # Display all lines without a comment character
-grep ^[^#] /boot/config.txt
+
+bootcfgfile="/boot/firmware/config.txt"
+if [ ! -e "$bootcfgfile" ] ; then
+    bootcfgfile="/boot/config.txt"
+fi
+grep ^[^#] $bootcfgfile
 
 # Check for a DRAWS hat to test GPS & sensors
 if [ "$NWDR_PROD_ID" -eq 4 ] ; then
