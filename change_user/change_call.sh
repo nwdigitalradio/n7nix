@@ -48,6 +48,16 @@ else
     echo "Filename: $filename does NOT exist"
 fi
 
+# /etc/ax25/ax25d.conf
+echo
+echo "==== AX.25 ax25d.conf"
+filename="/etc/ax25/ax25d.conf"
+if [ -e "$filename" ] ; then
+    grep "^\[" $filename
+else
+    echo "Filename: $filename does NOT exist"
+fi
+
 # Xastir
 echo
 echo "==== Xastir"
