@@ -25,8 +25,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 usage () {
 	(
-	echo "Usage: $scriptname user_name [hfprog_name]
-	[hfprog_version]"
+	echo "Usage: $scriptname user_name [hfprog_name] [hfprog_version]"
         echo "    login user name"
         echo "    hfprog_name needs to be one of:"
         echo "      js8call wsjtx hamlib fldigi flrig flmsg flamp fllog"
@@ -374,6 +373,8 @@ check_user
 
 # Set number of cpu cores available
 num_cores=$(nproc --all)
+
+echo "Number of command line arguments: $#, user: $USER"
 
 # If there are no command line options build everything
 
