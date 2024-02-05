@@ -608,7 +608,7 @@ echo "==== Filesystem ===="
 df -h | grep -i "/dev/root"
 echo
 echo "==== boot config ===="
-# tail -n 15 /boot/config.txt
+# tail -n 15 $boofcfgfile
 # Display all lines without a comment character
 
 bootcfgfile="/boot/firmware/config.txt"

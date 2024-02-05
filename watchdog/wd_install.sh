@@ -5,7 +5,6 @@
 
 scriptname="`basename $0`"
 WD_CONFIG_FILE="/etc/watchdog.conf"
-BOOT_CONFIG_FILE="/boot/config.txt"
 SYSTEMCTL="systemctl"
 
 # ===== function dbgecho
@@ -75,13 +74,18 @@ if [ -e "$WD_CONFIG_FILE" ] ; then
 watchdog-device = /dev/watchdog
 watchdog-timeout = 15
 max-load-1 = 24
-interval = 4    
+interval = 4
 EOT
     else
         echo "watchdog already configured in $WD_CONFIG_FILE"
     fi
 else
     echo "File: $WD_CONFIG_FILE does NOT exist"
+fi
+
+BOOT_CONFIG_FILE="/boot/firmware/config.txt"
+if [ ! -e "$BOOT_CONFIG_FILE" ] ; then
+    BOOT_CONFIG_FILE="/boot/config.txt"
 fi
 
 echo "=== edit $BOOT_CONFIG_FILE file"

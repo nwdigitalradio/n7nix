@@ -7,7 +7,6 @@
 #DEBUG=1
 UPDATE_ENABLE=true
 
-BOOT_CFGFILE="/boot/config.txt"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -138,6 +137,12 @@ function chk_dtoverlay() {
 }
 
 # ===== main
+
+BOOT_CFGFILE="/boot/firmware/config.txt"
+
+if [ ! -e "$BOOT_CFGFILE" ] ; then
+    BOOT_CFGFILE="/boot/config.txt"
+fi
 
 echo
 echo "Verify IF dtoverlay= is set properly"

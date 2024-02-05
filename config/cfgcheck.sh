@@ -50,10 +50,13 @@ function check_udrc() {
 
 function check_dtoverlay() {
 
-    bootcfg_file="/boot/config.txt"
+    bootcfgfile="/boot/firmware/config.txt"
+    if [ ! -e "$bootcfgfile" ] ; then
+        bootcfgfile="/boot/config.txt"
+    fi
 
     # Check for draws overlay
-    grep "^dtoverlay=draws" $bootcfg_file > /dev/null
+    grep "^dtoverlay=draws" $bootcfgfile > /dev/null
     retcode="$?"
     if [ $retcode = 0 ] ; then
         echo "dt overlay configured for a draws"
@@ -63,7 +66,7 @@ function check_dtoverlay() {
             echo "$(tput setaf 1)HAT product ID ($prod_id) does NOT match overlay $(tput sgr0)"
         fi
     else
-        grep "^dtoverlay=udrc" $bootcfg_file > /dev/null
+        grep "^dtoverlay=udrc" $bootcfgfile > /dev/null
         retcode="$?"
         if [ $retcode = 0 ] ; then
             echo "dt overlay configured for a UDRC or UDRC II"
@@ -207,7 +210,7 @@ else
     echo "Found DINAH USB device"
 fi
 
-# Check /boot/config.txt file for correct DT overlay loaded
+# Check bootcfg file for correct DT overlay loaded
 # Uses prod_id set from product_id file /proc/device-tree/hat
 check_dtoverlay
 

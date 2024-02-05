@@ -11,7 +11,11 @@
 # Default LCD display to config
 lcd_select="sf_10"
 
-cfg_in_file="/boot/config.txt"
+cfg_in_file="/boot/firmware/config.txt"
+if [ ! -e "$cfg_in_file" ] ; then
+    cfg_in_filefile="/boot/config.txt"
+fi
+
 cfg_out_file="$cfg_in_file"
 #cfg_out_file="boot_test.txt"
 
@@ -62,7 +66,7 @@ if (( $# != 0 )) ; then
 fi
 
 echo "Configuring LCD: $lcd_select"
-echo " === Modify /boot/config.txt"
+echo " === Modify $cfg_in_file"
 
 case $lcd_select in
    "of_7")

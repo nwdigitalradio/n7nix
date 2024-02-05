@@ -10,13 +10,18 @@
 # To enable serial console disable bluetooth
 #  and change console to serial port ttyAMA0
 
-grep "pi3-disable-bt" /boot/config.txt > /dev/null 2>&1
+bootcfgfile="/boot/firmware/config.txt"
+if [ ! -e "$bootcfgfile" ] ; then
+    bootcfgfile="/boot/config.txt"
+fi
+
+grep "pi3-disable-bt" $bootcfgfile > /dev/null 2>&1
 if [ $? -eq 0 ] ; then
-   echo "*** Bluetooth already disabled in config.txt"
+   echo "*** Bluetooth already disabled in $bootcfgfile"
 else
-   echo "=== Disable bluetooth in config.txt"
+   echo "=== Disable bluetooth in $bootcfgfile"
 # Edit config.txt
-   cat << EOT >> /boot/config.txt
+   cat << EOT >> $bootcfgfile
 # Enable serial console
 dtoverlay=pi3-disable-bt
 EOT

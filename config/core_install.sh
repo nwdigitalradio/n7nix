@@ -248,12 +248,17 @@ fi
 # ===== function modify /boot/config.txt
 
 function mod_config_txt() {
-echo " === Modify /boot/config.txt"
+echo " === Modify boot config file"
 
 # default to draws HAT
 set_dtoverly="dtoverlay=draws,alsaname=udrc"
 
-grep "force_turbo" /boot/config.txt > /dev/null 2>&1
+bootcfgfile="/boot/firmware/config.txt"
+if [ ! -e "$bootcfgfile" ] ; then
+    bootcfgfile="/boot/config.txt"
+fi
+
+grep "force_turbo" $bootcfgfile > /dev/null 2>&1
 if [ $? -ne 0 ] ; then
     if [[ "$PROD_ID" -eq 4 ]] ; then
         set_dtoverlay="dtoverlay=draws,alsaname=udrc"
@@ -261,7 +266,7 @@ if [ $? -ne 0 ] ; then
         set_dtoverlay="dtoverlay=udrc"
     fi
     # Add to end of file
-    cat << EOT >> /boot/config.txt
+    cat << EOT >> $bootcfgfile
 
 # Flush all overlays, ie. deprecated overlays loaded from eeprom
 dtoverlay=
@@ -270,14 +275,14 @@ $set_dtoverlay
 force_turbo=1
 EOT
 else
-    echo -e "\n\t$(tput setaf 4)File: /boot/config.txt NOT modified: prod_id=$PROD_ID $(tput setaf 7)\n"
+    echo -e "\n\t$(tput setaf 4)File: $bootcfgfile NOT modified: prod_id=$PROD_ID $(tput setaf 7)\n"
 fi
 
 # To enable serial console disable bluetooth
 #  and change console to ttyAMA0
 if [ "$SERIAL_CONSOLE" = "true" ] ; then
    echo "=== Disabling Bluetooth & enabling serial console"
-   cat << EOT >> /boot/config.txt
+   cat << EOT >> $bootcfgfile
 # Enable serial console
 dtoverlay=pi3-disable-bt
 EOT

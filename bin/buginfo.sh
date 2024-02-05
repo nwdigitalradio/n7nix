@@ -158,6 +158,11 @@ fi
 
 check_hamlib
 
+
+bootcfgfile="/boot/firmware/config.txt"
+if [ ! -e "$bootcfgfile" ] ; then
+    bootcfgfile="/boot/config.txt"
+fi
 echo
-echo "== /boot/config file"
-grep -v "^$\|^#" /boot/config.txt
+echo "== $bootcfgfile"
+grep -v "^$\|^#" $bootcfgfile

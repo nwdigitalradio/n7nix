@@ -452,9 +452,13 @@ fi
 install_temperature_graph
 
 # Add heart beat trigger to boot config
-grep -i --quiet "act_led_trigger" /boot/config.txt
+bootcfgfile="/boot/firmware/config.txt"
+if [ ! -e "$bootcfgfile" ] ; then
+    bootcfgfile="/boot/config.txt"
+fi
+grep -i --quiet "act_led_trigger" $bootcfgfile
 if [ $? -ne 0 ] ; then
-    echo "dtparam=act_led_trigger=heartbeat" | sudo tee -a /boot/config.txt > /dev/null
+    echo "dtparam=act_led_trigger=heartbeat" | sudo tee -a $bootcfgfile > /dev/null
 fi
 pi_leds.sh -l 0 timer
 
