@@ -29,7 +29,170 @@ b_gpioON=false
 # default to NOT toggle gpio state
 b_gpioTOGGLE=false
 
+GPIO_PATH="/sys/class/gpio"
+
+
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# Functions for sysfs GPIO
+
+# Function exportPin
+#  enumerate gpio in sysfs
+exportPin()
+{
+  if [ ! -e $GPIO_PATH/gpio$1 ]; then
+    echo "$1" > $GPIO_PATH/export
+  fi
+}
+
+# function makepin_read
+function makepin_read() {
+    echo "in" > $GPIO_PATH/gpio$1/direction
+}
+
+# function makepin_write
+function makepin_write() {
+    echo "out" > $GPIO_PATH/gpio$1/direction
+}
+
+function setGPIO () {
+    echo $2 > $GPIO_PATH/gpio$1/value
+}
+
+function getGPIO () {
+    return $(cat $GPIO_PATH/gpio$1/value)
+}
+
+# ===== function sysfs
+# Use sysfs routines
+function sysfs() {
+
+    dbgecho "sysfs test: read gpio 12 direction $(cat $GPIO_PATH/gpio$gpio_num/direction), value $(cat $GPIO_PATH/gpio$gpio_num/value)"
+
+    # Set gpio mode to output
+    makepin_write $gpio_num
+
+    if $b_gpioTOGGLE ; then
+        # Get current state
+        gpio_state="$(getGPIO $gpio_num)"
+        dbgecho "sysfs gpio state=$gpio_state"
+        if [ "$gpio_state" = 0 ] ; then
+            dbgecho "sysfs Turn PTT on gpio: $gpio_num"
+            setGPIO $gpio_num 1
+        else
+            dbgecho "sysfs Turn PTT off gpio: $gpio_num"
+            setGPIO $gpio_num 0
+        fi
+        exit
+    fi
+
+    if $b_gpioWRITE ; then
+        if $b_gpioON ; then
+            setGPIO $gpio_num 1
+            state="on"
+        else
+            setGPIO $gpio_num 0
+            state="off"
+        fi
+        echo "sysfs Turn gpio $gpio_num $state"
+    else
+        gpio_value=$(getGPIO $gpio_num)
+	echo -n "sysfs Read gpio: $gpio_num = $gpio_value"
+   fi
+}
+
+# ===== function wiringpi
+# Use wiringpi routines
+function wiringpi() {
+    # Set gpio mode to output
+    gpio -g mode $gpio_num out
+
+    if $b_gpioTOGGLE ; then
+        # Get current state
+        gpio_state=$(gpio -g read $gpio_num)
+        dbgecho "WiringPI gpio state=$gpio_state"
+        if [ "$gpio_state" = 0 ] ; then
+            dbgecho "WiringPI Turn PTT on gpio: $gpio_num"
+            gpio -g write $gpio_num 1
+        else
+            dbgecho "WiringPI Turn PTT off gpio: $gpio_num"
+            gpio -g write $gpio_num 0
+        fi
+        exit
+    fi
+
+    if $b_gpioWRITE ; then
+        if $b_gpioON ; then
+            gpio -g write $gpio_num 1
+            state="on"
+        else
+            gpio -g write $gpio_num 0
+            state="off"
+        fi
+        echo "WiringPI Turn gpio $gpio_num $state"
+    else
+        echo -n "WiringPI Read gpio: $gpio_num = "
+        gpio -g read $gpio_num
+   fi
+}
+
+# Function libgpiod
+
+# gpiod is a set of tools for interacting with the linux GPIO character
+# device that uses libgpiod library. Since linux 4.8 the GPIO sysfs
+# interface is deprecated. User space should use the character device
+# instead. libgpiod encapsulates the ioctl calls and data structures
+# behind a straightforward API.
+
+# * gpiodetect - list all gpiochips present on the system, their names,
+#      labels and number of GPIO lines
+#
+# * gpioinfo - list all lines of specified gpiochips, their names,
+#      consumers, direction, active state and additional flags
+#
+# * gpioget    - read values of specified GPIO lines
+#
+# * gpioset - set values of specified GPIO lines, potentially keep the
+#      lines exported and wait until timeout, user input or signal
+#     $ gpioset GPIO23=1
+#
+# * gpiofind   - find the gpiochip name and line offset given the line name
+
+# * gpiomon - wait for events on GPIO lines, specify which events to
+#      watch, how many events to process before exiting or if
+#     the events should be reported to the console
+#
+# For left & right channels
+# gpioset gpiochip4 12=0
+# gpioset gpiochip4 23=0
+# gpioset gpiochip4 12=1
+# gpioset gpiochip4 23=1
+#
+# Running gpioget gpiochip4 12
+#  will turn the gpio into read only
+
+function libgpiod() {
+
+    if $b_gpioTOGGLE ; then
+        echo "Toggle not supported for gpiod"
+        exit
+    fi
+
+    if $b_gpioWRITE ; then
+        if $b_gpioON ; then
+            gpioset gpiochip4 $gpio_num=1
+            state="on"
+        else
+            gpioset gpiochip4 $gpio_num=0
+            state="off"
+        fi
+        echo "gpiod Turn gpio $gpio_num $state"
+    else
+        echo -n "gpiod Read gpio: $gpio_num = "
+        gpio_value=$(gpioget gpiochip4 $gpio_num)
+	echo -n "gpiod Read gpio: $gpio_num = $gpio_value"
+   fi
+}
 
 # ===== function usage
 
@@ -42,13 +205,34 @@ function usage() {
    echo "   -t | --toggle  Toggle PTT state"
    echo "   -c | --check   Check gpio state ie. read gpio"
    echo "   -d | --debug   Turn debug on"
+   echo "   -m | --method <wiring sysfs gpiod>"
    echo "   -h             display this message"
 }
 
 # ===== main
 
+grep -iq "hardware" /proc/cpuinfo
+if [ $? -eq 1 ] ; then
+    echo
+    echo "WiringPi will NOT run on this platform, try sysfs"
+    # Set default method
+    method="sysfs"
+    if [ ! -e /sys/class/gpio/gpio12 ] ; then
+        echo "sysfs will not run on this platform, try libgpiod"
+	method="gpiod"
+    fi
+else
+    method="wiring"
+fi
+
+
+echo "Using gpio method: $method"
+echo
+
+
 # Set default connector to left
 gpio_num=12
+
 
 # if there are any args then parse them
 while [[ $# -gt 0 ]] ; do
@@ -79,6 +263,10 @@ while [[ $# -gt 0 ]] ; do
       -c|--check)
          b_gpioWRITE=false
          ;;
+      -m|--method)
+          method="$2"
+	  echo "Will try gpio method $method"
+	  ;;
       -h|--help)
          usage
 	 exit 0
@@ -94,33 +282,21 @@ done
 
 dbgecho "Options: set gpio: $gpio_num, state: On=$b_gpioON, action: Write=$b_gpioWRITE"
 
-# Set gpio mode to output
-gpio -g mode $gpio_num out
+case $method in
+    wiring)
+        wiringpi
+    ;;
+    sysfs)
+        sysfs
+    ;;
+    gpiod)
+       libgpiod
+    ;;
+    *)
+        echo "Unknown method: $method"
+	echo " Must be one of: wiring, sysfs or gpiod"
+    ;;
+esac
 
-if $b_gpioTOGGLE ; then
-    # Get current state
-    gpio_state=$(gpio -g read $gpio_num)
-    dbgecho "gpio state=$gpio_state"
-    if [ "$gpio_state" = 0 ] ; then
-        dbgecho "Turn PTT on gpio: $gpio_num"
-        gpio -g write $gpio_num 1
-    else
-        dbgecho "Turn PTT off gpio: $gpio_num"
-        gpio -g write $gpio_num 0
-    fi
-    exit
-fi
-if $b_gpioWRITE ; then
-    if $b_gpioON ; then
-        gpio -g write $gpio_num 1
-        state="on"
-    else
-        gpio -g write $gpio_num 0
-        state="off"
-    fi
-    echo "Turn gpio $gpio_num $state"
-else
-    echo -n "Read gpio: $gpio_num = "
-    gpio -g read $gpio_num
-fi
+
 
