@@ -240,6 +240,23 @@ function get_portname() {
     dbgecho "Using port: $PORT_NAME, call sign: $callsign_axport"
 }
 
+# ===== function get_user
+function get_user() {
+
+    # Verify user home dir name
+    # Get list of users with home directories
+    USERLIST="$(ls /home)"
+    # Check if there is only a single user on this system
+    if (( `ls /home | wc -l` == 1 )) ; then
+        USER=$(ls /home)
+    else
+        echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
+        read -e USER
+   fi
+
+   echo "USER: $USER"
+}
+
 # ===== Display program help info
 
 function usage () {
@@ -255,24 +272,21 @@ function usage () {
 
 # ===== main
 #
+# check if process is already running
 
-    # Verify user home dir name
-    # Get list of users with home directories
-    USERLIST="$(ls /home)"
-    # Check if there is only a single user on this system
-    if (( `ls /home | wc -l` == 1 )) ; then
-        USER=$(ls /home)
-    else
-        echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
-        read -e USER
-   fi
+for pid in $(pidof -x $scriptname); do
+    if [ $pid != $$ ]; then
+        echo "[$(date)] : $scriptname : Process is already running with PID $pid"
+        exit 1
+    fi
+done
+get_user
 
-echo "USER: $USER"
 tmp_dir="/home/$USER/tmp"
 
 # Verify there is a local temporary directory
 if [ ! -e $tmp_dir ] ; then
-   mkdir -p /home/$USER/tmp
+    mkdir -p $tmp_dir
 fi
 
 tmp_file="$tmp_dir/aprs.tmp"

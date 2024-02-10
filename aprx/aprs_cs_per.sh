@@ -318,6 +318,12 @@ function usage () {
 
 # ===== main
 #
+for pid in $(pidof -x $scriptname); do
+    if [ $pid != $$ ]; then
+        echo "[$(date)] : $scriptname : Process is already running with PID $pid"
+        exit 1
+    fi
+done
 get_user_name
 
 tmp_dir="/home/$USER/tmp"
@@ -344,7 +350,7 @@ if [ ! -d $tmp_dir ] ; then
         echo "Enter user name ($(echo $USERLIST | tr '\n' ' ')), followed by [enter]:"
         read -e USER
    fi
-   mkdir -p /home/$USER/tmp
+   mkdir -p $tmp_dir
 fi
 
 while [[ $# -gt 0 ]] ; do
