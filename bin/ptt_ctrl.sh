@@ -211,22 +211,25 @@ function usage() {
 
 # ===== main
 
+#
+# Determine which GPIO method will work
+#
+# WiringPi has a hard requirement on finding string "hardware" in cpuinfo
 grep -iq "hardware" /proc/cpuinfo
 if [ $? -eq 1 ] ; then
     echo
     echo "WiringPi will NOT run on this platform, try sysfs"
     # Set default method
-    method="sysfs"
+    ptt_method="sysfs"
     if [ ! -e /sys/class/gpio/gpio12 ] ; then
         echo "sysfs will not run on this platform, try libgpiod"
-	method="gpiod"
+	ptt_method="gpiod"
     fi
 else
-    method="wiring"
+    ptt_method="wiring"
 fi
 
-
-echo "Using gpio method: $method"
+echo "Using gpio method: $ptt_method"
 echo
 
 
@@ -264,8 +267,8 @@ while [[ $# -gt 0 ]] ; do
          b_gpioWRITE=false
          ;;
       -m|--method)
-          method="$2"
-	  echo "Will try gpio method $method"
+          ptt_method="$2"
+	  echo "Will try gpio method $ptt_method"
 	  ;;
       -h|--help)
          usage
@@ -282,7 +285,7 @@ done
 
 dbgecho "Options: set gpio: $gpio_num, state: On=$b_gpioON, action: Write=$b_gpioWRITE"
 
-case $method in
+case $ptt_method in
     wiring)
         wiringpi
     ;;
@@ -293,7 +296,7 @@ case $method in
        libgpiod
     ;;
     *)
-        echo "Unknown method: $method"
+        echo "Unknown method: $ptt_method"
 	echo " Must be one of: wiring, sysfs or gpiod"
     ;;
 esac
