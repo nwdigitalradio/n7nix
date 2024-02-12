@@ -318,6 +318,8 @@ function usage () {
 
 # ===== main
 #
+# check if process is already running
+
 for pid in $(pidof -x $scriptname); do
     if [ $pid != $$ ]; then
         echo "[$(date)] : $scriptname : Process is already running with PID $pid"
