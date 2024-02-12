@@ -24,6 +24,8 @@ NWDR=true
 CURRENT_WP_VER="2.60"
 SRCDIR=/usr/local/src
 
+GPIO_PATH="/sys/class/gpio"
+
 firmware_prodfile="/sys/firmware/devicetree/base/hat/product"
 firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
 firmware_vendorfile="/sys/firmware/devicetree/base/hat/vendor"
@@ -238,29 +240,87 @@ nwdr_gpio_set() {
         ;;
     esac
 
-    # Won't work unless gpio 4 is set to ALT 0
-    # gpio 4 (BCM) is calld gpio. 7 by WiringPi
-    mode_gpio7="$(gpio readall | grep -i "gpio. 7" | cut -d "|" -f 5 | tr -d '[:space:]')"
-    if [ "$mode_gpio7" != "ALT0" ] ; then
-        echo
-        echo "  gpio 7 is in wrong mode: |$mode_gpio7|, should be: ALT0"
-        echo "  Setting gpio set to mode ALT0"
-        gpio mode 7 ALT0
-        echo
+    if [ "$ptt_method" = "wiring" ] ; then
+        # Won't work unless gpio 4 is set to ALT 0
+        # gpio 4 (BCM) is calld gpio. 7 by WiringPi
+        mode_gpio7="$(gpio readall | grep -i "gpio. 7" | cut -d "|" -f 5 | tr -d '[:space:]')"
+        if [ "$mode_gpio7" != "ALT0" ] ; then
+            echo
+            echo "  gpio 7 is in wrong mode: |$mode_gpio7|, should be: ALT0"
+            echo "  Setting gpio set to mode ALT0"
+            gpio mode 7 ALT0
+            echo
+        fi
     fi
 }
 
+# Functions for sysfs GPIO
+
+# Function exportPin
+#  enumerate gpio in sysfs
+exportPin()
+{
+  if [ ! -e $GPIO_PATH/gpio$1 ]; then
+    echo "$1" > $GPIO_PATH/export
+  fi
+}
+
+# function makepin_read
+function makepin_read() {
+    echo "in" > $GPIO_PATH/gpio$1/direction
+}
+
+# function makepin_write
+function makepin_write() {
+    echo "out" > $GPIO_PATH/gpio$1/direction
+}
+
+function setGPIO () {
+    echo $2 > $GPIO_PATH/gpio$1/value
+}
+
 nwdr_ptt_on() {
-    # Enable PTT
-    gpio=$1
-    gpio -g mode $gpio out
-    gpio -g write $gpio 1
+    gpio_num=$1
+
+    case $ptt_method in
+        wiring)
+            # Enable PTT
+            gpio -g mode $gpio_num out
+            gpio -g write $gpio_num 1
+        ;;
+        sysfs)
+            makepin_write $gpio_num
+            setGPIO $gpio_num 1
+        ;;
+	gpiod)
+            gpioset gpiochip4 $gpio_num=1
+	;;
+	*)
+            echo "Unknown method: $ptt_method"
+	    echo " Must be one of: wiring, sysfs or gpiod"
+	;;
+    esac
 }
 
 nwdr_ptt_off() {
-    # Turn off PTT
-    gpio=$1
-    gpio -g write $gpio 0
+    gpio_num=$1
+
+    case $ptt_method in
+        wiring)
+            # Turn off PTT
+            gpio -g write $gpio_num 0
+	;;
+        sysfs)
+            setGPIO $gpio_num 0
+        ;;
+	gpiod)
+            gpioset gpiochip4 $gpio_num=0
+	;;
+	*)
+            echo "Unknown method: $ptt_method"
+	    echo " Must be one of: wiring, sysfs or gpiod"
+	;;
+    esac
 }
 
 #  Build a packet for CM108 HID to turn GPIO bit on or off.
@@ -386,6 +446,27 @@ else
     echo
 fi
 
+#
+# Determine which GPIO method will work
+#
+# WiringPi has a hard requirement on finding string "hardware" in cpuinfo
+grep -iq "hardware" /proc/cpuinfo
+if [ $? -eq 1 ] ; then
+    echo
+    echo "WiringPi will NOT run on this platform, try sysfs"
+    # Set default method
+    ptt_method="sysfs"
+    if [ ! -e /sys/class/gpio/gpio12 ] ; then
+        echo "sysfs will not run on this platform, try libgpiod"
+	ptt_method="gpiod"
+    fi
+else
+    ptt_method="wiring"
+fi
+
+echo "Using gpio method: $ptt_method"
+echo
+
 dbgecho "Verify required programs"
 # Verify required programs are installed
 for prog_name in `echo ${PROGLIST}` ; do
@@ -404,8 +485,10 @@ if [ "$NEEDPKG_FLAG" = "true" ] ; then
    fi
 fi
 
-# Check WiringPi version
-chk_wp_ver
+if [ "$ptt_method" = "wiring" ] ; then
+    # Check WiringPi version
+    chk_wp_ver
+fi
 
 dbgecho "Parse command line args"
 # Command line args are passed with a dash & single letter
@@ -461,6 +544,7 @@ done
 if [ $NWDR = "true" ] ; then
     nwdr_id_check
     nwdr_gpio_set
+    echo "Using gpio number: $gpio_pin"
 else
     usb_hid_dev
 fi
