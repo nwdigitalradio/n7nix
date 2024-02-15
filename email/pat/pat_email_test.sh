@@ -2,7 +2,7 @@
 #
 # Messages are posted to:
 # ~/.local/share/pat/mailbox/YOURCALL/out
-# ~/.local/share/pat/mailbox/KE7KML
+# ~/.local/share/pat/mailbox/$p_callsign
 #
 #
 # PAT command line Commands:
@@ -24,6 +24,9 @@
 
 
 DEBUG=
+NO_SEND=
+SENDTO="noOne"
+
 scriptname="`basename $0`"
 
 PAT_CONFIG_FILE="${HOME}/.config/pat/config.json"
@@ -46,7 +49,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 #   --subject, -s     Subject
 #   --attachment , -a Attachment path (may be repeated)
 
-#  $MUTT -s "$subject" -c $ccto $sendto < $MSG_FILENAME
+#  $MUTT -s "$subject" -c $ccto $SENDTO < $MSG_FILENAME
 
 function make_msg() {
     {
@@ -67,8 +70,9 @@ function make_msg() {
     fi
 
     subject="//WL2K $(hostname) $(date)"
-    sendto="n7nix@winlink.org"
-    pat compose -s $subject -c "basil@pacabunga.com" $sendto < $EMAIL_BODY_FILE
+
+    pat compose -s "$subject" -c "basil@pacabunga.com" "$SENDTO" < $EMAIL_BODY_FILE
+
     echo "pat compose ret code: $?"
 }
 
@@ -85,27 +89,57 @@ function get_call() {
     #Remove surronding quotes
     p_callsign="${p_callsign%\"}"
     p_callsign="${p_callsign#\"}"
-    echo "debug3: $p_callsign"
+    echo "local call sign: $p_callsign"
 }
 
 # ==== main
 
+# Get sendto call sign from command line args
 
+if [ "$#" = 1 ] ; then
+
+    SENDTO="$1"
+
+    # Convert callsign to upper case
+    SENDTO=$(echo "$SENDTO" | tr '[a-z]' '[A-Z]')
+    # Add URL of email address
+    SENDTO="$SENDTO@winlink.org"
+    echo "Sending email to $SENDTO"
+else
+    echo "Number of command line args: $#"
+    echo
+    echo "$scriptname: requires command line argument of call sign to send email to"
+    echo
+    exit
+fi
+
+# Get local call sign
 get_call
 
 outbox_dir="$HOME/.local/share/pat/mailbox/$p_callsign/out"
 
-before_cnt=$(ls -p  $outbox_dir | grep -v / | wc -l)
+# Do this to get a list of files without directories
+# ls -p -> append / indicator to directories
+before_cnt=$(ls -p $outbox_dir | grep -v / | wc -l)
 
-make_msg
+# For DEBUG purposes don't make or send any email
+if [ -z $NO_SEND ] ; then
+    make_msg
 
-after_cnt=$(ls -p  $outbox_dir | grep -v / | wc -l)
+    after_cnt=$(ls -p $outbox_dir | grep -v / | wc -l)
+    echo "outbox count before: $before_cnt, after: $after_cnt"
 
-echo "outbox count before: $before_cnt, after: $after_cnt"
-if { "$after_cnt" > 0 ] ; then
-    echo "===== outbox directory: $outbox_dir"
-    ls -salt $outbox_dir
+    pat connect telnet
+    echo "pat connect ret code: $?"
 fi
 
-pat connect telnet
-echo "pat connect ret code: $?"
+# After a 'pat connect' there should be no files left in the outbox
+# directory
+#
+#  ls -p  $HOME/.local/share/pat/mailbox/KE7KML/out" | grep -v / | wc -l
+current_cnt=$(ls -p $outbox_dir | grep -v / | wc -l)
+
+if (( "current_cnt" > 0 )) ; then
+    echo "===== outbox directory: count=$current_cnt: dir: $outbox_dir"
+    ls -p $outbox_dir | grep -v '/'
+fi
