@@ -420,35 +420,44 @@ function get_user_name() {
 }
 
 # ==== function get_mach_hardware
-# Set variable $suffix to either amd64 or armhf
+# Set variable $suffix to either amd64, armhf or arm64
 
 function get_mach_hardware() {
-	# For RPi 32 bit
-	# pat_0.15.0_linux_armhf.deb (Raspberry Pi 32-bit)
-	#
-	# For 64 bit Intel
-	# pat_0.15.0_linux_amd64.deb
+    # For RPi 32 bit
+    # pat_0.15.0_linux_armhf.deb (Raspberry Pi 32-bit)
+    #
+    # For 64 bit Intel
+    # pat_0.15.0_linux_amd64.deb
 
-	# uname -m
-	#   x86_64
-	#   armv7l
-	#   aarch64
+    # uname -m
+    #   x86_64
+    #   armv7l
+    #   aarch64
 
-	mach_hardware="$(uname -m)"
+    mach_hardware="$(uname -m)"
 
-	if [ "$mach_hardware" = "x86_64" ] ; then
-	    suffix="amd64"
-	elif [ "$mach_hardware" = "armv7l" ] || [ "$mach_hardware" = "aarch64" ] ; then
-	    suffix="armhf"
-	else
+    suffix=
+    case $mach_hardware in
+
+        "x86_64")
+            suffix="amd64"
+        ;;
+        "armv7l")
+            suffix="armhf"
+        ;;
+        "aarch64")
+            suffix="arm64"
+        ;;
+        *)
             suffix="unknown"
-	fi
+        ;;
+    esac
 
-        echo "machine architecture: $mach_hardware, suffix: $suffix"
-        if [ "$mach_hardware" = "unknown" ] ; then
-	    echo "Undefined machine hardware, exiting."
-	    exit 1
-	fi
+    echo "machine architecture: $mach_hardware, suffix: $suffix"
+    if [ "$mach_hardware" = "unknown" ] ; then
+        echo "Undefined machine hardware, exiting."
+        exit 1
+    fi
 }
 
 # ==== function display arguments used by this script
