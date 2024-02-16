@@ -8,6 +8,24 @@ scriptname="`basename $0`"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function audio_device_check
+
+function audio_device_check() {
+
+    audio_device=$1
+    if [ -z $audio_device ] ; then
+        echo "Need to pass audio device name to audio_device_check()"
+        return
+    fi
+
+    echo -n "== audio device $audio_device check: "
+    device_status_file="/proc/asound/$audio_device/pcm0c/sub0/status"
+    if [ -e "$device_status_file" ] ; then
+        grep -i "state:\|closed" "$device_status_file"
+    else
+        echo "device status file: $device_status_file, does NOT exist"
+    fi
+}
 
 # ===== function status_service
 
@@ -242,6 +260,8 @@ while [[ $# -gt 0 ]] ; do
 done
 
 
+auddev="udrc"
+audio_device_check $auddev
 ax25_status
 speed_status
 exit 0
