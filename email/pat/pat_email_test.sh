@@ -22,7 +22,7 @@
 #  env             List environment variables.
 #  help            Print detailed help for a given command.
 
-
+VERSION="1.0"
 DEBUG=
 NO_SEND=
 SENDTO="noOne"
@@ -92,11 +92,51 @@ function get_call() {
     echo "local call sign: $p_callsign"
 }
 
+# ===== function get_pat_ax25_port
+
+function get_pat_ax25_port() {
+
+    port_used=$(grep -A 1 "ax25" $PAT_CONFIG_FILE | grep -i port | cut -f2 -d':' | cut -f1 -d',')
+    # remove leading whitespace characters
+    port_used="${port_used#"${port_used%%[![:space:]]*}"}"
+    echo "debug2: $port_used"
+
+    #Remove surronding quotes
+    pat_port_used="${port_used%\"}"
+    pat_port_used="${pat_port_used#\"}"
+}
+
+# ===== Display program help info
+#
+usage () {
+	(
+	echo "Version $scriptname: $VERSION"
+	echo "Usage: $scriptname <Sendto email address> <transport method> <Destination gateway or P2P call sign>"
+        echo
+	) 1>&2
+}
+
 # ==== main
+
+usage
 
 # Get sendto call sign from command line args
 
-if [ "$#" = 1 ] ; then
+if [[ "$#" -eq 0 ]] ; then
+    echo "Number of command line args: $#"
+    echo
+    echo "$scriptname: requires command line argument of call sign to send email to"
+    echo
+    exit
+else
+    echo "Number of command line arguments: $#"
+fi
+
+# Initialize transport method
+transport="telnet"
+
+# Check for any command line arguments
+if [[ "$#" -ge 1 ]] ; then
 
     SENDTO="$1"
 
@@ -104,14 +144,13 @@ if [ "$#" = 1 ] ; then
     SENDTO=$(echo "$SENDTO" | tr '[a-z]' '[A-Z]')
     # Add URL of email address
     SENDTO="$SENDTO@winlink.org"
-    echo "Sending email to $SENDTO"
-else
-    echo "Number of command line args: $#"
-    echo
-    echo "$scriptname: requires command line argument of call sign to send email to"
-    echo
-    exit
+
+    if [ ! -z $2 ] ; then
+        transport="$2"
+    fi
 fi
+
+echo "Sending email to $SENDTO using transport $transport"
 
 # Get local call sign
 get_call
@@ -128,9 +167,20 @@ if [ -z $NO_SEND ] ; then
 
     after_cnt=$(ls -p $outbox_dir | grep -v / | wc -l)
     echo "outbox count before: $before_cnt, after: $after_cnt"
+    if [ $transport = "telnet" ] ; then
+        pat connect telnet
+        echo "pat connect ret code: $?"
+    elif [ $transport = "ax25" ] ; then
 
-    pat connect telnet
-    echo "pat connect ret code: $?"
+        # Sets variable 'pat_port_used'
+        get_pat_ax25_port
+
+        pat connect ax25+linux://$pat_port_used/n7nix
+	echo "pat connect ret code: $?"
+    else
+        echo "Transport method $transport not supported"
+    fi
+
 fi
 
 # After a 'pat connect' there should be no files left in the outbox
