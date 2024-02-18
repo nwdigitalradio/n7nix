@@ -3,6 +3,7 @@
 
 scriptname="`basename $0`"
 PAT_CONFIG_FILE="${HOME}/.config/pat/config.json"
+AXPORTS_FILE="/etc/ax25/axports"
 
 SYSTEMCTL="systemctl"
 
@@ -324,6 +325,7 @@ function status_all_processes() {
 }
 
 # ===== function audio_device_status
+
 function audio_device_status() {
 
     audio_device="udrc"
@@ -332,6 +334,29 @@ function audio_device_status() {
         grep -i "state:\|closed" "/proc/asound/$audio_device/pcm0c/sub0/status"
     else
         echo "device status file does NOT exist"
+    fi
+}
+
+# ===== function confirm_ax25_port
+
+function confirm_ax25_port() {
+    port0=$(tail -n3 /etc/ax25/axports | grep -vE "^#|N0ONE" |  head -n 1 | cut -f1 -d' ')
+    port1=$(tail -n3 /etc/ax25/axports | grep -vE "^#|N0ONE" |  tail -n 1 | cut -f1 -d' ')
+
+    port_used=$(grep -A 1 "ax25" ~/.config/pat/config.json | grep -i port | cut -f2 -d':' | cut -f1 -d',')
+    # remove leading whitespace characters
+    port_used="${port_used#"${port_used%%[![:space:]]*}"}"
+    echo "debug2: $port_used"
+
+    #Remove surronding quotes
+    port_used="${port_used%\"}"
+    port_used="${port_used#\"}"
+
+    echo "AX25 port names: $port0 & $port1, port used: $port_used"
+    if [ "$port_used" != "$port0" ] && [ "$port_used" != "$port1" ] ; then
+        echo
+	echo "  -> Need to edit $PAT_CONFIG_FILE ax25: port"
+	echo
     fi
 }
 
@@ -541,6 +566,7 @@ case $APP_ARG in
     status)
         pat_status
 	audio_device_status
+	confirm_ax25_port
         echo "Finished pat ax.25 status"
         exit 0
     ;;
