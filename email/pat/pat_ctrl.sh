@@ -337,23 +337,31 @@ function audio_device_status() {
     fi
 }
 
+# ===== function get_pat_ax25_port
+
+function get_pat_ax25_port() {
+
+    port_used=$(grep -A 1 "ax25" $PAT_CONFIG_FILE | grep -i port | cut -f2 -d':' | cut -f1 -d',')
+    # remove leading whitespace characters
+    port_used="${port_used#"${port_used%%[![:space:]]*}"}"
+    echo "debug2: $port_used"
+
+    #Remove surronding quotes
+    pat_port_used="${port_used%\"}"
+    pat_port_used="${pat_port_used#\"}"
+}
+
 # ===== function confirm_ax25_port
 
 function confirm_ax25_port() {
     port0=$(tail -n3 /etc/ax25/axports | grep -vE "^#|N0ONE" |  head -n 1 | cut -f1 -d' ')
     port1=$(tail -n3 /etc/ax25/axports | grep -vE "^#|N0ONE" |  tail -n 1 | cut -f1 -d' ')
 
-    port_used=$(grep -A 1 "ax25" ~/.config/pat/config.json | grep -i port | cut -f2 -d':' | cut -f1 -d',')
-    # remove leading whitespace characters
-    port_used="${port_used#"${port_used%%[![:space:]]*}"}"
-    echo "debug2: $port_used"
+    # Sets variable 'pat_port_used'
+    get_pat_ax25_port
 
-    #Remove surronding quotes
-    port_used="${port_used%\"}"
-    port_used="${port_used#\"}"
-
-    echo "AX25 port names: $port0 & $port1, port used: $port_used"
-    if [ "$port_used" != "$port0" ] && [ "$port_used" != "$port1" ] ; then
+    echo "AX25 port names: $port0 & $port1, port used: $pat_port_used"
+    if [ "$pat_port_used" != "$port0" ] && [ "$pat_port_used" != "$port1" ] ; then
         echo
 	echo "  -> Need to edit $PAT_CONFIG_FILE ax25: port"
 	echo
