@@ -22,10 +22,11 @@
 #  env             List environment variables.
 #  help            Print detailed help for a given command.
 
-VERSION="1.0"
+VERSION="1.1"
 DEBUG=
 NO_SEND=
 SENDTO="noOne"
+CONNECT_ONLY=
 
 scriptname="`basename $0`"
 
@@ -105,68 +106,9 @@ function get_pat_ax25_port() {
     pat_port_used="${port_used%\"}"
     pat_port_used="${pat_port_used#\"}"
 }
+# ==== function pat_connect
+function pat_connect() {
 
-# ===== Display program help info
-#
-usage () {
-	(
-	echo "Version $scriptname: $VERSION"
-	echo "Usage: $scriptname <Sendto email address> <transport method> <Destination gateway or P2P call sign>"
-        echo
-	) 1>&2
-}
-
-# ==== main
-
-usage
-
-# Get sendto call sign from command line args
-
-if [[ "$#" -eq 0 ]] ; then
-    echo "Number of command line args: $#"
-    echo
-    echo "$scriptname: requires command line argument of call sign to send email to"
-    echo
-    exit
-else
-    echo "Number of command line arguments: $#"
-fi
-
-# Initialize transport method
-transport="telnet"
-
-# Check for any command line arguments
-if [[ "$#" -ge 1 ]] ; then
-
-    SENDTO="$1"
-
-    # Convert callsign to upper case
-    SENDTO=$(echo "$SENDTO" | tr '[a-z]' '[A-Z]')
-    # Add URL of email address
-    SENDTO="$SENDTO@winlink.org"
-
-    if [ ! -z $2 ] ; then
-        transport="$2"
-    fi
-fi
-
-echo "Sending email to $SENDTO using transport $transport"
-
-# Get local call sign
-get_call
-
-outbox_dir="$HOME/.local/share/pat/mailbox/$p_callsign/out"
-
-# Do this to get a list of files without directories
-# ls -p -> append / indicator to directories
-before_cnt=$(ls -p $outbox_dir | grep -v / | wc -l)
-
-# For DEBUG purposes don't make or send any email
-if [ -z $NO_SEND ] ; then
-    make_msg
-
-    after_cnt=$(ls -p $outbox_dir | grep -v / | wc -l)
-    echo "outbox count before: $before_cnt, after: $after_cnt"
     if [ $transport = "telnet" ] ; then
         pat connect telnet
         echo "pat connect ret code: $?"
@@ -175,12 +117,111 @@ if [ -z $NO_SEND ] ; then
         # Sets variable 'pat_port_used'
         get_pat_ax25_port
 
-        pat connect ax25+linux://$pat_port_used/n7nix
+        pat connect ax25+linux://$pat_port_used/$DEST_CALLSIGN
 	echo "pat connect ret code: $?"
     else
         echo "Transport method $transport not supported"
     fi
+}
 
+# ===== Display program help info
+#
+usage () {
+	(
+	echo "Version $scriptname: $VERSION"
+	echo "Usage: $scriptname [-h] [-D] [-c] [-d] [-s <Sendto email address>] [-t <transport method>] [-d <Destination gateway or P2P call sign>]"
+	echo "                   No args will display status"
+	echo "  -c | --conn      Connect only, do not generate an email message"
+	echo "  -s | --send      Sendto email address"
+	echo "  -t | --tran      Transport method (telnet or ax25)"
+	echo "  -d | --dest      Destination gateway call sign or P2P call sign"
+	echo "  -D | --debug     Set DEBUG flag"
+	echo "  -h | --help      Display this message"
+        echo
+	) 1>&2
+}
+
+# ==== main
+
+# Initialize transport method
+transport="telnet"
+DEST_CALLSIGN="n7nix"
+CONNECT_ONLY=1
+
+# Get sendto call sign from command line args
+
+echo "Number of command line arguments: $#"
+
+while [[ $# -gt 0 ]] ; do
+
+    key="$1"
+    case $key in
+        -D|--debug)
+            DEBUG=1
+            echo "Debug mode on"
+        ;;
+	-c|--conn)
+	    CONNECT_ONLY=1
+	;;
+        -s|--send)
+            SENDTO="$2"
+            shift # past argument
+
+            # Convert callsign to upper case
+            SENDTO=$(echo "$SENDTO" | tr '[a-z]' '[A-Z]')
+            # Add URL of email address
+            SENDTO="$SENDTO@winlink.org"
+	    CONNECT_ONLY=
+        ;;
+        -t|--trans)
+            transport=$2
+	    shift
+        ;;
+	-d|--dest)
+            DEST_CALLSIGN="$2"
+            shift # past argument
+	;;
+        -h|--help|-?)
+            usage
+            exit 0
+        ;;
+        *)
+            echo "Unrecognized command line argument: $APP_ARG"
+            usage
+            exit 0
+        ;;
+    esac
+    shift # past argument
+done
+
+if [ -z $CONNECT_ONLY ] ; then
+    echo "Sending email to: $SENDTO, using transport: $transport, Destination: $DEST_CALLSIGN"
+else
+    echo "Connect to station: $DEST_CALLSIGN using transport: $transport ONLY"
+fi
+
+# Get local call sign
+get_call
+
+outbox_dir="$HOME/.local/share/pat/mailbox/$p_callsign/out"
+
+# For DEBUG purposes don't make or send any email
+if [ -z $NO_SEND ] ; then
+
+    if [ ! -z $CONNECT_ONLY ] ; then
+        pat_connect
+    else
+
+        # Do this to get a list of files without directories
+        # ls -p -> append / indicator to directories
+        before_cnt=$(ls -p $outbox_dir | grep -v / | wc -l)
+
+        make_msg
+        after_cnt=$(ls -p $outbox_dir | grep -v / | wc -l)
+        echo "outbox count before: $before_cnt, after: $after_cnt"
+
+        pat_connect
+    fi
 fi
 
 # After a 'pat connect' there should be no files left in the outbox
