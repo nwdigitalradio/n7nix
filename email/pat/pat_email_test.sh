@@ -145,12 +145,12 @@ usage () {
 
 # Initialize transport method
 transport="telnet"
-DEST_CALLSIGN="n7nix"
-CONNECT_ONLY=1
+DEST_CALLSIGN=
+CONNECT_ONLY=
 
 # Get sendto call sign from command line args
 
-echo "Number of command line arguments: $#"
+dbgecho "Number of command line arguments: $#"
 
 while [[ $# -gt 0 ]] ; do
 
@@ -194,10 +194,19 @@ while [[ $# -gt 0 ]] ; do
     shift # past argument
 done
 
+dbgecho "Test transport: $transport, DEST_CALLSIGN: -${DEST_CALLSIGN}-"
+if [ "$transport" = "ax25" ] && [ -z "$DEST_CALLSIGN" ] ; then
+    echo
+    echo "AX25 transport requires a destination callsign (-d <callsign>)"
+    echo
+    exit
+fi
+
+dbgecho "Test connect only: $CONNECZT_ONLY"
 if [ -z $CONNECT_ONLY ] ; then
     echo "Sending email to: $SENDTO, using transport: $transport, Destination: $DEST_CALLSIGN"
 else
-    echo "Connect to station: $DEST_CALLSIGN using transport: $transport ONLY"
+    echo "Connect ONLY, no messages, to station: $DEST_CALLSIGN using transport: $transport"
 fi
 
 # Get local call sign
