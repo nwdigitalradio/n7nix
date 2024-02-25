@@ -10,9 +10,9 @@ build_libax25=false
 build_ax25apps=false
 build_ax25tools=true
 
-ax25apps_ver="2.0.1"
-ax25tools_ver="1.0.5"
-libax25_ver="1.1.3"
+ax25apps_ver="2.1.0"
+ax25tools_ver="1.1.0"
+libax25_ver="1.2.2"
 arch="armhf"
 
 # ===== main
