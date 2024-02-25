@@ -24,6 +24,14 @@ if [ "$?"  -ne 0 ]; then
     apt-get install -y -q $prog_name
 fi
 
+# Check for existing libraries
+existingLibs="libax25.la libax25.so.1.0.1 libax25.a libax25io.so.1.0.0 libax25io.la libax25io.a"
+for libname in $existingLibs ; do
+    full_lib_name="/usr/local/lib/$libname"
+    echo "Deleting library: $full_lib_name"
+    rm "$full_lib_name"
+done
+
 PROGRAM_LIST="ax25apps ax25tools libax25"
 for prog_name in $PROGRAM_LIST ; do
     vernum=$(grep -i AC_INIT $SRC_DIR/$prog_name/configure.ac)
@@ -32,7 +40,7 @@ for prog_name in $PROGRAM_LIST ; do
 done
 
 pkgname="libax25"
-pkgver="1.1.3"
+pkgver="1.2.2"
 SUFFIX="$pkgver-1_armhf.deb"
 PKGLONGNAME="$pkgname"_"$SUFFIX"
 
@@ -40,6 +48,11 @@ echo
 echo " ===== Make $pkgname Debian package"
 echo
 pushd $SRC_DIR/$pkgname
+
+echo
+echo " == Make clean"
+echo
+make clean
 
 # summary: ax25 library for hamradio applications
 
@@ -62,7 +75,7 @@ fi
 # Summary: AX.25 ham radio applications
 
 pkgname="ax25apps"
-pkgver="2.0.1"
+pkgver="2.1.0"
 SUFFIX="$pkgver-1_armhf.deb"
 PKGLONGNAME="$pkgname"_"$SUFFIX"
 
@@ -70,6 +83,13 @@ echo
 echo " ===== Make $pkgname Debian package"
 echo
 pushd $SRC_DIR/$pkgname
+
+echo
+echo " == Make clean"
+echo
+make clean
+rm etc/*.dist
+#rm /usr/local/etc/ax25/*.conf.dist
 
 # Summary: AX.25 ham radio applications
 
@@ -92,7 +112,7 @@ fi
 # Summary:  tools for AX.25 interface configurqation
 
 pkgname="ax25tools"
-pkgver="1.0.5"
+pkgver="1.1.0"
 SUFFIX="$pkgver-1_armhf.deb"
 PKGLONGNAME="$pkgname"_"$SUFFIX"
 
@@ -100,6 +120,14 @@ echo
 echo " ===== Make $pkgname Debian package"
 echo
 pushd $SRC_DIR/$pkgname
+
+echo
+echo " == Make clean"
+echo
+make clean
+rm etc/*.conf
+rm /usr/local/etc/ax25/*.conf.dist
+
 
 # Summary:  tools for AX.25 interface configuration
 
