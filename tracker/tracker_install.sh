@@ -36,7 +36,6 @@ TRACKER_N7NIX_DIR="/home/$USER/n7nix/tracker"
 LIBFAP_SRC_DIR="$SRC_DIR/libfap"
 JSON_C_SRC_DIR="$SRC_DIR/json-c"
 LIBFAP_VER="1.5"
-LIBINIPARSER_VER="3.1"
 NODEJS_VER="10.15.2"
 
 BIN_FILES="tracker-ctrl.sh tracker-up tracker-down tracker-restart .screenrc.trk"
@@ -236,8 +235,11 @@ sudo npm -g install ctype iniparser connect serve-static finalhandler uid-number
 ## https://github.com/nodejs/node-gyp/issues/454
 sudo npm --unsafe-perm -g install websocket
 
+echo
+echo "== Move node modules to paclink-unix source webapp directory"
+echo
 # rsync -a source/ destination
-rsync -a /home/pi/.nvm/versions/node/v19.8.1/lib/node_modules/ /usr/local/src/paclink-unix/webapp/node_modules
+sudo rsync -a /home/pi/.nvm/versions/node/v19.8.1/lib/node_modules/ /usr/local/src/paclink-unix/webapp/node_modules
 
 #
 # Do not do this!
@@ -259,6 +261,13 @@ if $GET_NODEJS ; then
     fi
 fi # GET_NODEJS
 
+#
+# Get libfap source
+
+echo
+echo "== Get libfap source"
+echo
+
 if [ -d $SRC_DIR/libfap-$LIBFAP_VER ] ; then
    echo "** already have libfap-$LIBFAP_VER source"
 else
@@ -269,6 +278,7 @@ else
    # http://www.pakettiradio.net/downloads/libfap/
 
    cd $SRC_DIR
+
    wget http://pakettiradio.net/downloads/libfap/$LIBFAP_VER/libfap-$LIBFAP_VER.tar.gz
    tar -zxvf libfap-$LIBFAP_VER.tar.gz
 
@@ -283,14 +293,30 @@ else
    sudo make install
 fi
 
+#
+# Get iniparser sources
+
 if [ -d $SRC_DIR/iniparser ] ; then
    echo "** already have iniparser source"
 else
    echo
    echo "== get libiniparser source"
    cd $SRC_DIR
-   wget http://ndevilla.free.fr/iniparser/iniparser-$LIBINIPARSER_VER.tar.gz
-   tar -zxvf iniparser-$LIBINIPARSER_VER.tar.gz
+
+# LIBINIPARSER_VER="3.1"
+#   wget http://ndevilla.free.fr/iniparser/iniparser-$LIBINIPARSER_VER.tar.gz
+#   tar -zxvf iniparser-$LIBINIPARSER_VER.tar.gz
+
+   git clone https://github.com/ndevilla/iniparser
+   if [ $? -ne 0 ] ; then
+       echo "Error cloning iniparser"
+       exit
+   fi
+
+#   A simple make at the root of the project should be enough to get the
+#   static (i.e. libiniparser.a) and shared (i.e. libiniparser.so.0)
+#   libraries compiled.
+
    echo
    echo "== build libiniparser source"
    cd iniparser
@@ -309,10 +335,12 @@ else
    cd $SRC_DIR
 
    #  https://github.com/json-c/json-c
-   git clone git://github.com/json-c/json-c.git
+   git clone https://github.com/json-c/json-c
 
    echo "== build json-c"
-   mkdir json-c-build
+   if [ ! -d "json-c-build" ] ; then
+       mkdir json-c-build
+   fi
    cd json-c-build
    cmake ../json-c   # See CMake section below for custom arguments
    make
@@ -348,6 +376,7 @@ fi
 
 echo
 echo "== install ${tracker_type}tracker"
+echo
 
    cd $TRACKER_SRC_DIR
    cp scripts/* $LOCAL_BIN_DIR
@@ -357,6 +386,9 @@ echo "== install ${tracker_type}tracker"
    sudo cp aprs  $GLOBAL_BIN_DIR
 
    # Copy webapp files
+   echo
+   echo "== Copying webapp to local bin directory"
+   echo
    rsync -av $TRACKER_SRC_DIR/webapp $LOCAL_BIN_DIR
    rsync -av $TRACKER_SRC_DIR/images $LOCAL_BIN_DIR/webapp
    if [ ! -d $LOCAL_BIN_DIR/webapp/jQuery ] ; then
@@ -371,7 +403,7 @@ echo "== install ${tracker_type}tracker"
 # This overwrites some of the ${tracker_type}tracker scripts from the n7nix repo
 echo
 echo "== setup bin dir"
-
+echo
 # For screen only
 cp $TRACKER_N7NIX_DIR/.${tracker_type}screenrc.trk $TRACKER_N7NIX_DIR/.screenrc.trk
 
@@ -398,6 +430,7 @@ fi
 
 echo
 echo "== setup systemd service"
+echo
 
 # Need to set a user in config file
 CFG_USER=$(grep -i "user" $TRACKER_CFG_FILE | cut -d"=" -f2 | tr -d ' ')
