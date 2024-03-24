@@ -296,7 +296,7 @@ fi
 #
 # Get iniparser sources
 
-if [ -d $SRC_DIR/iniparser ] ; then
+if [ -d $SRC_DIR/iniparser ] && [ "$FORCE_BUILD" = "false" ] ; then
    echo "** already have iniparser source"
 else
    echo
