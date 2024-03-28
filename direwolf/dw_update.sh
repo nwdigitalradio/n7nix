@@ -30,15 +30,18 @@ function install_direwolf_source() {
    echo "=== Install direwolf version $DW_VER from source using $num_cores cores"
 
    # Update build requirements
-   apt-get install -y -q libgps-dev cmake
+   apt-get install -y -q libgps-dev cmake gpiod libgpiod-dev
 
-   SRC_DIR="/usr/local/src/"
-   cd "$SRC_DIR"
+   SRCDIR="/usr/local/src/"
+
+   echo "== changing directory to $SRCDIR"
+   cd "$SRCDIR"
 
 # This gets current DEV version
 #   git clone https://www.github.com/wb2osz/direwolf
 #   cd direwolf
 
+   echo "== removing file: $DW_VER.zip"
    # Remove existing zip files as wget by default will not overwrite an existing file name
    if [ -e $DW_VER.zip ] ; then
        rm $DW_VER.zip
@@ -47,7 +50,7 @@ function install_direwolf_source() {
    echo "Downloading direwolf version $DW_VER"
    wget https://github.com/wb2osz/direwolf/archive/$DW_VER.zip
    unzip -o $DW_VER.zip
-   cd direwolf-$DW_VER
+   cd "direwolf-$DW_VER"
 
    echo "Building direwolf in directory $(pwd)"
 
