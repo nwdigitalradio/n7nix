@@ -162,18 +162,19 @@ echo "$scriptname: Install DRAWS sensor config file"
 sudo -u "$USER" ./sensor_update.sh
 popd > /dev/null
 
-# Install DRAWS web manager
-pushd ../manager
-echo "$scriptname: Install DRAWS manager"
-./install.sh
-popd > /dev/null
+if [ 1 -eq 0 ] ; then
+   # Install DRAWS web manager
+   pushd ../manager
+   echo "$scriptname: Install DRAWS manager"
+   ./install.sh
+   popd > /dev/null
 
-# Install HF programs last
-pushd ../hfprogs
-echo "$scriptname: Install HF programs"
-sudo -u "$USER" ./hf_install.sh $USER
-popd > /dev/null
-
+   # Install HF programs last
+   pushd ../hfprogs
+   echo "$scriptname: Install HF programs"
+   sudo -u "$USER" ./hf_install.sh $USER
+   popd > /dev/null
+fi # end: do not run
 
 apt-get -y purge libreoffice* minecraft-pi scratch scratch2 fluid geany smartsim python3-thonny sense-hat sense-emu-tools python-sense-emu python3-sense-emu idle-python*
 apt-get clean
