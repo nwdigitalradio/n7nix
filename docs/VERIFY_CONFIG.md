@@ -99,7 +99,7 @@ with the -p or -m options.
 ```bash
 ax25-status -d
 ```
-* After ```== failed & loaded but inactive units==``` you should see
+* After ```== failed & loaded but inactive units ==``` you should see
 ```
 0 loaded units listed.
 ```
