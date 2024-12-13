@@ -183,7 +183,7 @@ fi
 echo "$(tput setaf 6) == Verify UDRC/DRAWS sound card device$(tput sgr0)"
 check_udrc
 if [ $? -eq 1 ] ; then
-    echo "No sound card enumerated by kernel driver"
+    echo "No UDRC sound card enumerated by kernel driver"
 fi
 
 # Check vendor name & HAT product id
