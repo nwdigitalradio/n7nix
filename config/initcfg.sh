@@ -32,6 +32,19 @@ user=$(whoami)
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+# ===== function check_4_dinah
+# Sets variable $DEVICE
+
+function check_4_dinah() {
+
+    DEVICE=
+    #   echo "aplay command: "
+    #   aplay -l
+    aplay -l | grep -q -i "USB Audio Device"
+    if [ "$?" -eq 0 ] ; then
+        DEVICE="dinah"
+    fi
+}
 
 # ===== function check udrc enumeration
 
@@ -49,6 +62,7 @@ function check_udrc() {
     fi
     return $retcode
 }
+
 
 # ===== function package_update_only
 # Only update the package list, do not install anything
@@ -279,8 +293,26 @@ fi
 
 # Verify UDRC device is enumerated
 echo "$(tput setaf 6) == Verify UDRC/DRAWS sound card device$(tput sgr0)"
+bfoundUDRC="false"
 check_udrc
 if [ $? -eq 1 ] ; then
+    echo "No UDRC sound card enumerated by kernel driver"
+else
+    bfoundUDRC="true"
+fi
+
+# Verify DINAH device is enumerated
+bfoundDINAH="false"
+check_4_dinah
+if [ -z "$DEVICE" ] ; then
+    echo "No DINAH USB sound device found"
+else
+    echo "Found DINAH USB device"
+    bfoundDINAH="true"
+fi
+
+if [ "$bfoundUDRC" = "false" ] && [ "$bfoundDINAH" = "false" ] ; then
+    echo "No soundcard devices found, exiting"
     exit
 fi
 
