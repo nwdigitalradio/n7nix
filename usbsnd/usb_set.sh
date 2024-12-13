@@ -505,18 +505,25 @@ function edit_cfg() {
 # ===== function parse_direwolf_config
 #
 parse_direwolf_config() {
-    numchan=$(grep "^ACHANNELS"  $DIREWOLF_CFGFILE | cut -d' ' -f2)
-    if [ $numchan -eq 1 ] ; then
-        echo "Setup for USB soundcard or split channels"
-    else
-        echo "Setup for DRAWS dual channel hat"
-    fi
-    audiodev=$(grep "^ADEVICE"  $DIREWOLF_CFGFILE | cut -d ' ' -f2)
-    echo "Audio device: $audiodev"
-    echo -n "PTT: "
-    grep -i "^PTT " $DIREWOLF_CFGFILE
 
-    grep -i "^MODEM" $DIREWOLF_CFGFILE
+    numchan=$(grep "^ACHANNELS"  $DIREWOLF_CFGFILE | cut -d' ' -f2)
+
+    # Check if direwolf.conf has been configured
+    if [ -z $numchan ] ; then
+        echo
+        echo "Direwolf NOT configured yet"
+    else
+        if [ "$numchan" -eq 1 ] ; then
+            echo "Setup for USB soundcard or split channels"
+        else
+            echo "Setup for DRAWS dual channel hat"
+        fi
+        audiodev=$(grep "^ADEVICE"  $DIREWOLF_CFGFILE | cut -d ' ' -f2)
+        echo "Audio device: $audiodev"
+        echo -n "PTT: "
+        grep -i "^PTT " $DIREWOLF_CFGFILE
+        grep -i "^MODEM" $DIREWOLF_CFGFILE
+    fi
 }
 
 # ===== function usage
