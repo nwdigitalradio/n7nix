@@ -169,6 +169,7 @@ function show_cfg() {
     echo
     echo " === Check port.conf file"
     CFILE="/usr/local/etc/ax25/port.conf"
+    grep -n -m1 "^Device=" $CFILE
     grep -n -m1 "^speed=" $CFILE
     grep -n -m1 "^receive_out=" $CFILE
 
