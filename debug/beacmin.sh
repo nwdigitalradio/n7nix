@@ -45,11 +45,13 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 function is_draws() {
     retval=1
     firmware_prod_idfile="/sys/firmware/devicetree/base/hat/product_id"
-    UDRC_ID="$(tr -d '\0' < $firmware_prod_idfile)"
-    #get last character in product id file
-    UDRC_ID=${UDRC_ID: -1}
-    if [ "$UDRC_ID" -eq 4 ] ; then
-        retval=0
+    if [ -e "$firmware_prod_idfile" ] ; then
+        UDRC_ID="$(tr -d '\0' < $firmware_prod_idfile)"
+        #get last character in product id file
+        UDRC_ID=${UDRC_ID: -1}
+        if [ "$UDRC_ID" -eq 4 ] ; then
+            retval=0
+        fi
     fi
     return $retval
 }
