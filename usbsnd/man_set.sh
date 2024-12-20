@@ -122,7 +122,47 @@ function set_direwolf() {
     grep "^MYCALL " $filename
 
     # Change IGLOGIN callsign
-#    sed -ie "0,/^IGLOGIN /s/^IGLOGIN /IGLOGIN $CALLSIGN $logincode/" $filename
+    # sed -ie "0,/^IGLOGIN /s/^IGLOGIN /IGLOGIN $CALLSIGN $logincode/" $filename
+
+    # Need to add:
+    #  ADEVICE plughw:CARD=Device,DEV=0
+    #  ARATE 48000
+    #  ACHANNELS 1
+    #  PTT CM108
+
+    grep "^ADEVICE" $filename
+    if [ $? -eq 0 ] ; then
+        echo "Found ADEVICE entry"
+    else
+        echo "Adding ADEVICE entry to direwolf config"
+        # sudo sed -i -e "0,/^Device=/ s/^Device=.*/Device=dinah/" $CFILE
+        # sed -i '/<pattern>/s/^#//g' file
+        # sudo sed -i -e "0,/^[#]*ADEVICE / s/^[#]*ADEVICE .*/ADEVICE plughw:CARD=Device,DEV=0\n/" $filename
+        sudo sed -i -e "0,/# ADEVICE / s/# ADEVICE .*/ADEVICE plughw:CARD=Device,DEV=0\n/" $filename
+    fi
+
+    grep "^ARATE"   $filename
+    if [ $? -eq 0 ] ; then
+        echo "Found ARATE entry"
+    else
+        echo "Adding ARATE entry to direwolf config after ADEVICE"
+        $SED -in '/^ADEVICE /a ARATE 48000' $filename
+    fi
+
+    grep "^ACHANNELS"   $filename
+    if [ $? -eq 0 ] ; then
+        echo "Found ACHANNELS entry"
+    else
+        echo "Adding ACHANNELS entry to direwolf config"
+        sudo sed -i -e "0,/# ACHANNELS / s/# ACHANNELS .*/ACHANNELS 1\n/" $filename
+    fi
+
+    # Comment out all PTT config lines
+    sudo sed -i 's/PTT*/# &/' $filename
+    echo "Adding PTT CM108 entry to direwolf config"
+
+    # Uncomment first occurrence of PTT CM108
+    sudo sed -i -e "/#PTT CM108 / s/^#//" $filename
 
     # Returns logincode variable set
 if [ 1 -eq 0 ] ; then
@@ -194,7 +234,6 @@ echo " === Creating $CFILE with callsign $CALLSIGN"
 create_ax25d
 
 set_direwolf
-
 
 pushd "$HOME/n7nix/direwolf"
 
