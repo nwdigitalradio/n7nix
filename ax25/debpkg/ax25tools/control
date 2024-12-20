@@ -4,7 +4,7 @@ Release: 1
 Section: hamradio
 Priority: optional
 Architecture: armhf
-Depends: libncursesw5-dev,libax25 (>= 1.0.0)
+Depends: libncursesw5-dev, libax25 (>= 1.2.2)
 Maintainer: Lee Woldanski <ve7fet@tparc.org>
 Description: Tools used to configure an ax.25 enabled computer
  User tools for AX.25 Amateur Radio applications.
