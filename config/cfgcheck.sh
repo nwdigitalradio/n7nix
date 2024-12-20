@@ -3,7 +3,7 @@
 # Test script for checking if 'app_config.sh core' has been run
 #
 DEBUG=
-VERSION="1.1"
+VERSION="1.2"
 scriptname="`basename $0`"
 
 UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
@@ -11,6 +11,21 @@ cfg_script_name="app_config.sh core"
 CFG_FINISHED_MSG="app_config.sh: core config script FINISHED"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
+
+# ===== function check_4_tino
+# Check for TinoTNC
+# Sets variable $DEVICE
+
+function check_4_tino() {
+
+    DEVICE=
+
+    # Bus 001 Device 005: ID 04d8:00dd Microchip Technology, Inc. MCP2221(a) UART/I2C Bridge
+    lsusb | grep -q -i "MCP2221" > /dev/null
+    if [ "$?" -eq 0 ] ; then
+        DEVICE="tino"
+    fi
+}
 
 # ===== function check_4_dinah
 # Sets variable $DEVICE
@@ -103,6 +118,36 @@ function is_hostname() {
     return $retcode
 }
 
+# ===== function is_logappcfg
+# Has there been a log file entry for app_config.sh core script?
+
+function is_logappcfg() {
+    retcode=1
+
+    dbgecho " === Verify log file entry for app_config.sh core"
+    if [ -e "$UDR_INSTALL_LOGFILE" ] ; then
+        grep -i "$CFG_FINISHED_MSG" "$UDR_INSTALL_LOGFILE" > /dev/null 2>&1
+        retcode="$?"
+        if [ "$retcode" ] ; then
+            dbgecho "Found log file entery for $CFG_FINISHED_MSG"
+        else
+            dbgecho "NO log file entery for $CFG_FINISHED_MSG"
+        fi
+    else
+        echo "File: $UDR_INSTALL_LOGFILE does not exist"
+    fi
+    dbgecho "is_logappcfg ret: $retcode"
+
+    initcfg_cnt=$(grep -i initcfg /var/log/udr_install.log | rev | cut -f2 -d' ' | tail -n 1)
+    if [ -z "$initcfg_cnt" ] ; then
+        echo "-- initcfg script has NOT been run"
+    else
+        echo "-- initcfg script has been run $initcfg_cnt time(s)."
+    fi
+    ret_logappcfg=$retcode
+    return $retcode
+}
+
 # ===== function is_password
 # Has password already been changed?
 
@@ -141,34 +186,45 @@ function is_password() {
     return $retcode
 }
 
-# ===== function is_logappcfg
-# Has there been a log file entry for app_config.sh core script?
+# ===== function check_passwd
 
-function is_logappcfg() {
-    retcode=1
+function check_passwd() {
 
-    dbgecho " === Verify log file entry for app_config.sh core"
-    if [ -e "$UDR_INSTALL_LOGFILE" ] ; then
-        grep -i "$CFG_FINISHED_MSG" "$UDR_INSTALL_LOGFILE" > /dev/null 2>&1
-        retcode="$?"
-        if [ "$retcode" ] ; then
-            dbgecho "Found log file entery for $CFG_FINISHED_MSG"
+    GREPCMD="grep -i"
+
+    if [ ! -r /etc/shadow ] ; then
+        # Need to elevate permissions
+        GREPCMD="sudo grep -i"
+    fi
+
+    # Debian 11 and newer uses yescript instead of sha-512
+    # 6 = sha-512
+    # y = yescrypt
+
+    encrypt_type=$($GREPCMD "pi" /etc/shadow | cut -f2 -d '$')
+
+    dbgecho "DEBUG: encrypt_type: $encrypt_type"
+    if [ "$encrypt_type" = 6 ] ; then
+        dbgecho " === Verify current password"
+
+        if is_hostname && is_password && is_logappcfg ; then
+            echo "-- $cfg_script_name script has ALREADY been run"
         else
-            dbgecho "NO log file entery for $CFG_FINISHED_MSG"
+            # This sets the return code for the other checks in case conditional failed on is_hostname
+            is_password
+            is_logappcfg
+            echo "-- $cfg_script_name script has NOT been run: hostname: $ret_hostname, passwd: $ret_password, logfile: $ret_logappcfg"
         fi
     else
-        echo "File: $UDR_INSTALL_LOGFILE does not exist"
+        echo "Password file is using something other than sha-512 encryption, NO password check done"
+        if is_hostname && is_logappcfg ; then
+            echo "-- $cfg_script_name script has ALREADY been run"
+        else
+            # This sets the return code for the other checks in case conditional failed on is_hostname
+            is_logappcfg
+            echo "-- $cfg_script_name script has NOT been run: hostname: $ret_hostname, passwd: $ret_password, logfile: $ret_logappcfg"
+        fi
     fi
-    dbgecho "is_logappcfg ret: $retcode"
-
-    initcfg_cnt=$(grep -i initcfg /var/log/udr_install.log | rev | cut -f2 -d' ' | tail -n 1)
-    if [ -z "$initcfg_cnt" ] ; then
-        echo "-- initcfg script has NOT been run"
-    else
-        echo "-- initcfg script has been run $initcfg_cnt time(s)."
-    fi
-    ret_logappcfg=$retcode
-    return $retcode
 }
 
 # ===== main
@@ -210,42 +266,18 @@ else
     echo "Found DINAH USB device"
 fi
 
+# Check for a TinoTNC
+check_4_tino
+if [ -z "$DEVICE" ] ; then
+    echo "No tino TNC found"
+else
+    echo "Found tinoTNC USB serial port"
+fi
+
 # Check bootcfg file for correct DT overlay loaded
 # Uses prod_id set from product_id file /proc/device-tree/hat
 check_dtoverlay
 
-GREPCMD="grep -i"
 
-if [ ! -r /etc/shadow ] ; then
-    # Need to elevate permissions
-    GREPCMD="sudo grep -i"
-fi
+# check_passwd
 
-# Debian 11 and newer uses yescript instead of sha-512
-# 6 = sha-512
-# y = yescrypt
-
-encrypt_type=$($GREPCMD "pi" /etc/shadow | cut -f2 -d '$')
-
-dbgecho "DEBUG: encrypt_type: $encrypt_type"
-if [ "$encrypt_type" = 6 ] ; then
-    dbgecho " === Verify current password"
-
-    if is_hostname && is_password && is_logappcfg ; then
-        echo "-- $cfg_script_name script has ALREADY been run"
-    else
-        # This sets the return code for the other checks in case conditional failed on is_hostname
-        is_password
-        is_logappcfg
-        echo "-- $cfg_script_name script has NOT been run: hostname: $ret_hostname, passwd: $ret_password, logfile: $ret_logappcfg"
-    fi
-else
-    echo "Password file is using something other than sha-512 encryption, NO password check done"
-    if is_hostname && is_logappcfg ; then
-        echo "-- $cfg_script_name script has ALREADY been run"
-    else
-        # This sets the return code for the other checks in case conditional failed on is_hostname
-        is_logappcfg
-        echo "-- $cfg_script_name script has NOT been run: hostname: $ret_hostname, passwd: $ret_password, logfile: $ret_logappcfg"
-    fi
-fi
