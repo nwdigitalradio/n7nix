@@ -10,6 +10,10 @@ UDR_INSTALL_LOGFILE="/var/log/udr_install.log"
 cfg_script_name="app_config.sh core"
 CFG_FINISHED_MSG="app_config.sh: core config script FINISHED"
 
+bFoundUDRC="false"
+bFoundDINAH="false"
+bFoundTinoTNC="false"
+
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function check_4_tino
@@ -44,13 +48,18 @@ function check_4_dinah() {
 # ===== function check udrc enumeration
 
 function check_udrc() {
+
+    DEVICE=
     retcode=1
+
     CARDNO=$(aplay -l | grep -i udrc)
 
     if [ ! -z "$CARDNO" ] ; then
         dbgecho "udrc card number line: $CARDNO"
         CARDNO=$(echo $CARDNO | cut -d ' ' -f2 | cut -d':' -f1)
         echo "UDRC is sound card #$CARDNO"
+	DEVICE="udrc"
+	bFoundUDRC="true"
         retcode=0
     else
 	echo "$(tput setaf 1)$(tput bold) == No UDRC/DRAWS sound card found. $(tput sgr0)"
@@ -258,6 +267,12 @@ else
     echo "No RPi hat found"
 fi
 
+if [ "$bFoundUDRC" = "true" ] ; then
+    # Check bootcfg file for correct DT overlay loaded
+    # Uses prod_id set from product_id file /proc/device-tree/hat
+    check_dtoverlay
+fi
+
 # Check for a DINAH USB sound device
 check_4_dinah
 if [ -z "$DEVICE" ] ; then
@@ -274,10 +289,4 @@ else
     echo "Found tinoTNC USB serial port"
 fi
 
-# Check bootcfg file for correct DT overlay loaded
-# Uses prod_id set from product_id file /proc/device-tree/hat
-check_dtoverlay
-
-
 # check_passwd
-
