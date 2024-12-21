@@ -210,7 +210,6 @@ if [[ $EUID == 0 ]] ; then
    exit 1
 fi
 
-
 PROGRAM_LIST="ax25apps ax25tools libax25"
 for prog_name in $PROGRAM_LIST ; do
     if [ -e "$SRC_DIR"/$prog_name ] ; then
@@ -234,23 +233,22 @@ libdir="libax25"
 cd $SRC_DIR
 
 if [ 1 -eq 0 ] ; then
-# Change name of diretory
-if [ ! -d "ax25apps_${ax25apps_ver}-1" ] ; then
-    mv ax25apps "ax25apps_${ax25apps_ver}-1"
-fi
-if [ ! -d "ax25tools_${ax25tools_ver}-1" ] ; then
-    mv ax25tools "ax25tools_${ax25tools_ver}-1"
-fi
-if [ ! -d "libax25_${libax25_ver}-1" ] ; then
-    mv libax25 "libax25_${libax25_ver}-1"
-fi
-libdir=libax25_${libax25_ver}-1
-
+    # Change name of diretory
+    if [ ! -d "ax25apps_${ax25apps_ver}-1" ] ; then
+        mv ax25apps "ax25apps_${ax25apps_ver}-1"
+    fi
+    if [ ! -d "ax25tools_${ax25tools_ver}-1" ] ; then
+        mv ax25tools "ax25tools_${ax25tools_ver}-1"
+    fi
+    if [ ! -d "libax25_${libax25_ver}-1" ] ; then
+        mv libax25 "libax25_${libax25_ver}-1"
+    fi
+    libdir=libax25_${libax25_ver}-1
 fi
 
 bld_libax25
 bld_ax25apps
 bld_ax25tools
 
-echo "Look for .deb files in $SRC_DIR"
+echo "Display .deb files in $SRC_DIR"
 ls -al $SRC_DIR/*.deb
