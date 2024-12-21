@@ -3,13 +3,155 @@
 # Build debian packages for libax25, ax25apps, ax25tools
 scriptname="`basename $0`"
 user="pi"
-maintainer="gunn@beeble"
+maintainer="Lee Woldanski"
+HWARCH="armhf"
+SUFFIX="$pkgver-1_$HWARCH.deb"
+
 
 #SRC_DIR="/usr/local/src/ax25/linuxax25-master"
 SRC_DIR="/usr/local/src/linuxax25"
 PKGDIR="/home/$user/n7nix/ax25/debpkg/"
 
+# ===== function check_pkg_exists
+
+function check_pkg_exists() {
+
+    if [ -e $PKGDIR$PKGLONGNAME ] ; then
+       echo "Removing existing package: $PKGDIR$PKGLONGNAME"
+       rm "$PKGDIR$PKGLONGNAME"
+    fi
+
+    if [ -e $PKGDIR?$PKGLONGNAME ] ; then
+       echo "Found wierd name: $PKGDIR?$PKGLONGNAME - renaming"
+       mv $PKGDIR?$PKGLONGNAME $PKGDIR$PKGLONGNAME
+    fi
+
+    echo "Check if $PKGDIR$PKGLONGNAME was created"
+    ls -salt "$PKGDIR$PKGLONGNAME"
+    if [ $? -ne 0 ] ; then
+        ls "{$PKGDIR}*.deb"
+    fi
+}
+
+# ===== function make_deb_lib
+
+function make_deb_lib() {
+
+    pkgname="libax25"
+    pkgver="1.2.2"
+    SUFFIX="$pkgver-1_$HWARCH.deb"
+    PKGLONGNAME="${pkgname}_${SUFFIX}"
+
+    echo
+    echo " ===== Make $pkgname Debian package"
+    echo
+    pushd $SRC_DIR/$pkgname
+
+    echo
+    echo " == Make clean"
+    echo
+    make clean
+
+    # summary: ax25 library for hamradio applications
+
+    checkinstall -D --nodoc \
+--pkglicense=GPL2 \
+--requires="" \
+--maintainer=\""$maintainer"\" \
+--pkgname=$pkgname \
+--pkgversion="$pkgver"\
+--pakdir=$PKGDIR \
+--pkgarch=$HWARCH
+
+    make install
+
+    popd
+    check_pkg_exists
+}
+
+# ===== function make_deb_apps
+# Summary: AX.25 ham radio applications
+
+function make_deb_apps() {
+
+    pkgname="ax25apps"
+    pkgver="2.1.0"
+    SUFFIX="$pkgver-1_$HWARCH.deb"
+    PKGLONGNAME="$pkgname"_"$SUFFIX"
+
+    echo
+    echo " ===== Make $pkgname Debian package"
+    echo
+    pushd $SRC_DIR/$pkgname
+
+    echo
+    echo " == Make clean"
+    echo
+    make clean
+    rm etc/*.dist
+    #rm /usr/local/etc/ax25/*.conf.dist
+
+    # Summary: AX.25 ham radio applications
+
+    checkinstall -D --nodoc \
+--pkglicense=GPL2 \
+--requires="libax25 \(\>= 1.0.0\)" \
+--maintainer="$maintainer" \
+--pkgname=$pkgname \
+--pkgversion="$pkgver" \
+--pakdir=$PKGDIR \
+--pkgarch=$HWARCH
+
+    make install installconf
+
+    popd
+    check_pkg_exists
+}
+
+# ===== function make_deb_tools
+# Summary:  tools for AX.25 interface configurqation
+
+function make_deb_tools() {
+
+    pkgname="ax25tools"
+    pkgver="1.1.0"
+    SUFFIX="$pkgver-1_$HWARCH.deb"
+    PKGLONGNAME="$pkgname"_"$SUFFIX"
+
+    echo
+    echo " ===== Make $pkgname Debian package"
+    echo
+    pushd $SRC_DIR/$pkgname
+
+    echo
+    echo " == Make clean"
+    echo
+    make clean
+    rm etc/*.conf
+    rm /usr/local/etc/ax25/*.conf.dist
+
+    # Summary:  tools for AX.25 interface configuration
+
+    checkinstall -D --nodoc \
+--pkglicense=GPL2 \
+--requires="libax25 \(\>= 1.0.0\)" \
+--maintainer="$maintainer" \
+--pkgname=$pkgname \
+--pkgversion="$pkgver" \
+--pakdir=$PKGDIR \
+--pkgarch=$HWARCH
+
+    make install installconf
+
+    popd
+    check_pkg_exists
+}
+
 # ===== main
+
+echo
+echo "$(tput setaf 1)$(tput bold) NOTE: Should use script ax25_bldpkg.sh $(tput sgr0)"
+echo
 
 # Be sure we are running as root
 if (( `id -u` != 0 )); then
@@ -39,110 +181,8 @@ for prog_name in $PROGRAM_LIST ; do
     echo "Updating $prog_name to version: $vernum"
 done
 
-pkgname="libax25"
-pkgver="1.2.2"
-SUFFIX="$pkgver-1_armhf.deb"
-PKGLONGNAME="$pkgname"_"$SUFFIX"
+# make_deb_lib
 
-echo
-echo " ===== Make $pkgname Debian package"
-echo
-pushd $SRC_DIR/$pkgname
+# make_deb_apps
 
-echo
-echo " == Make clean"
-echo
-make clean
-
-# summary: ax25 library for hamradio applications
-
-checkinstall -D --nodoc \
---pkglicense=GPL2 \
---requires="" \
---maintainer="$maintainer" \
---pkgname=$pkgname \
---pkgversion="$pkgver"\
---pakdir=$PKGDIR \
-make install
-
-popd
-
-if [ -e $PKGDIR?$PKGLONGNAME ] ; then
-   echo "Found wierd name: $PKGDIR?$PKGLONGNAME - renaming"
-   mv $PKGDIR?$PKGLONGNAME $PKGDIR$PKGLONGNAME
-fi
-
-# Summary: AX.25 ham radio applications
-
-pkgname="ax25apps"
-pkgver="2.1.0"
-SUFFIX="$pkgver-1_armhf.deb"
-PKGLONGNAME="$pkgname"_"$SUFFIX"
-
-echo
-echo " ===== Make $pkgname Debian package"
-echo
-pushd $SRC_DIR/$pkgname
-
-echo
-echo " == Make clean"
-echo
-make clean
-rm etc/*.dist
-#rm /usr/local/etc/ax25/*.conf.dist
-
-# Summary: AX.25 ham radio applications
-
-checkinstall -D --nodoc \
---pkglicense=GPL2 \
---requires="libax25 \(\>= 1.0.0\)" \
---maintainer="$maintainer" \
---pkgname=$pkgname \
---pkgversion="$pkgver" \
---pakdir=$PKGDIR \
-make install installconf
-
-popd
-
-if [ -e $PKGDIR?$PKGLONGNAME ] ; then
-   echo "Found wierd name: $PKGDIR?$PKGLONGNAME - renaming"
-   mv $PKGDIR?$PKGLONGNAME $PKGDIR$PKGLONGNAME
-fi
-
-# Summary:  tools for AX.25 interface configurqation
-
-pkgname="ax25tools"
-pkgver="1.1.0"
-SUFFIX="$pkgver-1_armhf.deb"
-PKGLONGNAME="$pkgname"_"$SUFFIX"
-
-echo
-echo " ===== Make $pkgname Debian package"
-echo
-pushd $SRC_DIR/$pkgname
-
-echo
-echo " == Make clean"
-echo
-make clean
-rm etc/*.conf
-rm /usr/local/etc/ax25/*.conf.dist
-
-
-# Summary:  tools for AX.25 interface configuration
-
-checkinstall -D --nodoc \
---pkglicense=GPL2 \
---requires="libax25 \(\>= 1.0.0\)" \
---maintainer="$maintainer" \
---pkgname=$pkgname \
---pkgversion="$pkgver" \
---pakdir=$PKGDIR \
-make install installconf
-
-popd
-
-if [ -e $PKGDIR?$PKGLONGNAME ] ; then
-   echo "Found wierd name: $PKGDIR?$PKGLONGNAME - renaming"
-   mv $PKGDIR?$PKGLONGNAME $PKGDIR$PKGLONGNAME
-fi
+make_deb_tools
