@@ -168,10 +168,10 @@ function show_cfg() {
     echo "id_check returned: $id_check_ret, port name: $PORTNAME_1"
     echo
     echo " === Check port.conf file"
-    CFILE="/usr/local/etc/ax25/port.conf"
-    grep -n -m1 "^Device=" $CFILE
-    grep -n -m1 "^speed=" $CFILE
-    grep -n -m1 "^receive_out=" $CFILE
+
+    grep -n -m1 "^Device=" $PORT_CFGFILE
+    grep -n -m1 "^speed=" $PORT_CFGFILE
+    grep -n -m1 "^receive_out=" $PORT_CFGFILE
 
     # Get callsign
     echo
@@ -370,7 +370,7 @@ function set_speed() {
 }
 
 # ===== function config_port
-# Edit /usr/local/etc/ax25/port.conf file for speed parameter
+# Edit /usr/local/etc/ax25/port.conf file for DEVICE type & speed parameter
 
 function config_port() {
 
