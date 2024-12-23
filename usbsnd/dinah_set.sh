@@ -1,6 +1,7 @@
 #!/bin/bash
 #
 # Manually create config files for DINAH:
+#  Use if there has been NO initial UDRC or DRAWS hat install
 #
 #  /usr/local/etc/ax25
 #    port.conf - verify contents
@@ -210,7 +211,7 @@ echo "CALLSIGN set to: $CALLSIGN"
     echo "DEVICE2: $DEVICE"
     # Replace udr device with dinah
     if [ $DEVICE = "udr" ] ; then
-        echo "Found device udr"
+        echo "Found device udr, reseting to dinah"
         sudo sed -i -e "0,/^Device=/ s/^Device=.*/Device=dinah/" $CFILE
         if [ "$?" -ne 0 ] ; then
             echo "sed failed with var: Device in file: $CFILE"
