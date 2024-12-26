@@ -16,8 +16,17 @@ bFoundTinoTNC="false"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
+
 # ===== function check_4_tino
 # Check for TinoTNC
+#
+# The USB devices which are FTDI (NinoTNC V1-SMT, A1 and A2) will show
+# up in the device directory, /dev, as /dev/ttyUSB0, /dev/ttyUSB1, etc.
+#
+# The USB devices which are Microchip MCP2221 (NinoTNC A3 and later)
+# will show up in the device directory, /dev, as /dev/ttyACM0,
+# /dev/ttyACM1, etc.
+#
 # Sets variable $DEVICE
 
 function check_4_tino() {
@@ -25,7 +34,7 @@ function check_4_tino() {
     DEVICE=
 
     # Bus 001 Device 005: ID 04d8:00dd Microchip Technology, Inc. MCP2221(a) UART/I2C Bridge
-    lsusb | grep -q -i "MCP2221" > /dev/null
+    lsusb | grep -q -i "MCP2221(a)" > /dev/null
     if [ "$?" -eq 0 ] ; then
         DEVICE="tino"
     fi
@@ -247,27 +256,25 @@ fi
 # Verify UDRC device is enumerated
 echo "$(tput setaf 6) == Verify UDRC/DRAWS sound card device$(tput sgr0)"
 check_udrc
-if [ $? -eq 1 ] ; then
-    echo "No UDRC sound card enumerated by kernel driver"
-fi
+if [ $? -eq 0 ] ; then
 
-# Check vendor name & HAT product id
-prod_id=0
-echo "== Device tree hat check:"
-if [ -d "/proc/device-tree/hat" ] ; then
+    ## Found some UDRC device
+    # Check vendor name & HAT product id
+    prod_id=0
+    echo "== Device tree hat check:"
+    if [ -d "/proc/device-tree/hat" ] ; then
 
-    dtree_vendorfile="/proc/device-tree/hat/vendor"
-    vendor="$(tr -d '\0' < $dtree_vendorfile)"
+        dtree_vendorfile="/proc/device-tree/hat/vendor"
+        vendor="$(tr -d '\0' < $dtree_vendorfile)"
 
-    dtree_prodidfile="/proc/device-tree/hat/product_id"
-    prod_id="$(tr -d '\0' < $dtree_prodidfile)"
+        dtree_prodidfile="/proc/device-tree/hat/product_id"
+        prod_id="$(tr -d '\0' < $dtree_prodidfile)"
 
-    echo "Found an RPi hat from: $vendor, product id: $prod_id"
-else
-    echo "No RPi hat found"
-fi
+        echo "Found an RPi hat from: $vendor, product id: $prod_id"
+    else
+        echo "No RPi hat found"
+    fi
 
-if [ "$bFoundUDRC" = "true" ] ; then
     # Check bootcfg file for correct DT overlay loaded
     # Uses prod_id set from product_id file /proc/device-tree/hat
     check_dtoverlay
@@ -284,7 +291,7 @@ fi
 # Check for a TinoTNC
 check_4_tino
 if [ -z "$DEVICE" ] ; then
-    echo "No tino TNC found"
+    echo "No tinoTNC found"
 else
     echo "Found tinoTNC USB serial port"
 fi
