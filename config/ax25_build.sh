@@ -135,6 +135,12 @@ ldconfig
 
 # ===== main
 
+# Be sure we ARE running as root
+if [[ $EUID != 0 ]] ; then
+   echo "MUST be root"
+   exit 1
+fi
+
 install_build_tools
 
 echo " === Install libax25, ax25apps & ax25tools"
