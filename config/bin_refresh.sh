@@ -8,6 +8,8 @@
 
 scriptname="`basename $0`"
 
+mach_hardware=
+
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function get_user
@@ -41,6 +43,48 @@ function check_user() {
 
    dbgecho "using USER: $USER"
 }
+
+
+# ==== function get_mach_hardware
+# Set variable $suffix to either amd64, armhf or arm64
+
+function get_mach_hardware() {
+    # For RPi 32 bit
+    # pat_0.15.0_linux_armhf.deb (Raspberry Pi 32-bit)
+    #
+    # For 64 bit Intel
+    # pat_0.15.0_linux_amd64.deb
+
+    # uname -m
+    # x86_64
+    # armv7l
+    # aarch64
+
+    mach_hardware="$(uname -m)"
+
+    suffix=
+    case $mach_hardware in
+
+        "x86_64")
+            suffix="amd64"
+        ;;
+        "armv7l")
+            suffix="armhf"
+        ;;
+        "aarch64")
+            suffix="arm64"
+        ;;
+        *)
+            suffix="unknown"
+            echo "Undefined machine hardware: $mach_hardware, exiting."
+	    exit 1
+        ;;
+    esac
+
+    echo "machine architecture: $mach_hardware, suffix: $suffix"
+}
+
+
 
 # ===== function CopyAX25Files
 
@@ -161,6 +205,9 @@ USERLIST="$(echo $USERLIST | tr '\n' ' ')"
 get_user
 check_user
 
+# Set variable "mach_hardware"
+get_mach_hardware
+
 echo
 echo "$(tput setaf 6) == Updating n7nix repo$(tput sgr0)"
 
@@ -179,13 +226,16 @@ cd $userbindir
 ax25bindir="/usr/local/etc/ax25"
 CopyAX25Files
 
-# Check if DRAWS sensor config file needs updating
-program_name="/home/$USER/bin/sensor_update.sh"
-type -P "$program_name"  &>/dev/null
-if [ $? -eq 0 ] ; then
-    echo "script: ${program_name} found"
-    # Assumes not running as root
-    sudo -u "$USER" $program_name
-else
-    echo -e "\n\t$(tput setaf 1)Script: ${program_name} NOT installed for user: $(whoami) $(tput setaf 7)\n"
-fi
+# Only check sensors if running on an RPi
+if [ "$mach_hardware" = "armv7l" ] || [ "$mach_hardware" = "aarch64" ] ; then
+    # Check if DRAWS sensor config file needs updating
+    program_name="/home/$USER/bin/sensor_update.sh"
+    type -P "$program_name"  &>/dev/null
+    if [ $? -eq 0 ] ; then
+        echo "script: ${program_name} found"
+        # Assumes not running as root
+        sudo -u "$USER" $program_name
+    else
+        echo -e "\n\t$(tput setaf 1)Script: ${program_name} NOT installed for user: $(whoami) $(tput setaf 7)\n"
+    fi
+fi  # end machine hardware check
