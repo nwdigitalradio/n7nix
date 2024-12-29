@@ -192,7 +192,9 @@ if [[ $EUID != 0 ]] ; then
 fi
 
 if [ ! -f "/etc/ax25/axports" ] && [ ! -f "$AX25_CFGDIR/axports" ] ; then
-   echo "Need to install libax25, tools & apps"
+   echo
+   echo "axports file does not exist!"
+   echo "May need to install libax25, tools & apps"
    exit 1
 fi
 
