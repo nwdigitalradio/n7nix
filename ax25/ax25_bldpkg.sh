@@ -13,7 +13,7 @@ build_ax25tools=true
 ax25apps_ver="2.1.0"
 ax25tools_ver="1.1.0"
 libax25_ver="1.2.2"
-arch="armhf"
+arch="$(uname -m)"
 
 
 # ===== function bld_libax25
@@ -106,7 +106,7 @@ if [ -d "$appsdir" ] ; then
     # /usr/bin/install: cannot create regular file '/usr/local/etc/ax25/ax25ipd.conf.dist': File exists
     filename0='/usr/local/etc/ax25/ax25ipd.conf.dist'
     filename1='/usr/local/etc/ax25/ax25ipd.conf'
-    if [ -e $filename0 ] || [ -e $filename1 ]] ; then
+    if [ -e "$filename0" ] || [ -e "$filename1" ]] ; then
         echo "Removing $filename0 && $filename1"
         sudo rm "$filename0" "$filename1"
     fi
@@ -114,7 +114,7 @@ if [ -d "$appsdir" ] ; then
     # /usr/bin/install: cannot create regular file '/usr/local/etc/ax25/ax25mond.conf.dist': File exists
     filename0='/usr/local/etc/ax25/ax25mond.conf.dist'
     filename1='/usr/local/etc/ax25/ax25mond.conf'
-    if [ -e $filename0 ] || [ -e $filename1 ]] ; then
+    if [ -e "$filename0" ] || [ -e "$filename1" ]] ; then
         echo "Removing $filename0 && $filename1"
         sudo rm "$filename0" "$filename1"
     fi
@@ -122,7 +122,7 @@ if [ -d "$appsdir" ] ; then
     # /usr/bin/install: cannot create regular file '/usr/local/etc/ax25/ax25rtd.conf.dist': File exists
     filename0='/usr/local/etc/ax25/ax25rtd.conf.dist'
     filename1='/usr/local/etc/ax25/ax25rtd.conf'
-    if [ -e $filename0 ] || [ -e $filename1 ]] ; then
+    if [ -e "$filename0" ] || [ -e "$filename1" ]] ; then
         echo "Removing $filename0 && $filename1"
         sudo rm "$filename0" "$filename1"
     fi
@@ -209,6 +209,10 @@ if [[ $EUID == 0 ]] ; then
    echo "Must NOT be root"
    exit 1
 fi
+
+echo
+echo "Building libax25, ax25apps & ax25tools for machine arch $arch"
+echo
 
 PROGRAM_LIST="ax25apps ax25tools libax25"
 for prog_name in $PROGRAM_LIST ; do
