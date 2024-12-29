@@ -291,9 +291,15 @@ fi
 # Check for a TinoTNC
 check_4_tino
 if [ -z "$DEVICE" ] ; then
-    echo "No tinoTNC found"
+    echo "No tinoTNC USB device found"
 else
-    echo "Found tinoTNC USB serial port"
+    echo "Found tinoTNC USB device"
+    ls -l /dev | grep -q -e "ttyACM*"
+    if [ "$?" -eq 0 ] ; then
+        echo "Found tinoTNC Serial device"
+    else
+        echo "TinoTNC Serial device NOT found"
+    fi
 fi
 
 # check_passwd
