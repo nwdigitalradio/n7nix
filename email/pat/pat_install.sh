@@ -362,7 +362,7 @@ function get_mach_hardware() {
         ;;
         *)
             suffix="unknown"
-            echo "Undefined machine hardware, exiting."
+            echo "Undefined machine hardware: $mach_hardware, exiting."
 	    exit 1
         ;;
     esac
