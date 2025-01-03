@@ -358,7 +358,13 @@ function get_mach_hardware() {
             suffix="armhf"
         ;;
         "aarch64")
-            suffix="arm64"
+	# NOTE: arm64 architecture will not work for this package
+	#  Use 32 bit version
+        #   suffix="arm64"
+	    echo
+	    echo "NOTE: 64 bit arch does NOT work, forcing 32 bit arch"
+	    echo
+            suffix="armhf"
         ;;
         *)
             suffix="unknown"
@@ -368,6 +374,28 @@ function get_mach_hardware() {
     esac
 
     echo "machine architecture: $mach_hardware, suffix: $suffix"
+}
+
+# ===== function download_pat
+# Downloads current PAT deb file & installs it
+function download_pat() {
+    # Allow a way to test without having to do a download of the deb
+    # file each time. No download is done if DEBUG flag is defined
+
+    get_mach_hardware
+
+    if [ -z "$SPECIAL_DEBUG" ] ; then
+        wget https://github.com/la5nta/pat/releases/download/v${pat_ver}/pat_${pat_ver}_linux_${suffix}.deb
+        if [ $?  -ne 0 ] ; then
+            echo "Failed getting pat deb file ... exiting"
+            exit 1
+        fi
+    else
+        echo "DEBUG flag set so no download of a fresh Debian install file."
+    fi
+    echo " == Installing pat ver: $pat_ver"
+    sudo dpkg -i pat_${pat_ver}_linux_${suffix}.deb
+    dbgecho "DEBUG: install check: $(which pat)"
 }
 
 # ===== function install_pat
@@ -384,26 +412,15 @@ function install_pat() {
 
     if [ "$pat_ver" == "$installed_pat_ver" ] ; then
         echo "Installed PAT version: $installed_pat_ver is current."
-    else
-        echo " == Downloading pat ver: $pat_ver"
-
-        # Allow a way to test without having to do a download of the deb
-        # file each time. No download is done if DEBUG flag is defined
-
-        get_mach_hardware
-
-        if [ -z "$SPECIAL_DEBUG" ] ; then
-            wget https://github.com/la5nta/pat/releases/download/v${pat_ver}/pat_${pat_ver}_linux_${suffix}.deb
-            if [ $?  -ne 0 ] ; then
-                echo "Failed getting pat deb file ... exiting"
-                exit 1
-            fi
-        else
-           echo "DEBUG flag set so no download of a fresh Debian install file."
+        # Check if FORCE flag has been set
+        if [ ! -z "$FORCE_INSTALL" ] ; then
+            echo " == Force downloading pat ver: $pat_ver"
+	    download_pat
         fi
-        echo " == Installing pat ver: $pat_ver"
-        sudo dpkg -i pat_${pat_ver}_linux_${suffix}.deb
-	dbgecho "DEBUG: install check: $(which pat)"
+    else
+        echo "Installed PAT version: $installed_pat_ver is different from current version: $pat_ver."
+        echo " == Downloading pat ver: $pat_ver"
+        download_pat
     fi
 
     dbgecho "DEBUG: check for desktop file"
@@ -554,11 +571,6 @@ if [ ! -z "$PAT_CONFIG_FILE" ] ; then
     fi
 
     if [ ! -z "$FORCE_INSTALL" ] ; then
-	exit_now=0
-    fi
-
-    # Check if exit_now flag has been set.
-    if [ "$exit_now" = 0 ] ; then
         echo
         echo "$(tput setaf 6)PAT config file DOES exist, installing PAT$(tput sgr0)"
         echo
