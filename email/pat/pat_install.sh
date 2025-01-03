@@ -27,9 +27,9 @@ SPECIAL_DEBUG=
 DEBUG=
 FORCE_INSTALL=
 
-PKG_REQUIRE="jq curl"
-
 scriptname="`basename $0`"
+
+AXPORTS_FILE="/etc/ax25/axports"
 
 PAT_CONFIG_FILE_1="${HOME}/.wl2k/config.json"
 # OR
@@ -37,6 +37,7 @@ PAT_CONFIG_FILE_2="${HOME}/.config/pat/config.json"
 
 PAT_CONFIG_FILE=
 
+PKG_REQUIRE="jq curl"
 
 PAT_DESKTOP_FILE="$HOME/Desktop/pat.desktop"
 
@@ -213,6 +214,7 @@ function display_status() {
             echo "Winlink login password: $login_password"
             echo "Maidenhead locator: $MaidenHead_locator"
 	fi
+	display_pat_ax25_port
     else
         echo
 	echo "PAT config file does not exist"
@@ -245,6 +247,35 @@ EOT
         echo
         echo " Running as root so PAT desktop file not created"
     fi
+}
+
+# ===== function get_pat_ax25_port
+
+function get_pat_ax25_port() {
+
+    port_used=$(grep -A 1 "ax25" $PAT_CONFIG_FILE | grep -i port | cut -f2 -d':' | cut -f1 -d',' | sed -e 's/^[[:space:]]*//')
+    # remove leading whitespace characters
+#    port_used="${port_used#"${port_used%%[![:space:]]*}"}"
+
+    #Remove surronding quotes
+    pat_port_used="${port_used%\"}"
+    pat_port_used="${pat_port_used#\"}"
+}
+
+# ===== function display_pat_ax25_port
+
+function display_pat_ax25_port() {
+    # Display ax25 portname from axports file
+    # Assume axports was set by a previous configuration script
+
+    axports_port=$(tail -2 $AXPORTS_FILE | cut -d ' ' -f 1 | head -n 1)
+    echo "AX.25 port name from axports file: $axports_port"
+
+    # Display ax25 portname in PAT configuration file
+
+    get_pat_ax25_port
+    echo "AX.25 port name from PAT config file: $pat_port_used"
+
 }
 
 # ===== function pat_config_file_edit
